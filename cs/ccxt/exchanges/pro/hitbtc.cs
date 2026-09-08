@@ -97,10 +97,10 @@ public partial class hitbtc : ccxt.hitbtc
         if (isTrue(isEqual(authenticated, null)))
         {
             Int64 timestamp = this.milliseconds();
-            object timestampString = this.numberToString(timestamp);
+            string? timestampString = this.numberToString(timestamp);
             object timestampEncoded = ((bool) isTrue((isEqual(timestampString, null)))) ? "" : timestampString;
             string signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256, "hex");
-            object request = new Dictionary<string, object>() {
+            Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "method", "login" },
                 { "params", new Dictionary<string, object>() {
                     { "type", "HS256" },
@@ -132,7 +132,7 @@ public partial class hitbtc : ccxt.hitbtc
         symbols = this.marketSymbols(symbols);
         bool isBatch = isGreaterThanOrEqual(getIndexOf(name, "batch"), 0);
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object messageHashes = new List<object>() {};
+        List<object> messageHashes = new List<object>() {};
         if (isTrue(isTrue(!isEqual(symbols, null)) && !isTrue(isBatch)))
         {
             for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
@@ -143,7 +143,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             ((IList<object>)messageHashes).Add(messageHashPrefix);
         }
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "id", this.nonce() },
             { "ch", name },
@@ -174,7 +174,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             messageHash = add(add(messageHash, "::"), symbol);
         }
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },
             { "id", this.nonce() },
@@ -198,7 +198,7 @@ public partial class hitbtc : ccxt.hitbtc
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
         string messageHash = ((object)this.nonce()).ToString();
-        object subscribe = new Dictionary<string, object>() {
+        Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "method", name },
             { "params", parameters },
             { "id", messageHash },
@@ -227,7 +227,7 @@ public partial class hitbtc : ccxt.hitbtc
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "watchOrderBook");
-        object defaultMethod = this.safeString(options, "method", "orderbook/full");
+        string? defaultMethod = this.safeString(options, "method", "orderbook/full");
         object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
         object depth = this.safeString(parameters, "depth", "20");
         object speed = this.safeString(parameters, "depth", "100");
@@ -239,7 +239,7 @@ public partial class hitbtc : ccxt.hitbtc
             name = add(add(add(add("orderbook/D", depth), "/"), speed), "ms/batch");
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
@@ -275,7 +275,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object snapshot = this.safeDict(message, "snapshot");
         object data = this.safeDict2(message, "snapshot", "update", new Dictionary<string, object>() {});
-        object type = ((bool) isTrue((isTrue(!isEqual(snapshot, null)) && isTrue(!isEqual(snapshot, null))))) ? "snapshot" : "update";
+        string type = ((bool) isTrue((isTrue(!isEqual(snapshot, null)) && isTrue(!isEqual(snapshot, null))))) ? "snapshot" : "update";
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -287,12 +287,12 @@ public partial class hitbtc : ccxt.hitbtc
             if (!isTrue((inOp(this.orderbooks, symbol))))
             {
                 object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
-                object limit = this.safeInteger(subscription, "limit");
+                Int64? limit = this.safeInteger(subscription, "limit");
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
             }
             object orderbook = getValue(this.orderbooks, symbol);
-            object timestamp = this.safeInteger(item, "t");
-            object nonce = this.safeInteger(item, "s");
+            Int64? timestamp = this.safeInteger(item, "t");
+            Int64? nonce = this.safeInteger(item, "s");
             if (isTrue(isEqual(type, "snapshot")))
             {
                 object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
@@ -368,14 +368,14 @@ public partial class hitbtc : ccxt.hitbtc
         }
         symbols = this.marketSymbols(symbols);
         object options = this.safeValue(this.options, "watchTicker");
-        object defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
-        object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-        object speed = this.safeString(parameters, "speed", "1s");
+        string? defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
+        string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+        string? speed = this.safeString(parameters, "speed", "1s");
         object name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
         parameters = this.omit(parameters, new List<object>() {"method", "speed"});
-        object marketIds = new List<object>() {};
+        List<object> marketIds = new List<object>() {};
         if (isTrue(isEqual(symbols, null)))
         {
             ((IList<object>)marketIds).Add("*");
@@ -390,7 +390,7 @@ public partial class hitbtc : ccxt.hitbtc
                 }
             }
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", marketIds },
             } },
@@ -400,7 +400,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             if (!isTrue(((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object tickers = new Dictionary<string, object>() {};
+                Dictionary<string, object> tickers = new Dictionary<string, object>() {};
                 ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
@@ -450,7 +450,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         string topic = "tickers";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -496,9 +496,9 @@ public partial class hitbtc : ccxt.hitbtc
         //        "q": "384081.1955629"
         //    }
         //
-        object timestamp = this.safeInteger(ticker, "t");
+        Int64? timestamp = this.safeInteger(ticker, "t");
         object symbol = this.safeSymbol(null, market);
-        object last = this.safeString(ticker, "c");
+        string? last = this.safeString(ticker, "c");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -543,15 +543,15 @@ public partial class hitbtc : ccxt.hitbtc
         }
         symbols = this.marketSymbols(symbols, null, false);
         object options = this.safeValue(this.options, "watchBidsAsks");
-        object defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
-        object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-        object speed = this.safeString(parameters, "speed", "100ms");
+        string? defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
+        string? method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+        string? speed = this.safeString(parameters, "speed", "100ms");
         object name = this.implodeParams(method, new Dictionary<string, object>() {
             { "speed", speed },
         });
         parameters = this.omit(parameters, new List<object>() {"method", "speed"});
         object marketIds = this.marketIds(symbols);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", marketIds },
             } },
@@ -561,7 +561,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             if (!isTrue(((newTickers is IList<object>) || (newTickers.GetType().IsGenericType && newTickers.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                object tickers = new Dictionary<string, object>() {};
+                Dictionary<string, object> tickers = new Dictionary<string, object>() {};
                 ((IDictionary<string,object>)tickers)[(string)getValue(newTickers, "symbol")] = newTickers;
                 return ccxt.BaseExchange.ToTickers(tickers);
             }
@@ -587,7 +587,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         string topic = "bidask";
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
@@ -605,7 +605,7 @@ public partial class hitbtc : ccxt.hitbtc
 
     public virtual object parseWsBidAsk(object ticker, object market = null)
     {
-        object timestamp = this.safeInteger(ticker, "t");
+        Int64? timestamp = this.safeInteger(ticker, "t");
         object bidAskSymbol = ((bool) isTrue((!isEqual(market, null)))) ? getValue(market, "symbol") : null;
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", bidAskSymbol },
@@ -639,7 +639,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
@@ -704,7 +704,7 @@ public partial class hitbtc : ccxt.hitbtc
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
-            object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             object symbol = getValue(market, "symbol");
             object stored = this.safeValue(this.trades, symbol);
             if (isTrue(isEqual(stored, null)))
@@ -726,15 +726,15 @@ public partial class hitbtc : ccxt.hitbtc
     public override object parseWsTrades(object trades, object market = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object tradesArray = this.toArray(trades);
-        object result = new List<object>() {};
+        IList<object> tradesArray = this.toArray(trades);
+        List<object> result = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
             Dictionary<string, object> trade = this.extend(this.parseWsTrade(getValue(tradesArray, i), market), parameters);
             ((IList<object>)result).Add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
-        object symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
@@ -749,7 +749,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        "s": "sell"               // Side
         //    }
         //
-        object timestamp = this.safeInteger(trade, "t");
+        Int64? timestamp = this.safeInteger(trade, "t");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "i") },
@@ -788,7 +788,7 @@ public partial class hitbtc : ccxt.hitbtc
         object period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object name = add("candles/", period);
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "params", new Dictionary<string, object>() {
                 { "symbols", new List<object>() {getValue(market, "id")} },
             } },
@@ -842,9 +842,9 @@ public partial class hitbtc : ccxt.hitbtc
         //
         object data = this.safeValue2(message, "snapshot", "update", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)data).Keys);
-        object channel = this.safeString(message, "ch", "");
+        string? channel = this.safeString(message, "ch", "");
         List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
-        object period = this.safeString(splitChannel, 1);
+        string? period = this.safeString(splitChannel, 1);
         object timeframe = this.findTimeframe(period);
         if (isTrue(isEqual(timeframe, null)))
         {
@@ -859,7 +859,7 @@ public partial class hitbtc : ccxt.hitbtc
             object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (isTrue(isEqual(stored, null)))
             {
-                object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCacheByTimestamp(limit);
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
@@ -999,7 +999,7 @@ public partial class hitbtc : ccxt.hitbtc
         //
         if (isTrue(isEqual(this.orders, null)))
         {
-            object limit = this.safeInteger(this.options, "ordersLimit");
+            Int64? limit = this.safeInteger(this.options, "ordersLimit");
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object data = this.safeValue(message, "params", new List<object>() {});
@@ -1024,8 +1024,8 @@ public partial class hitbtc : ccxt.hitbtc
         {
             return;
         }
-        object marketId = this.safeStringLower2(order, "instrument", "symbol");
-        object method = this.safeString(message, "method", "");
+        string? marketId = this.safeStringLower2(order, "instrument", "symbol");
+        string? method = this.safeString(message, "method", "");
         List<object> splitMethod = ((string)method).Split(new [] {((string)"_order")}, StringSplitOptions.None).ToList<object>();
         object messageHash = this.safeString(splitMethod, 0);
         object symbol = this.safeSymbol(marketId);
@@ -1063,8 +1063,8 @@ public partial class hitbtc : ccxt.hitbtc
         //        "report_type": "new"                          // "trade", "status" (snapshot)
         //    }
         //
-        object timestamp = this.safeInteger(trade, "created_at");
-        object marketId = this.safeString(trade, "symbol");
+        Int64? timestamp = this.safeInteger(trade, "created_at");
+        string? marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", this.safeString(trade, "trade_id") },
@@ -1114,18 +1114,18 @@ public partial class hitbtc : ccxt.hitbtc
         //        "report_type": "new"                          // "trade", "status" (snapshot)
         //    }
         //
-        object timestamp = this.safeString(order, "created_at");
-        object marketId = this.safeString(order, "symbol");
+        string? timestamp = this.safeString(order, "created_at");
+        string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object tradeId = this.safeString(order, "trade_id");
+        string? tradeId = this.safeString(order, "trade_id");
         object trades = null;
         if (isTrue(!isEqual(tradeId, null)))
         {
             object trade = this.parseWsOrderTrade(order, market);
             trades = new List<object>() {trade};
         }
-        object rawStatus = this.safeString(order, "status");
-        object report_type = this.safeString(order, "report_type");
+        string? rawStatus = this.safeString(order, "status");
+        string? report_type = this.safeString(order, "report_type");
         object parsedStatus = null;
         if (isTrue(isEqual(report_type, "canceled")))
         {
@@ -1188,9 +1188,9 @@ public partial class hitbtc : ccxt.hitbtc
             { "swap", "futures_balance_subscribe" },
             { "future", "futures_balance_subscribe" },
         });
-        object mode = this.safeString(parameters, "mode", "batches");
+        string? mode = this.safeString(parameters, "mode", "batches");
         parameters = this.omit(parameters, "mode");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "mode", mode },
         };
         return ccxt.BaseExchange.ToBalances(await this.subscribePrivate(name, null, this.extend(request, parameters)));
@@ -1271,7 +1271,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         object market = null;
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", id },
         };
         if (isTrue(!isEqual(symbol, null)))
@@ -1365,7 +1365,7 @@ public partial class hitbtc : ccxt.hitbtc
             await this.loadMarkets();
         }
         object market = null;
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -1408,7 +1408,7 @@ public partial class hitbtc : ccxt.hitbtc
         //        ]
         //    }
         //
-        object messageHash = this.safeString(message, "method");
+        string? messageHash = this.safeString(message, "method");
         object parameters = this.safeValue(message, "params");
         object balance = this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
@@ -1452,11 +1452,11 @@ public partial class hitbtc : ccxt.hitbtc
         //        "id": 1700233093414
         //    }
         //
-        object messageHash = this.safeString(message, "id");
+        string? messageHash = this.safeString(message, "id");
         object result = this.safeValue(message, "result", new Dictionary<string, object>() {});
         if (isTrue(((result is IList<object>) || (result.GetType().IsGenericType && result.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            object parsedOrders = new List<object>() {};
+            List<object> parsedOrders = new List<object>() {};
             for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object parsedOrder = this.parseWsOrder(getValue(result, i));
@@ -1477,20 +1477,20 @@ public partial class hitbtc : ccxt.hitbtc
         {
             return;
         }
-        object channel = this.safeString2(message, "ch", "method");
+        string? channel = this.safeString2(message, "ch", "method");
         if (isTrue(!isEqual(channel, null)))
         {
             List<object> splitChannel = ((string)channel).Split(new [] {((string)"/")}, StringSplitOptions.None).ToList<object>();
             channel = this.safeString(splitChannel, 0);
             if (isTrue(isEqual(channel, "orderbook")))
             {
-                object channel2 = this.safeString(splitChannel, 1);
+                string? channel2 = this.safeString(splitChannel, 1);
                 if (isTrue(isTrue(!isEqual(channel2, null)) && isTrue(isEqual(channel2, "top"))))
                 {
                     channel = "orderbook/top";
                 }
             }
-            object methods = new Dictionary<string, object>() {
+            Dictionary<string, object> methods = new Dictionary<string, object>() {
                 { "candles", this.handleOHLCV },
                 { "ticker", this.handleTicker },
                 { "trades", this.handleTrades },
@@ -1513,7 +1513,7 @@ public partial class hitbtc : ccxt.hitbtc
         } else
         {
             object result = this.safeValue(message, "result");
-            object clientOrderId = this.safeString(result, "client_order_id");
+            string? clientOrderId = this.safeString(result, "client_order_id");
             if (isTrue(!isEqual(clientOrderId, null)))
             {
                 this.handleOrderRequest(client as WebSocketClient, message);
@@ -1580,7 +1580,7 @@ public partial class hitbtc : ccxt.hitbtc
             try
             {
                 object code = this.safeValue(error, "code");
-                object errorMessage = this.safeString(error, "message");
+                string? errorMessage = this.safeString(error, "message");
                 object description = this.safeString(error, "description");
                 object feedback = add(add(this.id, " "), description);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
@@ -1598,7 +1598,7 @@ public partial class hitbtc : ccxt.hitbtc
                     }
                 } else
                 {
-                    object id = this.safeString(message, "id");
+                    string? id = this.safeString(message, "id");
                     ((WebSocketClient)client).reject(e, id);
                 }
                 return true;

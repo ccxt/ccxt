@@ -19,6 +19,8 @@ public class TestInit extends BaseTest
             (new TestExtend()).testExtend();
             (new TestDeepExtend()).testDeepExtend();
             (new TestCryptography()).testCryptography();
+            (new TestBase58ToBinary()).testBase58ToBinary();
+            (new TestBinaryToBase58()).testBinaryToBase58();
             (new TestDatetime()).testDatetime();
             (new TestDecimalToPrecision()).testDecimalToPrecision();
             (new TestNumberToString()).testNumberToString();

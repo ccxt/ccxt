@@ -413,7 +413,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isLimitOrder: Value = Value::Bool(ends_with(&type_var, &Value::Str("limit".to_string()))); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isLimitOrder: bool = ends_with(&type_var, &Value::Str("limit".to_string())); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if is_true(&isLimitOrder) {
             if is_equal(&price, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" limit orders require a price argument".to_string()))));
@@ -446,20 +446,20 @@ impl KrakenCore {
         let mut presetTakeProfit: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
         let mut presetStopLossLimit: Value = self.safe_string_k(stopLoss.clone(), "price", &[]);
         let mut presetTakeProfitLimit: Value = self.safe_string_k(takeProfit.clone(), "price", &[]);
-        let mut isPresetStopLoss: Value = Value::Bool(!is_equal(&presetStopLoss, &Value::Null));
-        let mut isPresetTakeProfit: Value = Value::Bool(!is_equal(&presetTakeProfit, &Value::Null));
+        let mut isPresetStopLoss: bool = !is_equal(&presetStopLoss, &Value::Null);
+        let mut isPresetTakeProfit: bool = !is_equal(&presetTakeProfit, &Value::Null);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossPriceOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfitPriceOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isStopLossPriceOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfitPriceOrder: bool = !is_equal(&takeProfitPrice, &Value::Null);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
         let mut trailingLimitAmount: Value = self.safe_string_k(params.clone(), "trailingLimitAmount", &[]);
         let mut trailingLimitPercent: Value = self.safe_string_k(params.clone(), "trailingLimitPercent", &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrailingLimitAmountOrder: Value = Value::Bool(!is_equal(&trailingLimitAmount, &Value::Null));
-        let mut isTrailingLimitPercentOrder: Value = Value::Bool(!is_equal(&trailingLimitPercent, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrailingLimitAmountOrder: bool = !is_equal(&trailingLimitAmount, &Value::Null);
+        let mut isTrailingLimitPercentOrder: bool = !is_equal(&trailingLimitPercent, &Value::Null);
         let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[Value::Str("".to_string())]); // can set this to - for minus
         let mut trailingAmountString: Value = ternary(is_true(&(!is_equal(&trailingAmount, &Value::Null))), add(&offset, &self.number_to_string(trailingAmount.clone())), Value::Null);
         let mut trailingPercentString: Value = ternary(is_true(&(!is_equal(&trailingPercent, &Value::Null))), add(&offset, &self.number_to_string(trailingPercent.clone())), Value::Null);
@@ -2168,7 +2168,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        let mut withSymbol: Value = Value::Bool(!is_equal(&symbol, &Value::Null));
+        let mut withSymbol: bool = !is_equal(&symbol, &Value::Null);
         let mut messageHash: Value = unifiedElementName.clone();
         if !is_true(&withSymbol) {
             messageHash = add(&messageHash, &Value::Str("s".to_string()));

@@ -17,6 +17,16 @@ func (this *KrakenfuturesCore) PublicGetInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetInstruments", args...)
 }
 
+// PublicGetInstrumentsStatus returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PublicGetInstrumentsStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentsStatus", args...)
+}
+
+// PublicGetInstrumentsSymbolStatus returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PublicGetInstrumentsSymbolStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetInstrumentsSymbolStatus", args...)
+}
+
 // PublicGetOrderbook returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PublicGetOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrderbook", args...)
@@ -107,6 +117,26 @@ func (this *KrakenfuturesCore) PrivateGetOrdersStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrdersStatus", args...)
 }
 
+// PrivateGetUnwindqueue returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateGetUnwindqueue(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUnwindqueue", args...)
+}
+
+// PrivateGetSelfTradeStrategy returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateGetSelfTradeStrategy(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSelfTradeStrategy", args...)
+}
+
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
+}
+
+// PrivateGetSubaccountUidTradingEnabled returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateGetSubaccountUidTradingEnabled(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccountUidTradingEnabled", args...)
+}
+
 // PrivatePostSendorder returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PrivatePostSendorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendorder", args...)
@@ -125,6 +155,11 @@ func (this *KrakenfuturesCore) PrivatePostCancelorder(args ...any) <-chan any {
 // PrivatePostTransfer returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PrivatePostTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTransfer", args...)
+}
+
+// PrivatePostTransferSubaccount returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivatePostTransferSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransferSubaccount", args...)
 }
 
 // PrivatePostBatchorder returns a channel that yields a JSON object.
@@ -167,9 +202,24 @@ func (this *KrakenfuturesCore) PrivatePutPnlpreferences(args ...any) <-chan any 
 	return this.callEndpointAsync("privatePutPnlpreferences", args...)
 }
 
+// PrivatePutSelfTradeStrategy returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivatePutSelfTradeStrategy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutSelfTradeStrategy", args...)
+}
+
+// PrivatePutSubaccountUidTradingEnabled returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivatePutSubaccountUidTradingEnabled(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutSubaccountUidTradingEnabled", args...)
+}
+
 // ChartsGetPriceTypeSymbolInterval returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) ChartsGetPriceTypeSymbolInterval(args ...any) <-chan any {
 	return this.callEndpointAsync("chartsGetPriceTypeSymbolInterval", args...)
+}
+
+// ChartsGetAnalyticsLiquidityPool returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) ChartsGetAnalyticsLiquidityPool(args ...any) <-chan any {
+	return this.callEndpointAsync("chartsGetAnalyticsLiquidityPool", args...)
 }
 
 // HistoryGetOrders returns a channel that yields a JSON object.
@@ -205,4 +255,14 @@ func (this *KrakenfuturesCore) HistoryGetMarketSymbolOrders(args ...any) <-chan 
 // HistoryGetMarketSymbolExecutions returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) HistoryGetMarketSymbolExecutions(args ...any) <-chan any {
 	return this.callEndpointAsync("historyGetMarketSymbolExecutions", args...)
+}
+
+// HistoryGetMarketSymbolPrice returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) HistoryGetMarketSymbolPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetMarketSymbolPrice", args...)
+}
+
+// HistoryGetPositions returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) HistoryGetPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("historyGetPositions", args...)
 }

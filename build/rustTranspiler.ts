@@ -7893,8 +7893,9 @@ impl std::ops::DerefMut for ${coreName} {
         // BaseCache with no port equivalent; the python/php/cs lanes ship
         // hand-written siblings (test_cache_native.*). Skip it here too.
         const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative']);
+        const SKIP_PREFIXES = ['test.singleFlight', 'test.serverPingLiveness'];
         for (const testName of testFiles) {
-            if (SKIP.has(testName) || testName.startsWith('test.singleFlight')) continue;
+            if (SKIP.has(testName) || SKIP_PREFIXES.some(p => testName.startsWith(p))) continue;
             const tsFile = `${baseFolder}/${testName}.ts`;
             const tsContent = fs.readFileSync(tsFile).toString();
             if (tsContent.includes('// NO_AUTO_TRANSPILE')) continue;
@@ -8171,11 +8172,23 @@ impl std::ops::DerefMut for ${coreName} {
                 log.gray(`[rust] pruned orphan WS base test ${f} (skipped / no ts source)`);
             } catch (_) { /* ignore */ }
         }
-        // WS entry-point names follow the `testWs<Name>` pattern (e.g.
-        // `test.cache.ts` exports `testWsCache`). We can't reuse the
-        // REST `testEntryPointFor` which would emit `testCache`.
+        // WS entry-point names usually follow the `testWs<Name>` pattern (e.g.
+        // `test.cache.ts` exports `testWsCache`), which the REST
+        // `testEntryPointFor` can't produce (it would emit `testCache`). That
+        // convention is not universal though: per-exchange files such as
+        // `test.serverPingLiveness.lbank.ts` carry a second dot — which would
+        // land verbatim inside the symbol (`testWsServerPingLiveness.lbank`, a
+        // compile error) — and export a differently named default
+        // (`testLbankServerPingLivenessWiring`). So read the real
+        // `export default <name>` from the ts source and only fall back to the
+        // convention, with dots sanitised, when a file has no default export.
         const wsEntry = (testFileName: string): string => {
-            const stem = testFileName.replace(/^test\./, '');
+            const tsFile = `./ts/src/pro/test/base/${testFileName}.ts`;
+            if (fs.existsSync(tsFile)) {
+                const m = fs.readFileSync(tsFile, 'utf8').match(/^export\s+default\s+([A-Za-z_$][\w$]*)\s*;?\s*$/m);
+                if (m) return m[1];
+            }
+            const stem = testFileName.replace(/^test\./, '').replace(/\./g, '_');
             return 'testWs' + stem.charAt(0).toUpperCase() + stem.slice(1);
         };
         const modLines = names

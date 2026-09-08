@@ -42,6 +42,28 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
+     * Calls the publicGetInstrumentsStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInstrumentsStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetInstrumentsStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetInstrumentsSymbolStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetInstrumentsSymbolStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetInstrumentsSymbolStatus", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetOrderbook endpoint.
      *
      * @param optionalArgs the request parameters
@@ -240,6 +262,50 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
+     * Calls the privateGetUnwindqueue endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUnwindqueue (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUnwindqueue", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSelfTradeStrategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSelfTradeStrategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSelfTradeStrategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSubaccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSubaccounts", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetSubaccountUidTradingEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccountUidTradingEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSubaccountUidTradingEnabled", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostSendorder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -281,6 +347,17 @@ public class KrakenfuturesApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransfer (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTransferSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransferSubaccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTransferSubaccount", optionalArgs);
     }
 
     /**
@@ -372,6 +449,28 @@ public class KrakenfuturesApi extends Exchange
     }
 
     /**
+     * Calls the privatePutSelfTradeStrategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutSelfTradeStrategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutSelfTradeStrategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutSubaccountUidTradingEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutSubaccountUidTradingEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutSubaccountUidTradingEnabled", optionalArgs);
+    }
+
+    /**
      * Calls the chartsGetPriceTypeSymbolInterval endpoint.
      *
      * @param optionalArgs the request parameters
@@ -380,6 +479,17 @@ public class KrakenfuturesApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  chartsGetPriceTypeSymbolInterval (Object... optionalArgs)
     {
         return this.callAsync ("chartsGetPriceTypeSymbolInterval", optionalArgs);
+    }
+
+    /**
+     * Calls the chartsGetAnalyticsLiquidityPool endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  chartsGetAnalyticsLiquidityPool (Object... optionalArgs)
+    {
+        return this.callAsync ("chartsGetAnalyticsLiquidityPool", optionalArgs);
     }
 
     /**
@@ -457,6 +567,28 @@ public class KrakenfuturesApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetMarketSymbolExecutions (Object... optionalArgs)
     {
         return this.callAsync ("historyGetMarketSymbolExecutions", optionalArgs);
+    }
+
+    /**
+     * Calls the historyGetMarketSymbolPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetMarketSymbolPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("historyGetMarketSymbolPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the historyGetPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  historyGetPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("historyGetPositions", optionalArgs);
     }
 
 }

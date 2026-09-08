@@ -1236,7 +1236,7 @@ impl NdaxCore {
         let mut quote: Value = self.safe_currency_code(self.safe_string_k(market.clone(), "Product2Symbol", &[]), &[]);
         let mut sessionStatus: Value = self.safe_string_k(market.clone(), "SessionStatus", &[]);
         let mut isDisable: Value = self.safe_value_k(market.clone(), "IsDisable", &[]);
-        let mut sessionRunning: Value = Value::Bool(is_equal(&sessionStatus, &Value::Str("Running".to_string())));
+        let mut sessionRunning: bool = is_equal(&sessionStatus, &Value::Str("Running".to_string()));
         return self.safe_market_structure(&[Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());

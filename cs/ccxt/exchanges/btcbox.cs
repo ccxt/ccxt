@@ -264,7 +264,7 @@ public partial class btcbox : Exchange
         //
         object result2Data = this.safeDict(response2, "data", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response1).Keys);
-        object markets = new List<object>() {};
+        List<object> markets = new List<object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
@@ -336,9 +336,9 @@ public partial class btcbox : Exchange
 
     public override object parseMarket(object market)
     {
-        object baseId = this.safeString(market, "base");
+        string? baseId = this.safeString(market, "base");
         object bs = this.safeCurrencyCode(baseId);
-        object quoteId = this.safeString(market, "quote");
+        string? quoteId = this.safeString(market, "quote");
         object quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
@@ -395,7 +395,7 @@ public partial class btcbox : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
@@ -454,7 +454,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
@@ -467,7 +467,7 @@ public partial class btcbox : Exchange
     public override object parseTicker(object ticker, object market = null)
     {
         object symbol = this.safeSymbol(null, market);
-        object last = this.safeString(ticker, "last");
+        string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -509,7 +509,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
@@ -553,11 +553,11 @@ public partial class btcbox : Exchange
         //
         object timestamp = this.safeTimestamp(trade, "date");
         market = this.safeMarket(null, market);
-        object id = this.safeString(trade, "tid");
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "amount");
+        string? id = this.safeString(trade, "tid");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "amount");
         object type = null;
-        object side = this.safeString(trade, "type");
+        string? side = this.safeString(trade, "type");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -594,7 +594,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         int numSymbols = getArrayLength(this.symbols);
         if (isTrue(isGreaterThan(numSymbols, 1)))
         {
@@ -636,7 +636,7 @@ public partial class btcbox : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "amount", amount },
             { "price", price },
             { "type", side },
@@ -676,7 +676,7 @@ public partial class btcbox : Exchange
             symbolVar = "BTC/JPY";
         }
         object market = this.market(symbolVar);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "id", id },
             { "coin", getValue(market, "baseId") },
         };
@@ -689,7 +689,7 @@ public partial class btcbox : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "part", "open" },
             { "all", "closed" },
             { "cancelled", "canceled" },
@@ -717,16 +717,16 @@ public partial class btcbox : Exchange
         //         "trades":[] // no clarification of trade value structure of order endpoint
         //     }
         //
-        object id = this.safeString(order, "id");
-        object datetimeString = this.safeString(order, "datetime");
-        object timestamp = null;
+        string? id = this.safeString(order, "id");
+        string? datetimeString = this.safeString(order, "datetime");
+        Int64? timestamp = null;
         if (isTrue(!isEqual(datetimeString, null)))
         {
             timestamp = this.parse8601(add(getValue(order, "datetime"), "+09:00")); // Tokyo time
         }
-        object amount = this.safeString(order, "amount_original");
-        object remaining = this.safeString(order, "amount_outstanding");
-        object price = this.safeString(order, "price");
+        string? amount = this.safeString(order, "amount_original");
+        string? remaining = this.safeString(order, "amount_outstanding");
+        string? price = this.safeString(order, "price");
         // status is set by fetchOrder method only
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
@@ -739,7 +739,7 @@ public partial class btcbox : Exchange
         }
         object trades = null; // todo: this.parseTrades (order['trades']);
         market = this.safeMarket(null, market);
-        object side = this.safeString(order, "type");
+        string? side = this.safeString(order, "type");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -822,7 +822,7 @@ public partial class btcbox : Exchange
             symbol = "BTC/JPY";
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", type },
             { "coin", getValue(market, "baseId") },
         };
@@ -914,7 +914,7 @@ public partial class btcbox : Exchange
                 { "key", this.apiKey },
                 { "nonce", nonce },
             }, parameters);
-            object request = this.urlencode(query);
+            string request = this.urlencode(query);
             object secret = this.hash(this.encode(this.secret), md5);
             ((IDictionary<string,object>)query)["signature"] = this.hmac(this.encode(request), this.encode(secret), sha256);
             body = this.urlencode(query);

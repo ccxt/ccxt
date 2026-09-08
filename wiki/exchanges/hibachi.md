@@ -407,7 +407,7 @@ fetches all current open orders
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | No | unified market symbol to filter by |
-| since | <code>int</code> | No | milisecond timestamp of the earliest order |
+| since | <code>int</code> | No | millisecond timestamp of the earliest order |
 | limit | <code>int</code> | No | the maximum number of open orders to return |
 | params | <code>object</code> | No | extra parameters |
 

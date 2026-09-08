@@ -727,13 +727,13 @@ impl NadoCore {
         if !is_equal(&spotLeverage, &Value::Null) {
             add_element_to_object(&mut placeOrder, &Value::Str("spot_leverage".to_string()), spotLeverage.clone());
         }
-        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut isStopOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut isStopOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut isTriggerOrder: Value = Value::Bool(is_true(&isStopOrder) || is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
         if is_true(&isStopOrder) {
             let mut triggerDirection: Value = self.safe_string_lower(params.clone(), Value::Str("triggerDirection".to_string()), &[]);
@@ -2985,7 +2985,7 @@ impl NadoCore {
         market = self.safe_market(&[marketId.clone(), market.clone()]);
         let mut timestamp: Value = self.safe_timestamp(trade.clone(), Value::Str("timestamp".to_string()), &[]);
         let mut rawOrder: Value = self.safe_dict_k(trade.clone(), "order", &[]);
-        let mut isArchiveMatch: Value = Value::Bool(!is_equal(&rawOrder, &Value::Null));
+        let mut isArchiveMatch: bool = !is_equal(&rawOrder, &Value::Null);
         let mut order: Value = ternary(is_true(&(is_equal(&rawOrder, &Value::Null))), Value::Map({
     let mut m = indexmap::IndexMap::new();
     m

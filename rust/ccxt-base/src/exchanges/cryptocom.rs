@@ -2319,9 +2319,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("ref_price".to_string())]), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTrigger: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfitTrigger: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTrigger: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfitTrigger: bool = !is_equal(&takeProfitPrice, &Value::Null);
         if is_true(&isTrigger) {
             add_element_to_object(&mut request, &Value::Str("ref_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
             let mut priceString: Value = self.number_to_string(price.clone());
@@ -2579,9 +2579,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("ref_price".to_string())]), &[]);
         let mut stopLossPrice: Value = self.safe_number_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTrigger: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTrigger: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfitTrigger: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isTrigger: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTrigger: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfitTrigger: bool = !is_equal(&takeProfitPrice, &Value::Null);
         if is_true(&isTrigger) {
             let mut priceString: Value = self.number_to_string(price.clone());
             if is_true(&(is_equal(&uppercaseType, &Value::Str("LIMIT".to_string())))) || is_true(&(is_equal(&uppercaseType, &Value::Str("STOP_LIMIT".to_string())))) || is_true(&(is_equal(&uppercaseType, &Value::Str("TAKE_PROFIT_LIMIT".to_string())))) {

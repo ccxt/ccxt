@@ -2441,7 +2441,7 @@ impl AlpacaCore {
                 let mut entry: Value = get_value(&ledger, &i);
                 let mut activityType: Value = self.safe_string_k(entry.clone(), "activity_type", &[]);
                 let mut amount: Value = self.safe_string_k(entry.clone(), "net_amount", &[]);
-                let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string()))))));
+                let mut isIncoming: bool = is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&amount, &Value::Str("0".to_string())))));
                 let mut entryDirection: Value = ternary(is_true(&isIncoming), Value::Str("INCOMING".to_string()), Value::Str("OUTGOING".to_string()));
                 if is_true(&(is_equal(&type_var, &Value::Str("BOTH".to_string())))) || is_true(&(is_equal(&entryDirection, &type_var))) {
                     append_to_array(&mut filtered, entry.clone());
@@ -2612,7 +2612,7 @@ impl AlpacaCore {
         let mut fee: Value = Value::Null;
         if !is_equal(&activityType, &Value::Null) {
             let mut netAmount: Value = self.safe_string_k(transaction.clone(), "net_amount", &[]);
-            let mut isIncoming: Value = Value::Bool(is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string()))))));
+            let mut isIncoming: bool = is_true(&(is_equal(&activityType, &Value::Str("CSD".to_string())))) || is_true(&(is_true(&(is_equal(&activityType, &Value::Str("TRANS".to_string())))) && !is_true(&crate::precise::Precise::stringLt(&netAmount, &Value::Str("0".to_string())))));
             timestamp = self.parse8601(add(&self.safe_string_k(transaction.clone(), "date", &[]), &Value::Str("T00:00:00Z".to_string())));
             datetime = self.iso8601(timestamp.clone());
             type_var = ternary(is_true(&isIncoming), Value::Str("deposit".to_string()), Value::Str("withdrawal".to_string()));

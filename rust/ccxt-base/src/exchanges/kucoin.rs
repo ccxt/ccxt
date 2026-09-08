@@ -3336,9 +3336,9 @@ impl KucoinCore {
         let mut credentialsSet: Value = self.check_required_credentials(&[Value::Bool(false)]);
         let mut requestMarginables: Value = Value::Bool(is_true(&credentialsSet) && is_true(&self.safe_bool_k(params.clone(), "marginables", &[Value::Bool(true)])));
         params = self.omit(params.clone(), Value::Str("marginables".to_string()), &[]);
-        let mut fetchContractMarkets: Value = Value::Bool(false);
+        let mut fetchContractMarkets: bool = false;
         if is_true(&self.in_array(Value::Str("swap".to_string()), types.clone())) || is_true(&self.in_array(Value::Str("future".to_string()), types.clone())) || is_true(&self.in_array(Value::Str("contract".to_string()), types.clone())) {
-            fetchContractMarkets = Value::Bool(true);
+            fetchContractMarkets = true;
         }
         let mut fetchSpotMarkets: Value = self.in_array(Value::Str("spot".to_string()), types.clone());
         fetchTickersFees = Value::Bool(is_true(&fetchTickersFees) && is_true(&fetchSpotMarkets)); // tickers and fees are only fetched for spot markets
@@ -4128,7 +4128,7 @@ impl KucoinCore {
         // kucoin has determined 'fiat' currencies with below logic
         let mut rawPrecision: Value = self.safe_string_k(entry.clone(), "precision", &[]);
         let mut precision: Value = self.parse_number(self.parse_precision(&[rawPrecision.clone()]), &[]);
-        let mut isFiat: Value = Value::Bool(is_equal(&chainsLength, &Value::Int(0)));
+        let mut isFiat: bool = is_equal(&chainsLength, &Value::Int(0));
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -5942,8 +5942,8 @@ impl KucoinCore {
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLoss: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfit: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isStopLoss: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfit: bool = !is_equal(&takeProfitPrice, &Value::Null);
         if is_true(&(is_true(&isStopLoss) && is_true(&isTakeProfit))) || is_true(&(is_true(&(!is_equal(&triggerPrice, &Value::Null))) && is_true(&(!is_equal(&stopLossPrice, &Value::Null))))) || is_true(&(is_true(&(!is_equal(&triggerPrice, &Value::Null))) && is_true(&isTakeProfit))) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" createOrder() - you should use either triggerPrice or stopLossPrice or takeProfitPrice".to_string()))));
         }
@@ -6067,10 +6067,10 @@ impl KucoinCore {
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
         let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
-        let mut isTriggerOrder: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut isTriggerOrder: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         let mut marginResult: Value = self.handle_margin_mode_and_params(Value::Str("createOrder".to_string()), &[params.clone()]);
         let mut marginMode: Value = self.safe_string(marginResult.clone(), Value::Int(0), &[]);
-        let mut isMarginOrder: Value = Value::Bool(is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null));
+        let mut isMarginOrder: bool = is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null);
         // don't omit anything before calling createOrderRequest
         let mut orderRequest: Value = self.create_spot_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
@@ -6171,8 +6171,8 @@ impl KucoinCore {
         let mut triggerPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(0));
         let mut stopLossPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(1));
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
-        let mut isTriggerOrder: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
-        let mut isMarginOrder: Value = Value::Bool(is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null));
+        let mut isTriggerOrder: bool = is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
+        let mut isMarginOrder: bool = is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if is_true(&isTriggerOrder) {
             if !is_equal(&triggerPrice, &Value::Null) {
@@ -6266,7 +6266,7 @@ impl KucoinCore {
         let mut market: Value = self.market(symbol.clone());
         let mut testOrder: Value = self.safe_bool_k(params.clone(), "test", &[Value::Bool(false)]);
         params = self.omit(params.clone(), Value::Str("test".to_string()), &[]);
-        let mut hasTpOrSlOrder: Value = Value::Bool(is_true(&(!is_equal(&self.safe_value_k(params.clone(), "stopLoss", &[]), &Value::Null))) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "takeProfit", &[]), &Value::Null))));
+        let mut hasTpOrSlOrder: bool = is_true(&(!is_equal(&self.safe_value_k(params.clone(), "stopLoss", &[]), &Value::Null))) || is_true(&(!is_equal(&self.safe_value_k(params.clone(), "takeProfit", &[]), &Value::Null)));
         let mut orderRequest: Value = self.create_contract_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone()]);
         let mut response: Value = Value::Null;
         if is_equal(&testOrder, &Value::Bool(true)) {
@@ -6347,8 +6347,8 @@ impl KucoinCore {
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
         let mut triggerPriceTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -6605,8 +6605,8 @@ impl KucoinCore {
         let mut takeProfitPrice: Value = get_value(&triggerPricestopLossPricetakeProfitPriceVariable, &Value::Int(2));
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut triggerPriceTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MP".to_string()));
@@ -6758,8 +6758,8 @@ impl KucoinCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
-        let mut isSpot: Value = Value::Bool(false);
-        let mut isContract: Value = Value::Bool(false);
+        let mut isSpot: bool = false;
+        let mut isContract: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_884: bool = true;
@@ -6771,9 +6771,9 @@ impl KucoinCore {
             }
             let mut market: Value = self.market(symbol.clone());
             if is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)) {
-                isSpot = Value::Bool(true);
+                isSpot = true;
             }  else if is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true)) {
-                isContract = Value::Bool(true);
+                isContract = true;
             }
         }
         }
@@ -7140,7 +7140,7 @@ impl KucoinCore {
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("cancelOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut tradeType: Value = self.safe_string_k(params.clone(), "tradeType", &[]); // keep it for backward compatibility
-        let mut isMarginOrder: Value = Value::Bool(is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null));
+        let mut isMarginOrder: bool = is_equal(&tradeType, &Value::Str("MARGIN_TRADE".to_string())) || !is_equal(&marginMode, &Value::Null);
         if is_true(&(is_equal(&hf, &Value::Bool(true)))) || is_true(&useSync) || is_true(&isMarginOrder) {
             if !is_equal(&trigger, &Value::Bool(true)) {
                 if is_equal(&symbol, &Value::Null) {
@@ -7463,7 +7463,7 @@ impl KucoinCore {
         let mut marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("cancelAllOrders".to_string()), &[params.clone()]);
         let mut marginMode: Value = get_value(&marginModequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&marginModequeryVariable, &Value::Int(1));
-        let mut isMarginOrders: Value = Value::Bool(!is_equal(&marginMode, &Value::Null));
+        let mut isMarginOrders: bool = !is_equal(&marginMode, &Value::Null);
         if !is_equal(&symbol, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.market_id(symbol.clone()));
         }  else if is_true(&(!is_equal(&trigger, &Value::Bool(true)))) && is_true(&isMarginOrders) {
@@ -7757,7 +7757,7 @@ impl KucoinCore {
         let mut marginModequeryVariable = self.handle_margin_mode_and_params(Value::Str("fetchOrdersByStatus".to_string()), &[params.clone()]);
         let mut marginMode: Value = get_value(&marginModequeryVariable, &Value::Int(0));
         let mut query: Value = get_value(&marginModequeryVariable, &Value::Int(1));
-        let mut isMarginOrder: Value = Value::Bool(!is_equal(&marginMode, &Value::Null));
+        let mut isMarginOrder: bool = !is_equal(&marginMode, &Value::Null);
         if is_equal(&lowercaseStatus, &Value::Str("open".to_string())) {
             lowercaseStatus = Value::Str("active".to_string());
         }  else if is_equal(&lowercaseStatus, &Value::Str("closed".to_string())) {
@@ -8290,7 +8290,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchOrder".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isMarginOrder: Value = Value::Bool(!is_equal(&marginMode, &Value::Null));
+        let mut isMarginOrder: bool = !is_equal(&marginMode, &Value::Null);
         let mut market: Value = Value::Null;
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
@@ -8881,7 +8881,7 @@ impl KucoinCore {
         let mut feeCurrencyId: Value = self.safe_string_k(order.clone(), "feeCurrency", &[]);
         let mut cancelExist: Value = self.safe_bool_k(order.clone(), "cancelExist", &[Value::Bool(false)]);
         let mut responseStop: Value = self.safe_string_k(order.clone(), "stop", &[]);
-        let mut trigger: Value = Value::Bool(!is_equal(&responseStop, &Value::Null));
+        let mut trigger: bool = !is_equal(&responseStop, &Value::Null);
         let mut stopTriggered: Value = self.safe_bool_k(order.clone(), "stopTriggered", &[Value::Bool(false)]);
         let mut isActive: Value = self.safe_bool2(order.clone(), Value::Str("isActive".to_string()), Value::Str("active".to_string()), &[]);
         let mut responseStatus: Value = self.safe_string_k(order.clone(), "status", &[]);
@@ -9213,7 +9213,7 @@ impl KucoinCore {
         { let __destr_tmp = self.handle_hf_and_params(&[params.clone()]); hf = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchMyTrades".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isMargin: Value = Value::Bool(!is_equal(&marginMode, &Value::Null));
+        let mut isMargin: bool = !is_equal(&marginMode, &Value::Null);
         if is_true(&isMargin) {
             hf = Value::Bool(true);
             add_element_to_object(&mut request, &Value::Str("tradeType".to_string()), ternary(is_true(&(is_equal(&marginMode, &Value::Null))), Value::Null, self.safe_string(get_value(&self.options, &Value::Str("marginModes".to_string())), marginMode.clone(), &[marginMode.clone()])));
@@ -9227,7 +9227,7 @@ impl KucoinCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
         let mut method: Value = get_value(&self.options, &Value::Str("fetchMyTradesMethod".to_string()));
-        let mut parseResponseData: Value = Value::Bool(false);
+        let mut parseResponseData: bool = false;
         let mut response: Value = Value::Null;
         { let __destr_tmp = self.handle_until_option(Value::Str("endAt".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&hf, &Value::Bool(true)) {
@@ -9258,7 +9258,7 @@ impl KucoinCore {
             // does not return trades earlier than 2019-02-18T00:00:00Z
             // takes no params
             // only returns first 1000 trades (not only "in the last 24 hours" as stated in the docs)
-            parseResponseData = Value::Bool(true);
+            parseResponseData = true;
             let __ws_arg_84 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_get_limit_fills(&[__ws_arg_84]).await;
         }  else {
@@ -10286,7 +10286,7 @@ impl KucoinCore {
         }
         let mut timestamp: Value = self.safe_integer2(transaction.clone(), Value::Str("createdAt".to_string()), Value::Str("createAt".to_string()), &[]);
         let mut updated: Value = self.safe_integer_k(transaction.clone(), "updatedAt", &[]);
-        let mut isV1: Value = Value::Bool(!is_true(&(Value::Bool(in_op(&transaction, &Value::Str("createdAt".to_string()))))));
+        let mut isV1: bool = !is_true(&(Value::Bool(in_op(&transaction, &Value::Str("createdAt".to_string())))));
         // if it's a v1 structure
         if is_true(&isV1) {
             type_var = ternary(is_true(&(Value::Bool(in_op(&transaction, &Value::Str("address".to_string()))))), Value::Str("withdrawal".to_string()), Value::Str("deposit".to_string()));
@@ -10797,8 +10797,8 @@ impl KucoinCore {
         }
         let mut marginMode: Value = Value::Null;
         { let __destr_tmp = self.handle_margin_mode_and_params(Value::Str("fetchBalance".to_string()), &[params.clone()]); marginMode = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isolated: Value = Value::Bool(is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("isolated".to_string())))));
-        let mut cross: Value = Value::Bool(is_true(&(is_equal(&marginMode, &Value::Str("cross".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string())))));
+        let mut isolated: bool = is_true(&(is_equal(&marginMode, &Value::Str("isolated".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("isolated".to_string()))));
+        let mut cross: bool = is_true(&(is_equal(&marginMode, &Value::Str("cross".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("margin".to_string()))));
         if is_true(&isolated) {
             if !is_equal(&currency, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("balanceCurrency".to_string()), get_value(&currency, &Value::Str("id".to_string())));
@@ -11082,7 +11082,7 @@ impl KucoinCore {
 })]);
         let mut type_var: Value = Value::Null;
         type_var = self.safe_string(utaAccountsByType.clone(), requestedType.clone(), &[requestedType.clone()]);
-        let mut isIsolated: Value = Value::Bool(is_equal(&type_var, &Value::Str("ISOLATED".to_string())));
+        let mut isIsolated: bool = is_equal(&type_var, &Value::Str("ISOLATED".to_string()));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -11542,7 +11542,7 @@ impl KucoinCore {
         let mut currencyId: Value = self.safe_string_k(transfer.clone(), "currency", &[]);
         let mut rawStatus: Value = self.safe_string_k(transfer.clone(), "status", &[]);
         let mut bizType: Value = self.safe_string_k(transfer.clone(), "bizType", &[]);
-        let mut isLedgerEntry: Value = Value::Bool(!is_equal(&bizType, &Value::Null));
+        let mut isLedgerEntry: bool = !is_equal(&bizType, &Value::Null);
         let mut accountFromRaw: Value = Value::Null;
         let mut accountToRaw: Value = Value::Null;
         if is_true(&isLedgerEntry) {
@@ -13951,12 +13951,12 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         let mut ordersRequests: Value = Value::List(vec![]);
         let mut clientOrderIds: Value = self.safe_list2(params.clone(), Value::Str("clientOrderIds".to_string()), Value::Str("clientOids".to_string()), &[Value::List(vec![])]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderIds".to_string()), Value::Str("clientOids".to_string())]), &[]);
-        let mut useClientorderId: Value = Value::Bool(false);
+        let mut useClientorderId: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_896: bool = true;
             while { if !__for_first_896 { i = add(&i, &Value::Int(1)); } __for_first_896 = false; is_less_than(&i, &get_array_length(&clientOrderIds)) } {
-            useClientorderId = Value::Bool(true);
+            useClientorderId = true;
             if is_equal(&symbol, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" cancelOrders() requires a symbol argument when cancelling by clientOrderIds".to_string()))));
             }
@@ -14909,11 +14909,11 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
         if is_equal(&api, &Value::Str("earn".to_string())) {
             endpoint = add(&Value::Str("/api/v1/".to_string()), &self.implode_params(path.clone(), params.clone()));
         }
-        let mut isUtaPrivate: Value = Value::Bool(false);
+        let mut isUtaPrivate: bool = false;
         if is_true(&(is_equal(&api, &Value::Str("uta".to_string())))) || is_true(&(is_equal(&api, &Value::Str("utaPrivate".to_string())))) {
             endpoint = add(&Value::Str("/api/ua/v1/".to_string()), &self.implode_params(path.clone(), params.clone()));
             if is_equal(&api, &Value::Str("utaPrivate".to_string())) {
-                isUtaPrivate = Value::Bool(true);
+                isUtaPrivate = true;
             }
         }
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
@@ -14937,10 +14937,10 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
             }
         }
         url = add(&url, &endpoint);
-        let mut isFuturePrivate: Value = Value::Bool(is_equal(&api, &Value::Str("futuresPrivate".to_string())));
-        let mut isPrivate: Value = Value::Bool(is_equal(&api, &Value::Str("private".to_string())));
-        let mut isBroker: Value = Value::Bool(is_equal(&api, &Value::Str("broker".to_string())));
-        let mut isEarn: Value = Value::Bool(is_equal(&api, &Value::Str("earn".to_string())));
+        let mut isFuturePrivate: bool = is_equal(&api, &Value::Str("futuresPrivate".to_string()));
+        let mut isPrivate: bool = is_equal(&api, &Value::Str("private".to_string()));
+        let mut isBroker: bool = is_equal(&api, &Value::Str("broker".to_string()));
+        let mut isEarn: bool = is_equal(&api, &Value::Str("earn".to_string()));
         if is_true(&isPrivate) || is_true(&isFuturePrivate) || is_true(&isBroker) || is_true(&isEarn) || is_true(&isUtaPrivate) {
             self.check_required_credentials(&[]);
             let mut timestamp: Value = to_string_val(&self.nonce());
@@ -14969,8 +14969,8 @@ if let Err(_try_err) = _try_result { let exc: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut isUtaFuturePrivate: Value = Value::Bool(is_true(&isUtaPrivate) && is_true(&(is_equal(&tradeType, &Value::Str("FUTURES".to_string())))));
-            let mut isFuturePartner: Value = Value::Bool(is_true(&isFuturePrivate) || is_true(&isUtaFuturePrivate));
+            let mut isUtaFuturePrivate: bool = is_true(&isUtaPrivate) && is_true(&(is_equal(&tradeType, &Value::Str("FUTURES".to_string()))));
+            let mut isFuturePartner: bool = is_true(&isFuturePrivate) || is_true(&isUtaFuturePrivate);
             partner = ternary(is_true(&isFuturePartner), self.safe_value_k(partner.clone(), "future", &[partner.clone()]), self.safe_value_k(partner.clone(), "spot", &[partner.clone()]));
             let mut partnerId: Value = self.safe_string_k(partner.clone(), "id", &[]);
             let mut partnerSecret: Value = self.safe_string2(partner.clone(), Value::Str("secret".to_string()), Value::Str("key".to_string()), &[]);

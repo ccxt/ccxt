@@ -1,6 +1,6 @@
 {
   "name": "ccxt-mcp",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "Official CCXT MCP server — unified access to 100+ cryptocurrency exchanges for AI agents via the Model Context Protocol",
   "main": "./js/server.js",
   "type": "module",

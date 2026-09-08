@@ -2808,7 +2808,7 @@ func (this *CoinsphCore) UrlEncodeQuery(optionalArgs ...any) any {
 		}
 	}
 	var encodedQuery string = this.Urlencode(query)
-	if IsTrue(!IsEqual(GetArrayLength(encodedQuery), 0)) {
+	if IsTrue(!IsEqual(GetLength(encodedQuery), 0)) {
 		return Add(Add(encodedQuery, "&"), encodedArrayParams)
 	} else {
 		return encodedArrayParams

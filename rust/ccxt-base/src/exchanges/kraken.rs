@@ -1125,9 +1125,9 @@ impl KrakenCore {
             while { if !__for_first_837 { i = add(&i, &Value::Int(1)); } __for_first_837 = false; is_less_than(&i, &get_array_length(&keys)) } {
             let mut id: Value = get_value(&keys, &i);
             let mut id: Value = get_value(&keys, &i);
-            let mut isSynthetic: Value = Value::Bool(false);
+            let mut isSynthetic: bool = false;
             if is_greater_than_or_equal(&get_index_of(&id, &Value::Str(":BTNL".to_string())), &Value::Int(0)) {
-                isSynthetic = Value::Bool(true);
+                isSynthetic = true;
             }
             let mut market: Value = get_value(&markets, &id);
             let mut market: Value = get_value(&markets, &id);
@@ -1402,7 +1402,7 @@ impl KrakenCore {
         if is_equal(&code, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" parseCurrency() missing code".to_string()))));
         }
-        let mut isFiat: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&code, &Value::Str(".HOLD".to_string())), &Value::Int(0)));
+        let mut isFiat: bool = is_greater_than_or_equal(&get_index_of(&code, &Value::Str(".HOLD".to_string())), &Value::Int(0));
         rawCurrency = self.omit(rawCurrency.clone(), Value::Str("_coin_id".to_string()), &[]);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2981,21 +2981,21 @@ impl KrakenCore {
         }
         let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
         let mut trailingLimitAmount: Value = self.safe_string_k(params.clone(), "trailingLimitAmount", &[]);
         let mut trailingLimitPercent: Value = self.safe_string_k(params.clone(), "trailingLimitPercent", &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isLimitOrder: Value = Value::Bool(is_true(&(!is_equal(&type_var, &Value::Null))) && is_true(&Value::Bool(ends_with(&type_var, &Value::Str("limit".to_string()))))); // supporting limit, stop-loss-limit, take-profit-limit, etc
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isLimitOrder: bool = is_true(&(!is_equal(&type_var, &Value::Null))) && is_true(&Value::Bool(ends_with(&type_var, &Value::Str("limit".to_string())))); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         let mut flags: Value = self.safe_string_k(params.clone(), "oflags", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("cost".to_string()), Value::Str("oflags".to_string())]), &[]);
-        let mut isViqcOrder: Value = Value::Bool(is_true(&(!is_equal(&flags, &Value::Null))) && is_true(&(is_greater_than(&get_index_of(&flags, &Value::Str("viqc".to_string())), &negate(&Value::Int(1)))))); // volume in quote currency
+        let mut isViqcOrder: bool = is_true(&(!is_equal(&flags, &Value::Null))) && is_true(&(is_greater_than(&get_index_of(&flags, &Value::Str("viqc".to_string())), &negate(&Value::Int(1))))); // volume in quote currency
         if is_true(&isMarketOrder) && is_true(&(!is_equal(&cost, &Value::Null) || is_true(&isViqcOrder))) {
             if is_equal(&cost, &Value::Null) && is_true(&(!is_equal(&amount, &Value::Null))) {
                 add_element_to_object(&mut request, &Value::Str("volume".to_string()), self.cost_to_precision(symbol.clone(), self.number_to_string(amount.clone())));
@@ -4023,9 +4023,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut amount: Value = self.safe_number_k(transaction.clone(), "amount", &[]);
         let mut status: Value = self.parse_transaction_status(self.safe_string_k(transaction.clone(), "status", &[]));
         let mut statusProp: Value = self.safe_string_k(transaction.clone(), "status-prop", &[]);
-        let mut isOnHoldDeposit: Value = Value::Bool(is_equal(&statusProp, &Value::Str("on-hold".to_string())));
-        let mut isCancellationRequest: Value = Value::Bool(is_equal(&statusProp, &Value::Str("cancel-pending".to_string())));
-        let mut isOnHoldWithdrawal: Value = Value::Bool(is_equal(&statusProp, &Value::Str("onhold".to_string())));
+        let mut isOnHoldDeposit: bool = is_equal(&statusProp, &Value::Str("on-hold".to_string()));
+        let mut isCancellationRequest: bool = is_equal(&statusProp, &Value::Str("cancel-pending".to_string()));
+        let mut isOnHoldWithdrawal: bool = is_equal(&statusProp, &Value::Str("onhold".to_string()));
         if is_true(&isOnHoldDeposit) || is_true(&isCancellationRequest) || is_true(&isOnHoldWithdrawal) {
             status = Value::Str("pending".to_string());
         }
@@ -4809,8 +4809,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if !is_equal(&price, &Value::Null) {
                 isTriggerPercent = ternary(is_true(&(Value::Bool(ends_with(&price, &Value::Str("%".to_string()))))), Value::Bool(true), Value::Bool(false));
             }
-            let mut isCancelOrderBatch: Value = Value::Bool(is_equal(&path, &Value::Str("CancelOrderBatch".to_string())));
-            let mut isBatchOrder: Value = Value::Bool(is_equal(&path, &Value::Str("AddOrderBatch".to_string())));
+            let mut isCancelOrderBatch: bool = is_equal(&path, &Value::Str("CancelOrderBatch".to_string()));
+            let mut isBatchOrder: bool = is_equal(&path, &Value::Str("AddOrderBatch".to_string()));
             self.check_required_credentials(&[]);
             let mut nonce: Value = to_string_val(&self.nonce());
             if is_true(&isCancelOrderBatch) || is_true(&isTriggerPercent) || is_true(&isBatchOrder) {

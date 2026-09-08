@@ -1906,13 +1906,13 @@ impl WhitebitCore {
             let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
             // Filter by symbols if specified
             if !is_equal(&symbols, &Value::Null) {
-                let mut symbolFound: Value = Value::Bool(false);
+                let mut symbolFound: bool = false;
                 {
                                         let mut j: Value = Value::Int(0);
                     let mut __for_first_1102: bool = true;
                     while { if !__for_first_1102 { j = add(&j, &Value::Int(1)); } __for_first_1102 = false; is_less_than(&j, &get_array_length(&symbols)) } {
                     if is_equal(&get_value(&symbols, &j), &symbol) {
-                        symbolFound = Value::Bool(true);
+                        symbolFound = true;
                         break;
                     }
                 }
@@ -2455,7 +2455,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             self.load_markets(&[]).await;
         }
         symbols = self.market_symbols(&[symbols.clone()]);
-        let mut onlyContractSymbols: Value = Value::Bool(true);
+        let mut onlyContractSymbols: bool = true;
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -2465,13 +2465,13 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut symbol: Value = get_value(&symbols, &i);
                 let mut market: Value = self.market(symbol.clone());
                 if !is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true)) {
-                    onlyContractSymbols = Value::Bool(false);
+                    onlyContractSymbols = false;
                     break;
                 }
             }
             }
         }  else {
-            onlyContractSymbols = Value::Bool(false);
+            onlyContractSymbols = false;
         }
         let mut marketType: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchTickers".to_string()), &[Value::Null, params.clone()]); marketType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -3067,16 +3067,16 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             params = self.omit(params.clone(), Value::List(vec![Value::Str("clientOrderId".to_string())]), &[]);
         }
         let mut marketType: Value = self.safe_string_k(market.clone(), "type", &[]);
-        let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
+        let mut isLimitOrder: bool = is_equal(&type_var, &Value::Str("limit".to_string()));
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("activation_price".to_string())]), &[]);
-        let mut isStopOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isStopOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         if is_true(&(!is_equal(&timeInForce, &Value::Null))) && is_true(&(!is_equal(&timeInForce, &Value::Str("GTC".to_string())))) && is_true(&(!is_equal(&timeInForce, &Value::Str("IOC".to_string())))) && is_true(&(!is_equal(&timeInForce, &Value::Str("PO".to_string())))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" createOrder() does not support timeInForce ".to_string())), &timeInForce), &Value::Str(", only GTC, IOC and PO are allowed".to_string()))));
         }
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), Value::Bool(false), &[params.clone()]);
-        let mut ioc: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("IOC".to_string())));
+        let mut ioc: bool = is_equal(&timeInForce, &Value::Str("IOC".to_string()));
         if is_true(&isStopOrder) && is_true(&(is_true(&postOnly) || is_true(&ioc))) {
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() does not support postOnly or timeInForce IOC for stop orders".to_string()))));
         }
@@ -3096,7 +3096,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" createOrder() is only available for cross margin".to_string()))));
         }
         params = self.omit(query.clone(), Value::List(vec![Value::Str("postOnly".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("timeInForce".to_string())]), &[]);
-        let mut useCollateralEndpoint: Value = Value::Bool(!is_equal(&marginMode, &Value::Null) || is_equal(&marketType, &Value::Str("swap".to_string())));
+        let mut useCollateralEndpoint: bool = !is_equal(&marginMode, &Value::Null) || is_equal(&marketType, &Value::Str("swap".to_string()));
         let mut response: Value = Value::Null;
         if is_true(&isStopOrder) {
             add_element_to_object(&mut request, &Value::Str("activation_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
@@ -3186,12 +3186,12 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         // Handle amount vs total parameter based on order type and side
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("activationPrice".to_string())]), &[]);
-        let mut isStopOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isStopOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         // Handle activation price for stop orders
         if is_true(&isStopOrder) {
             add_element_to_object(&mut request, &Value::Str("activation_price".to_string()), self.price_to_precision(symbol.clone(), triggerPrice.clone()));
         }
-        let mut isLimitOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
+        let mut isLimitOrder: bool = is_equal(&type_var, &Value::Str("limit".to_string()));
         let mut total: Value = self.safe_number_k(params.clone(), "total", &[]);
         if !is_equal(&total, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("total".to_string()), self.amount_to_precision(symbol.clone(), total.clone()));
@@ -3212,7 +3212,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         // Ensure at least one modifiable parameter is provided
-        let mut hasModifiableParam: Value = Value::Bool(is_true(&(!is_equal(&amount, &Value::Null))) || is_true(&(!is_equal(&price, &Value::Null))) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&total, &Value::Null))));
+        let mut hasModifiableParam: bool = is_true(&(!is_equal(&amount, &Value::Null))) || is_true(&(!is_equal(&price, &Value::Null))) || is_true(&(!is_equal(&triggerPrice, &Value::Null))) || is_true(&(!is_equal(&total, &Value::Null)));
         if !is_true(&hasModifiableParam) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires at least one of: amount, price, activationPrice, or total parameters".to_string()))));
         }
@@ -3380,7 +3380,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         if is_equal(&timeout, &Value::Null) {
             panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" cancelAllOrdersAfter() missing timeout".to_string()))));
         }
-        let mut isBiggerThanZero: Value = Value::Bool(is_greater_than(&timeout, &Value::Int(0)));
+        let mut isBiggerThanZero: bool = is_greater_than(&timeout, &Value::Int(0));
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("market".to_string(), get_value(&market, &Value::Str("id".to_string())));
@@ -5666,7 +5666,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             // For these cases where we have a generic code variable error key
             // {"code":0,"message":"Validation failed","errors":{"amount":["Amount must be greater than 0"]}}
             let mut codeNew: Value = self.safe_integer_k(response.clone(), "code", &[]);
-            let mut hasErrorStatus: Value = Value::Bool(!is_equal(&status, &Value::Null) && !is_equal(&status, &Value::Str("200".to_string())) && !is_equal(&errors, &Value::Null));
+            let mut hasErrorStatus: bool = !is_equal(&status, &Value::Null) && !is_equal(&status, &Value::Str("200".to_string())) && !is_equal(&errors, &Value::Null);
             if is_true(&hasErrorStatus) || !is_equal(&codeNew, &Value::Null) {
                 let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
                 let mut errorInfo: Value = message.clone();

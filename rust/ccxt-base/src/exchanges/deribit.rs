@@ -1322,7 +1322,7 @@ impl DeribitCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: Value = Value::Bool(is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))))));
+        let mut isOption: bool = is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string())))))));
         if is_true(&isOption) && is_true(&(is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))))) {
             return self.create_expired_option_market(marketId.clone());
         }
@@ -1740,7 +1740,7 @@ impl DeribitCore {
                 if is_equal(&kind, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" method() missing kind".to_string()))));
                 }
-                let mut isComboMarket: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&kind, &Value::Str("combo".to_string())), &Value::Int(0)));
+                let mut isComboMarket: bool = is_greater_than_or_equal(&get_index_of(&kind, &Value::Str("combo".to_string())), &Value::Int(0));
                 let mut expiry: Value = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]);
                 let mut strike: Value = Value::Null;
                 let mut optionType: Value = Value::Null;
@@ -3119,18 +3119,18 @@ impl DeribitCore {
         // only take profit buy orders are allowed when price crossed from below
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trigger_offset".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isStopLimit: Value = Value::Bool(is_equal(&type_var, &Value::Str("stop_limit".to_string())));
-        let mut isStopMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("stop_market".to_string())));
-        let mut isTakeLimit: Value = Value::Bool(is_equal(&type_var, &Value::Str("take_limit".to_string())));
-        let mut isTakeMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("take_market".to_string())));
-        let mut isStopLossOrder: Value = Value::Bool(is_true(&isStopLimit) || is_true(&isStopMarket) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))));
-        let mut isTakeProfitOrder: Value = Value::Bool(is_true(&isTakeLimit) || is_true(&isTakeMarket) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isStopLimit: bool = is_equal(&type_var, &Value::Str("stop_limit".to_string()));
+        let mut isStopMarket: bool = is_equal(&type_var, &Value::Str("stop_market".to_string()));
+        let mut isTakeLimit: bool = is_equal(&type_var, &Value::Str("take_limit".to_string()));
+        let mut isTakeMarket: bool = is_equal(&type_var, &Value::Str("take_market".to_string()));
+        let mut isStopLossOrder: bool = is_true(&isStopLimit) || is_true(&isStopMarket) || is_true(&(!is_equal(&stopLossPrice, &Value::Null)));
+        let mut isTakeProfitOrder: bool = is_true(&isTakeLimit) || is_true(&isTakeMarket) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         if is_true(&isStopLossOrder) && is_true(&isTakeProfitOrder) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified".to_string()))));
         }
-        let mut isStopOrder: Value = Value::Bool(is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
-        let mut isLimitOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&isStopLimit) || is_true(&isTakeLimit));
+        let mut isStopOrder: bool = is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder);
+        let mut isLimitOrder: bool = is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&isStopLimit) || is_true(&isTakeLimit);
         let mut isMarketOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) || is_true(&isStopMarket) || is_true(&isTakeMarket));
         let mut exchangeSpecificPostOnly: Value = self.safe_value_k(params.clone(), "post_only", &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificPostOnly.clone(), &[params.clone()]);
@@ -3295,7 +3295,7 @@ impl DeribitCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trigger_offset".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTrailingAmountOrder) {
             add_element_to_object(&mut request, &Value::Str("trigger_offset".to_string()), self.parse_to_numeric(trailingAmount.clone()));
             params = self.omit(params.clone(), Value::Str("trigger_offset".to_string()), &[]);

@@ -865,7 +865,7 @@ impl HyperliquidCore {
         // add in wrapped map
         let mut fullName: Value = self.safe_string_k(rawCurrency.clone(), "fullName", &[]);
         if !is_equal(&fullName, &Value::Null) && !is_equal(&name, &Value::Null) {
-            let mut isWrapped: Value = Value::Bool(is_true(&Value::Bool(starts_with(&fullName, &Value::Str("Unit ".to_string())))) && is_true(&Value::Bool(starts_with(&name, &Value::Str("U".to_string())))));
+            let mut isWrapped: bool = is_true(&Value::Bool(starts_with(&fullName, &Value::Str("Unit ".to_string())))) && is_true(&Value::Bool(starts_with(&name, &Value::Str("U".to_string()))));
             if is_true(&isWrapped) {
                 let mut parts: Value = split(&name, &Value::Str("U".to_string()));
                 let mut nameWithoutU: Value = Value::Str("".to_string());
@@ -3130,7 +3130,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut triggerPrice: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[triggerPrice.clone()]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut isTrigger: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         let mut px: Value = Value::Null;
         if is_true(&isMarket) {
             if is_equal(&price, &Value::Null) {
@@ -3205,7 +3205,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         self.check_required_credentials(&[]);
         let mut defaultSlippage: Value = self.safe_string_k(self.options.clone(), "defaultSlippage", &[]);
         defaultSlippage = self.safe_string_k(params.clone(), "slippage", &[defaultSlippage.clone()]);
-        let mut hasClientOrderId: Value = Value::Bool(false);
+        let mut hasClientOrderId: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_803: bool = true;
@@ -3218,7 +3218,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
-                hasClientOrderId = Value::Bool(true);
+                hasClientOrderId = true;
             }
         }
         }
@@ -3265,8 +3265,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             add_element_to_object(&mut orderParams, &Value::Str("slippage".to_string()), slippage.clone());
             let mut stopLoss: Value = self.safe_value_k(orderParams.clone(), "stopLoss", &[]);
             let mut takeProfit: Value = self.safe_value_k(orderParams.clone(), "takeProfit", &[]);
-            let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-            let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+            let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+            let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
             orderParams = self.omit(orderParams.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string())]), &[]);
             let mut mainOrderObj: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), orderParams.clone()]);
             if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
@@ -3659,7 +3659,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("cancels".to_string(), Value::List(vec![]));
             m
         });
-        let mut cancelByCloid: Value = Value::Bool(false);
+        let mut cancelByCloid: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_809: bool = true;
@@ -3668,7 +3668,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut order: Value = get_value(&orders, &i);
             let mut clientOrderId: Value = self.safe_string_k(order.clone(), "clientOrderId", &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
-                cancelByCloid = Value::Bool(true);
+                cancelByCloid = true;
             }
             let mut id: Value = self.safe_string_k(order.clone(), "id", &[]);
             let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
@@ -3767,7 +3767,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     m
 }));
         self.check_required_credentials(&[]);
-        let mut hasClientOrderId: Value = Value::Bool(false);
+        let mut hasClientOrderId: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_810: bool = true;
@@ -3780,7 +3780,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 })]);
             let mut clientOrderId: Value = self.safe_string2(orderParams.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
             if !is_equal(&clientOrderId, &Value::Null) {
-                hasClientOrderId = Value::Bool(true);
+                hasClientOrderId = true;
             }
         }
         }
@@ -3837,7 +3837,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut triggerPrice: Value = self.safe_string2(orderParams.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
             let mut stopLossPrice: Value = self.safe_string_k(orderParams.clone(), "stopLossPrice", &[triggerPrice.clone()]);
             let mut takeProfitPrice: Value = self.safe_string_k(orderParams.clone(), "takeProfitPrice", &[]);
-            let mut isTrigger: Value = Value::Bool(is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+            let mut isTrigger: bool = is_true(&(!is_equal(&stopLossPrice, &Value::Null))) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
             let mut reduceOnly: Value = self.safe_bool_k(orderParams.clone(), "reduceOnly", &[Value::Bool(false)]);
             orderParams = self.omit(orderParams.clone(), Value::List(vec![Value::Str("slippage".to_string()), Value::Str("timeInForce".to_string()), Value::Str("triggerPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string()), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), Value::Str("postOnly".to_string()), Value::Str("reduceOnly".to_string())]), &[]);
             let mut px: Value = self.number_to_string(price.clone());
@@ -4493,7 +4493,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), clientOrderId.clone());
         }  else {
-            let mut isClientOrderId: Value = Value::Bool(is_greater_than_or_equal(&get_array_length(&id), &Value::Int(34)));
+            let mut isClientOrderId: bool = is_greater_than_or_equal(&get_array_length(&id), &Value::Int(34));
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), ternary(is_true(&isClientOrderId), id.clone(), self.parse_to_numeric(id.clone())));
         }
         let __ws_arg_25 = self.extend(request.clone(), &[params.clone()]);
@@ -4671,7 +4671,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         if !is_equal(&tif, &Value::Null) {
             postOnly = Value::Bool(is_equal(&tif, &Value::Str("ALO".to_string())));
         }
-        let mut isTrigger: Value = Value::Bool(is_equal(&self.safe_bool_k(entry.clone(), "isTrigger", &[]), &Value::Bool(true)));
+        let mut isTrigger: bool = is_equal(&self.safe_bool_k(entry.clone(), "isTrigger", &[]), &Value::Bool(true));
         let mut triggerPx: Value = ternary(is_true(&isTrigger), self.safe_number_k(entry.clone(), "triggerPx", &[]), Value::Null);
         // standalone stop / take-profit orders carry their trigger in triggerPx - surface it
         // through the unified stopLossPrice / takeProfitPrice fields as well, see #24318
@@ -5466,7 +5466,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         // params['type'] = 'spot' to move spot USDC, see https://github.com/ccxt/ccxt/issues/27029
         let mut transferType: Value = self.safe_string_k(params.clone(), "type", &[]);
         params = self.omit(params.clone(), Value::Str("type".to_string()), &[]);
-        let mut isUsdc: Value = Value::Bool(is_true(&(is_equal(&code, &Value::Null))) || is_true(&(is_equal(&to_upper(&code), &Value::Str("USDC".to_string())))));
+        let mut isUsdc: bool = is_true(&(is_equal(&code, &Value::Null))) || is_true(&(is_equal(&to_upper(&code), &Value::Str("USDC".to_string()))));
         if is_true(&isUsdc) && is_true(&(!is_equal(&transferType, &Value::Str("spot".to_string())))) {
             // Transfer USDC with subAccountTransfer
             let mut usd: Value = self.parse_to_int(crate::precise::Precise::stringMul(&self.number_to_string(amount.clone()), &Value::Str("1000000".to_string())));
@@ -6503,7 +6503,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-        let mut nonEmptyMessage: Value = Value::Bool(is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string())))));
+        let mut nonEmptyMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string()))));
         if is_true(&nonEmptyMessage) {
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());

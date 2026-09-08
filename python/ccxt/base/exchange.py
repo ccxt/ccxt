@@ -4,7 +4,7 @@
 
 # -----------------------------------------------------------------------------
 
-__version__ = '4.5.77'
+__version__ = '4.5.78'
 
 # -----------------------------------------------------------------------------
 
@@ -47,10 +47,7 @@ from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat,
 # -----------------------------------------------------------------------------
 
 
-# lighter
 import os
-
-# import ctypes
 
 # -----------------------------------------------------------------------------
 
@@ -68,11 +65,8 @@ import calendar
 import collections
 import datetime
 from email.utils import parsedate
-# import functools
-import gzip
 import hashlib
 import hmac
-import io
 import tempfile
 
 import json
@@ -92,16 +86,14 @@ except ImportError:
 import math
 import random
 from numbers import Number
+from operator import itemgetter
 import re
 from requests import Session
 from requests.utils import default_user_agent
 from requests.exceptions import HTTPError, Timeout, TooManyRedirects, RequestException, ConnectionError as requestsConnectionError
-# import socket
 from ssl import SSLError
-# import sys
 import time
 import uuid
-import zlib
 from decimal import Decimal
 import urllib.parse as _urlencode
 from typing import Any
@@ -386,11 +378,6 @@ class BaseExchange(object):
         self.decimal_to_precision = decimal_to_precision
         self.number_to_string = number_to_string
 
-        # version = '.'.join(map(str, sys.version_info[:3]))
-        # self.userAgent = {
-        #     'User-Agent': 'ccxt/' + __version__ + ' (+https://github.com/ccxt/ccxt) Python/' + version
-        # }
-
         self.origin = self.uuid()
         self.userAgent = default_user_agent()
 
@@ -516,16 +503,6 @@ class BaseExchange(object):
 
     def get_fetch_cache(self):
         return self.fetchHistoryCache
-
-    @staticmethod
-    def gzip_deflate(response, text):
-        encoding = response.info().get('Content-Encoding')
-        if encoding in ('gzip', 'x-gzip', 'deflate'):
-            if encoding == 'deflate':
-                return zlib.decompress(text, -zlib.MAX_WBITS)
-            else:
-                return gzip.GzipFile('', 'rb', 9, io.BytesIO(text)).read()
-        return text
 
     def prepare_request_headers(self, headers=None):
         headers = headers or {}
@@ -714,15 +691,6 @@ class BaseExchange(object):
         # https://github.com/ccxt/ccxt/issues/5302
         content_type = headers.get('Content-Type', '')
         return content_type.startswith('application/json') or content_type.startswith('text/')
-
-    @staticmethod
-    def key_exists(dictionary, key):
-        try:
-            value = dictionary[key]
-            return value is not None and value != ''
-        except Exception:
-            # catch any exception, not only (KeyError, IndexError, TypeError):
-            return False
 
     @staticmethod
     def safe_float(dictionary, key, default_value=None):
@@ -1033,12 +1001,6 @@ class BaseExchange(object):
         return None
 
     @staticmethod
-    def safe_either(method, dictionary, key1, key2, default_value=None):
-        """A helper-wrapper for the safe_value_2() family."""
-        value = method(dictionary, key1)
-        return value if value is not None else method(dictionary, key2, default_value)
-
-    @staticmethod
     def truncate(num, precision=0):
         """Deprecated, use decimal_to_precision instead"""
         if precision > 0:
@@ -1194,11 +1156,34 @@ class BaseExchange(object):
 
     @staticmethod
     def sort_by(array, key, descending=False, default=0):
-        return sorted(array, key=lambda k: k[key] if k[key] is not None else default, reverse=descending)
+        if not isinstance(array, (list, tuple)):
+            # a one-shot iterable would be consumed by a failed fast path, leaving nothing for the fallback to re-sort
+            array = list(array)
+        try:
+            # fast path: operator.itemgetter skips the python-level key callback entirely, saving one function call per element
+            # a None at the key raises TypeError during sorting (None is not comparable) and falls back to the default substitution below
+            return sorted(array, key=itemgetter(key), reverse=descending)
+        except TypeError:
+            def sort_by_keyfunc(k):
+                value = k[key]
+                return value if value is not None else default
+            return sorted(array, key=sort_by_keyfunc, reverse=descending)
 
     @staticmethod
     def sort_by_2(array, key1, key2, descending=False):
-        return sorted(array, key=lambda k: (k[key1] if k[key1] is not None else "", k[key2] if k[key2] is not None else ""), reverse=descending)
+        if not isinstance(array, (list, tuple)):
+            # a one-shot iterable would be consumed by a failed fast path, leaving nothing for the fallback to re-sort
+            array = list(array)
+        try:
+            # fast path: operator.itemgetter skips the python-level key callback entirely, saving one function call per element
+            # a None in either key raises TypeError during sorting (None is not comparable) and falls back to the '' substitution below
+            return sorted(array, key=itemgetter(key1, key2), reverse=descending)
+        except TypeError:
+            def sort_by_2_keyfunc(k):
+                value1 = k[key1]
+                value2 = k[key2]
+                return (value1 if value1 is not None else "", value2 if value2 is not None else "")
+            return sorted(array, key=sort_by_2_keyfunc, reverse=descending)
 
     @staticmethod
     def array_concat(a, b):
@@ -1355,11 +1340,6 @@ class BaseExchange(object):
             return None
 
     @staticmethod
-    def dmy(timestamp, infix='-'):
-        utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
-        return utc_datetime.strftime('%m' + infix + '%d' + infix + '%Y')
-
-    @staticmethod
     def ymd(timestamp, infix='-', fullYear=True):
         year_format = '%Y' if fullYear else '%y'
         utc_datetime = datetime.datetime.fromtimestamp(int(round(timestamp / 1000)), datetime.timezone.utc)
@@ -1435,16 +1415,27 @@ class BaseExchange(object):
 
     @staticmethod
     def hash(request, algorithm='md5', digest='hex'):
+        # fast paths for the common algorithms; hashlib.new() fallback for the rest.
         if algorithm == 'keccak':
             from ccxt.static_dependencies import keccak
             binary = bytes(keccak.SHA3(request))
+        elif algorithm == 'md5':
+            binary = hashlib.md5(request).digest()
+        elif algorithm == 'sha1':
+            binary = hashlib.sha1(request).digest()
+        elif algorithm == 'sha256':
+            binary = hashlib.sha256(request).digest()
+        elif algorithm == 'sha384':
+            binary = hashlib.sha384(request).digest()
+        elif algorithm == 'sha512':
+            binary = hashlib.sha512(request).digest()
         else:
-            h = hashlib.new(algorithm, request)
-            binary = h.digest()
-        if digest == 'base64':
-            return Exchange.binary_to_base64(binary)
-        elif digest == 'hex':
+            # Fallback for less common algorithms
+            binary = hashlib.new(algorithm, request).digest()
+        if digest == 'hex':
             return Exchange.binary_to_base16(binary)
+        elif digest == 'base64':
+            return Exchange.binary_to_base64(binary)
         return binary
 
     @staticmethod
@@ -1970,6 +1961,39 @@ class BaseExchange(object):
 
     @staticmethod
     def round_timeframe(timeframe, timestamp, direction=ROUND_DOWN):
+        try:
+            amount = float(timeframe[:-1])
+        except ValueError:
+            amount = 0
+        unit = timeframe[-1] if len(timeframe) else ''
+        is_integer_amount = amount == int(amount)
+        if unit in ('w', 'M', 'y') and amount >= 1 and is_integer_amount:
+            amount = int(amount)
+            date = datetime.datetime.fromtimestamp(timestamp / 1000, datetime.timezone.utc)
+            if unit == 'w':
+                monday = date - datetime.timedelta(days=date.weekday(), hours=date.hour, minutes=date.minute, seconds=date.second, microseconds=date.microsecond)
+                epoch_monday = datetime.datetime(1970, 1, 5, tzinfo=datetime.timezone.utc)
+                weeks_since_epoch_monday = (monday - epoch_monday).days // 7
+                rounded = epoch_monday + datetime.timedelta(weeks=(weeks_since_epoch_monday // amount) * amount)
+                if direction == ROUND_UP:
+                    rounded += datetime.timedelta(weeks=amount)
+            elif unit == 'M':
+                months_since_year_zero = date.year * 12 + date.month - 1
+                rounded_months = (months_since_year_zero // amount) * amount
+                year = rounded_months // 12
+                month = rounded_months % 12 + 1
+                rounded = datetime.datetime(year, month, 1, tzinfo=datetime.timezone.utc)
+                if direction == ROUND_UP:
+                    month = month + amount
+                    year = year + (month - 1) // 12
+                    month = (month - 1) % 12 + 1
+                    rounded = datetime.datetime(year, month, 1, tzinfo=datetime.timezone.utc)
+            else:
+                year = (date.year // amount) * amount
+                rounded = datetime.datetime(year, 1, 1, tzinfo=datetime.timezone.utc)
+                if direction == ROUND_UP:
+                    rounded = rounded.replace(year=year + amount)
+            return int(rounded.timestamp() * 1000)
         ms = Exchange.parse_timeframe(timeframe) * 1000
         # Get offset based on timeframe in milliseconds
         offset = timestamp % ms
@@ -1977,13 +2001,6 @@ class BaseExchange(object):
 
     def check_required_dependencies(self):
         pass
-
-    def privateKeyToAddress(self, privateKey):
-        private_key_bytes = base64.b16decode(Exchange.encode(privateKey), True)
-        public_key_bytes = Exchange.secp256k1_uncompressed_public_key(private_key_bytes)
-        from ccxt.static_dependencies import keccak
-        public_key_hash = keccak.SHA3(public_key_bytes)
-        return '0x' + Exchange.decode(base64.b16encode(public_key_hash))[-40:].lower()
 
     @staticmethod
     def remove0x_prefix(value):
@@ -2007,10 +2024,6 @@ class BaseExchange(object):
         offset = hex_to_dec(hmac_res[-1]) * 2
         otp = str(hex_to_dec(hmac_res[offset: offset + 8]) & 0x7fffffff)
         return otp[-6:]
-
-    @staticmethod
-    def number_to_le(n, size):
-        return int(n).to_bytes(size, 'little')
 
     @staticmethod
     def number_to_be(n, size):
@@ -2104,14 +2117,6 @@ class BaseExchange(object):
 
     def clone(self, obj):
         return obj if isinstance(obj, list) else self.extend(obj)
-
-    # def delete_key_from_dictionary(self, dictionary, key):
-    #     newDictionary = self.clone(dictionary)
-    #     del newDictionary[key]
-    #     return newDictionary
-
-    # def set_object_property(obj, prop, value):
-    #     obj[prop] = value
 
     def convert_to_big_int(self, value):
         return int(value, 16) if isinstance(value, str) and value.startswith('0x') else int(value) if isinstance(value, str) else value
@@ -2386,9 +2391,6 @@ class BaseExchange(object):
 
     def unlock_id(self):
         return None
-
-    def is_lighter_library_path_required(self):
-        return True
 
     def load_lighter_library(self, path, chainId, privateKey, apiKeyIndex, accountIndex, createClient):
         return self.load_lighter_library_helper(path, chainId, privateKey, apiKeyIndex, accountIndex, createClient)

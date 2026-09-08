@@ -86,6 +86,14 @@ class deepcoin extends \ccxt\async\deepcoin {
             ),
             'streaming' => array(
                 'ping' => array($this, 'ping'),
+                // the public stream drops the connection after 20 s without a
+                // text 'ping' from the client (https://www.deepcoin.com/docs/publicWS/public),
+                // and the base default of 30 s only sends the first one at
+                // 30 s. raw probes => no ping and a 20 s or 25 s cadence all
+                // died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
+                // and a 15 s cadence stayed up. 15 s leaves the widest window
+                // that still fits under the 20 s cut-off
+                'keepAlive' => 15000,
             ),
         ));
     }

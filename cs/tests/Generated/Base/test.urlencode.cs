@@ -14,7 +14,7 @@ public partial class BaseTest
             });
             // todo: add nulls
             // todo: add sort
-            object dict1 = new Dictionary<string, object>() {
+            Dictionary<string, object> dict1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "c", "+&" },
             };

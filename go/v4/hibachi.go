@@ -1806,7 +1806,7 @@ func (this *HibachiCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
  * @description fetches all current open orders
  * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
  * @param {string} [symbol] unified market symbol to filter by
- * @param {int} [since] milisecond timestamp of the earliest order
+ * @param {int} [since] millisecond timestamp of the earliest order
  * @param {int} [limit] the maximum number of open orders to return
  * @param {object} [params] extra parameters
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2262,7 +2262,7 @@ func (this *HibachiCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(method, "GET")) {
 		var request any = this.Omit(params, this.ExtractParams(path))
 		var query string = this.Urlencode(request)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		if IsTrue(!IsEqual(GetLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

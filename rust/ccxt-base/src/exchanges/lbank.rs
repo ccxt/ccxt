@@ -2327,9 +2327,9 @@ impl LbankCore {
                 m.insert("symbol".to_string(), get_value(&market, &Value::Str("id".to_string())));
             m
         });
-        let mut ioc: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("IOC".to_string())));
-        let mut fok: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("FOK".to_string())));
-        let mut maker: Value = Value::Bool(is_true(&(is_equal(&postOnly, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string())))));
+        let mut ioc: bool = is_equal(&timeInForce, &Value::Str("IOC".to_string()));
+        let mut fok: bool = is_equal(&timeInForce, &Value::Str("FOK".to_string()));
+        let mut maker: bool = is_true(&(is_equal(&postOnly, &Value::Bool(true)))) || is_true(&(is_equal(&timeInForce, &Value::Str("PO".to_string()))));
         if is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) && is_true(&(is_true(&ioc) || is_true(&fok) || is_true(&maker))) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder () does not allow market FOK, IOC, or postOnly orders. Only limit IOC, FOK, and postOnly orders are allowed".to_string()))));
         }

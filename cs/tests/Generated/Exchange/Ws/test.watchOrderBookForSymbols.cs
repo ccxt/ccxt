@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         // as in `watchOrderBook`, a pending subscription can not be cancelled, so the
         // loop has to be bounded by the deadline alone. waiting for every requested
         // symbol to be seen would hang forever whenever one of them stays idle.
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         object currentTime = exchange.milliseconds();
         object deadline = add(currentTime, 15000);
         bool idle = false;

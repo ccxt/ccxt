@@ -5009,7 +5009,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             types = self.safe_list_k(self.options.clone(), "fetchMarkets", &[defaultMarkets.clone()]);
         }
         let mut promises: Value = Value::List(vec![]);
-        let mut fetchMargins: Value = Value::Bool(false);
+        let mut fetchMargins: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_339: bool = true;
@@ -5032,7 +5032,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 }
             }  else if is_equal(&type_var, &Value::Str("spot".to_string())) {
                 append_to_array(&mut promises, self.public_spot_get_v2_spot_public_symbols(&[params.clone()]).await);
-                fetchMargins = Value::Bool(true);
+                fetchMargins = true;
                 append_to_array(&mut promises, self.public_margin_get_v2_margin_currencies(&[params.clone()]).await);
             }  else {
                 panic!("{}", crate::exchange_errors::not_supported(add(&add(&add(&self.id, &Value::Str(" does not support ".to_string())), &type_var), &Value::Str(" market".to_string()))));
@@ -5181,7 +5181,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut expiryDatetime: Value = Value::Null;
             let mut symbolType: Value = self.safe_string_k(market.clone(), "symbolType", &[]);
             let mut marginModes: Value = Value::Null;
-            let mut isMarginTradingAllowed: Value = Value::Bool(false);
+            let mut isMarginTradingAllowed: bool = false;
             if is_equal(&symbolType, &Value::Null) {
                 type_var = Value::Str("spot".to_string());
                 spot = Value::Bool(true);
@@ -5195,7 +5195,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                         m.insert("isolated".to_string(), hasIsolatedMargin.clone());
                     m
                 });
-                isMarginTradingAllowed = Value::Bool(is_true(&hasCrossMargin) || is_true(&hasIsolatedMargin));
+                isMarginTradingAllowed = is_true(&hasCrossMargin) || is_true(&hasIsolatedMargin);
             }  else {
                 if is_equal(&symbolType, &Value::Str("perpetual".to_string())) {
                     type_var = Value::Str("swap".to_string());
@@ -5476,8 +5476,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut expiryDatetime: Value = Value::Null;
             let mut symbolType: Value = self.safe_string_k(market.clone(), "type", &[]);
             let mut marginModes: Value = Value::Null;
-            let mut isMarginTradingAllowed: Value = Value::Bool(false);
-            let mut isUtaMargin: Value = Value::Bool(is_equal(&category, &Value::Str("MARGIN".to_string())));
+            let mut isMarginTradingAllowed: bool = false;
+            let mut isUtaMargin: bool = is_equal(&category, &Value::Str("MARGIN".to_string()));
             if is_true(&isUtaMargin) || is_true(&(is_equal(&category, &Value::Str("SPOT".to_string())))) {
                 type_var = Value::Str("spot".to_string());
                 spot = Value::Bool(true);
@@ -5493,7 +5493,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                             m.insert("isolated".to_string(), isolated.clone());
                         m
                     });
-                    isMarginTradingAllowed = Value::Bool(true);
+                    isMarginTradingAllowed = true;
                 }
             }  else {
                 if is_equal(&symbolType, &Value::Str("perpetual".to_string())) {
@@ -7314,7 +7314,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut feeDetail: Value = self.safe_value_k(trade.clone(), "feeDetail", &[]);
         let mut posMode: Value = self.safe_string_k(trade.clone(), "posMode", &[]);
         let mut category: Value = self.safe_string_k(trade.clone(), "category", &[]);
-        let mut isFeeStructure: Value = Value::Bool(is_true(&(!is_equal(&posMode, &Value::Null))) || is_true(&(!is_equal(&category, &Value::Null))));
+        let mut isFeeStructure: bool = is_true(&(!is_equal(&posMode, &Value::Null))) || is_true(&(!is_equal(&category, &Value::Null)));
         let mut feeStructure: Value = ternary(is_true(&isFeeStructure), get_value(&feeDetail, &Value::Int(0)), feeDetail.clone());
         if !is_equal(&feeStructure, &Value::Null) {
             let mut currencyCode: Value = self.safe_currency_code(self.safe_string_k(feeStructure.clone(), "feeCoin", &[]), &[]);
@@ -7818,9 +7818,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut now: Value = self.milliseconds();
         let mut duration: Value = multiply(&self.parse_timeframe(timeframe.clone()), &Value::Int(1000));
         let mut until: Value = self.safe_integer_k(params.clone(), "until", &[]);
-        let mut limitDefined: Value = Value::Bool(!is_equal(&limit, &Value::Null));
-        let mut sinceDefined: Value = Value::Bool(!is_equal(&since, &Value::Null));
-        let mut untilDefined: Value = Value::Bool(!is_equal(&until, &Value::Null));
+        let mut limitDefined: bool = !is_equal(&limit, &Value::Null);
+        let mut sinceDefined: bool = !is_equal(&since, &Value::Null);
+        let mut untilDefined: bool = !is_equal(&until, &Value::Null);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("until".to_string())]), &[]);
         // retrievable periods listed here:
         // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
@@ -7874,9 +7874,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         // if historical endpoint is needed, we should re-set the variables
-        let mut historicalEndpointNeeded: Value = Value::Bool(false);
+        let mut historicalEndpointNeeded: bool = false;
         if is_true(&(!is_equal(&calculatedStartTime, &Value::Null) && is_less_than_or_equal(&calculatedStartTime, &recentEndpointBoundaryTs))) || is_true(&(is_equal(&useHistoryEndpoint, &Value::Bool(true)))) {
-            historicalEndpointNeeded = Value::Bool(true);
+            historicalEndpointNeeded = true;
             // only for "historical-candles" - ensure we use correct max limit
             limit = crate::runtime::Math::min(&limit, &maxLimitForHistoryEndpoint);
             limitMultipliedDuration = multiply(&limit, &duration);
@@ -8466,7 +8466,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }), &[market.clone()]);
         }
         let mut posSide: Value = self.safe_string_k(order.clone(), "posSide", &[]);
-        let mut isContractOrder: Value = Value::Bool(!is_equal(&posSide, &Value::Null));
+        let mut isContractOrder: bool = !is_equal(&posSide, &Value::Null);
         let mut marketType: Value = ternary(is_true(&isContractOrder), Value::Str("contract".to_string()), Value::Str("spot".to_string()));
         if !is_equal(&market, &Value::Null) {
             marketType = get_value(&market, &Value::Str("type".to_string()));
@@ -8488,7 +8488,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
         }
         let mut feeDetail: Value = self.safe_value_k(order.clone(), "feeDetail", &[]);
-        let mut uta: Value = Value::Bool(!is_equal(&self.safe_string_k(order.clone(), "category", &[]), &Value::Null));
+        let mut uta: bool = !is_equal(&self.safe_string_k(order.clone(), "category", &[]), &Value::Null);
         if is_true(&uta) {
             let mut feeResult: Value = self.safe_dict(feeDetail.clone(), Value::Int(0), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -8565,7 +8565,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             side = ternary(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))), Value::Str("sell".to_string()), Value::Str("buy".to_string()));
         }
         let mut orderType: Value = self.safe_string_k(order.clone(), "orderType", &[]);
-        let mut isBuyMarket: Value = Value::Bool(is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_equal(&orderType, &Value::Str("market".to_string())))));
+        let mut isBuyMarket: bool = is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_equal(&orderType, &Value::Str("market".to_string()))));
         if is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && is_true(&isBuyMarket) {
             // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             size = self.safe_string_k(order.clone(), "baseVolume", &[]);
@@ -8699,11 +8699,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut stopLossTriggerPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossTriggerOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTriggerOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
         let mut response: Value = Value::Null;
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("createOrder".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -8795,11 +8795,11 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut takeProfitTriggerPrice: Value = self.safe_number_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
-        let mut isStopLossTrigger: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitTrigger: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTrigger) || is_true(&isTakeProfitTrigger));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
+        let mut isStopLossTrigger: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitTrigger: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTrigger) || is_true(&isTakeProfitTrigger);
         if is_true(&isStopLossOrTakeProfitTrigger) {
             if is_true(&isStopLossTrigger) {
                 let mut slType: Value = self.safe_string_k(params.clone(), "slTriggerBy", &[Value::Str("mark".to_string())]);
@@ -8931,10 +8931,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
         let mut isStopLossTriggerOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
         let mut isTakeProfitTriggerOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
-        let mut isStopLossOrTakeProfitTrigger: Value = Value::Bool(is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder));
-        let mut isStopLossOrTakeProfit: Value = Value::Bool(is_true(&hasStopLoss) || is_true(&hasTakeProfit));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
+        let mut isStopLossOrTakeProfitTrigger: bool = is_true(&isStopLossTriggerOrder) || is_true(&isTakeProfitTriggerOrder);
+        let mut isStopLossOrTakeProfit: bool = is_true(&hasStopLoss) || is_true(&hasTakeProfit);
         let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("callbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
@@ -9399,7 +9399,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }  else {
             add_element_to_object(&mut request, &Value::Str("orderId".to_string()), id.clone());
         }
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarketOrder: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         let mut triggerPrice: Value = self.safe_value2(params.clone(), Value::Str("stopPrice".to_string()), Value::Str("triggerPrice".to_string()), &[]);
         let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
         let mut stopLossPrice: Value = self.safe_value_k(params.clone(), "stopLossPrice", &[]);
@@ -9408,8 +9408,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut trailingTriggerPrice: Value = self.safe_string_k(params.clone(), "trailingTriggerPrice", &[self.number_to_string(price.clone())]);
         let mut trailingPercent: Value = self.safe_string2(params.clone(), Value::Str("trailingPercent".to_string()), Value::Str("newCallbackRatio".to_string()), &[]);
         let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
@@ -9647,9 +9647,9 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("cancelOrder".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isPlanOrder: Value = Value::Bool(is_true(&(is_equal(&trigger, &Value::Bool(true)))) || is_true(&(is_equal(&trailing, &Value::Bool(true)))));
-        let mut isContract: Value = Value::Bool(is_true(&(is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) || is_true(&(is_equal(&get_value(&market, &Value::Str("future".to_string())), &Value::Bool(true)))));
-        let mut isContractTriggerEndpoint: Value = Value::Bool(is_true(&isContract) && is_true(&isPlanOrder) && is_true(&(!is_equal(&uta, &Value::Bool(true)))));
+        let mut isPlanOrder: bool = is_true(&(is_equal(&trigger, &Value::Bool(true)))) || is_true(&(is_equal(&trailing, &Value::Bool(true))));
+        let mut isContract: bool = is_true(&(is_equal(&get_value(&market, &Value::Str("swap".to_string())), &Value::Bool(true)))) || is_true(&(is_equal(&get_value(&market, &Value::Str("future".to_string())), &Value::Bool(true))));
+        let mut isContractTriggerEndpoint: bool = is_true(&isContract) && is_true(&isPlanOrder) && is_true(&(!is_equal(&uta, &Value::Bool(true))));
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("clientOid".to_string()), &[]);
         if is_true(&isContractTriggerEndpoint) {
             let mut orderIdList: Value = Value::List(vec![]);
@@ -10345,8 +10345,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut response: Value = Value::Null;
         let mut trailing: Value = self.safe_bool_k(params.clone(), "trailing", &[]);
         let mut trigger: Value = self.safe_bool2(params.clone(), Value::Str("stop".to_string()), Value::Str("trigger".to_string()), &[]);
-        let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null));
-        let mut isTrigger: Value = Value::Bool(is_true(&(is_equal(&trigger, &Value::Bool(true)))) || is_true(&planTypeDefined));
+        let mut planTypeDefined: bool = !is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null);
+        let mut isTrigger: bool = is_true(&(is_equal(&trigger, &Value::Bool(true)))) || is_true(&planTypeDefined);
         { let __destr_tmp = self.handle_until_option(Value::Str("endTime".to_string()), request.clone(), params.clone(), &[]); request = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if !is_equal(&since, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("startTime".to_string()), since.clone());
@@ -10896,7 +10896,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut productType: Value = Value::Null;
             { let __destr_tmp = self.handle_product_type_and_params(&[market.clone(), params.clone()]); productType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
             add_element_to_object(&mut request, &Value::Str("productType".to_string()), productType.clone());
-            let mut planTypeDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null));
+            let mut planTypeDefined: bool = !is_equal(&self.safe_string_k(params.clone(), "planType", &[]), &Value::Null);
             if is_equal(&trailing, &Value::Bool(true)) {
                 let mut planType: Value = self.safe_string_k(params.clone(), "planType", &[Value::Str("track_plan".to_string())]);
                 add_element_to_object(&mut request, &Value::Str("planType".to_string()), planType.clone());
@@ -11922,7 +11922,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut response: Value = Value::Null;
-        let mut isHistory: Value = Value::Bool(false);
+        let mut isHistory: bool = false;
         let mut uta: Value = Value::Null;
         { let __destr_tmp = self.handle_uta_and_params(params.clone(), Value::Str("fetchPositions".to_string()), &[Value::Bool(false)]).await; uta = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_equal(&uta, &Value::Bool(true)) {
@@ -11951,7 +11951,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let __ws_arg_98 = self.extend(request.clone(), &[params.clone()]);
             response = self.private_mix_get_v2_mix_position_all_position(&[__ws_arg_98]).await;
         }  else {
-            isHistory = Value::Bool(true);
+            isHistory = true;
             if !is_equal(&market, &Value::Null) {
                 add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
             }
@@ -13056,7 +13056,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 
     pub fn parse_leverage(&self, mut leverage: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
-        let mut isCrossMarginMode: Value = Value::Bool(is_equal(&self.safe_string_k(leverage.clone(), "marginMode", &[]), &Value::Str("crossed".to_string())));
+        let mut isCrossMarginMode: bool = is_equal(&self.safe_string_k(leverage.clone(), "marginMode", &[]), &Value::Str("crossed".to_string()));
         let mut longLevKey: Value = ternary(is_true(&isCrossMarginMode), Value::Str("crossedMarginLeverage".to_string()), Value::Str("isolatedLongLever".to_string()));
         let mut shortLevKey: Value = ternary(is_true(&isCrossMarginMode), Value::Str("crossedMarginLeverage".to_string()), Value::Str("isolatedShortLever".to_string()));
         return Value::Map({
@@ -15347,13 +15347,13 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         //
         let mut message: Value = self.safe_string2(response.clone(), Value::Str("err_msg".to_string()), Value::Str("msg".to_string()), &[]);
         let mut feedback: Value = add(&add(&self.id, &Value::Str(" ".to_string())), &body);
-        let mut nonEmptyMessage: Value = Value::Bool(is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string())))) && is_true(&(!is_equal(&message, &Value::Str("success".to_string())))));
+        let mut nonEmptyMessage: bool = is_true(&(!is_equal(&message, &Value::Null))) && is_true(&(!is_equal(&message, &Value::Str("".to_string())))) && is_true(&(!is_equal(&message, &Value::Str("success".to_string()))));
         if is_true(&nonEmptyMessage) {
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), message.clone(), feedback.clone());
             self.throw_broadly_matched_exception(get_value(&self.exceptions, &Value::Str("broad".to_string())), message.clone(), feedback.clone());
         }
         let mut errorCode: Value = self.safe_string2(response.clone(), Value::Str("code".to_string()), Value::Str("err_code".to_string()), &[]);
-        let mut nonZeroErrorCode: Value = Value::Bool(is_true(&(!is_equal(&errorCode, &Value::Null))) && is_true(&(!is_equal(&errorCode, &Value::Str("00000".to_string())))));
+        let mut nonZeroErrorCode: bool = is_true(&(!is_equal(&errorCode, &Value::Null))) && is_true(&(!is_equal(&errorCode, &Value::Str("00000".to_string()))));
         if is_true(&nonZeroErrorCode) {
             self.throw_exactly_matched_exception(get_value(&self.exceptions, &Value::Str("exact".to_string())), errorCode.clone(), feedback.clone());
         }
@@ -15380,7 +15380,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut signed: Value = Value::Bool(is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string())));
+        let mut signed: bool = is_equal(&get_value(&api, &Value::Int(0)), &Value::Str("private".to_string()));
         let mut endpoint: Value = get_value(&api, &Value::Int(1));
         let mut pathPart: Value = Value::Str("/api".to_string());
         let mut request: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));

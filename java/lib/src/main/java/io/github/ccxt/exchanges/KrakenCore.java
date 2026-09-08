@@ -756,15 +756,15 @@ public class KrakenCore extends KrakenApi
                     isSynthetic = true;
                 }
                 Object market = Helpers.GetValue(markets, id);
-                Object baseIdRaw = this.safeString(market, "base");
-                Object quoteIdRaw = this.safeString(market, "quote");
+                String baseIdRaw = this.safeString(market, "base");
+                String quoteIdRaw = this.safeString(market, "quote");
                 Object baseId = this.safeCurrencyCode(baseIdRaw);
                 Object quoteId = this.safeCurrencyCode(quoteIdRaw);
                 Object base = baseId;
                 Object quote = quoteId;
                 Object makerFees = this.safeList(market, "fees_maker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object firstMakerFee = this.safeList(makerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object firstMakerFeeRate = this.safeString(firstMakerFee, 1);
+                String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
                 Object maker = null;
                 if (Helpers.isTrue(!Helpers.isEqual(firstMakerFeeRate, null)))
                 {
@@ -772,7 +772,7 @@ public class KrakenCore extends KrakenApi
                 }
                 Object takerFees = this.safeList(market, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object firstTakerFee = this.safeList(takerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object firstTakerFeeRate = this.safeString(firstTakerFee, 1);
+                String firstTakerFeeRate = this.safeString(firstTakerFee, 1);
                 Object taker = null;
                 if (Helpers.isTrue(!Helpers.isEqual(firstTakerFeeRate, null)))
                 {
@@ -802,7 +802,7 @@ public class KrakenCore extends KrakenApi
                         precisionAmount = currencyPrecision;
                     }
                 }
-                Object status = this.safeString(market, "status");
+                String status = this.safeString(market, "status");
                 Object isActive = Helpers.isEqual(status, "online");
                 Object symbol = ((Helpers.isTrue((!Helpers.isTrue(isSynthetic))))) ? (Helpers.add(Helpers.add(base, "/"), quote)) : id;
     final Object finalBase = base;
@@ -893,7 +893,7 @@ public class KrakenCore extends KrakenApi
             // }
             //
             Object result = this.safeDict(response, "result");
-            Object statusRaw = this.safeString(result, "status");
+            String statusRaw = this.safeString(result, "status");
             final Object finalStatusRaw = statusRaw;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalStatusRaw, "online"))))) ? "ok" : "maintenance" );
@@ -993,7 +993,7 @@ public class KrakenCore extends KrakenApi
         // Z and X prefixes: https://support.kraken.com/hc/en-us/articles/360001206766-Bitcoin-currency-code-XBT-vs-BTC
         // S and M suffixes: https://support.kraken.com/hc/en-us/articles/360039879471-What-is-Asset-S-and-Asset-M-
         //
-        Object id = this.safeString(rawCurrency, "_coin_id");
+        String id = this.safeString(rawCurrency, "_coin_id");
         Object code = this.safeCurrencyCode(id);
         // the below cannot be reliably done in `safeCurrencyCode`, so we have to do it here
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
@@ -1002,7 +1002,7 @@ public class KrakenCore extends KrakenApi
         }
         if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(id, "."), 0)))
         {
-            Object altName = this.safeString(rawCurrency, "altname");
+            String altName = this.safeString(rawCurrency, "altname");
             // handle cases like below:
             //
             //  id   | altname
@@ -1071,8 +1071,8 @@ public class KrakenCore extends KrakenApi
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
             Object parts = Helpers.split(currencyId, ".");
-            Object firstPart = this.safeString(parts, 0);
-            Object secondPart = this.safeString(parts, 1);
+            String firstPart = this.safeString(parts, 0);
+            String secondPart = this.safeString(parts, 1);
             return Helpers.add(Helpers.add(super.safeCurrencyCode(firstPart, currency), "."), secondPart);
         }
         return super.safeCurrencyCode(currencyId, currency);
@@ -1247,12 +1247,12 @@ public class KrakenCore extends KrakenApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object v = this.safeValue(ticker, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object baseVolume = this.safeString(v, 1);
+        String baseVolume = this.safeString(v, 1);
         Object p = this.safeValue(ticker, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object vwap = this.safeString(p, 1);
+        String vwap = this.safeString(p, 1);
         Object quoteVolume = Precise.stringMul(baseVolume, vwap);
         Object c = this.safeValue(ticker, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object last = this.safeString(c, 0);
+        String last = this.safeString(c, 0);
         Object high = this.safeValue(ticker, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object low = this.safeValue(ticker, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bid = this.safeValue(ticker, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1490,16 +1490,16 @@ public class KrakenCore extends KrakenApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(item, "id");
+        String id = this.safeString(item, "id");
         Object direction = null;
         Object account = null;
-        Object referenceId = this.safeString(item, "refid");
+        String referenceId = this.safeString(item, "refid");
         Object referenceAccount = null;
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        Object currencyId = this.safeString(item, "asset");
+        String currencyId = this.safeString(item, "asset");
         Object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object amount = this.safeString(item, "amount");
+        String amount = this.safeString(item, "amount");
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
         {
             direction = "out";
@@ -1571,7 +1571,7 @@ public class KrakenCore extends KrakenApi
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeString2(parameters, "until", "till");
+            String until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -1751,7 +1751,7 @@ public class KrakenCore extends KrakenApi
             id = trade;
         } else if (Helpers.isTrue(Helpers.inOp(trade, "ordertxid")))
         {
-            Object marketId = this.safeString(trade, "pair");
+            String marketId = this.safeString(trade, "pair");
             Object foundMarket = this.findMarketByAltnameOrId(marketId);
             if (Helpers.isTrue(!Helpers.isEqual(foundMarket, null)))
             {
@@ -1795,7 +1795,7 @@ public class KrakenCore extends KrakenApi
         {
             symbol = Helpers.GetValue(market, "symbol");
         }
-        Object cost = this.safeString(trade, "cost");
+        String cost = this.safeString(trade, "cost");
         Object maker = this.safeBool(trade, "maker");
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
@@ -1896,7 +1896,7 @@ public class KrakenCore extends KrakenApi
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
             Object lastTrade = Helpers.GetValue(trades, Helpers.subtract(length, 1));
-            Object lastTradeId = this.safeString(result, "last");
+            String lastTradeId = this.safeString(result, "last");
             ((java.util.List<Object>)lastTrade).add(lastTradeId);
             Helpers.addElementToObject(trades, Helpers.subtract(length, 1), lastTrade);
             return this.parseTrades(trades, market, since, limit);
@@ -2065,7 +2065,7 @@ public class KrakenCore extends KrakenApi
                 put( "volume", KrakenCore.this.amountToPrecision(symbol, amount) );
             }};
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
-            Object flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
+            String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
             Object isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
             Object response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
             //
@@ -2113,7 +2113,7 @@ public class KrakenCore extends KrakenApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
-                Object marketId = this.safeString(rawOrder, "symbol");
+                String marketId = this.safeString(rawOrder, "symbol");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
                     symbol = marketId;
@@ -2126,8 +2126,8 @@ public class KrakenCore extends KrakenApi
                 }
                 market = this.market(marketId);
                 ((java.util.List<Object>)orderSymbols).add(marketId);
-                Object type = this.safeString(rawOrder, "type");
-                Object side = this.safeString(rawOrder, "side");
+                String type = this.safeString(rawOrder, "type");
+                String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -2391,8 +2391,8 @@ public class KrakenCore extends KrakenApi
                 cost = this.safeString(parts, 1);
             }
             marketId = this.safeString(parts, 2);
-            Object part4 = this.safeString(parts, 4);
-            Object part5 = this.safeString(parts, 5);
+            String part4 = this.safeString(parts, 4);
+            String part5 = this.safeString(parts, 5);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(part4, "limit")) || Helpers.isTrue(Helpers.isEqual(part4, "market"))))
             {
                 rawType = part4; // eg, limit, market
@@ -2424,7 +2424,7 @@ public class KrakenCore extends KrakenApi
         }
         Object timestamp = this.safeTimestamp(order, "opentm");
         amount = this.safeString(order, "vol", amount);
-        Object filled = this.safeString(order, "vol_exec");
+        String filled = this.safeString(order, "vol_exec");
         Object fee = null;
         // kraken truncates the cost in the api response so we will ignore it and calculate it from average & filled
         // const cost = this.safeString (order, 'cost');
@@ -2439,7 +2439,7 @@ public class KrakenCore extends KrakenApi
             price = this.safeString(description, "price2");
             price = this.safeString2(order, "limitprice", "price", price);
         }
-        Object flags = this.safeString(order, "oflags", "");
+        String flags = this.safeString(order, "oflags", "");
         Object isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), Helpers.opNeg(1));
         Object average = this.safeNumber(order, "price");
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -2447,7 +2447,7 @@ public class KrakenCore extends KrakenApi
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(Helpers.inOp(order, "fee")))
             {
-                Object feeCost = this.safeString(order, "fee");
+                String feeCost = this.safeString(order, "fee");
                 fee = new java.util.HashMap<String, Object>() {{
                     put( "cost", feeCost );
                     put( "rate", null );
@@ -2462,14 +2462,14 @@ public class KrakenCore extends KrakenApi
             }
         }
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "txid", "order_id", "amend_id")));
+        String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "txid", "order_id", "amend_id")));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((((String)id).startsWith(((String)"["))))))
         {
             Object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
-        Object userref = this.safeString(order, "userref");
-        Object clientOrderId = this.safeString(order, "cl_ord_id", userref);
+        String userref = this.safeString(order, "userref");
+        String clientOrderId = this.safeString(order, "cl_ord_id", userref);
         Object rawTrades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
@@ -2522,7 +2522,7 @@ final Object finalId = id;
         {
             typeParsed = ((Helpers.isTrue((Helpers.isEqual(price, null))))) ? "market" : "limit";
         }
-        Object amendId = this.safeString(order, "amend_id");
+        String amendId = this.safeString(order, "amend_id");
         if (Helpers.isTrue(!Helpers.isEqual(amendId, null)))
         {
             isPostOnly = null;
@@ -2573,27 +2573,27 @@ final Object finalId = id;
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
         }
-        Object stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
-        Object takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
+        String stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
+        String takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
         Object isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
         Object isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
         Object isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
-        Object trailingAmount = this.safeString(parameters, "trailingAmount");
-        Object trailingPercent = this.safeString(parameters, "trailingPercent");
-        Object trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
-        Object trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
+        String trailingAmount = this.safeString(parameters, "trailingAmount");
+        String trailingPercent = this.safeString(parameters, "trailingPercent");
+        String trailingLimitAmount = this.safeString(parameters, "trailingLimitAmount");
+        String trailingLimitPercent = this.safeString(parameters, "trailingLimitPercent");
         Object isTrailingAmountOrder = !Helpers.isEqual(trailingAmount, null);
         Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Object isLimitOrder = Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue(((String)type).endsWith(((String)"limit"))); // supporting limit, stop-loss-limit, take-profit-limit, etc
         Object isMarketOrder = Helpers.isEqual(type, "market");
-        Object cost = this.safeString(parameters, "cost");
-        Object flags = this.safeString(parameters, "oflags");
+        String cost = this.safeString(parameters, "cost");
+        String flags = this.safeString(parameters, "oflags");
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "oflags")));
         Object isViqcOrder = Helpers.isTrue((!Helpers.isEqual(flags, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1)))); // volume in quote currency
         if (Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(cost, null)) || Helpers.isTrue(isViqcOrder)))))
@@ -2647,9 +2647,9 @@ final Object finalId = id;
                 trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (Helpers.add("+", trailingPercent)) : (Helpers.add(Helpers.add("+", trailingPercent), "%"));
             }
             Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add("+", trailingAmount) : null; // must use + for this
-            Object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
+            String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
             Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
-            Object trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
+            String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             Helpers.addElementToObject(request, "trigger", trailingActivationPriceType);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isLimitOrder) || Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null)))) || Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null)))))
             {
@@ -2703,7 +2703,7 @@ final Object finalId = id;
             }
             Helpers.addElementToObject(request, "close", close);
         }
-        Object timeInForce = this.safeString2(parameters, "timeInForce", "timeinforce");
+        String timeInForce = this.safeString2(parameters, "timeInForce", "timeinforce");
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
         {
             Helpers.addElementToObject(request, "timeinforce", timeInForce);
@@ -2769,7 +2769,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "txid", id );
             }};
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
@@ -2796,7 +2796,7 @@ final Object finalId = id;
             Object allTriggerPrices = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
             if (Helpers.isTrue(!Helpers.isEqual(allTriggerPrices, null)))
             {
-                Object offset = this.safeString(parameters, "offset");
+                String offset = this.safeString(parameters, "offset");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
                 if (Helpers.isTrue(!Helpers.isEqual(offset, null)))
                 {
@@ -3083,7 +3083,7 @@ final Object finalId = id;
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeString2(parameters, "until", "till");
+            String until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3166,7 +3166,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "txid", requestId );
             }};
-            Object clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
+            String clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
@@ -3354,7 +3354,7 @@ final Object finalId = id;
                 Helpers.addElementToObject(request, "userref", userref);
                 parameters = this.omit(parameters, "userref");
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
@@ -3458,7 +3458,7 @@ final Object finalId = id;
                 Helpers.addElementToObject(request, "userref", userref);
                 parameters = this.omit(parameters, "userref");
             }
-            Object clientOrderId = this.safeString(parameters, "clientOrderId");
+            String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
@@ -3612,15 +3612,15 @@ final Object finalId = id;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transaction, "refid");
-        Object txid = this.safeString(transaction, "txid");
+        String id = this.safeString(transaction, "refid");
+        String txid = this.safeString(transaction, "txid");
         Object timestamp = this.safeTimestamp(transaction, "time");
-        Object currencyId = this.safeString(transaction, "asset");
+        String currencyId = this.safeString(transaction, "asset");
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "info");
+        String address = this.safeString(transaction, "info");
         Object amount = this.safeNumber(transaction, "amount");
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object statusProp = this.safeString(transaction, "status-prop");
+        String statusProp = this.safeString(transaction, "status-prop");
         Object isOnHoldDeposit = Helpers.isEqual(statusProp, "on-hold");
         Object isCancellationRequest = Helpers.isEqual(statusProp, "cancel-pending");
         Object isOnHoldWithdrawal = Helpers.isEqual(statusProp, "onhold");
@@ -3628,7 +3628,7 @@ final Object finalId = id;
         {
             status = "pending";
         }
-        Object type = this.safeString(transaction, "type"); // injected from the outside
+        String type = this.safeString(transaction, "type"); // injected from the outside
         Object feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {
@@ -3721,7 +3721,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeString2(parameters, "until", "till");
+            String until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3826,7 +3826,7 @@ final Object finalId = id;
                 Object sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
-            Object until = this.safeString2(parameters, "until", "till");
+            String until = this.safeString2(parameters, "until", "till");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
@@ -3888,7 +3888,7 @@ final Object finalId = id;
 
     public Object addPaginationCursorToResult(Object result)
     {
-        Object cursor = this.safeString(result, "next_cursor");
+        String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
         Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(cursor, null)) && Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0))))
@@ -3995,7 +3995,7 @@ final Object finalId = id;
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            Object network = this.safeStringUpper(parameters, "network");
+            String network = (String)this.safeStringUpper(parameters, "network");
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
             parameters = this.omit(parameters, "network");
@@ -4004,7 +4004,7 @@ final Object finalId = id;
                 code = Helpers.add(Helpers.add(code, "-"), network);
             }
             Object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new java.util.HashMap<String, Object>() {{}});
-            Object defaultDepositMethod = this.safeString(defaultDepositMethods, code);
+            String defaultDepositMethod = this.safeString(defaultDepositMethods, code);
             Object depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
             // if the user has specified an exchange-specific method in params
             // we pass it as is, otherwise we take the 'network' unified param
@@ -4016,7 +4016,7 @@ final Object finalId = id;
                     // find best matching deposit method, or fallback to the first one
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositMethods)); i++)
                     {
-                        Object entry = this.safeString(Helpers.GetValue(depositMethods, i), "method");
+                        String entry = this.safeString(Helpers.GetValue(depositMethods, i), "method");
                         if (Helpers.isTrue(Helpers.isEqual(entry, null)))
                         {
                             throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() missing entry")) ;
@@ -4069,8 +4069,8 @@ final Object finalId = id;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
-        Object tag = this.safeString(depositAddress, "tag");
+        String address = this.safeString(depositAddress, "address");
+        String tag = this.safeString(depositAddress, "tag");
         currency = this.safeCurrency(null, currency);
         Object code = Helpers.GetValue(currency, "code");
         this.checkAddress(address);
@@ -4229,8 +4229,8 @@ final Object finalId = id;
         //             }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "pair");
-        Object rawSide = this.safeString(position, "type");
+        String marketId = this.safeString(position, "pair");
+        String rawSide = this.safeString(position, "type");
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -4366,7 +4366,7 @@ final Object finalId = id;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.safeValue(transfer, "result", new java.util.HashMap<String, Object>() {{}});
-        Object refid = this.safeString(result, "refid");
+        String refid = this.safeString(result, "refid");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", refid );
@@ -4397,7 +4397,7 @@ final Object finalId = id;
             }
         } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
-            Object price = this.safeString(parameters, "price");
+            String price = this.safeString(parameters, "price");
             Object isTriggerPercent = false;
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -4498,7 +4498,7 @@ final Object finalId = id;
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                         {
                             Object order = Helpers.GetValue(orders, i);
-                            Object error = this.safeString(order, "error");
+                            String error = this.safeString(order, "error");
                             if (Helpers.isTrue(!Helpers.isEqual(error, null)))
                             {
                                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, message);

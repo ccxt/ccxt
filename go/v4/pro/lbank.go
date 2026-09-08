@@ -1111,6 +1111,15 @@ func (this *LbankCore) handlePingBody(ch chan any, client any, message any) any 
 	//
 	//  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
 	//
+	// lbank drives liveness from its side: the server sends this
+	// application-level ping and closes the socket if it is not answered
+	// within a minute, but it does not reliably answer the RFC 6455 ping
+	// frames the base client sends from onPingInterval. an inbound ping is
+	// proof the connection is alive, so record it as the last pong -
+	// otherwise lastPong never advances past the first onPingInterval and
+	// the keepAlive * maxPingPongMisses check tears down a healthy,
+	// streaming socket every 60 seconds
+	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	var pingId any = this.SafeString(message, "ping")
 
 	{
@@ -1129,11 +1138,11 @@ func (this *LbankCore) handlePingBody(ch chan any, client any, message any) any 
 			}()
 			// try block:
 
-			retRes93712 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+			retRes94612 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 				"action": "pong",
 				"pong":   pingId,
 			}))
-			ccxt.PanicOnError(retRes93712)
+			ccxt.PanicOnError(retRes94612)
 			return nil
 		}(this)
 
@@ -1195,8 +1204,8 @@ func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// a flight is already in progress - wake when the leader settles
 		// it: the subscribeKey is then in the bucket
 
-		retRes99212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-		ccxt.PanicOnError(retRes99212)
+		retRes100112 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes100112)
 
 		ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 		return nil
@@ -1265,8 +1274,8 @@ func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// rethrows a rejected flight to the leader and attaches the handler
 	// that keeps an alone leader from crashing on an unhandled rejection
 
-	retRes10388 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes10388)
+	retRes10478 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes10478)
 
 	ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 	return nil

@@ -2586,6 +2586,23 @@ class binance extends binance$1["default"] {
         }
         const market = this.safeMarket(marketId, undefined, undefined, marketType);
         const last = this.safeString2(message, 'c', 'price');
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        let baseVolume = this.safeString(message, 'v');
+        let quoteVolume = this.safeString(message, 'q');
+        if (market['inverse'] === true) {
+            const contracts = baseVolume;
+            baseVolume = quoteVolume;
+            const weightedAverage = this.safeString(message, 'w');
+            if (weightedAverage === undefined) {
+                quoteVolume = Precise["default"].stringMul(contracts, this.safeString(market, 'contractSize'));
+            }
+            else {
+                quoteVolume = Precise["default"].stringMul(baseVolume, weightedAverage);
+            }
+        }
         return this.safeTicker({
             'symbol': symbol,
             'timestamp': timestamp,
@@ -2604,8 +2621,8 @@ class binance extends binance$1["default"] {
             'change': this.safeString(message, 'p'),
             'percentage': this.safeString(message, 'P'),
             'average': undefined,
-            'baseVolume': this.safeString(message, 'v'),
-            'quoteVolume': this.safeString(message, 'q'),
+            'baseVolume': baseVolume,
+            'quoteVolume': quoteVolume,
             'info': message,
         }, market);
     }

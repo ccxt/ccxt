@@ -347,7 +347,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         market = this.safeMarket(symbol, market);
         Object price = this.safeString(trade, "price");
-        Object type = this.safeStringLower(trade, "orderType");
+        String type = (String)this.safeStringLower(trade, "orderType");
         Object side = this.safeString(trade, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -451,7 +451,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //         "low24hr": "1179321"
         //     }
         //
-        Object marketId = this.safeStringLower(message, "pair");
+        String marketId = (String)this.safeStringLower(message, "pair");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return;  // some TICKER frames arrive without a pair - nothing to resolve them against

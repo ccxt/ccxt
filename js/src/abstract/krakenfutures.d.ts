@@ -3,6 +3,8 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetFeeschedules(params?: {}): Promise<Dict>;
     publicGetInstruments(params?: {}): Promise<Dict>;
+    publicGetInstrumentsStatus(params?: {}): Promise<Dict>;
+    publicGetInstrumentsSymbolStatus(params?: {}): Promise<Dict>;
     publicGetOrderbook(params?: {}): Promise<Dict>;
     publicGetTickers(params?: {}): Promise<Dict>;
     publicGetTickersSymbol(params?: {}): Promise<Dict>;
@@ -21,10 +23,15 @@ interface Exchange {
     privateGetAssignmentprogramCurrent(params?: {}): Promise<Dict>;
     privateGetAssignmentprogramHistory(params?: {}): Promise<Dict>;
     privateGetOrdersStatus(params?: {}): Promise<Dict>;
+    privateGetUnwindqueue(params?: {}): Promise<Dict>;
+    privateGetSelfTradeStrategy(params?: {}): Promise<Dict>;
+    privateGetSubaccounts(params?: {}): Promise<Dict>;
+    privateGetSubaccountUidTradingEnabled(params?: {}): Promise<Dict>;
     privatePostSendorder(params?: {}): Promise<Dict>;
     privatePostEditorder(params?: {}): Promise<Dict>;
     privatePostCancelorder(params?: {}): Promise<Dict>;
     privatePostTransfer(params?: {}): Promise<Dict>;
+    privatePostTransferSubaccount(params?: {}): Promise<Dict>;
     privatePostBatchorder(params?: {}): Promise<Dict>;
     privatePostCancelallorders(params?: {}): Promise<Dict>;
     privatePostCancelallordersafter(params?: {}): Promise<Dict>;
@@ -33,7 +40,10 @@ interface Exchange {
     privatePostAssignmentprogramDelete(params?: {}): Promise<Dict>;
     privatePutLeveragepreferences(params?: {}): Promise<Dict>;
     privatePutPnlpreferences(params?: {}): Promise<Dict>;
+    privatePutSelfTradeStrategy(params?: {}): Promise<Dict>;
+    privatePutSubaccountUidTradingEnabled(params?: {}): Promise<Dict>;
     chartsGetPriceTypeSymbolInterval(params?: {}): Promise<Dict>;
+    chartsGetAnalyticsLiquidityPool(params?: {}): Promise<Dict>;
     historyGetOrders(params?: {}): Promise<Dict>;
     historyGetExecutions(params?: {}): Promise<Dict>;
     historyGetTriggers(params?: {}): Promise<Dict>;
@@ -41,6 +51,8 @@ interface Exchange {
     historyGetAccountLog(params?: {}): Promise<Dict>;
     historyGetMarketSymbolOrders(params?: {}): Promise<Dict>;
     historyGetMarketSymbolExecutions(params?: {}): Promise<Dict>;
+    historyGetMarketSymbolPrice(params?: {}): Promise<Dict>;
+    historyGetPositions(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

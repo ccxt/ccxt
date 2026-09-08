@@ -424,8 +424,8 @@ public class HollaexCore extends HollaexApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object market = Helpers.GetValue(pairs, key);
-                Object baseId = this.safeString(market, "pair_base");
-                Object quoteId = this.safeString(market, "pair_2");
+                String baseId = this.safeString(market, "pair_base");
+                String quoteId = this.safeString(market, "pair_2");
                 Object base = this.commonCurrencyCode(((String)((String)baseId)).toUpperCase());
                 Object quote = this.commonCurrencyCode(((String)((String)quoteId)).toUpperCase());
     final Object finalBase = base;
@@ -574,10 +574,10 @@ public class HollaexCore extends HollaexApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, "symbol");
+        String id = this.safeString(rawCurrency, "symbol");
         Object code = this.safeCurrencyCode(id);
         Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object rawType = this.safeString(rawCurrency, "type");
+        String rawType = this.safeString(rawCurrency, "type");
         Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         Object networks = new java.util.HashMap<String, Object>() {{}};
@@ -816,7 +816,7 @@ public class HollaexCore extends HollaexApi
         {
             Object key = Helpers.GetValue(keys, i);
             Object ticker = Helpers.GetValue(tickers, key);
-            Object marketId = this.safeString(ticker, "symbol", key);
+            String marketId = this.safeString(ticker, "symbol", key);
             Object market = this.safeMarket(marketId, null, "-");
             Object symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(result, symbol, this.extend(this.parseTicker(ticker, market), parameters));
@@ -853,11 +853,11 @@ public class HollaexCore extends HollaexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
+        String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.parse8601(this.safeString2(ticker, "time", "timestamp"));
-        Object close = this.safeString(ticker, "close");
+        String close = this.safeString(ticker, "close");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "info", ticker );
@@ -954,17 +954,17 @@ public class HollaexCore extends HollaexApi
         //  }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object datetime = this.safeString(trade, "timestamp");
+        String datetime = this.safeString(trade, "timestamp");
         Object timestamp = this.parse8601(datetime);
-        Object side = this.safeString(trade, "side");
-        Object orderId = this.safeString(trade, "order_id");
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "size");
-        Object feeCostString = this.safeString(trade, "fee");
-        Object feeCoin = this.safeString(trade, "fee_coin");
+        String side = this.safeString(trade, "side");
+        String orderId = this.safeString(trade, "order_id");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "size");
+        String feeCostString = this.safeString(trade, "fee");
+        String feeCoin = this.safeString(trade, "fee_coin");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
@@ -1048,8 +1048,8 @@ public class HollaexCore extends HollaexApi
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
                 Object market = this.market(symbol);
-                Object makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
-                Object takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
+                String makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
+                String takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fees );
         put( "symbol", symbol );
@@ -1504,15 +1504,15 @@ public class HollaexCore extends HollaexApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         Object symbol = this.safeSymbol(marketId, market, "-");
-        Object id = this.safeString(order, "id");
+        String id = this.safeString(order, "id");
         Object timestamp = this.parse8601(this.safeString(order, "created_at"));
-        Object type = this.safeString(order, "type");
-        Object side = this.safeString(order, "side");
-        Object price = this.safeString(order, "price");
-        Object amount = this.safeString(order, "size");
-        Object filled = this.safeString(order, "filled");
+        String type = this.safeString(order, "type");
+        String side = this.safeString(order, "side");
+        String price = this.safeString(order, "price");
+        String amount = this.safeString(order, "size");
+        String filled = this.safeString(order, "filled");
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
         Object meta = this.safeValue(order, "meta", new java.util.HashMap<String, Object>() {{}});
         Object postOnly = this.safeBool(meta, "post_only", false);
@@ -1790,7 +1790,7 @@ public class HollaexCore extends HollaexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -1799,9 +1799,9 @@ public class HollaexCore extends HollaexApi
             tag = this.safeString(parts, 1);
         }
         this.checkAddress(address);
-        Object currencyId = this.safeString(depositAddress, "currency");
+        String currencyId = this.safeString(depositAddress, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        Object network = this.safeString(depositAddress, "network");
+        String network = this.safeString(depositAddress, "network");
         final Object finalCurrency = currency;
         final Object finalAddress = address;
         final Object finalTag = tag;
@@ -1834,7 +1834,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object network = this.safeString(parameters, "network");
+            String network = this.safeString(parameters, "network");
             parameters = this.omit(parameters, "network");
             Object response = (this.privateGetUser(parameters)).join();
             //
@@ -2122,13 +2122,13 @@ public class HollaexCore extends HollaexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transaction, "id");
-        Object txid = this.safeString(transaction, "transaction_id");
+        String id = this.safeString(transaction, "id");
+        String txid = this.safeString(transaction, "transaction_id");
         Object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         Object updated = this.parse8601(this.safeString(transaction, "updated_at"));
-        Object type = this.safeString(transaction, "type");
+        String type = this.safeString(transaction, "type");
         Object amount = this.safeNumber(transaction, "amount");
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         Object addressTo = null;
         Object addressFrom = null;
         Object tag = null;
@@ -2142,7 +2142,7 @@ public class HollaexCore extends HollaexApi
             addressTo = address;
             tagTo = tag;
         }
-        Object currencyId = this.safeString(transaction, "currency");
+        String currencyId = this.safeString(transaction, "currency");
         currency = this.safeCurrency(currencyId, currency);
         Object status = this.safeValue(transaction, "status");
         Object dismissed = this.safeValue(transaction, "dismissed");
@@ -2160,7 +2160,7 @@ public class HollaexCore extends HollaexApi
         {
             status = "pending";
         }
-        Object feeCurrencyId = this.safeString(transaction, "fee_coin");
+        String feeCurrencyId = this.safeString(transaction, "fee_coin");
         Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         Object feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
@@ -2235,7 +2235,7 @@ public class HollaexCore extends HollaexApi
             {
                 address = Helpers.add(address, Helpers.add(":", tag));
             }
-            Object network = this.safeString(parameters, "network");
+            String network = this.safeString(parameters, "network");
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
@@ -2327,7 +2327,7 @@ public class HollaexCore extends HollaexApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object value = Helpers.GetValue(withdrawalFees, key);
-                Object currencyId = this.safeString(value, "symbol");
+                String currencyId = this.safeString(value, "symbol");
                 Object currencyCode = this.safeCurrencyCode(currencyId);
                 Object networkCode = this.networkIdToCode(key, currencyCode);
                 if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
@@ -2473,7 +2473,7 @@ public class HollaexCore extends HollaexApi
             //  { "message":"Error 1001 - POST ONLY order can not be of type market" }
             //
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            Object message = this.safeString(response, "message");
+            String message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
             Object status = String.valueOf(code);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);

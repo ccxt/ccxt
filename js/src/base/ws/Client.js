@@ -165,6 +165,16 @@ export default class Client {
             this.lastPong = this.lastPong || now;
             if ((this.lastPong + this.keepAlive * this.maxPingPongMisses) < now) {
                 this.onError(new RequestTimeout('Connection to ' + this.url + ' timed out due to a ping-pong keepalive missing on time'));
+                // onError rejects the pending futures and the exchange drops
+                // this client from its registry, but the socket itself is
+                // still OPEN: nothing above tears it down, and the server
+                // never asked for a close. left alone it keeps receiving
+                // frames and dispatching them into the exchange caches next
+                // to the replacement connection the next watch call opens.
+                // close the transport here, the same way onConnectionTimeout
+                // does for a dial that never completed, so the timeout ends
+                // the connection and not only the futures waiting on it
+                this.close();
             }
             else {
                 let message;

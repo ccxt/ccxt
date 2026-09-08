@@ -1408,7 +1408,7 @@ func (this *CryptomusCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
 			var query string = this.Urlencode(params)
-			if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+			if IsTrue(!IsEqual(GetLength(query), 0)) {
 				url = Add(url, Add("?", query))
 			}
 		}
@@ -1418,7 +1418,7 @@ func (this *CryptomusCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(headers, "sign", signature)
 	} else {
 		var query string = this.Urlencode(params)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		if IsTrue(!IsEqual(GetLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

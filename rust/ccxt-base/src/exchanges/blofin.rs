@@ -192,7 +192,7 @@ impl BlofinCore {
         m.insert("name".to_string(), Value::Str("BloFin".to_string()));
         m.insert("countries".to_string(), Value::List(vec![Value::Str("US".to_string())]));
         m.insert("version".to_string(), Value::Str("v1".to_string()));
-        m.insert("rateLimit".to_string(), Value::Int(100));
+        m.insert("rateLimit".to_string(), Value::Int(200));
         m.insert("pro".to_string(), Value::Bool(true));
         m.insert("has".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -492,52 +492,52 @@ impl BlofinCore {
 }));
         m.insert("trade/orders-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-detail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-tpsl-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-tpsl-detail".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-algo-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-tpsl-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/orders-algo-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/fills-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order/price-range".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("affiliate/basic".to_string(), Value::Map({
@@ -612,27 +612,27 @@ impl BlofinCore {
 }));
         m.insert("copytrading/trade/orders-pending".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/pending-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/position-history-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/orders-history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/pending-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("user/query-apikey".to_string(), Value::Map({
@@ -661,112 +661,112 @@ impl BlofinCore {
 }));
         m.insert("account/set-margin-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("account/set-position-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("account/set-leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/batch-orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-tpsl".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/order-algo".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-batch-orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-tpsl".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/cancel-algo".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("trade/close-position".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/account/set-position-mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/account/set-leverage".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-tpsl-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/place-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/cancel-tpsl-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/close-position-by-order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
         m.insert("copytrading/trade/close-position-by-contract".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("cost".to_string(), Value::Int(1));
+        m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
     m
@@ -1472,7 +1472,7 @@ impl BlofinCore {
         let mut feeCost: Value = self.safe_string_k(trade.clone(), "fee", &[]);
         let mut fee: Value = Value::Null;
         let mut feeCurrency: Value = self.safe_string_k(trade.clone(), "feeCurrency", &[]);
-        let mut isSpot: Value = Value::Bool(!is_equal(&feeCurrency, &Value::Null));
+        let mut isSpot: bool = !is_equal(&feeCurrency, &Value::Null);
         if is_equal(&feeCurrency, &Value::Null) {
             feeCurrency = get_value(&market, &Value::Str("settle".to_string()));
         }  else if is_equal(&feeCurrency, &Value::Str("base_currency".to_string())) {
@@ -2031,8 +2031,8 @@ impl BlofinCore {
         }
         let mut isMarketOrder: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
         params = self.omit(params.clone(), Value::List(vec![Value::Str("timeInForce".to_string())]), &[]);
-        let mut ioc: Value = Value::Bool(is_true(&(is_equal(&timeInForce, &Value::Str("IOC".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("ioc".to_string())))));
-        let mut marketIOC: Value = Value::Bool(is_true(&isMarketOrder) && is_true(&ioc));
+        let mut ioc: bool = is_true(&(is_equal(&timeInForce, &Value::Str("IOC".to_string())))) || is_true(&(is_equal(&type_var, &Value::Str("ioc".to_string()))));
+        let mut marketIOC: bool = is_true(&isMarketOrder) && is_true(&ioc);
         if is_true(&isMarketOrder) || is_true(&marketIOC) {
             add_element_to_object(&mut request, &Value::Str("orderType".to_string()), Value::Str("market".to_string()));
         }  else {
@@ -2047,8 +2047,8 @@ impl BlofinCore {
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
         params = self.omit(params.clone(), Value::List(vec![Value::Str("stopLoss".to_string()), Value::Str("takeProfit".to_string()), Value::Str("hedged".to_string())]), &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
             if is_true(&hasStopLoss) {
                 let mut slTriggerPrice: Value = self.safe_string2(stopLoss.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
@@ -2263,13 +2263,13 @@ impl BlofinCore {
             self.load_markets(&[]).await;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut isStopLossPriceDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "stopLossPrice", &[]), &Value::Null));
-        let mut isTakeProfitPriceDefined: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "takeProfitPrice", &[]), &Value::Null));
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "triggerPrice", &[]), &Value::Null));
+        let mut isStopLossPriceDefined: bool = !is_equal(&self.safe_string_k(params.clone(), "stopLossPrice", &[]), &Value::Null);
+        let mut isTakeProfitPriceDefined: bool = !is_equal(&self.safe_string_k(params.clone(), "takeProfitPrice", &[]), &Value::Null);
+        let mut isTriggerOrder: bool = !is_equal(&self.safe_string_k(params.clone(), "triggerPrice", &[]), &Value::Null);
         let mut isTpslEndpoint: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("tpsl".to_string()), &[Value::Bool(false)]); isTpslEndpoint = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isCombinedSlTp: Value = Value::Bool(is_true(&(is_true(&isStopLossPriceDefined) && is_true(&isTakeProfitPriceDefined))) || is_true(&isTpslEndpoint));
-        let mut isSlOrTp: Value = Value::Bool(is_true(&isStopLossPriceDefined) || is_true(&isTakeProfitPriceDefined));
+        let mut isCombinedSlTp: bool = is_true(&(is_true(&isStopLossPriceDefined) && is_true(&isTakeProfitPriceDefined))) || is_true(&isTpslEndpoint);
+        let mut isSlOrTp: bool = is_true(&isStopLossPriceDefined) || is_true(&isTakeProfitPriceDefined);
         let mut response: Value = Value::Null;
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[]);
         if !is_equal(&reduceOnly, &Value::Null) {

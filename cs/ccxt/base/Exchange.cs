@@ -1142,16 +1142,6 @@ public partial class BaseExchange
         return encodedFromRaw;
     }
 
-    public ECDSA.ECSignature Stark()
-    {
-        // debug only remove later
-        var msgHash = "111111";
-        var bytes = Exchange.StringToByteArray(msgHash);
-        var bigInt = new BigInteger(bytes);
-        var res = ECDSA.Sign(bigInt, bigInt);
-        return res;
-    }
-
     public object spawn(object action, object[] args = null)
     {
         // stub to implement later

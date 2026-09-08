@@ -66,7 +66,7 @@ public partial class bitstamp : ccxt.bitstamp
         object messageHash = add("orderbook:", symbolVar);
         object channel = add("diff_order_book_", getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
                 { "channel", channel },
@@ -102,18 +102,18 @@ public partial class bitstamp : ccxt.bitstamp
         //         "channel": "diff_order_book_btcusd"
         //     }
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
         }
         List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(parts, 3);
+        string? marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         object storedOrderBook = this.safeValue(this.orderbooks, symbol);
         object nonce = this.safeValue(storedOrderBook, "nonce");
         object delta = this.safeValue(message, "data");
-        object deltaNonce = this.safeInteger(delta, "microtimestamp");
+        Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (isTrue(isEqual(deltaNonce, null)))
         {
             return;
@@ -166,12 +166,12 @@ public partial class bitstamp : ccxt.bitstamp
     {
         // we will consider it a fail
         object firstElement = getValue(deltas, 0);
-        object firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
+        Int64? firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (isTrue(isEqual(firstElementNonce, null)))
         {
             return -1;
         }
-        object nonce = this.safeInteger(orderbook, "nonce");
+        Int64? nonce = this.safeInteger(orderbook, "nonce");
         if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isLessThan(nonce, firstElementNonce)))))
         {
             return -1;
@@ -179,7 +179,7 @@ public partial class bitstamp : ccxt.bitstamp
         for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             object delta = getValue(deltas, i);
-            object deltaNonce = this.safeInteger(delta, "microtimestamp");
+            Int64? deltaNonce = this.safeInteger(delta, "microtimestamp");
             if (isTrue(isEqual(deltaNonce, nonce)))
             {
                 return add(i, 1);
@@ -212,7 +212,7 @@ public partial class bitstamp : ccxt.bitstamp
         object messageHash = add("trades:", symbolVar);
         object url = getValue(getValue(this.urls, "api"), "ws");
         object channel = add("live_trades_", getValue(market, "id"));
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
                 { "channel", channel },
@@ -243,18 +243,18 @@ public partial class bitstamp : ccxt.bitstamp
         //         "price": 6294.77
         //     }
         //
-        object microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
-        object id = this.safeString(trade, "id");
+        Int64? microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
+        string? id = this.safeString(trade, "id");
         object timestamp = this.parseToInt(divide(microtimestamp, 1000));
-        object price = this.safeString(trade, "price");
-        object amount = this.safeString(trade, "amount");
+        string? price = this.safeString(trade, "price");
+        string? amount = this.safeString(trade, "amount");
         if (isTrue(isEqual(market, null)))
         {
             market = this.safeMarket(null, market);
         }
         object symbol = getValue(market, "symbol");
-        object sideRaw = this.safeInteger(trade, "type");
-        object side = ((bool) isTrue((isEqual(sideRaw, 0)))) ? "buy" : "sell";
+        Int64? sideRaw = this.safeInteger(trade, "type");
+        string side = ((bool) isTrue((isEqual(sideRaw, 0)))) ? "buy" : "sell";
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "timestamp", timestamp },
@@ -294,13 +294,13 @@ public partial class bitstamp : ccxt.bitstamp
         //
         // the trade streams push raw trade information in real-time
         // each trade has a unique buyer and seller
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
         }
         List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(parts, 2);
+        string? marketId = this.safeString(parts, 2);
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object messageHash = add("trades:", symbol);
@@ -309,7 +309,7 @@ public partial class bitstamp : ccxt.bitstamp
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
-            object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesArray;
         }
@@ -344,7 +344,7 @@ public partial class bitstamp : ccxt.bitstamp
         symbolVar = getValue(market, "symbol");
         string channel = "private-my_orders";
         object messageHash = add(add(channel, "_"), getValue(market, "id"));
-        object subscription = new Dictionary<string, object>() {
+        Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
             { "limit", limitVar },
             { "type", channel },
@@ -377,16 +377,16 @@ public partial class bitstamp : ccxt.bitstamp
         //     "event": "order_deleted" // field only present for cancelOrder
         // }
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         object order = this.safeValue(message, "data", new Dictionary<string, object>() {});
-        object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+        Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (isTrue(isEqual(this.orders, null)))
         {
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object stored = this.orders;
         object subscription = ((bool) isTrue((isEqual(channel, null)))) ? null : this.safeValue(((WebSocketClient)client).subscriptions, channel);
-        object symbol = this.safeString(subscription, "symbol");
+        string? symbol = this.safeString(subscription, "symbol");
         object market = this.market(symbol);
         ((IDictionary<string,object>)order)["event"] = this.safeString(message, "event");
         object parsed = this.parseWsOrder(order, market);
@@ -414,12 +414,12 @@ public partial class bitstamp : ccxt.bitstamp
         //        "trade_account_id": 0
         //    }
         //
-        object id = this.safeString(order, "id_str");
-        object orderTypeRaw = this.safeStringLower(order, "order_type");
-        object side = ((bool) isTrue((isEqual(orderTypeRaw, "1")))) ? "sell" : "buy";
-        object orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
-        object orderType = null;
-        object timeInForce = null;
+        string? id = this.safeString(order, "id_str");
+        string? orderTypeRaw = this.safeStringLower(order, "order_type");
+        string side = ((bool) isTrue((isEqual(orderTypeRaw, "1")))) ? "sell" : "buy";
+        string? orderSubTypeRaw = this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
+        string? orderType = null;
+        string? timeInForce = null;
         if (isTrue(isEqual(orderSubTypeRaw, "0")))
         {
             orderType = "limit";
@@ -439,11 +439,11 @@ public partial class bitstamp : ccxt.bitstamp
             orderType = "limit";
             timeInForce = "GTD";
         }
-        object price = this.safeString(order, "price_str");
-        object amount = this.safeString(order, "amount_str");
-        object filled = this.safeString(order, "amount_traded");
-        object eventVar = this.safeString(order, "event");
-        object status = null;
+        string? price = this.safeString(order, "price_str");
+        string? amount = this.safeString(order, "amount_str");
+        string? filled = this.safeString(order, "amount_traded");
+        string? eventVar = this.safeString(order, "event");
+        string? status = null;
         if (isTrue(Precise.stringEq(filled, amount)))
         {
             status = "closed";
@@ -482,13 +482,13 @@ public partial class bitstamp : ccxt.bitstamp
 
     public virtual void handleOrderBookSubscription(WebSocketClient client, object message)
     {
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
         }
         List<object> parts = ((string)channel).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
-        object marketId = this.safeString(parts, 3);
+        string? marketId = this.safeString(parts, 3);
         object symbol = this.safeSymbol(marketId);
         ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
     }
@@ -507,7 +507,7 @@ public partial class bitstamp : ccxt.bitstamp
         //         "data": {}
         //     }
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
@@ -557,12 +557,12 @@ public partial class bitstamp : ccxt.bitstamp
         //         "event": "order_deleted" // field only present for cancelOrder
         //     }
         //
-        object channel = this.safeString(message, "channel");
+        string? channel = this.safeString(message, "channel");
         if (isTrue(isEqual(channel, null)))
         {
             return;
         }
-        object methods = new Dictionary<string, object>() {
+        Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "live_trades", this.handleTrade },
             { "diff_order_book", this.handleOrderBook },
             { "private-my_orders", this.handleOrders },
@@ -586,7 +586,7 @@ public partial class bitstamp : ccxt.bitstamp
         //     "channel": '',
         //     "data": { code: 4009, message: "Connection is unauthorized." }
         // }
-        object eventVar = this.safeString(message, "event");
+        string? eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "bts:error")))
         {
             object feedback = add(add(this.id, " "), this.json(message));
@@ -635,7 +635,7 @@ public partial class bitstamp : ccxt.bitstamp
         //         "data": {}
         //     }
         //
-        object eventVar = this.safeString(message, "event");
+        string? eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "bts:subscription_succeeded")))
         {
             this.handleSubscriptionStatus(client as WebSocketClient, message);
@@ -650,7 +650,7 @@ public partial class bitstamp : ccxt.bitstamp
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         Int64 time = this.milliseconds();
-        object expiresIn = this.safeInteger(this.options, "expiresIn");
+        Int64? expiresIn = this.safeInteger(this.options, "expiresIn");
         if (isTrue(isTrue((isEqual(expiresIn, null))) || isTrue((isGreaterThan(time, expiresIn)))))
         {
             // single-flight leader election on a never-dialed client, see
@@ -683,13 +683,13 @@ public partial class bitstamp : ccxt.bitstamp
                 //     "user_id":4848701
                 // }
                 //
-                object sessionToken = this.safeString(response, "token");
+                string? sessionToken = this.safeString(response, "token");
                 if (isTrue(isEqual(sessionToken, null)))
                 {
                     throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty token")) ;
                 }
-                object userId = this.safeString(response, "user_id");
-                object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
+                string? userId = this.safeString(response, "user_id");
+                Int64? validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                 ((IDictionary<string,object>)this.options)["expiresIn"] = this.sum(time, validity);
                 ((IDictionary<string,object>)this.options)["userId"] = userId;
                 ((IDictionary<string,object>)this.options)["wsSessionToken"] = sessionToken;
@@ -714,7 +714,7 @@ public partial class bitstamp : ccxt.bitstamp
         object url = getValue(getValue(this.urls, "api"), "ws");
         await this.authenticate();
         messageHash = add(messageHash, add("-", getValue(this.options, "userId")));
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "bts:subscribe" },
             { "data", new Dictionary<string, object>() {
                 { "channel", messageHash },

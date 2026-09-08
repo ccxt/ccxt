@@ -17,7 +17,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // CASE 1 - by open
-            object ticker1 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker1 = new Dictionary<string, object>() {
                 { "open", 5 },
                 { "change", 1 },
             };
@@ -27,7 +27,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result1, "close", "6.0"));
             Assert(preciseEqualStr(exchange, result1, "last", "6.0"));
             // CASE 2 - by open
-            object ticker2 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker2 = new Dictionary<string, object>() {
                 { "open", 5 },
                 { "percentage", 20 },
             };
@@ -37,7 +37,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result2, "close", "6.0"));
             Assert(preciseEqualStr(exchange, result2, "last", "6.0"));
             // CASE 3 - by close
-            object ticker3 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker3 = new Dictionary<string, object>() {
                 { "close", 6 },
                 { "change", 1 },
             };
@@ -47,7 +47,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result3, "average", "5.5"));
             Assert(preciseEqualStr(exchange, result3, "last", "6.0"));
             // CASE 4 - by close
-            object ticker4 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker4 = new Dictionary<string, object>() {
                 { "close", 6 },
                 { "percentage", 20 },
             };
@@ -57,7 +57,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result4, "average", "5.5"));
             Assert(preciseEqualStr(exchange, result4, "last", "6.0"));
             // CASE 5 - by average
-            object ticker5 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker5 = new Dictionary<string, object>() {
                 { "average", 5.5 },
                 { "percentage", 20 },
             };
@@ -67,7 +67,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result5, "close", "6.0"));
             Assert(preciseEqualStr(exchange, result5, "last", "6.0"));
             // CASE 6
-            object ticker6 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker6 = new Dictionary<string, object>() {
                 { "average", 5.5 },
                 { "change", 1 },
             };
@@ -77,7 +77,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result6, "close", "6.0"));
             Assert(preciseEqualStr(exchange, result6, "last", "6.0"));
             // CASE 7 - by open and close
-            object ticker7 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker7 = new Dictionary<string, object>() {
                 { "open", 5 },
                 { "close", 6 },
             };
@@ -87,7 +87,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result7, "average", "5.5"));
             Assert(preciseEqualStr(exchange, result7, "last", "6.0"));
             // CASE 8 - full ticker
-            object ticker8 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker8 = new Dictionary<string, object>() {
                 { "open", 5 },
                 { "close", 6 },
                 { "last", 6 },
@@ -129,7 +129,7 @@ public partial class BaseTest
             Assert(preciseEqualStr(exchange, result8, "markPrice", "5.9"));
             Assert(!isEqual(getValue(result8, "info"), null));
             // CASE 9 - flat day, a legitimate zero change must be preserved, see https://github.com/ccxt/ccxt/issues/25971
-            object ticker9 = new Dictionary<string, object>() {
+            Dictionary<string, object> ticker9 = new Dictionary<string, object>() {
                 { "open", 6 },
                 { "close", 6 },
                 { "last", 6 },

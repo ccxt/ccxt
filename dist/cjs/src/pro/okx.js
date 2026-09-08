@@ -51,7 +51,6 @@ class okx extends okx$1["default"] {
             },
             'options': {
                 'watchOrderBook': {
-                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
@@ -745,7 +744,7 @@ class okx extends okx$1["default"] {
         }
         const market = this.getMarketFromSymbols(symbols);
         let type = undefined;
-        [type, params] = this.handleMarketTypeAndParams('watchliquidationsForSymbols', market, params);
+        [type, params] = this.handleMarketTypeAndParams('watchLiquidationsForSymbols', market, params);
         const channel = 'liquidation-orders';
         if (type === 'spot') {
             type = 'SWAP';

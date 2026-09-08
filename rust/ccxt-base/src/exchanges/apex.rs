@@ -935,7 +935,7 @@ impl ApexCore {
         }
         let mut networkKeys: Value = object_keys(&networks);
         let mut networksLength: Value = get_array_length(&networkKeys);
-        let mut emptyChains: Value = Value::Bool(is_equal(&networksLength, &Value::Int(0))); // non-functional coins
+        let mut emptyChains: bool = is_equal(&networksLength, &Value::Int(0)); // non-functional coins
         let mut valueForEmpty: Value = ternary(is_true(&emptyChains), Value::Bool(false), Value::Null);
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -1797,7 +1797,7 @@ impl ApexCore {
 }
 
     pub fn generate_random_client_id_omni(&self, mut _accountId: Value) -> Value {
-        let mut hasAccountId: Value = Value::Bool(is_true(&(!is_equal(&_accountId, &Value::Null))) && is_true(&(!is_equal(&_accountId, &Value::Str("".to_string())))));
+        let mut hasAccountId: bool = is_true(&(!is_equal(&_accountId, &Value::Null))) && is_true(&(!is_equal(&_accountId, &Value::Str("".to_string()))));
         let mut accountId: Value = ternary(is_true(&hasAccountId), _accountId.clone(), to_string_val(&self.rand_number(Value::Int(12))));
         return add(&add(&add(&add(&add(&Value::Str("apexomni-".to_string()), &accountId), &Value::Str("-".to_string())), &to_string_val(&self.milliseconds())), &Value::Str("-".to_string())), &to_string_val(&self.rand_number(Value::Int(6))));
 

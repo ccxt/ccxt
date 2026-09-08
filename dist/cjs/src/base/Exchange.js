@@ -14,19 +14,11 @@ var WsClient = require('./ws/WsClient.js');
 var Future = require('./ws/Future.js');
 var OrderBook = require('./ws/OrderBook.js');
 var totp = require('./functions/totp.js');
-var index = require('../static_dependencies/ethers/index.js');
-require('../static_dependencies/ethers/utils/errors.js');
-require('../static_dependencies/ethers/utils/maths.js');
-require('../static_dependencies/ethers/utils/utf8.js');
-var typedData = require('../static_dependencies/ethers/hash/typed-data.js');
+var ethabi = require('./functions/ethabi.js');
 var zklinkSdkWeb = require('../static_dependencies/zklink/zklink-sdk-web.js');
-require('@noble/curves/abstract/poseidon.js');
-var selector = require('../static_dependencies/starknet/utils/selector.js');
-var classHash = require('../static_dependencies/starknet/utils/hash/classHash.js');
-var index$1 = require('../static_dependencies/starknet/utils/calldata/index.js');
-var typedData$1 = require('../static_dependencies/starknet/utils/typedData.js');
+var starknet$1 = require('./functions/starknet.js');
 require('../static_dependencies/dydx-v4-client/helpers.js');
-var index$2 = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
+var index = require('../static_dependencies/dydx-v4-client/long/index.cjs.js');
 var io = require('./functions/io.js');
 
 function _interopNamespace(e) {
@@ -75,7 +67,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.77'; }
+    static { this.ccxtVersion = '4.5.78'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -685,12 +677,15 @@ class BaseExchange {
                     // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
                     // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
                     //
-                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
-                    // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
-                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
-                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
-                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    // note: keep the undici dependency at >= 7.29.1 - the GHSA-35p6-xmwp-9g52 mitigation
+                    // ("idle socket validation", 7.28.0+) originally deferred every write on an idle
+                    // kept-alive socket behind a setTimeout(0) tick, ~1.3ms per sequential request, which
+                    // is why this codebase once pinned 7.27.x - resolved upstream by running the
+                    // validation off a ref'd setImmediate instead (issue
+                    // https://github.com/nodejs/undici/issues/5493, fixed via
+                    // https://github.com/nodejs/undici/pull/5499 and
+                    // https://github.com/nodejs/undici/pull/5707, in the 7.x line since 7.29.1) -
+                    // profiled: sequential keep-alive p50 1.74ms on 7.29.0 vs 0.43ms on 7.29.1
                     const undiciModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'undici')); });
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -737,7 +732,10 @@ class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
+            // the per-attempt timeout is deliberately not set here: node tries addresses sequentially,
+            // aborting each attempt at the timeout before advancing, so any value below a plausible wan
+            // handshake rtt makes every such origin unreachable - omitting it defers to
+            // net.getDefaultAutoSelectFamilyAttemptTimeout() (250ms, tunable per host)
         };
         if (!this.shouldValidateServerSsl()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -1799,10 +1797,10 @@ class BaseExchange {
         return modifiedContent;
     }
     ethAbiEncode(types, args) {
-        return this.base16ToBinary(index["default"].encode(types, args).slice(2));
+        return this.base16ToBinary(ethabi.abiEncode(types, args).slice(2));
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
-        return this.base16ToBinary(typedData.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
+        return this.base16ToBinary(ethabi.TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
     }
     ethGetAddressFromPrivateKey(privateKey) {
         // Accepts a "0x"-prefixed hexstring private key and returns the corresponding Ethereum address
@@ -1824,15 +1822,15 @@ class BaseExchange {
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = starknet.ethSigToPrivate(signature);
         const publicKey = starknet.getStarkKey(privateKey);
-        const callData = index$1.CallData.compile({
+        const callData = starknet$1.compileCalldata({
             'implementation': accountClassHash,
-            'selector': selector.getSelectorFromName('initialize'),
-            'calldata': index$1.CallData.compile({
+            'selector': starknet$1.getSelectorFromName('initialize'),
+            'calldata': starknet$1.compileCalldata({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = classHash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        const address = starknet$1.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
@@ -1856,7 +1854,7 @@ class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = typedData$1.getMessageHash(request, address);
+        const msgHash = starknet$1.getMessageHash(request, address);
         return msgHash;
     }
     starknetSign(msgHash, pri) {
@@ -1869,10 +1867,10 @@ class BaseExchange {
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     extendedStarknetGetSelectorFromName(name) {
-        return selector.getSelectorFromName(name);
+        return starknet$1.getSelectorFromName(name);
     }
     extendedStarknetComputePoseidonHashOnElements(data) {
-        return classHash.computePoseidonHashOnElements(data);
+        return starknet$1.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId', '')), sha2_js.sha256, 'hex'))).toString();
@@ -1964,7 +1962,7 @@ class BaseExchange {
         SignMode = modules[2].SignMode;
     }
     toDydxLong(numStr) {
-        return index$2["default"].fromString(numStr);
+        return index["default"].fromString(numStr);
     }
     retrieveDydxCredentials(privateKey) {
         const privateKeyBytes = this.base16ToBinary(this.remove0xPrefix(privateKey));

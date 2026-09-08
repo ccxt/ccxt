@@ -1398,7 +1398,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object type = this.safeStringLower(order, "o");
+        String type = (String)this.safeStringLower(order, "o");
         Object timeInForce = this.safeString(order, "f");
         Object side = this.parseWsOrderSide(this.safeString(order, "S"));
         Object price = this.safeString(order, "p");

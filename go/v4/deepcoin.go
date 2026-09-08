@@ -3324,16 +3324,16 @@ func (this *DeepcoinCore) ParsePosition(position any, optionalArgs ...any) any {
 		"contractSize":                nil,
 		"side":                        this.SafeString(position, "posSide"),
 		"notional":                    nil,
-		"leverage":                    this.OmitZero(this.SafeString(position, "lever")),
+		"leverage":                    this.ParseNumber(this.OmitZero(this.SafeString(position, "lever"))),
 		"unrealizedPnl":               nil,
 		"realizedPnl":                 nil,
 		"collateral":                  nil,
 		"entryPrice":                  this.SafeNumber(position, "avgPx"),
 		"markPrice":                   nil,
-		"liquidationPrice":            this.SafeString(position, "liqPx"),
+		"liquidationPrice":            this.SafeNumber(position, "liqPx"),
 		"marginMode":                  this.SafeString(position, "mgnMode"),
 		"hedged":                      true,
-		"maintenanceMargin":           this.SafeString(position, "useMargin"),
+		"maintenanceMargin":           this.SafeNumber(position, "useMargin"),
 		"maintenanceMarginPercentage": nil,
 		"initialMargin":               nil,
 		"initialMarginPercentage":     nil,
@@ -3911,7 +3911,7 @@ func (this *DeepcoinCore) Sign(path any, optionalArgs ...any) any {
 	var requestPath any = path
 	if IsTrue(IsEqual(method, "GET")) {
 		var query string = this.Urlencode(params)
-		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
+		if IsTrue(IsGreaterThan(GetLength(query), 0)) {
 			requestPath = Add(requestPath, Add("?", query))
 		}
 	}
