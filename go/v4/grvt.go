@@ -14,8 +14,8 @@ func NewGrvtCore() *GrvtCore {
 }
 
 func (this *GrvtCore) Describe() any {
-	var rlOthers any = 40
-	var rlOrders any = 20
+	var rlOthers int = 40
+	var rlOrders int = 20
 	return this.DeepExtend(this.Exchange.Describe(), map[string]any{
 		"id":        "grvt",
 		"name":      "GRVT",
@@ -756,7 +756,7 @@ func (this *GrvtCore) signInWithPrivateKeyBody(ch chan any, optionalArgs ...any)
 		ch <- map[string]any{}
 		return nil
 	}
-	var walletAddress any = this.EthGetAddressFromPrivateKey(this.PrivateKey)
+	var walletAddress string = this.EthGetAddressFromPrivateKey(this.PrivateKey)
 	var request any = map[string]any{
 		"address":   walletAddress,
 		"signature": this.DefaultSignature(),
@@ -1492,7 +1492,7 @@ func (this *GrvtCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var maxLimit any = 1000
+	var maxLimit int = 1000
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes114212 := (<-this.LoadMarkets())
@@ -2186,7 +2186,7 @@ func (this *GrvtCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(retRes16918)
 	var request any = map[string]any{}
 	var currency any = this.Currency(code)
-	var maxLimit any = 1000
+	var maxLimit int = 1000
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -2785,7 +2785,7 @@ func (this *GrvtCore) EipMessageForOrder(order any, structureType any) any {
 		var leg any = GetValue(orderLegs, i)
 		var market any = this.Market(GetValue(leg, "instrument"))
 		var bigInt10 any = this.ConvertToBigIntCustom("10")
-		var precisionValue any = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
+		var precisionValue int = this.PrecisionFromString(this.SafeString(GetValue(market, "precision"), "base"))
 		var precisionValueStr string = ToString(precisionValue)
 		var sizeMultiplier float64 = MathPow(bigInt10, this.ConvertToBigIntCustom(precisionValueStr))
 		var size any = GetValue(leg, "size")
@@ -3802,7 +3802,7 @@ func (this *GrvtCore) ParseOrder(order any, optionalArgs ...any) any {
 	var stateObj any = this.SafeDict(order, "state", map[string]any{})
 	var filledAmounts any = this.SafeList(stateObj, "traded_size", []any{})
 	var avgPrices any = this.SafeList(stateObj, "avg_fill_price", []any{})
-	var primaryOrderIndex any = 0
+	var primaryOrderIndex int = 0
 	var firstLeg any = this.SafeDict(legs, primaryOrderIndex)
 	if IsTrue(!IsEqual(firstLeg, nil)) {
 		var marketId any = this.SafeString(firstLeg, "instrument")
@@ -4053,8 +4053,8 @@ func (this *GrvtCore) CreateSignedRequest(request any, structureType any, option
 	var ethEncodedMessageHashed any = Add("0x", this.Hash(ethEncodedMessage, keccak, "hex"))
 	var usesPrivKey any = this.UsesPrivateKey() // py transpiler needs this line separated
 	var secretOrPrivkey any = Ternary(IsTrue(usesPrivKey), this.PrivateKey, this.Secret)
-	var privateKeyWithoutZero any = this.Remove0xPrefix(secretOrPrivkey)
-	var signature any = Ecdsa(this.Remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, nil)
+	var privateKeyWithoutZero string = this.Remove0xPrefix(secretOrPrivkey)
+	var signature map[string]any = Ecdsa(this.Remove0xPrefix(ethEncodedMessageHashed), privateKeyWithoutZero, secp256k1, nil)
 	AddElementToObject(GetValue(request, "signature"), "r", this.FormatSignatureRS(GetValue(signature, "r")))
 	AddElementToObject(GetValue(request, "signature"), "s", this.FormatSignatureRS(GetValue(signature, "s")))
 	AddElementToObject(GetValue(request, "signature"), "v", this.Sum(27, GetValue(signature, "v")))
@@ -4062,7 +4062,7 @@ func (this *GrvtCore) CreateSignedRequest(request any, structureType any, option
 	return request
 }
 func (this *GrvtCore) FormatSignatureRS(value any) any {
-	var padded any = PadStart(value, 64, "0")
+	var padded string = PadStart(value, 64, "0")
 	if IsTrue(StartsWith(padded, "0x")) {
 		return padded
 	} else {
@@ -4109,7 +4109,7 @@ func (this *GrvtCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var query any = this.Omit(params, this.ExtractParams(path))
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), api), path)
-	var queryString any = ""
+	var queryString string = ""
 	if IsTrue(IsEqual(method, "GET")) {
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			queryString = this.Urlencode(query)

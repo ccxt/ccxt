@@ -570,7 +570,7 @@ func (this *LbankCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any
 	//
 	var currenciesData any = this.SafeList(response, "data", []any{})
 	var grouped map[string]any = this.GroupBy(currenciesData, "assetCode")
-	var values any = ObjectValues(grouped)
+	var values []any = ObjectValues(grouped)
 
 	ch <- this.ParseCurrencies(values)
 	return nil
@@ -3807,12 +3807,12 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 			signatureMethod = "HmacSHA256"
 		}
 		var finalSig any = signatureMethod // java req
-		var auth any = this.Rawencode(this.Keysort(this.Extend(map[string]any{
+		var auth string = this.Rawencode(this.Keysort(this.Extend(map[string]any{
 			"echostr":          echostr,
 			"signature_method": finalSig,
 			"timestamp":        timestamp,
 		}, query)))
-		var encoded any = this.Encode(auth)
+		var encoded string = this.Encode(auth)
 		var hash any = this.Hash(encoded, md5)
 		var uppercaseHash string = ToUpper(hash)
 		var sign any = nil
@@ -3849,7 +3849,7 @@ func (this *LbankCore) Sign(path any, optionalArgs ...any) any {
 	}
 }
 func (this *LbankCore) ConvertSecretToPem(secret any) any {
-	var lineLength any = 64
+	var lineLength int = 64
 	var secretLength any = Subtract(GetArrayLength(secret), 0)
 	var numLines any = this.ParseToInt(Divide(secretLength, lineLength))
 	numLines = this.Sum(numLines, 1)

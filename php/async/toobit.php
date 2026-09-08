@@ -2886,7 +2886,7 @@ class toobit extends Exchange {
         return Async\await($this->fetch_deposits_or_withdrawals_helper('withdrawals', $code, $since, $limit, $params));
     }
 
-    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()) {
+    public function fetch_deposits_or_withdrawals_helper(mixed $type, mixed $code, mixed $since, mixed $limit, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposits_or_withdrawals_helper(...))($type, $code, $since, $limit, $params);
     }
 
@@ -3350,12 +3350,12 @@ class toobit extends Exchange {
             'info' => $position,
             'id' => $this->safe_string($position, 'id'),
             'symbol' => $market['symbol'],
-            'entryPrice' => $this->safe_string($position, 'avgPrice'),
-            'markPrice' => $this->safe_string($position, 'markPrice'),
-            'lastPrice' => $this->safe_string($position, 'lastPrice'),
-            'notional' => $this->safe_string($position, 'positionValue'),
+            'entryPrice' => $this->safe_number($position, 'avgPrice'),
+            'markPrice' => $this->safe_number($position, 'markPrice'),
+            'lastPrice' => $this->safe_number($position, 'lastPrice'),
+            'notional' => $this->safe_number($position, 'positionValue'),
             'collateral' => null,
-            'unrealizedPnl' => $this->safe_string($position, 'unrealizedPnL'),
+            'unrealizedPnl' => $this->safe_number($position, 'unrealizedPnL'),
             'side' => $side,
             'contracts' => $this->parse_number($quantity),
             'contractSize' => null,
@@ -3364,7 +3364,7 @@ class toobit extends Exchange {
             'hedged' => null,
             'maintenanceMargin' => null,
             'maintenanceMarginPercentage' => null,
-            'initialMargin' => $this->safe_string($position, 'margin'),
+            'initialMargin' => $this->safe_number($position, 'margin'),
             'initialMarginPercentage' => null,
             'leverage' => $leverage,
             'liquidationPrice' => null,

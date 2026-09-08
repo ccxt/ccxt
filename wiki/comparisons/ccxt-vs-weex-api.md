@@ -21,7 +21,7 @@ So the comparison is between [CCXT](/docs/manual) and the client you write yours
 | | **CCXT** | **Raw WEEX API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (WEEX is one of them) | WEEX only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | — | none published by the exchange |
 | Install | `pip install ccxt` / `npm i ccxt` | your own HTTP and WebSocket client |
 | Products in one client | spot and perpetual swap | separate endpoint trees and separate WebSocket hosts |

@@ -2437,7 +2437,7 @@ class mexc extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         /**
          * @ignore
          * create a trade $order
@@ -3806,7 +3806,11 @@ class mexc extends Exchange {
             //         )
             //     }
             //
-            return $this->safe_value($response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads $response['balances']
+            return array(
+                'balances' => $this->safe_value($response, 'data', array()),
+            );
         }
         return null;
     }
@@ -3958,22 +3962,18 @@ class mexc extends Exchange {
         if ($marketType === 'margin') {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $wallet[$i];
-                $marketId = $this->safe_string($entry, 'symbol');
-                $symbol = $this->safe_symbol($marketId);
                 $base = $this->safe_value($entry, 'baseAsset', array());
                 $quote = $this->safe_value($entry, 'quoteAsset', array());
                 $baseCode = $this->safe_currency_code($this->safe_string($base, 'asset'));
                 $quoteCode = $this->safe_currency_code($this->safe_string($quote, 'asset'));
-                $subResult = array();
                 if ($baseCode !== null) {
-                    $subResult[$baseCode] = $this->parse_balance_helper($base);
+                    $result = $this->merge_balance_account($result, $baseCode, $this->parse_balance_helper($base));
                 }
                 if ($quoteCode !== null) {
-                    $subResult[$quoteCode] = $this->parse_balance_helper($quote);
+                    $result = $this->merge_balance_account($result, $quoteCode, $this->parse_balance_helper($quote));
                 }
-                $result[$symbol] = $this->safe_balance($subResult);
             }
-            return $result;
+            return $this->safe_balance($result);
         } elseif ($marketType === 'swap') {
             for ($i = 0; $i < count($wallet); $i++) {
                 $entry = $wallet[$i];

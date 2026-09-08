@@ -1160,7 +1160,7 @@ impl CexCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut isTransaction: Value = Value::Bool(is_equal(&self.safe_string_k(message.clone(), "e", &[]), &Value::Str("tx".to_string())));
+        let mut isTransaction: bool = is_equal(&self.safe_string_k(message.clone(), "e", &[]), &Value::Str("tx".to_string()));
         let mut orderId: Value = self.safe_string2(data.clone(), Value::Str("id".to_string()), Value::Str("order".to_string()), &[]);
         let mut remains: Value = self.safe_string_k(data.clone(), "remains", &[]);
         let mut baseId: Value = self.safe_string_k(data.clone(), "symbol", &[]);
@@ -1253,7 +1253,7 @@ impl CexCore {
         //           "id": "59425993020"
         //       }
         //
-        let mut isTransaction: Value = Value::Bool(!is_equal(&self.safe_value_k(order.clone(), "d", &[]), &Value::Null));
+        let mut isTransaction: bool = !is_equal(&self.safe_value_k(order.clone(), "d", &[]), &Value::Null);
         let mut remainsPrecision: Value = self.safe_string_k(order.clone(), "remains", &[]);
         let mut remaining: Value = Value::Null;
         if !is_equal(&remainsPrecision, &Value::Null) {

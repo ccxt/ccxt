@@ -1425,7 +1425,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             market = await self.load_outcome(outcome)
         return self.parse_prediction_order(wrapper, market)
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> object:
+    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels all open order book orders for the wallet, optionally scoped to one market(gasless)
 
@@ -1433,7 +1433,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str [outcome]: unified outcome; when omitted cancels across all markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: the raw response with the count of cancelled orders
+        :returns dict[]: a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a privateKey to sign the cancellation')
@@ -1460,13 +1460,16 @@ class myriad(PredictionExchange, ImplicitAPI):
             'signature': signature,
             'network_id': self.parse_to_int(networkId),
         }
-        return await self.myriadPublicPostOrdersCancelAll(request)
+        response = await self.myriadPublicPostOrdersCancelAll(request)
         #
         #     {
         #         "cancelled_count": 2,
         #         "market_ids_affected": ["2cfe87e8-12df-4671-b9a9-0758898fd54b"]
         #     }
         #
+        # the endpoint returns a count, not the orders: hand back one canceled order
+        # structure carrying the raw response, like limitless does
+        return [self.safe_prediction_order({'info': response, 'status': 'canceled'})]
 
     async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """

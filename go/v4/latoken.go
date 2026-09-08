@@ -535,7 +535,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result any = []any{}
-	var rawMarkets any = this.ToArray(response)
+	var rawMarkets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
 		var id any = this.SafeString(market, "id")
@@ -553,7 +553,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 				continue
 			}
 			var lowercaseQuote string = ToLower(quote)
-			var capitalizedQuote any = this.Capitalize(lowercaseQuote)
+			var capitalizedQuote string = this.Capitalize(lowercaseQuote)
 			var status any = this.SafeString(market, "status")
 			AppendToArray(&result, map[string]any{
 				"id":             id,
@@ -2330,7 +2330,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var requestString any = request
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var urlencodedQuery any = this.Urlencode(query)
+	var urlencodedQuery string = this.Urlencode(query)
 	if IsTrue(IsEqual(method, "GET")) {
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			requestString = Add(requestString, Add("?", urlencodedQuery))

@@ -1436,7 +1436,7 @@ class bitso extends Exchange {
         return $this->parse_trades($payload, $market);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit
          *

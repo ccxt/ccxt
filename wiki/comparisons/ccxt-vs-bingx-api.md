@@ -22,7 +22,7 @@ What exists instead is a set of community SDKs of varying scope, and [CCXT](/doc
 | --- | --- | --- |
 | Exchanges covered | 104 (BingX is one of them) | BingX only |
 | Official client library | n/a — CCXT is third-party by design | **none** — BingX publishes documentation repositories only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whichever community client exists, or whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whichever community client exists, or whatever you write |
 | Packages to install | **1** (`ccxt`) | one per language, from a different author each time |
 | Product lines in one client | spot, USDT-M perpetuals, sub-accounts, wallet, copy trading — eleven API sections behind one object | you route each section yourself |
 | Unified market data + trading API | yes — 84 capabilities on `bingx` | no — BingX's own payload shapes |
@@ -185,7 +185,7 @@ exchange.set_sandbox_mode(True)   # every host becomes open-api-vst.bingx.com
 
 No constant swapping, no forked configuration, and the WebSocket URLs move with it.
 
-### Seven languages, one API
+### Eight languages, one API
 
 There is no official BingX client in any language, so every language is either a community project or a from-scratch integration. CCXT is written once in TypeScript and transpiled, with identical method names and return structures:
 
@@ -287,7 +287,7 @@ Start with [Install](/docs/install), then the [Manual](/docs/manual), then the [
 ## FAQ
 
 **Is there an official BingX SDK?**
-No. The BingX-API GitHub organisation publishes API documentation repositories, a proof-of-reserves tool and an AI coding-assistant skill library — not a client library. Every BingX SDK you will find is community-built. CCXT is third-party too, but it is a certified BingX integration maintained across 104 venues in seven languages.
+No. The BingX-API GitHub organisation publishes API documentation repositories, a proof-of-reserves tool and an AI coding-assistant skill library — not a client library. Every BingX SDK you will find is community-built. CCXT is third-party too, but it is a certified BingX integration maintained across 104 venues in eight languages.
 
 **Does CCXT support BingX perpetual futures?**
 Yes. `bingx` declares both spot and swap, with positions, leverage, margin mode, funding rates, leverage tiers, liquidations and trailing/trigger order types as unified methods — 84 capabilities in total.

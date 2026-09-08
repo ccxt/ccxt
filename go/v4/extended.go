@@ -1670,7 +1670,7 @@ func (this *ExtendedCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 		}
 		AppendToArray(&result, this.ParseFundingRateHistory(entry, market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4180,7 +4180,7 @@ func (this *ExtendedCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 
 	orders := (<-this.FetchOrders(symbol, since, nil, params))
 	PanicOnError(orders)
-	var closedOrders any = this.FilterBy(orders, "status", "closed")
+	var closedOrders []any = this.FilterBy(orders, "status", "closed")
 
 	ch <- this.FilterBySymbolSinceLimit(closedOrders, symbol, since, limit)
 	return nil
@@ -4217,7 +4217,7 @@ func (this *ExtendedCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...a
 
 	orders := (<-this.FetchOrders(symbol, since, nil, params))
 	PanicOnError(orders)
-	var canceledOrders any = this.FilterBy(orders, "status", "canceled")
+	var canceledOrders []any = this.FilterBy(orders, "status", "canceled")
 
 	ch <- this.FilterBySymbolSinceLimit(canceledOrders, symbol, since, limit)
 	return nil

@@ -11,12 +11,12 @@ import homeStrings from '@/lib/i18n-home.json';
 export const metadata: Metadata = {
   title: 'CCXT — API For Crypto Exchanges And Prediction Markets',
   description:
-    'A unified trading library for 100+ crypto exchanges and prediction markets — one API in JavaScript, Python, PHP, C#, Go and Java. Made for developers and AI agents.',
+    'A unified trading library for 100+ crypto exchanges and prediction markets — one API in JavaScript, Python, PHP, C#, Go, Java and Rust. Made for developers and AI agents.',
   openGraph: {
     type: 'website',
     siteName: appName,
     title: 'CCXT — Connect to any exchange',
-    description: 'One unified trading API across 100+ crypto exchanges and prediction markets — JS, Python, PHP, C#, Go and Java.',
+    description: 'One unified trading API across 100+ crypto exchanges and prediction markets — JS, Python, PHP, C#, Go, Java and Rust.',
     // basePath-prefixed so the social-card URL resolves under /v2 (Next doesn't add it).
     // explicit width/height so Telegram/WhatsApp render the large card (they don't fetch
     // dimensions reliably; without these the preview falls back to a tiny thumbnail or none).

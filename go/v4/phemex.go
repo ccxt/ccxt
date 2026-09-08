@@ -1679,7 +1679,7 @@ func (this *PhemexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	params = this.Omit(params, []any{"until"})
 	var isStableSettled bool = IsTrue((IsEqual(GetValue(market, "settle"), "USDT"))) || IsTrue((IsEqual(GetValue(market, "settle"), "USDC")))
 	var usesSpecialFromToEndpoint bool = IsTrue((IsTrue((IsEqual(GetValue(market, "linear"), true))) || IsTrue(isStableSettled))) && IsTrue((IsTrue((!IsEqual(since, nil))) || IsTrue((!IsEqual(until, nil)))))
-	var maxLimit any = 1000
+	var maxLimit int = 1000
 	if IsTrue(usesSpecialFromToEndpoint) {
 		maxLimit = 2000
 	}
@@ -3069,7 +3069,7 @@ func (this *PhemexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 		PanicOnError(retRes268112)
 	}
 	var market any = this.Market(symbol)
-	var requestSide any = this.Capitalize(side)
+	var requestSide string = this.Capitalize(side)
 	typeVar = this.Capitalize(typeVar)
 	var request map[string]any = map[string]any{
 		"symbol":  GetValue(market, "id"),
@@ -5980,7 +5980,7 @@ func (this *PhemexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil

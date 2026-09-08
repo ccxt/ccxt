@@ -1103,7 +1103,7 @@ func (this *KucoinCore) watchMultiHelperBody(ch chan any, methodName any, channe
 	url := (<-this.Negotiate(false, isFuturesChannel))
 	ccxt.PanicOnError(url)
 	var marketIds any = this.MarketIds(symbols)
-	var joined any = ccxt.Join(marketIds, ",")
+	var joined string = ccxt.Join(marketIds, ",")
 	var requestId string = ccxt.ToString(this.RequestId())
 	var request map[string]any = map[string]any{
 		"id":       requestId,
@@ -3581,7 +3581,7 @@ func (this *KucoinCore) GetCurrentPosition(symbol any) any {
 	}
 	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
 	var symbolCache any = this.SafeValue(cache, symbol, map[string]any{})
-	var values any = ccxt.ObjectValues(symbolCache)
+	var values []any = ccxt.ObjectValues(symbolCache)
 	return this.SafeValue(values, 0)
 }
 func (this *KucoinCore) SetPositionsCache(client any, uta any) {

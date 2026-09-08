@@ -2528,7 +2528,7 @@ func (this *ZebpayCore) Sign(path any, optionalArgs ...any) any {
 		AddElementToObject(params, "timestamp", timestamp)
 		if IsTrue(IsTrue(IsEqual(method, "GET")) || IsTrue((IsTrue(IsEqual(method, "DELETE")) && IsTrue(isSpot)))) {
 			// For GET/DELETE: Append params to URL and sign the query string
-			var queryString any = this.Urlencode(params)
+			var queryString string = this.Urlencode(params)
 			signature = this.Hmac(this.Encode(queryString), this.Encode(this.Secret), sha256, "hex")
 			url = Add(url, Add("?", queryString))
 		} else {

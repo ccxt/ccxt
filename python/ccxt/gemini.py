@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.gemini import ImplicitAPI
 import hashlib
-from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
+from ccxt.base.types import Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, Market, Num, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -421,7 +421,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         return self.fetch_currencies_from_web(params)
 
-    def fetch_currencies_from_web(self, params={}):
+    def fetch_currencies_from_web(self, params={}) -> Currencies:
         """
  @ignore
         fetches all available currencies on an exchange
@@ -530,7 +530,7 @@ class gemini(Exchange, ImplicitAPI):
             return self.array_concat(promisesResult[0], promisesResult[1])
         return self.fetch_markets_from_api(params)
 
-    def fetch_markets_from_web(self, params={}):
+    def fetch_markets_from_web(self, params={}) -> list[Market]:
         data = self.fetch_web_endpoint('fetchMarkets', 'webGetRestApi', False, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         error = self.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.'
         tables = data.split('tbody>')
@@ -635,7 +635,7 @@ class gemini(Exchange, ImplicitAPI):
             return True  # below
         return self.safe_bool(statuses, status, True)
 
-    def fetch_usdt_markets(self, params={}):
+    def fetch_usdt_markets(self, params={}) -> list[Market]:
         # these markets can't be scrapped and fetchMarketsFrom api does an extra call
         # to load market ids which we don't need here
         if 'test' in self.urls:
@@ -652,7 +652,7 @@ class gemini(Exchange, ImplicitAPI):
             result.append(self.parse_market(rawResponse))
         return result
 
-    def fetch_markets_from_api(self, params={}):
+    def fetch_markets_from_api(self, params={}) -> list[Market]:
         marketIdsRaw = self.publicGetV1Symbols(params)
         #
         #     [
@@ -1847,13 +1847,12 @@ class gemini(Exchange, ImplicitAPI):
         """
         if self.markets is None:
             self.load_markets()
-        groupedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
+        indexedByNetwork = self.fetch_deposit_addresses_by_network(code, params)
         networkCode = None
         networkCode, params = self.handle_network_code_and_params(params)
-        networkGroup = self.index_by(self.safe_value(groupedByNetwork, networkCode), 'currency')
-        return self.safe_value(networkGroup, code)
+        return self.safe_value(indexedByNetwork, networkCode)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -1878,7 +1877,9 @@ class gemini(Exchange, ImplicitAPI):
         }
         response = self.privatePostV1AddressesNetwork(self.extend(request, params))
         results = self.parse_deposit_addresses(response, [code], False, {'network': networkCode, 'currency': code})
-        return self.group_by(results, 'network')
+        # one address structure per network, like every other venue(the endpoint is scoped to a
+        # single network, so the last address the venue lists for it wins — same)
+        return self.index_by(results, 'network')
 
     def sign(self, path: object, api: object = 'public', method='GET', params={}, headers: dict = None, body: Str = None):
         url = '/' + self.implode_params(path, params)

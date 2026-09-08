@@ -6,8 +6,6 @@
 //   * routes `--baseTests` to the base-test suites, and
 //   * otherwise hands off to `TestMainClass::init(exchange, symbol, method)`.
 
-#![allow(dead_code)]
-
 use std::process::ExitCode;
 use ccxt::Value;
 use ccxt::runtime::is_true;
@@ -16,7 +14,6 @@ use futures::FutureExt;
 mod generated_cores;      // GENERATED: every dispatchable Core + the for_each_* macros
 mod assertions;
 mod base_tests;
-mod fixtures;
 mod language_specific;
 mod registry;
 pub mod tests_support;       // public so transpiled base/ tests can reach it

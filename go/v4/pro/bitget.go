@@ -853,7 +853,7 @@ func (this *BitgetCore) ParseWsOHLCV(ohlcv any, optionalArgs ...any) any {
 	//
 	market := ccxt.GetArg(optionalArgs, 0, nil)
 	_ = market
-	var volumeIndex any = 5
+	var volumeIndex int = 5
 	if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(market, nil))) && ccxt.IsTrue((ccxt.IsEqual(ccxt.GetValue(market, "inverse"), true)))) {
 		volumeIndex = 6
 	}
@@ -1150,8 +1150,8 @@ func (this *BitgetCore) HandleOrderBook(client any, message any) {
 					ccxt.AppendToArray(&payloadArray, ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 2), 1))
 				}
 			}
-			var payload any = ccxt.Join(payloadArray, ":")
-			var calculatedChecksum any = this.Crc32(payload, true)
+			var payload string = ccxt.Join(payloadArray, ":")
+			var calculatedChecksum int64 = this.Crc32(payload, true)
 			if ccxt.IsTrue(!ccxt.IsEqual(calculatedChecksum, responseChecksum)) {
 				this.Spawn(this.HandleCheckSumError, client, symbol, messageHash)
 				return

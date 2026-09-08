@@ -13,7 +13,7 @@ The question that decides between them: **how much of that plumbing do you want 
 ## TL;DR
 
 - **Write it yourself** if you need one or two endpoints, want zero dependencies, or need bitFlyer's Realtime API — which CCXT does not currently wrap.
-- **Pick CCXT** if you want signing, per-request pacing, unified symbols for `FX_BTC_JPY` and the expiring futures, typed errors and precision handling that already work, in seven languages.
+- **Pick CCXT** if you want signing, per-request pacing, unified symbols for `FX_BTC_JPY` and the expiring futures, typed errors and precision handling that already work, in eight languages.
 - **Be aware of the gap.** CCXT's `bitflyer` class is REST-only: it has **no** `watch*` methods, so live streaming from bitFlyer is not something CCXT does today.
 
 ## At a glance
@@ -22,7 +22,7 @@ The question that decides between them: **how much of that plumbing do you want 
 | --- | --- | --- |
 | Exchanges covered | 104 (bitFlyer is one of them) | bitFlyer only |
 | Official client library | n/a | none listed in bitFlyer's documentation |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write |
 | Unified market data + trading API | yes — 16 capabilities, same names on every exchange | raw JSON from `/v1/...` |
 | Symbols | `'BTC/JPY'`, `'BTC/JPY:JPY'`, `'BTC/JPY:JPY-YYMMDD'` | product codes: `BTC_JPY`, `FX_BTC_JPY`, `BTCJPY11MAR2022` |
 | Regional market lists | handled — `getmarkets`, `getmarkets/usa`, `getmarkets/eu` | you pick the endpoint per region |
@@ -153,7 +153,7 @@ CCXT maps bitFlyer's error payloads onto a [typed exception tree](/docs/manual#e
 
 Among the 16 capabilities CCXT implements for bitFlyer: `fetch_positions`, `fetch_funding_rate`, `fetch_trading_fee`, `fetch_my_trades`, `fetch_orders`, `fetch_deposits` and `fetch_withdrawals`. The FX and futures products have their own collateral endpoints on bitFlyer's side; CCXT's unified `fetch_balance` and `fetch_positions` cover the common ground with the same signatures they have on every other derivatives venue.
 
-### Seven languages, one API
+### Eight languages, one API
 
 <!-- tabs:start -->
 
@@ -182,7 +182,7 @@ ticker, err := exchange.FetchTicker("BTC/JPY")
 
 <!-- tabs:end -->
 
-A hand-rolled bitFlyer client is written once per language. CCXT is written once and transpiled to seven, so the signing code and the alias parsing are the same code everywhere.
+A hand-rolled bitFlyer client is written once per language. CCXT is written once and transpiled to eight, so the signing code and the alias parsing are the same code everywhere.
 
 ### Nothing is hidden — the implicit API
 

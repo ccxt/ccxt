@@ -267,51 +267,6 @@ func NewClient(url string, onMessageCallback func(client any, err any), onErrorC
 	return c
 }
 
-// func (this *Client) readLoop() {
-// 	defer close(this.ReadLoopClosed)
-// 	defer func() {
-// 		// Call onCloseCallback when read loop exits
-// 		if this.OnCloseCallback != nil {
-// 			this.OnCloseCallback()
-// 		}
-// 	}()
-
-// 	for {
-// 		if this.Connection == nil {
-// 			return
-// 		}
-// 		_, data, err := this.Connection.ReadMessage()
-// 		if err != nil {
-// 			this.Err = err
-// 			this.IsConnected = false
-
-// 			// Call onErrorCallback if provided
-// 			if this.OnErrorCallback != nil {
-// 				this.OnErrorCallback(err)
-// 			}
-
-// 			_ = this.Close()
-// 			return
-// 		}
-
-// 		// Call onMessageCallback if provided
-// 		if this.OnMessageCallback != nil {
-// 			this.OnMessageCallback(data)
-// 		}
-
-// 		// forward decoded JSON frames to exchange.HandleMessage
-// 		if this.Owner != nil {
-// 			var msg any
-// 			if err := json.Unmarshal(data, &msg); err == nil {
-// 				if h, ok := this.Owner.(interface{ HandleMessage(client any, message any) }); ok {
-// 					h.HandleMessage(this, msg)
-// 				}
-// 			}
-// 		}
-// 	}
-// }
-
-// updates the LastPong timestamp and optionally logs the event when the client is running in verbose mode
 func (this *Client) OnPong() {
 	this.PongSetMu.Lock()
 	defer this.PongSetMu.Unlock()

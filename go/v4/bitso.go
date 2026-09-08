@@ -1528,7 +1528,7 @@ func (this *BitsoCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...an
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var oids any = Join(ids, ",")
+	var oids string = Join(ids, ",")
 	var request map[string]any = map[string]any{
 		"oids": oids,
 	}

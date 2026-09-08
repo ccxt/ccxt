@@ -4124,7 +4124,13 @@ class hyperliquid extends hyperliquid$1["default"] {
                 'signature': transferSig,
             };
             const transferResponse = await this.privatePostExchange(transferRequest);
-            return transferResponse;
+            //
+            // {'response': {'type': 'default'}, 'status': 'ok'}
+            //
+            // the sub-account branches below already hand back the unified structure; the
+            // spot <> swap branch returned the raw acknowledgement, breaking the shape
+            const currency = this.safeCurrency(code);
+            return this.parseTransfer(transferResponse, currency);
         }
         // transfer between main account and subaccount
         let isDeposit = false;
@@ -4204,11 +4210,11 @@ class hyperliquid extends hyperliquid$1["default"] {
             'id': undefined,
             'timestamp': undefined,
             'datetime': undefined,
-            'currency': undefined,
+            'currency': this.safeCurrencyCode(undefined, currency),
             'amount': undefined,
             'fromAccount': undefined,
             'toAccount': undefined,
-            'status': 'ok',
+            'status': this.safeString(transfer, 'status', 'ok'),
         };
     }
     /**

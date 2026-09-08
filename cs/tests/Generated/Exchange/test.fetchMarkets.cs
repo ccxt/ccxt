@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
     public static object detectMarketConflicts(BaseExchange exchange, object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
-        object ids = new Dictionary<string, object>() {};
+        Dictionary<string, object> ids = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object market = getValue(marketValues, i);

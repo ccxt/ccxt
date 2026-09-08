@@ -752,7 +752,7 @@ class digifinex(Exchange, ImplicitAPI):
             })
         return result
 
-    async def fetch_markets_v1(self, params={}):
+    async def fetch_markets_v1(self, params={}) -> list[Market]:
         response = await self.publicSpotGetMarkets(params)
         #
         #     {
@@ -2718,7 +2718,7 @@ class digifinex(Exchange, ImplicitAPI):
             raise InvalidAddress(self.id + ' fetchDepositAddress() did not return an address for ' + code + ' - create the deposit address in the user settings on the exchange website first.')
         return address
 
-    async def fetch_transactions_by_type(self, type: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_transactions_by_type(self, type: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         if self.markets is None:
             await self.load_markets()
         currency = None

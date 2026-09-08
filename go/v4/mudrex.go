@@ -611,7 +611,7 @@ func (this *MudrexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var aggregated any = []any{}
 	var offset any = 0
-	var pageLimit any = 100
+	var pageLimit int = 100
 	var paging bool = true
 	for IsEqual(paging, true) {
 		var q map[string]any = this.Extend(map[string]any{
@@ -1268,7 +1268,7 @@ func (this *MudrexCore) fetchOrdersByStateBody(ch chan any, state any, optionalA
 		PanicOnError(response)
 	}
 	var data any = this.SafeValue(response, "data", []any{})
-	var rows any = this.ToArray(data)
+	var rows []any = this.ToArray(data)
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1421,7 +1421,7 @@ func (this *MudrexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 		ch <- []any{}
 		return nil
 	}
-	var rows any = this.ToArray(data)
+	var rows []any = this.ToArray(data)
 	var outPos any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var p any = GetValue(rows, i)
@@ -1763,7 +1763,7 @@ func (this *MudrexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeValue(response, "data", []any{})
-	var rows any = this.ToArray(data)
+	var rows []any = this.ToArray(data)
 
 	ch <- this.ParseTrades(rows, market, since, limit)
 	return nil

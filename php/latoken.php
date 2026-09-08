@@ -967,7 +967,7 @@ class latoken extends Exchange {
         }
     }
 
-    public function fetch_public_trading_fee(string $symbol, $params = array()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -995,7 +995,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_private_trading_fee(string $symbol, $params = array()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

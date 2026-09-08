@@ -307,7 +307,7 @@ public class HyperliquidCore extends HyperliquidApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionDescription, null))) && Helpers.isTrue((!Helpers.isEqual(questionDescription, "")))))
         {
             Object questionDesc = this.parseOutcomeDescription(questionDescription);
-            Object questionClass = this.safeStringLower(questionDesc, "class");
+            String questionClass = (String)this.safeStringLower(questionDesc, "class");
             if (Helpers.isTrue(Helpers.isEqual(questionClass, "pricebucket")))
             {
                 Object questionUnderlying = this.safeString(questionDesc, "underlying");
@@ -315,7 +315,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(questionExpiry, ""))))) ? Helpers.GetValue(Helpers.split(questionExpiry, "-"), 0) : "";
                 Object thresholdsRaw = this.safeString(questionDesc, "priceThresholds", "");
                 Object indexStr = this.safeString(desc, "index");
-                Object rawDescription = this.safeStringLower(desc, "description", "");
+                String rawDescription = (String)this.safeStringLower(desc, "description", "");
                 Object nameLower = ((String)name).toLowerCase();
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(questionUnderlying, null)) && Helpers.isTrue(!Helpers.isEqual(questionUnderlying, "")))) && Helpers.isTrue((!Helpers.isEqual(thresholdsRaw, "")))) && Helpers.isTrue(!Helpers.isEqual(indexStr, null))))
                 {
@@ -551,8 +551,8 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         // Side labels from sideSpecs (e.g. "Yes"/"No", but use YES/NO normalised)
-        Object yesLabel = this.safeStringUpper(this.safeDict(sideSpecs, 0, new java.util.HashMap<String, Object>() {{}}), "name", "YES");
-        Object noLabel = this.safeStringUpper(this.safeDict(sideSpecs, 1, new java.util.HashMap<String, Object>() {{}}), "name", "NO");
+        String yesLabel = (String)this.safeStringUpper(this.safeDict(sideSpecs, 0, new java.util.HashMap<String, Object>() {{}}), "name", "YES");
+        String noLabel = (String)this.safeStringUpper(this.safeDict(sideSpecs, 1, new java.util.HashMap<String, Object>() {{}}), "name", "NO");
         Object quoteCurrency = this.safeString(this.options, "outcomeQuoteCurrency", "USDH");
         Object szDecimals = 4; // outcomes use 4 decimal places
         Object active = true;
@@ -1301,7 +1301,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Object oc = this.safeDict(outcomesList, i, new java.util.HashMap<String, Object>() {{}});
                 Object ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
-                Object ocLabel = this.safeStringUpper(oc, "label");
+                String ocLabel = (String)this.safeStringUpper(oc, "label");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(((String)ocSymbol).endsWith(((String)Helpers.add(":", normalizedHint))))))
                 {
                     return oc;
@@ -1512,7 +1512,7 @@ public class HyperliquidCore extends HyperliquidApi
             }};
             if (Helpers.isTrue(this.safeBool(this.options, "approvedBuilderFee", false)))
             {
-                Object wallet = this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
+                String wallet = (String)this.safeStringLower(this.options, "builder", "0x6530512A6c89C7cfCEbC3BA7fcD9aDa5f30827a6");
                 // feeInt defaults to 0: the builder is attached for statistics purposes only and the
                 // user is not charged; set options.feeInt (tenths of a bp) together with feeRate to charge
                 Object feeInt = this.safeInteger(this.options, "feeInt", 0);

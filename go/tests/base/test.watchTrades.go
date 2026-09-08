@@ -16,7 +16,7 @@ func testWatchTradesBody(ch chan any, exchange ccxt.ICoreExchange, skippedProper
 	var method string = "watchTrades"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = []any{}

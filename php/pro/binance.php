@@ -2714,6 +2714,22 @@ class binance extends \ccxt\async\binance {
         }
         $market = $this->safe_market($marketId, null, null, $marketType);
         $last = $this->safe_string_2($message, 'c', 'price');
+        // A coin-margined stream counts `v` in $contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        $baseVolume = $this->safe_string($message, 'v');
+        $quoteVolume = $this->safe_string($message, 'q');
+        if ($market['inverse'] === true) {
+            $contracts = $baseVolume;
+            $baseVolume = $quoteVolume;
+            $weightedAverage = $this->safe_string($message, 'w');
+            if ($weightedAverage === null) {
+                $quoteVolume = Precise::string_mul($contracts, $this->safe_string($market, 'contractSize'));
+            } else {
+                $quoteVolume = Precise::string_mul($baseVolume, $weightedAverage);
+            }
+        }
         return $this->safe_ticker(array(
             'symbol' => $symbol,
             'timestamp' => $timestamp,
@@ -2732,8 +2748,8 @@ class binance extends \ccxt\async\binance {
             'change' => $this->safe_string($message, 'p'),
             'percentage' => $this->safe_string($message, 'P'),
             'average' => null,
-            'baseVolume' => $this->safe_string($message, 'v'),
-            'quoteVolume' => $this->safe_string($message, 'q'),
+            'baseVolume' => $baseVolume,
+            'quoteVolume' => $quoteVolume,
             'info' => $message,
         ), $market);
     }

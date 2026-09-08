@@ -780,7 +780,7 @@ export default class bitstamp extends Exchange {
         };
     }
 
-    async fetchMarketsFromCache (params = {}) {
+    async fetchMarketsFromCache (params = {}): Promise<Dict[]> {
         // this method is now redundant
         // currencies are now fetched before markets
         const options = this.safeValue (this.options, 'fetchMarkets', {});

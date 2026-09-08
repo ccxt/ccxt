@@ -13,7 +13,7 @@ In practice that leaves two options: write against the raw v2 REST API, or use [
 ## TL;DR
 
 - **Write against the raw API** if you need CoinSpot's instant buy/sell/swap quotes, order editing, bulk cancels or withdrawal endpoints — CCXT does not model those as unified methods, though it can call them.
-- **Pick CCXT** if you want CoinSpot behind the same API you use for every other exchange, with signing, throttling and unified structures handled, in any of seven languages.
+- **Pick CCXT** if you want CoinSpot behind the same API you use for every other exchange, with signing, throttling and unified structures handled, in any of eight languages.
 - **CCXT's CoinSpot surface is small on purpose** — 9 unified capabilities — but all 69 v1 and v2 endpoints are reachable as [implicit methods](/docs/exchanges/coinspot/implicit-api).
 
 ## At a glance
@@ -21,7 +21,7 @@ In practice that leaves two options: write against the raw v2 REST API, or use [
 | | **CCXT** | **Raw CoinSpot API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (CoinSpot is one of them) | CoinSpot only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any; official SDK is Node only, last published June 2014 |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any; official SDK is Node only, last published June 2014 |
 | Installable client library | yes — `ccxt` | `coinspot-api` on npm, v0.1.20, targets the v1 API |
 | Unified market data + trading API | yes — 9 unified capabilities, 6 `fetch*` methods | CoinSpot's own request/response shapes |
 | Endpoint coverage | 69 v1 and v2 endpoints as implicit methods | it is the whole product |

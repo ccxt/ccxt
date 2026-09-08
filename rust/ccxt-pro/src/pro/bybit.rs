@@ -1046,7 +1046,7 @@ impl BybitCore {
             let mut m = indexmap::IndexMap::new();
             m
         })]);
-        let mut isSpot: Value = Value::Bool(!is_equal(&self.safe_string_k(data.clone(), "usdIndexPrice", &[]), &Value::Null));
+        let mut isSpot: bool = !is_equal(&self.safe_string_k(data.clone(), "usdIndexPrice", &[]), &Value::Null);
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut symbol: Value = Value::Null;
         let mut parsed: Value = Value::Null;
@@ -1341,7 +1341,7 @@ impl BybitCore {
             return;
         }
         let mut marketId: Value = self.safe_string(topicParts.clone(), subtract(&topicLength, &Value::Int(1)), &[]);
-        let mut isSpot: Value = Value::Bool(is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1))));
+        let mut isSpot: bool = is_greater_than(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &negate(&Value::Int(1)));
         let mut marketType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut market: Value = self.safe_market(&[marketId.clone(), Value::Null, Value::Null, marketType.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
@@ -1387,7 +1387,7 @@ impl BybitCore {
         //         "timestamp": 1670363219614
         //     }
         //
-        let mut isInverse: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true)));
+        let mut isInverse: bool = is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true));
         let mut volumeIndex: Value = ternary(is_true(&isInverse), Value::Str("turnover".to_string()), Value::Str("volume".to_string()));
         return Value::List(vec![self.safe_integer_k(ohlcv.clone(), "start", &[]), self.safe_number_k(ohlcv.clone(), "open", &[]), self.safe_number_k(ohlcv.clone(), "high", &[]), self.safe_number_k(ohlcv.clone(), "low", &[]), self.safe_number_k(ohlcv.clone(), "close", &[]), self.safe_number(ohlcv.clone(), volumeIndex.clone(), &[])]);
 
@@ -1588,9 +1588,9 @@ impl BybitCore {
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
         let mut limit: Value = get_value(&split(&topic, &Value::Str(".".to_string())), &Value::Int(1));
-        let mut isSpot: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &Value::Int(0)));
+        let mut isSpot: bool = is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("spot".to_string())), &Value::Int(0));
         let mut type_var: Value = self.safe_string_k(message.clone(), "type", &[]);
-        let mut isSnapshot: Value = Value::Bool(is_equal(&type_var, &Value::Str("snapshot".to_string())));
+        let mut isSnapshot: bool = is_equal(&type_var, &Value::Str("snapshot".to_string()));
         let mut data: Value = self.safe_dict_k(message.clone(), "data", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -2109,8 +2109,8 @@ impl BybitCore {
         //     }
         //
         let mut topic: Value = self.safe_string_k(message.clone(), "topic", &[Value::Str("".to_string())]);
-        let mut spot: Value = Value::Bool(is_equal(&topic, &Value::Str("ticketInfo".to_string())));
-        let mut executionFast: Value = Value::Bool(is_equal(&topic, &Value::Str("execution.fast".to_string())));
+        let mut spot: bool = is_equal(&topic, &Value::Str("ticketInfo".to_string()));
+        let mut executionFast: bool = is_equal(&topic, &Value::Str("execution.fast".to_string()));
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         if !is_true(&Value::Bool(is_array(&data))) {
             data = self.safe_value_k(data.clone(), "result", &[Value::List(vec![])]);
@@ -2778,7 +2778,7 @@ impl BybitCore {
             m
         })]);
         let mut category: Value = self.safe_string_k(first.clone(), "category", &[]);
-        let mut isSpot: Value = Value::Bool(is_equal(&category, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&category, &Value::Str("spot".to_string()));
         if !is_true(&isSpot) {
             rawOrders = self.safe_value_k(rawOrders.clone(), "result", &[rawOrders.clone()]);
         }

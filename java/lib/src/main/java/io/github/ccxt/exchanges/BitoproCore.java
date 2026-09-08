@@ -418,7 +418,7 @@ public class BitoproCore extends BitoproApi
     public Object parseCurrency(Object rawCurrency)
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object currencyId = this.safeString(rawCurrency, "currency");
+        String currencyId = this.safeString(rawCurrency, "currency");
         Object code = this.safeCurrencyCode(currencyId);
         Object deposit = this.safeBool(rawCurrency, "deposit");
         Object withdraw = this.safeBool(rawCurrency, "withdraw");
@@ -494,14 +494,14 @@ public class BitoproCore extends BitoproApi
     public Object parseMarket(Object market)
     {
         Object active = (!Helpers.isEqual(this.safeBool(market, "maintain"), true));
-        Object id = this.safeString(market, "pair");
+        String id = this.safeString(market, "pair");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
         Object uppercaseId = ((String)id).toUpperCase();
-        Object baseId = this.safeString(market, "base");
-        Object quoteId = this.safeString(market, "quote");
+        String baseId = this.safeString(market, "base");
+        String quoteId = this.safeString(market, "quote");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -574,9 +574,9 @@ public class BitoproCore extends BitoproApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "pair");
+        String marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeString(market, "symbol");
+        String symbol = this.safeString(market, "symbol");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -768,8 +768,8 @@ public class BitoproCore extends BitoproApi
         //         }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(trade, "tradeId");
-        Object orderId = this.safeString(trade, "orderId");
+        String id = this.safeString(trade, "tradeId");
+        String orderId = this.safeString(trade, "orderId");
         Object timestamp = null;
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -778,12 +778,12 @@ public class BitoproCore extends BitoproApi
         {
             timestamp = this.safeInteger(trade, "timestamp");
         }
-        Object marketId = this.safeString(trade, "pair");
+        String marketId = this.safeString(trade, "pair");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeString(market, "symbol");
-        Object price = this.safeString(trade, "price");
-        Object type = this.safeStringLower(trade, "type");
-        Object side = this.safeStringLower(trade, "action");
+        String symbol = this.safeString(market, "symbol");
+        String price = this.safeString(trade, "price");
+        String type = (String)this.safeStringLower(trade, "type");
+        String side = (String)this.safeStringLower(trade, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             Object isBuyer = this.safeBool(trade, "isBuyer");
@@ -795,13 +795,13 @@ public class BitoproCore extends BitoproApi
                 side = "sell";
             }
         }
-        Object amount = this.safeString(trade, "amount");
+        String amount = this.safeString(trade, "amount");
         if (Helpers.isTrue(Helpers.isEqual(amount, null)))
         {
             amount = this.safeString(trade, "baseAmount");
         }
         Object fee = null;
-        Object feeAmount = this.safeString(trade, "fee");
+        String feeAmount = this.safeString(trade, "fee");
         Object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
@@ -1028,7 +1028,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            String resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "resolution", resolution );
@@ -1140,10 +1140,10 @@ public class BitoproCore extends BitoproApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
-            Object amount = this.safeString(balance, "amount");
-            Object available = this.safeString(balance, "available");
+            String amount = this.safeString(balance, "amount");
+            String available = this.safeString(balance, "available");
             Object account = new java.util.HashMap<String, Object>() {{
                 put( "free", available );
                 put( "total", amount );
@@ -1245,7 +1245,7 @@ public class BitoproCore extends BitoproApi
         //         }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(order, "id", "orderId");
+        String id = this.safeString2(order, "id", "orderId");
         Object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         Object side = this.safeString(order, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1253,25 +1253,25 @@ public class BitoproCore extends BitoproApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseOrder() returned no side")) ;
         }
         side = ((String)side).toLowerCase();
-        Object amount = this.safeString2(order, "amount", "originalAmount");
-        Object price = this.safeString(order, "price");
-        Object marketId = this.safeString(order, "pair");
+        String amount = this.safeString2(order, "amount", "originalAmount");
+        String price = this.safeString(order, "price");
+        String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market, "_");
-        Object symbol = this.safeString(market, "symbol");
-        Object orderStatus = this.safeString(order, "status");
+        String symbol = this.safeString(market, "symbol");
+        String orderStatus = this.safeString(order, "status");
         Object status = this.parseOrderStatus(orderStatus);
-        Object type = this.safeStringLower(order, "type");
-        Object average = this.safeString(order, "avgExecutionPrice");
-        Object filled = this.safeString(order, "executedAmount");
-        Object remaining = this.safeString(order, "remainingAmount");
-        Object timeInForce = this.safeString(order, "timeInForce");
+        String type = (String)this.safeStringLower(order, "type");
+        String average = this.safeString(order, "avgExecutionPrice");
+        String filled = this.safeString(order, "executedAmount");
+        String remaining = this.safeString(order, "remainingAmount");
+        String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = null;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "POST_ONLY")))
         {
             postOnly = true;
         }
         Object fee = null;
-        Object feeAmount = this.safeString(order, "fee");
+        String feeAmount = this.safeString(order, "fee");
         Object feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
         if (Helpers.isTrue(Precise.stringGt(feeAmount, "0")))
         {
@@ -1359,7 +1359,7 @@ public class BitoproCore extends BitoproApi
                 {
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
-                Object condition = this.safeString(parameters, "condition");
+                String condition = this.safeString(parameters, "condition");
                 if (Helpers.isTrue(Helpers.isEqual(condition, null)))
                 {
                     throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() requires a condition parameter for "), orderType), " orders")) ;
@@ -1874,12 +1874,12 @@ final Object finalJ = j;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object currencyId = this.safeString(transaction, "coin");
+        String currencyId = this.safeString(transaction, "coin");
         Object code = this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transaction, "timestamp");
-        Object address = this.safeString(transaction, "address");
-        Object tag = this.safeString(transaction, "message");
-        Object status = this.safeString(transaction, "status");
+        String address = this.safeString(transaction, "address");
+        String tag = this.safeString(transaction, "message");
+        String status = this.safeString(transaction, "status");
         Object networkId = this.safeString(transaction, "protocol");
         if (Helpers.isTrue(Helpers.isEqual(networkId, "MAIN")))
         {
@@ -2138,7 +2138,7 @@ final Object finalJ = j;
             if (Helpers.isTrue(Helpers.inOp(parameters, "network")))
             {
                 Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
-                Object requestedNetwork = this.safeStringUpper(parameters, "network");
+                String requestedNetwork = (String)this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
                 Object networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
                 if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -2314,7 +2314,7 @@ final Object finalJ = j;
             return null;
         }
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-        Object error = this.safeString(response, "error");
+        String error = this.safeString(response, "error");
         this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), error, feedback);
         this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
         throw new ExchangeError((String)feedback) ;

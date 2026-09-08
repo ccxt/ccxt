@@ -975,7 +975,7 @@ export default class latoken extends Exchange {
         }
     }
 
-    async fetchPublicTradingFee (symbol: string, params = {}) {
+    async fetchPublicTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1003,7 +1003,7 @@ export default class latoken extends Exchange {
         };
     }
 
-    async fetchPrivateTradingFee (symbol: string, params = {}) {
+    async fetchPrivateTradingFee (symbol: string, params = {}): Promise<TradingFeeInterface> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

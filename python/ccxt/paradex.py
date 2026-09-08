@@ -5,12 +5,13 @@
 
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.paradex import ImplicitAPI
-from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Balances, Currency, FundingHistory, Greeks, AllGreeks, Int, Leverage, Liquidation, MarginMode, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
 from ccxt.base.errors import ArgumentsRequired
 from ccxt.base.errors import BadRequest
+from ccxt.base.errors import BadSymbol
 from ccxt.base.errors import OperationRejected
 from ccxt.base.errors import InvalidOrder
 from ccxt.base.decimal_to_precision import TICK_SIZE
@@ -72,9 +73,9 @@ class paradex(Exchange, ImplicitAPI):
                 'fetchDepositWithdrawFee': False,
                 'fetchDepositWithdrawFees': False,
                 'fetchFundingHistory': True,
-                'fetchFundingRate': False,
+                'fetchFundingRate': True,
                 'fetchFundingRateHistory': True,
-                'fetchFundingRates': False,
+                'fetchFundingRates': True,
                 'fetchGreeks': True,
                 'fetchIndexOHLCV': True,
                 'fetchIsolatedBorrowRate': False,
@@ -1008,6 +1009,108 @@ class paradex(Exchange, ImplicitAPI):
             'markPrice': self.safe_string(ticker, 'mark_price'),
             'info': ticker,
         }, market)
+
+    def fetch_funding_rates(self, symbols: Strings = None, params={}) -> FundingRates:
+        """
+        fetches the current funding rate for multiple markets
+
+        https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+        :param str[] [symbols]: unified market symbols
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict[]: a list of `funding rate structures <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        symbols = self.market_symbols(symbols)
+        # the endpoint takes one market id, and ALL answers for every product on
+        # the venue: a single symbol is asked for by name, which is 544 bytes
+        # against 1.6 MB
+        target = 'ALL'
+        if symbols is not None:
+            symbolsLength = len(symbols)
+            if symbolsLength == 1:
+                target = self.market(symbols[0])['id']
+        request = {
+            'market': target,
+        }
+        response = self.publicGetMarketsSummary(self.extend(request, params))
+        data = self.safe_list(response, 'results', [])
+        return self.parse_funding_rates(data, symbols)
+
+    def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
+        """
+        fetches the current funding rate
+
+        https://docs.paradex.trade/api/prod/markets/get-markets-summary
+
+        :param str symbol: unified market symbol
+        :param dict [params]: extra parameters specific to the exchange API endpoint
+        :returns dict: a `funding rate structure <https://docs.ccxt.com/?id=funding-rate-structure>`
+        """
+        if self.markets is None:
+            self.load_markets()
+        market = self.market(symbol)
+        rates = self.fetch_funding_rates([market['symbol']], params)
+        rate = self.safe_dict(rates, market['symbol'])
+        if rate is None:
+            raise BadSymbol(self.id + ' fetchFundingRate() could not find a funding rate for ' + symbol)
+        return rate
+
+    def parse_funding_rate(self, contract: object, market: Market = None) -> FundingRate:
+        #
+        #     {
+        #         "symbol": "BTC-USD-PERP",
+        #         "oracle_price": "68465.17449906",
+        #         "mark_price": "68465.17449906",
+        #         "last_traded_price": "68495.1",
+        #         "bid": "68477.6",
+        #         "ask": "69578.2",
+        #         "volume_24h": "5815541.397939004",
+        #         "total_volume": "584031465.525259686",
+        #         "created_at": 1718170156580,
+        #         "underlying_price": "67367.37268422",
+        #         "open_interest": "162.272",
+        #         "funding_rate": "0.01629574927887",
+        #         "price_change_rate_24h": "0.009032"
+        #     }
+        #
+        marketId = self.safe_string(contract, 'symbol')
+        market = self.safe_market(marketId, market, None, 'swap')
+        timestamp = self.safe_integer(contract, 'created_at')
+        # the summary answers for every product, and only a perpetual funds: an
+        # option row carries an empty funding_rate and a period of zero. left
+        # without a symbol, parseFundingRates drops the row
+        rate = self.safe_string(contract, 'funding_rate')
+        funds = (market['swap'] is True) and (rate is not None) and (rate != '')
+        # the funding period belongs to the market and is not always eight hours:
+        # fetchMarkets documents one on twenty four. funding accrues each second
+        # against an index, and self rate is the amount for a whole period
+        hours = self.safe_string(self.safe_dict(market, 'info', {}), 'funding_period_hours')
+        # zero hours is not an interval, and a caller annualising a rate divides by it
+        interval = None
+        if (hours is not None) and Precise.string_gt(hours, '0'):
+            interval = hours + 'h'
+        return {
+            'info': contract,
+            'symbol': market['symbol'] if funds else None,
+            'markPrice': self.safe_number(contract, 'mark_price'),
+            'indexPrice': self.safe_number(contract, 'underlying_price'),
+            'interestRate': None,
+            'estimatedSettlePrice': None,
+            'timestamp': timestamp,
+            'datetime': self.iso8601(timestamp),
+            'fundingRate': self.safe_number(contract, 'funding_rate'),
+            'fundingTimestamp': None,
+            'fundingDatetime': None,
+            'nextFundingRate': None,
+            'nextFundingTimestamp': None,
+            'nextFundingDatetime': None,
+            'previousFundingRate': None,
+            'previousFundingTimestamp': None,
+            'previousFundingDatetime': None,
+            'interval': interval,
+        }
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
@@ -2879,7 +2982,7 @@ class paradex(Exchange, ImplicitAPI):
         greeks = self.safe_dict(data, 0, {})
         return self.parse_greeks(greeks, market)
 
-    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
+    def fetch_all_greeks(self, symbols: Strings = None, params={}) -> AllGreeks:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -2887,7 +2990,7 @@ class paradex(Exchange, ImplicitAPI):
 
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        :returns dict: a dictionary of `greeks structures <https://docs.ccxt.com/?id=greeks-structure>` indexed by market symbol
         """
         if self.markets is None:
             self.load_markets()
@@ -3123,6 +3226,9 @@ class paradex(Exchange, ImplicitAPI):
         #     ]
         # }
         #
+        # every row is one observation of a rate quoted for a whole funding period,
+        # not a settled payment: paradex recomputes it each second and accrues it
+        # into funding_index, so the series cannot be summed
         results = self.safe_list(response, 'results', [])
         rates = []
         for i in range(0, len(results)):

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Lighter API and official Lighter SDK -->
 <!-- description: Lighter is a zk-rollup perp DEX where every order is a signed transaction. CCXT's lighter class compared with the official Python and Go SDKs on signing and coverage. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Lighter orders are signed zk transactions, so both CCXT and the official SDK call the same native signer binary. CCXT adds 56 unified capabilities, 18 watch* methods and seven languages on top of it. -->
+<!-- summary: Lighter orders are signed zk transactions, so both CCXT and the official SDK call the same native signer binary. CCXT adds 56 unified capabilities, 18 watch* methods and eight languages on top of it. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Lighter API and official Lighter SDK
@@ -15,7 +15,7 @@ Because both sides call the same signer, the question is narrower than usual: **
 ## TL;DR
 
 - **Pick the official SDK** if Lighter is your only venue and you want zero setup around the signer — `lighter-python` ships the native binaries and picks the right one for your platform automatically.
-- **Pick CCXT** if Lighter is one venue among several, or if you are in a language Lighter does not publish an SDK for — CCXT gives it 56 unified capabilities and 18 `watch*`/`unWatch*` streaming methods, in seven languages.
+- **Pick CCXT** if Lighter is one venue among several, or if you are in a language Lighter does not publish an SDK for — CCXT gives it 56 unified capabilities and 18 `watch*`/`unWatch*` streaming methods, in eight languages.
 - **The signer is the same code either way.** CCXT loads the officially distributed signer binary (or a WASM build of it), so the trade-off is about API shape and portability, not about cryptography.
 
 ## At a glance
@@ -23,7 +23,7 @@ Because both sides call the same signer, the question is narrower than usual: **
 | | **CCXT** | **Official Lighter SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Lighter is one of them) | Lighter only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Go |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python and Go |
 | Signer setup | point `options['libraryPath']` at the official binary; nothing needed in Go | automatic — the Python SDK selects the right native binary for your platform |
 | Unified capabilities | 56, of which 19 are `fetch*` | n/a — Lighter's own shapes |
 | Symbols | `'ETH/USDC:USDC'` | market index / order-book id |
@@ -200,9 +200,9 @@ CCXT implements 18 streaming methods for Lighter: `watchOrderBook`, `watchTrades
 
 ## Where the differences actually bite
 
-### Seven languages against two
+### Eight languages against two
 
-Lighter publishes Python and Go. CCXT gives you the same Lighter API in TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures, because it is written once in TypeScript and transpiled. If your execution service is C# or Java, CCXT is currently the way you reach Lighter with a maintained client.
+Lighter publishes Python and Go. CCXT gives you the same Lighter API in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures, because it is written once in TypeScript and transpiled. If your execution service is C# or Java, CCXT is currently the way you reach Lighter with a maintained client.
 
 Note the split: `lighter-python` has both HTTP and WebSocket support, while `lighter-go` is described by its own README as the reference implementation of signing and hashing plus a basic HTTP client — no WebSocket.
 

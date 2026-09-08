@@ -15,7 +15,7 @@ public partial class BaseTest
             // @SKIP_START_GO
             string methodName = "setMarketsFromExchange";
             bool trueClause = isEqual(emptyExchange.safeString(null, null), null);
-            object sampleMarket = new Dictionary<string, object>() {
+            Dictionary<string, object> sampleMarket = new Dictionary<string, object>() {
                 { "BTC/USD", new Dictionary<string, object>() {
                     { "id", "BtcUsd" },
                     { "symbol", "BTC/USD" },
@@ -63,7 +63,7 @@ public partial class BaseTest
             // Test the new setMarketsFromExchange method
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
-            object neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
+            List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
             for (object i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));

@@ -81,7 +81,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/orderbooks/"), Helpers.GetValue(market, "id"));
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -656,7 +656,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = Helpers.add("fundingRate:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/funding/"), Helpers.GetValue(market, "id"));
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -745,7 +745,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = Helpers.add("markPrice:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/prices/mark/"), Helpers.GetValue(market, "id"));
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }
@@ -823,7 +823,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = Helpers.add("trades:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/publicTrades/"), Helpers.GetValue(market, "id"));
-            if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(query), 0)))
+            if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));
             }

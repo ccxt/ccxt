@@ -1979,7 +1979,7 @@ func (this *MexcCore) ParseOrderBookBidAsk(bidask any, optionalArgs ...any) any 
 	_ = amountKey
 	countOrIdKey := GetArg(optionalArgs, 2, 2)
 	_ = countOrIdKey
-	var countKey any = 2
+	var countKey int = 2
 	var price any = this.SafeNumber(bidask, priceKey)
 	var amount any = this.SafeNumber(bidask, amountKey)
 	var count any = this.SafeNumber(bidask, countKey)
@@ -4491,7 +4491,11 @@ func (this *MexcCore) fetchAccountHelperBody(ch chan any, typeVar any, params an
 		//         ]
 		//     }
 		//
-		ch <- this.SafeValue(response, "data")
+		// wrap the swap asset list so this helper always returns an account
+		// dict with a `balances` array — fetchAccounts reads response['balances']
+		ch <- map[string]any{
+			"balances": this.SafeValue(response, "data", []any{}),
+		}
 		return nil
 	}
 
@@ -4523,8 +4527,8 @@ func (this *MexcCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	query := GetValue(marketTypequeryVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes384012 := (<-this.LoadMarkets())
-		PanicOnError(retRes384012)
+		retRes384412 := (<-this.LoadMarkets())
+		PanicOnError(retRes384412)
 	}
 
 	response := (<-this.FetchAccountHelper(marketType, query))
@@ -4568,8 +4572,8 @@ func (this *MexcCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes387012 := (<-this.LoadMarkets())
-		PanicOnError(retRes387012)
+		retRes387412 := (<-this.LoadMarkets())
+		PanicOnError(retRes387412)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
@@ -4673,28 +4677,24 @@ func (this *MexcCore) CustomParseBalance(response any, marketType any) any {
 	} else {
 		wallet = this.SafeValue(response, "balances", []any{})
 	}
-	var result map[string]any = map[string]any{
+	var result any = map[string]any{
 		"info": response,
 	}
 	if IsTrue(IsEqual(marketType, "margin")) {
 		for i := 0; IsLessThan(i, GetArrayLength(wallet)); i++ {
 			var entry any = GetValue(wallet, i)
-			var marketId any = this.SafeString(entry, "symbol")
-			var symbol any = this.SafeSymbol(marketId)
 			var base any = this.SafeValue(entry, "baseAsset", map[string]any{})
 			var quote any = this.SafeValue(entry, "quoteAsset", map[string]any{})
 			var baseCode any = this.SafeCurrencyCode(this.SafeString(base, "asset"))
 			var quoteCode any = this.SafeCurrencyCode(this.SafeString(quote, "asset"))
-			var subResult map[string]any = map[string]any{}
 			if IsTrue(!IsEqual(baseCode, nil)) {
-				AddElementToObject(subResult, baseCode, this.ParseBalanceHelper(base))
+				result = this.MergeBalanceAccount(result, baseCode, this.ParseBalanceHelper(base))
 			}
 			if IsTrue(!IsEqual(quoteCode, nil)) {
-				AddElementToObject(subResult, quoteCode, this.ParseBalanceHelper(quote))
+				result = this.MergeBalanceAccount(result, quoteCode, this.ParseBalanceHelper(quote))
 			}
-			AddElementToObject(result, symbol, this.SafeBalance(subResult))
 		}
-		return result
+		return this.SafeBalance(result)
 	} else if IsTrue(IsEqual(marketType, "swap")) {
 		for i := 0; IsLessThan(i, GetArrayLength(wallet)); i++ {
 			var entry any = GetValue(wallet, i)
@@ -5538,7 +5538,7 @@ func (this *MexcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -7516,7 +7516,7 @@ func (this *MexcCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(urlParams, "recvWindow", this.SafeInteger(this.Options, "recvWindow", 5000))
 			}
 		}
-		var paramsEncoded any = ""
+		var paramsEncoded string = ""
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(urlParams)), 0)) {
 			paramsEncoded = this.Urlencode(urlParams)
 			url = Add(url, Add("?", paramsEncoded))

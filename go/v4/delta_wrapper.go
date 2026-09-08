@@ -1032,7 +1032,7 @@ func (this *Delta) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Delta) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Delta) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Delta) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Delta) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1068,7 +1068,7 @@ func (this *Delta) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error
 func (this *Delta) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Delta) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Delta) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Delta) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

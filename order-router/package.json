@@ -6,8 +6,8 @@
   "description": "Smart order router: aggregates live order books across exchanges via ccxt and serves best-execution price lookups.",
   "ccxtPin": {
     "_comment": "The lag between the exact ccxt this service ships and the version of the ccxt repository it lives in. Checked by scripts/check-ccxt-pin.mjs (npm run check:ccxt-pin) and by src/docs.test.ts, so the gap can never widen unnoticed again — it sat 13 patch releases behind with nothing in CI able to see it. Bumping the pin is a separate, reviewed change; re-acknowledging here only records that someone looked.",
-    "acknowledgedRepoVersion": "4.5.77",
-    "why": "not yet re-validated against 4.5.77; the pin is bumped in its own change so that an exchange-behaviour regression is attributable"
+    "acknowledgedRepoVersion": "4.5.78",
+    "why": "re-acknowledged after merging upstream master, which moved the repository 4.5.77 -> 4.5.78. The pin is still 4.5.64 and still not re-validated; bumping it stays a separate reviewed change so that an exchange-behaviour regression is attributable to the bump rather than buried in a merge"
   },
   "scripts": {
     "build": "tsc -p tsconfig.json && npm run copy-assets && npm run build:info",

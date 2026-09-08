@@ -194,6 +194,72 @@
                 ]
             }
         ],
+        "fetchFundingRates": [
+            {
+                "description": "fetchFundingRates for one perp",
+                "method": "fetchFundingRates",
+                "input": [
+                    [
+                        "BTC/USD:USDC"
+                    ]
+                ],
+                "httpResponse": {
+                    "results": [
+                        {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67307.7225876",
+                            "mark_price": "67307.7225876",
+                            "last_traded_price": "66821.1",
+                            "bid": "66821.1",
+                            "ask": "67643.2",
+                            "volume_24h": "2611476.262600002",
+                            "total_volume": "589169794.979260343",
+                            "created_at": 1718377962698,
+                            "underlying_price": "66806.71304318",
+                            "open_interest": "152.777",
+                            "funding_rate": "0.00749938923192",
+                            "price_change_rate_24h": "-0.036863"
+                        }
+                    ]
+                },
+                "parsedResponse": {
+                    "BTC/USD:USDC": {
+                        "info": {
+                            "symbol": "BTC-USD-PERP",
+                            "oracle_price": "67307.7225876",
+                            "mark_price": "67307.7225876",
+                            "last_traded_price": "66821.1",
+                            "bid": "66821.1",
+                            "ask": "67643.2",
+                            "volume_24h": "2611476.262600002",
+                            "total_volume": "589169794.979260343",
+                            "created_at": 1718377962698,
+                            "underlying_price": "66806.71304318",
+                            "open_interest": "152.777",
+                            "funding_rate": "0.00749938923192",
+                            "price_change_rate_24h": "-0.036863"
+                        },
+                        "symbol": "BTC/USD:USDC",
+                        "markPrice": 67307.7225876,
+                        "indexPrice": 66806.71304318,
+                        "interestRate": null,
+                        "estimatedSettlePrice": null,
+                        "timestamp": 1718377962698,
+                        "datetime": "2024-06-14T15:12:42.698Z",
+                        "fundingRate": 0.00749938923192,
+                        "fundingTimestamp": null,
+                        "fundingDatetime": null,
+                        "nextFundingRate": null,
+                        "nextFundingTimestamp": null,
+                        "nextFundingDatetime": null,
+                        "previousFundingRate": null,
+                        "previousFundingTimestamp": null,
+                        "previousFundingDatetime": null,
+                        "interval": "8h"
+                    }
+                }
+            }
+        ],
         "fetchMyLiquidations": [
             {
                 "description": "fetchMyLiquidations",

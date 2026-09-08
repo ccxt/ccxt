@@ -906,7 +906,7 @@ impl GrvtCore {
         }
         let mut channel: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("channel".to_string()), &[Value::Str("v1.book.d".to_string())]); channel = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut isSnapshot: Value = Value::Bool(is_equal(&channel, &Value::Str("v1.book.s".to_string())));
+        let mut isSnapshot: bool = is_equal(&channel, &Value::Str("v1.book.s".to_string()));
         let mut symbolsLength: Value = get_array_length(&symbols);
         if is_equal(&symbolsLength, &Value::Int(0)) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" watchOrderBookForSymbols() requires a non-empty array of symbols".to_string()))));
@@ -988,8 +988,8 @@ impl GrvtCore {
         let mut orderbook: Value = get_value(&self.orderbooks, &symbol);
         let mut sequenceNumber: Value = self.safe_integer_k(message.clone(), "sequence_number", &[Value::Int(0)]);
         let mut stream: Value = self.safe_string_k(message.clone(), "stream", &[]);
-        let mut isSnapshotChannel: Value = Value::Bool(is_equal(&stream, &Value::Str("v1.book.s".to_string())));
-        let mut isSnapshotMessage: Value = Value::Bool(is_less_than_or_equal(&sequenceNumber, &Value::Int(0)));
+        let mut isSnapshotChannel: bool = is_equal(&stream, &Value::Str("v1.book.s".to_string()));
+        let mut isSnapshotMessage: bool = is_less_than_or_equal(&sequenceNumber, &Value::Int(0));
         if is_true(&isSnapshotChannel) || is_true(&isSnapshotMessage) {
             let mut snapshot: Value = self.parse_order_book(data.clone(), symbol.clone(), &[timestamp.clone(), Value::Str("bids".to_string()), Value::Str("asks".to_string()), Value::Str("price".to_string()), Value::Str("size".to_string())]);
             orderbook.reset(snapshot.clone());

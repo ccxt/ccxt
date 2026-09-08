@@ -570,7 +570,7 @@ func (this *AlpacaCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(timestamp, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
 	}
-	var localTime any = Slice(timestamp, 0, 23)
+	var localTime string = Slice(timestamp, 0, 23)
 	if IsTrue(IsEqual(timestamp, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
 	}
@@ -582,7 +582,7 @@ func (this *AlpacaCore) fetchTimeBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(timestamp, nil)) {
 		panic(ExchangeError(Add(this.Id, " fetchTime() missing timestamp")))
 	}
-	var jetlag any = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
+	var jetlag string = Slice(timestamp, jetlagStrStart, jetlagStrEnd)
 	var iso any = Subtract(this.ParseToInt(this.Parse8601(localTime)), Multiply(Multiply(this.ParseToNumeric(jetlag), 3600), 1000))
 
 	ch <- iso
@@ -1164,7 +1164,7 @@ func (this *AlpacaCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(symbols, nil)) {
 		// every listed market is a crypto market because fetchMarkets requests asset_class=crypto, so default to all of them
-		var allSymbols any = this.Sort(this.Symbols) // symbol iteration order differs per language
+		var allSymbols []any = this.Sort(this.Symbols) // symbol iteration order differs per language
 		symbols = allSymbols
 	}
 	symbols = this.MarketSymbols(symbols)
@@ -1274,7 +1274,7 @@ func (this *AlpacaCore) GenerateClientOrderId(params any) any {
 	var clientOrderIdprefix any = this.SafeString(this.Options, "clientOrderId")
 	var uuid string = this.Uuid()
 	var parts []string = Split(uuid, "-")
-	var random_id any = Join(parts, "")
+	var random_id string = Join(parts, "")
 	var defaultClientId any = this.ImplodeParams(clientOrderIdprefix, map[string]any{
 		"id": random_id,
 	})

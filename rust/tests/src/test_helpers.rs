@@ -504,9 +504,6 @@ fn with_base<F, R>(f: F) -> R where F: FnOnce(&mut BaseCore) -> R {
     BASE_EXCHANGE.with(|cell| f(&mut cell.borrow_mut()))
 }
 
-#[allow(dead_code)]
-fn with_base_clone() -> BaseCore { BaseCore::new(Exchange::new(None)) }
-
 pub trait ExchangeOps {
     fn safe_value(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;
     fn safe_string(&self, obj: Value, key: Value, optional_args: &[Value]) -> Value;

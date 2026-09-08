@@ -823,8 +823,8 @@ impl LbankCore {
         let mut rawTrades: Value = self.safe_value_k(message.clone(), "trades", &[Value::List(vec![rawTrade.clone()])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_469: bool = true;
-            while { if !__for_first_469 { i = add(&i, &Value::Int(1)); } __for_first_469 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
+            let mut __for_first_468: bool = true;
+            while { if !__for_first_468 { i = add(&i, &Value::Int(1)); } __for_first_468 = false; is_less_than(&i, &get_array_length(&rawTrades)) } {
             let mut trade: Value = self.parse_ws_trade(get_value(&rawTrades, &i), &[market.clone()]);
             add_element_to_object(&mut trade, &Value::Str("symbol".to_string()), symbol.clone());
             stored.append(trade.clone());
@@ -1328,6 +1328,15 @@ impl LbankCore {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
+        // lbank drives liveness from its side: the server sends this
+        // application-level ping and closes the socket if it is not answered
+        // within a minute, but it does not reliably answer the RFC 6455 ping
+        // frames the base client sends from onPingInterval. an inbound ping is
+        // proof the connection is alive, so record it as the last pong -
+        // otherwise lastPong never advances past the first onPingInterval and
+        // the keepAlive * maxPingPongMisses check tears down a healthy,
+        // streaming socket every 60 seconds
+        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
         let mut pingId: Value = self.safe_string_k(message.clone(), "ping", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({

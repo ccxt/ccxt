@@ -724,7 +724,7 @@ func (this *ExchangeTyped) SetMarginMode(marginMode string, options ...SetMargin
 	}
 	return res.(map[string]any), nil
 }
-func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -735,9 +735,9 @@ func (this *ExchangeTyped) FetchDepositAddressesByNetwork(code string, options .
 	var params *map[string]any = opts.Params
 	res := <-this.Exchange.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 func (this *ExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 
@@ -1567,7 +1567,7 @@ func (this *ExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeksOpti
 	}
 	return NewGreeks(res), nil
 }
-func (this *ExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *ExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -1580,9 +1580,9 @@ func (this *ExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]G
 	var params *map[string]any = opts.Params
 	res := <-this.Exchange.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 func (this *ExchangeTyped) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 
@@ -4914,7 +4914,7 @@ func (this *BaseExchangeTyped) SetMarginMode(marginMode string, options ...SetMa
 	}
 	return res.(map[string]any), nil
 }
-func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -4925,9 +4925,9 @@ func (this *BaseExchangeTyped) FetchDepositAddressesByNetwork(code string, optio
 	var params *map[string]any = opts.Params
 	res := <-this.BaseExchange.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 func (this *BaseExchangeTyped) FetchOpenInterestHistory(symbol string, options ...FetchOpenInterestHistoryOptions) ([]OpenInterest, error) {
 
@@ -5757,7 +5757,7 @@ func (this *BaseExchangeTyped) FetchGreeks(symbol string, options ...FetchGreeks
 	}
 	return NewGreeks(res), nil
 }
-func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -5770,9 +5770,9 @@ func (this *BaseExchangeTyped) FetchAllGreeks(options ...FetchAllGreeksOptions) 
 	var params *map[string]any = opts.Params
 	res := <-this.BaseExchange.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 func (this *BaseExchangeTyped) FetchOptionChain(code string, options ...FetchOptionChainOptions) (OptionChain, error) {
 

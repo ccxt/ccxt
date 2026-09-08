@@ -16,7 +16,7 @@ public partial class testMainClass : BaseTest
                 { "symbol", true },
             }, skippedProperties);
         }
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "symbol", "ETH/BTC" },
             { "asks", new List<object>() {new List<object> {exchange.parseNumber("1.24"), exchange.parseNumber("0.453")}, new List<object> {exchange.parseNumber("1.25"), exchange.parseNumber("0.157")}} },
             { "bids", new List<object>() {new List<object> {exchange.parseNumber("1.23"), exchange.parseNumber("0.123")}, new List<object> {exchange.parseNumber("1.22"), exchange.parseNumber("0.543")}} },
@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
             { "datetime", "2017-09-01T00:00:00" },
             { "nonce", 134234234 },
         };
-        object emptyAllowedFor = new List<object>() {"nonce"};
+        List<object> emptyAllowedFor = new List<object>() {"nonce"};
         testSharedMethods.assertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         // testSharedMethods.assertTimestampAndDatetime (exchange, skippedProperties, method, orderbook);
         testSharedMethods.assertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

@@ -25,7 +25,7 @@ Separate registration and separate API host from bybit.com. Product coverage is 
 | WebSocket `watch*` methods | 25 |
 | Raw endpoints as implicit methods | 404 |
 | Testnet via `setSandboxMode` | yes |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust |
 | Licence | MIT |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, read from the source tree with `build/comparisons-facts.cjs`. Counts include everything inherited from `bybit`.</sub>

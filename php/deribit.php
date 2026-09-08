@@ -2907,7 +2907,7 @@ class deribit extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): array {
         /**
          * fetch the historical volatility of an option market based on an underlying asset
          *

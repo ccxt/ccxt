@@ -1331,7 +1331,7 @@ func (this *BlofinCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -3806,7 +3806,7 @@ func (this *BlofinCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
 		var auth any = Add(Add(Add(Add(request, method), timestamp), timestamp), sign_body)
-		var signature any = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
+		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		AddElementToObject(headers, "ACCESS-SIGN", signature)
 	}
 	return map[string]any{

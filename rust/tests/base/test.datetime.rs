@@ -28,6 +28,58 @@ pub fn testIso8601() {
     let mut m = indexmap::IndexMap::new();
     m
 })), &Value::Null)))));
+    // NB: every assert below must hold byte-for-byte in every language. Timestamps stay within the
+    // year 1970-9999 range, the only range where all the native date implementations agree.
+    // 1ms after epoch is asserted above
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1000)), &Value::Str("1970-01-01T00:00:01.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1001)), &Value::Str("1970-01-01T00:00:01.001Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(86399999)), &Value::Str("1970-01-01T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(86400000)), &Value::Str("1970-01-02T00:00:00.000Z".to_string()))))));
+    // millisecond zero-padding
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1755432123005)), &Value::Str("2025-08-17T12:02:03.005Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1755432123050)), &Value::Str("2025-08-17T12:02:03.050Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1755432123099)), &Value::Str("2025-08-17T12:02:03.099Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1755432123500)), &Value::Str("2025-08-17T12:02:03.500Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1755432123999)), &Value::Str("2025-08-17T12:02:03.999Z".to_string()))))));
+    // year rollovers, incl. out of a 366-day leap year
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1704067199999)), &Value::Str("2023-12-31T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1704067200000)), &Value::Str("2024-01-01T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1735689599999)), &Value::Str("2024-12-31T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1735689600000)), &Value::Str("2025-01-01T00:00:00.000Z".to_string()))))));
+    // month lengths and boundaries
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1706702400000)), &Value::Str("2024-01-31T12:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1706788800000)), &Value::Str("2024-02-01T12:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1677585600000)), &Value::Str("2023-02-28T12:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1677672000000)), &Value::Str("2023-03-01T12:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1714521599999)), &Value::Str("2024-04-30T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1714521600000)), &Value::Str("2024-05-01T00:00:00.000Z".to_string()))))));
+    // leap days: regular leap years, leap centuries and non-leap centuries
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(68169600000)), &Value::Str("1972-02-29T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1709164799999)), &Value::Str("2024-02-28T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1709164800000)), &Value::Str("2024-02-29T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1709251199999)), &Value::Str("2024-02-29T23:59:59.999Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(1709251200000)), &Value::Str("2024-03-01T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(951782400000)), &Value::Str("2000-02-29T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(951868800000)), &Value::Str("2000-03-01T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(4107499200000)), &Value::Str("2100-02-28T12:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(4107585600000)), &Value::Str("2100-03-01T12:00:00.000Z".to_string()))))));
+    // others
+    // zero is a valid timestamp
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(0)), &Value::Str("1970-01-01T00:00:00.000Z".to_string()))))));
+    // plain-integer strings are accepted
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Str("1755432123456".to_string())), &Value::Str("2025-08-17T12:02:03.456Z".to_string()))))));
+    // strings that are not a plain integer are rejected
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Str("123abc".to_string())), &Value::Null)))));
+    // non-integer numbers are floored
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Float(514862627559.9)), &Value::Str("1986-04-26T01:23:47.559Z".to_string()))))));
+    // last representable millisecond of year 9999
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(253402300799999)), &Value::Str("9999-12-31T23:59:59.999Z".to_string()))))));
+    // one millisecond past the maximum supported range yields undefined
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Int(8640000000000001)), &Value::Null)))));
+    // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+    // literals don't survive transpilation, but 1e300 does and it exercises the
+    // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.iso8601(Value::Float(1e+300)), &Value::Null)))));
 }
 pub fn testParse8601() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({

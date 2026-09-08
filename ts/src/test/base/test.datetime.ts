@@ -23,6 +23,58 @@ function testIso8601 () {
     assert (exchange.iso8601 ('') === undefined);
     assert (exchange.iso8601 ('a') === undefined);
     assert (exchange.iso8601 ({}) === undefined);
+    // NB: every assert below must hold byte-for-byte in every language. Timestamps stay within the
+    // year 1970-9999 range, the only range where all the native date implementations agree.
+    // 1ms after epoch is asserted above
+    assert (exchange.iso8601 (1000) === '1970-01-01T00:00:01.000Z');
+    assert (exchange.iso8601 (1001) === '1970-01-01T00:00:01.001Z');
+    assert (exchange.iso8601 (86399999) === '1970-01-01T23:59:59.999Z');
+    assert (exchange.iso8601 (86400000) === '1970-01-02T00:00:00.000Z');
+    // millisecond zero-padding
+    assert (exchange.iso8601 (1755432123005) === '2025-08-17T12:02:03.005Z');
+    assert (exchange.iso8601 (1755432123050) === '2025-08-17T12:02:03.050Z');
+    assert (exchange.iso8601 (1755432123099) === '2025-08-17T12:02:03.099Z');
+    assert (exchange.iso8601 (1755432123500) === '2025-08-17T12:02:03.500Z');
+    assert (exchange.iso8601 (1755432123999) === '2025-08-17T12:02:03.999Z');
+    // year rollovers, incl. out of a 366-day leap year
+    assert (exchange.iso8601 (1704067199999) === '2023-12-31T23:59:59.999Z');
+    assert (exchange.iso8601 (1704067200000) === '2024-01-01T00:00:00.000Z');
+    assert (exchange.iso8601 (1735689599999) === '2024-12-31T23:59:59.999Z');
+    assert (exchange.iso8601 (1735689600000) === '2025-01-01T00:00:00.000Z');
+    // month lengths and boundaries
+    assert (exchange.iso8601 (1706702400000) === '2024-01-31T12:00:00.000Z');
+    assert (exchange.iso8601 (1706788800000) === '2024-02-01T12:00:00.000Z');
+    assert (exchange.iso8601 (1677585600000) === '2023-02-28T12:00:00.000Z');
+    assert (exchange.iso8601 (1677672000000) === '2023-03-01T12:00:00.000Z');
+    assert (exchange.iso8601 (1714521599999) === '2024-04-30T23:59:59.999Z');
+    assert (exchange.iso8601 (1714521600000) === '2024-05-01T00:00:00.000Z');
+    // leap days: regular leap years, leap centuries and non-leap centuries
+    assert (exchange.iso8601 (68169600000) === '1972-02-29T00:00:00.000Z');
+    assert (exchange.iso8601 (1709164799999) === '2024-02-28T23:59:59.999Z');
+    assert (exchange.iso8601 (1709164800000) === '2024-02-29T00:00:00.000Z');
+    assert (exchange.iso8601 (1709251199999) === '2024-02-29T23:59:59.999Z');
+    assert (exchange.iso8601 (1709251200000) === '2024-03-01T00:00:00.000Z');
+    assert (exchange.iso8601 (951782400000) === '2000-02-29T00:00:00.000Z');
+    assert (exchange.iso8601 (951868800000) === '2000-03-01T00:00:00.000Z');
+    assert (exchange.iso8601 (4107499200000) === '2100-02-28T12:00:00.000Z');
+    assert (exchange.iso8601 (4107585600000) === '2100-03-01T12:00:00.000Z');
+    // others
+    // zero is a valid timestamp
+    assert (exchange.iso8601 (0) === '1970-01-01T00:00:00.000Z');
+    // plain-integer strings are accepted
+    assert (exchange.iso8601 ('1755432123456') === '2025-08-17T12:02:03.456Z');
+    // strings that are not a plain integer are rejected
+    assert (exchange.iso8601 ('123abc') === undefined);
+    // non-integer numbers are floored
+    assert (exchange.iso8601 (514862627559.9) === '1986-04-26T01:23:47.559Z');
+    // last representable millisecond of year 9999
+    assert (exchange.iso8601 (253402300799999) === '9999-12-31T23:59:59.999Z');
+    // one millisecond past the maximum supported range yields undefined
+    assert (exchange.iso8601 (8640000000000001) === undefined);
+    // absurdly large / non-finite magnitudes are rejected too. NaN/Infinity
+    // literals don't survive transpilation, but 1e300 does and it exercises the
+    // same > 8.64e15 guard in every port (incl. PHP's is_finite branch)
+    assert (exchange.iso8601 (1e300) === undefined);
 }
 
 function testParse8601 () {

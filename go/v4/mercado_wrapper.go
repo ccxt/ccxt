@@ -492,7 +492,7 @@ func (this *Mercado) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Mercado) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Mercado) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Mercado) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Mercado) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -537,7 +537,7 @@ func (this *Mercado) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Mercado) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Mercado) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Mercado) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Mercado) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

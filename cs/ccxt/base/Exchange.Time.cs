@@ -75,22 +75,42 @@ public partial class BaseExchange
         {
             return null;
         }
-        Int64 startdatetime;
+        if (ts is string s)
+        {
+            // only plain-integer strings are accepted, e.g. "1755432123456" (not "123abc" or "")
+            if (!System.Text.RegularExpressions.Regex.IsMatch(s, "^[0-9]+$"))
+            {
+                return null;
+            }
+        }
+        double milliseconds;
         try
         {
-            startdatetime = Convert.ToInt64(ts);
+            milliseconds = Convert.ToDouble(ts, System.Globalization.CultureInfo.InvariantCulture);
         }
         catch (Exception e)
         {
             return null;
         }
-        if (startdatetime < 0)
+        if (double.IsNaN(milliseconds) || double.IsInfinity(milliseconds))
         {
             return null;
         }
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ");
-
+        // non-integer numbers are floored (e.g. 514862627559.9 -> 514862627559)
+        Int64 startdatetime = (Int64)Math.Floor(milliseconds);
+        if (startdatetime < 0 || startdatetime > 8640000000000000L)
+        {
+            return null;
+        }
+        try
+        {
+            var date = (new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc)).AddMilliseconds(startdatetime);
+            return date.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", System.Globalization.CultureInfo.InvariantCulture);
+        }
+        catch (Exception e)
+        {
+            return null;
+        }
     }
 
     public string iso8601(object ts = null)
@@ -150,21 +170,7 @@ public partial class BaseExchange
         return date;
     }
 
-    public object ymd(object ts, object infix = null)
-    {
-        if (infix == null)
-        {
-            infix = "-";
-        }
-        // check this
-        if (ts == null)
-        {
-            return null;
-        }
-        var startdatetime = Convert.ToInt64(ts);
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy" + infix + "MM" + infix + "dd");
-    }
+    public object ymd(object ts, object infix = null) => yyyymmdd(ts, infix);
 
     public Int64? parse8601(object datetime2 = null)
     {
