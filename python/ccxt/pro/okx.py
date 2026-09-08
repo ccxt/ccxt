@@ -58,7 +58,6 @@ class okx(ccxt.async_support.okx):
             },
             'options': {
                 'watchOrderBook': {
-                    'checksum': True,
                     #
                     # bbo-tbt
                     # 1. Newly added channel that sends tick-by-tick Level 1 data
