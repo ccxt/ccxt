@@ -16,6 +16,7 @@ void testSafeTimestamp();
 void testSafeFloat();
 void testSafeNumber();
 void testSafeBool();
+void testCacheSafeCalls();
 void testSafeMethods();
 
 std::any helperDefaultInputDict() {
@@ -758,6 +759,136 @@ void testSafeBool() {
   assertTrue(
       isEqual(exchange.safeBoolN(inputList, ccxt::list{3, 2, 1}), std::any{}));
 }
+void testCacheSafeCalls() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleex")},
+  });
+  // init array cache tests
+  // Test cache types - ArrayCache
+  ccxt::ws::ArrayCache arrayCache = ccxt::ws::ArrayCache(100);
+  ::wsAppend(arrayCache, ccxt::dict{
+                             {std::string("symbol"), std::string("BTC/USDT")},
+                             {std::string("id"), std::string("order1")},
+                             {std::string("price"), 50000},
+                         });
+  assertTrue(isGreaterThan(getArrayLength(arrayCache), 0));
+  // Test cache types - ArrayCacheByTimestamp
+  ccxt::ws::ArrayCacheByTimestamp arrayCacheByTimestamp =
+      ccxt::ws::ArrayCacheByTimestamp(100);
+  ::wsAppend(arrayCacheByTimestamp, ccxt::list{1000, 50000, 1, 2, 3});
+  std::any arrayCacheByTimestampData =
+      exchange.safeValue(arrayCacheByTimestamp, std::string("Data"));
+  std::any cacheByTimestampData =
+      (isTrue(!isEqual(arrayCacheByTimestampData, std::any{}))
+           ? std::any(arrayCacheByTimestampData)
+           : std::any(arrayCacheByTimestamp));
+  assertTrue(isGreaterThan(getArrayLength(cacheByTimestampData), 0));
+  // Test cache types - ArrayCacheBySymbolById
+  ccxt::ws::ArrayCacheBySymbolById arrayCacheBySymbolById =
+      ccxt::ws::ArrayCacheBySymbolById(100);
+  ::wsAppend(arrayCacheBySymbolById,
+             ccxt::dict{
+                 {std::string("symbol"), std::string("ETH/USDT")},
+                 {std::string("id"), std::string("order2")},
+                 {std::string("price"), 3000},
+             });
+  // Use direct property access for object attributes
+  std::any arrayCacheBySymbolByIdHashmap =
+      ::getValue(arrayCacheBySymbolById, std::string("hashmap"));
+  assertTrue(!isEqual(
+      ::getValue(arrayCacheBySymbolByIdHashmap, std::string("ETH/USDT")),
+      std::any{}));
+  assertTrue(!isEqual(::getValue(::getValue(arrayCacheBySymbolByIdHashmap,
+                                            std::string("ETH/USDT")),
+                                 std::string("order2")),
+                      std::any{}));
+  std::any arrayCacheBySymbolByIdData =
+      exchange.safeValue(arrayCacheBySymbolById, std::string("Data"));
+  std::any cacheBySymbolByIdData =
+      (isTrue(!isEqual(arrayCacheBySymbolByIdData, std::any{}))
+           ? std::any(arrayCacheBySymbolByIdData)
+           : std::any(arrayCacheBySymbolById));
+  assertTrue(isGreaterThan(getArrayLength(cacheBySymbolByIdData), 0));
+  // Test cache types - ArrayCacheBySymbolBySide
+  ccxt::ws::ArrayCacheBySymbolBySide arrayCacheBySymbolBySide =
+      ccxt::ws::ArrayCacheBySymbolBySide();
+  ::wsAppend(arrayCacheBySymbolBySide,
+             ccxt::dict{
+                 {std::string("symbol"), std::string("BNB/USDT")},
+                 {std::string("side"), std::string("buy")},
+                 {std::string("price"), 400},
+             });
+  // Use direct property access for object attributes
+  std::any arrayCacheBySymbolBySideHashmap =
+      ::getValue(arrayCacheBySymbolBySide, std::string("hashmap"));
+  assertTrue(!isEqual(
+      ::getValue(arrayCacheBySymbolBySideHashmap, std::string("BNB/USDT")),
+      std::any{}));
+  std::any arrayCacheBySymbolBySideData =
+      exchange.safeValue(arrayCacheBySymbolBySide, std::string("Data"));
+  std::any cacheBySymbolBySideData =
+      (isTrue(!isEqual(arrayCacheBySymbolBySideData, std::any{}))
+           ? std::any(arrayCacheBySymbolBySideData)
+           : std::any(arrayCacheBySymbolBySide));
+  assertTrue(isGreaterThan(getArrayLength(cacheBySymbolBySideData), 0));
+  // Test map[string]map[string]interface{} (::getValue(ArrayCache,
+  // std::string("hashmap"))) Use direct property access for object attributes
+  std::any arrayCacheHashmapDirect =
+      ::getValue(arrayCache, std::string("hashmap"));
+  std::any nestedMap = arrayCacheHashmapDirect;
+  assertTrue(isEqual(exchange.safeValue(nestedMap, std::string("NONEXISTENT")),
+                     std::any{}));
+  // Test map[string]*ArrayCache (Trades structure)
+  std::any tradesMap = ccxt::dict{
+      {std::string("BTC/USDT"), arrayCache},
+      {std::string("ETH/USDT"), arrayCacheBySymbolById},
+  };
+  std::any stored = exchange.safeValue(tradesMap, std::string("BTC/USDT"));
+  assertTrue(!isEqual(stored, std::any{}));
+  // Use direct property access for hashmap (object attribute)
+  std::any retrievedArrayCacheHashmap =
+      ::getValue(stored, std::string("hashmap"));
+  assertTrue(!isEqual(retrievedArrayCacheHashmap, std::any{}));
+  std::any retrievedArrayCacheBySymbolById =
+      exchange.safeValue(tradesMap, std::string("ETH/USDT"));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolById, std::any{}));
+  // Use direct property access for hashmap (object attribute)
+  std::any retrievedArrayCacheBySymbolByIdHashmap =
+      ::getValue(retrievedArrayCacheBySymbolById, std::string("hashmap"));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolByIdHashmap, std::any{}));
+  assertTrue(isEqual(exchange.safeValue(tradesMap, std::string("NONEXISTENT")),
+                     std::any{}));
+  // Test map[string]*ArrayCacheByTimestamp (Ohlcvs inner structure)
+  std::any ohlcvInnerMap = ccxt::dict{
+      {std::string("1m"), arrayCacheByTimestamp},
+      {std::string("5m"), ccxt::ws::ArrayCacheByTimestamp(100)},
+  };
+  std::any retrievedArrayCacheByTimestamp =
+      exchange.safeValue(ohlcvInnerMap, std::string("1m"));
+  assertTrue(!isEqual(retrievedArrayCacheByTimestamp, std::any{}));
+  // Use direct property access for object attributes
+  std::any retrievedArrayCacheByTimestampHashmap =
+      ::getValue(retrievedArrayCacheByTimestamp, std::string("hashmap"));
+  assertTrue(!isEqual(retrievedArrayCacheByTimestampHashmap, std::any{}));
+  assertTrue(!isEqual(exchange.safeValue(ohlcvInnerMap, std::string("5m")),
+                      std::any{}));
+  assertTrue(
+      isEqual(exchange.safeValue(ohlcvInnerMap, std::string("NONEXISTENT")),
+              std::any{}));
+  // Test map[string]*ArrayCacheBySymbolBySide
+  std::any cacheBySideMap = ccxt::dict{
+      {std::string("BTC/USDT"), arrayCacheBySymbolBySide},
+  };
+  std::any retrievedArrayCacheBySymbolBySide =
+      exchange.safeValue(cacheBySideMap, std::string("BTC/USDT"));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySide, std::any{}));
+  std::any retrievedArrayCacheBySymbolBySideHashmap =
+      ::getValue(retrievedArrayCacheBySymbolBySide, std::string("hashmap"));
+  assertTrue(!isEqual(retrievedArrayCacheBySymbolBySideHashmap, std::any{}));
+  assertTrue(
+      isEqual(exchange.safeValue(cacheBySideMap, std::string("NONEXISTENT")),
+              std::any{}));
+}
 void testSafeMethods() {
   testSafeString();
   testSafeValue();
@@ -768,4 +899,5 @@ void testSafeMethods() {
   testSafeFloat();
   testSafeNumber();
   testSafeBool();
+  testCacheSafeCalls();
 }
