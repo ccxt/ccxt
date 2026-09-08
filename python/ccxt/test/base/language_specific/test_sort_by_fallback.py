@@ -4,16 +4,6 @@ import sys
 root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 sys.path.append(root)
 
-# ----------------------------------------------------------------------------
-# hand-written python-only test (not transpiled) - pins the None/default
-# contracts of the hand-written BaseExchange.sort_by / sort_by_2 that the
-# transpiled cross-language test_sort_by.py cannot assert: the TS reference
-# sortBy substitutes defaultValue only for *missing* keys (`key in a`) and
-# JS coerces null inside comparisons, so None-value cases cannot live in the
-# shared fixture. both methods run a C-level operator.itemgetter fast path
-# and only fall back to the substitution keyfunc when a None key makes the
-# sort raise TypeError - the cases below hold both paths to one semantics.
-
 from ccxt.base.exchange import BaseExchange  # noqa: E402
 
 
