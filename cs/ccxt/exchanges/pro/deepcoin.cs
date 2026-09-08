@@ -77,6 +77,7 @@ public partial class deepcoin : ccxt.deepcoin
             } },
             { "streaming", new Dictionary<string, object>() {
                 { "ping", this.ping },
+                { "keepAlive", 15000 },
             } },
         });
     }
