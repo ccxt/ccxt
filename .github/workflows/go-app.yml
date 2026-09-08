@@ -4,20 +4,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
-      # order-router/ is a standalone service, not part of the transpile pipeline: it has its own
-      # package.json, lockfile, tsconfig and workflow, and depends on the PUBLISHED ccxt package
-      # rather than the workspace. A change confined to it cannot affect any language build, so it
-      # must not schedule one — six full matrices per edit is how a service test kept cancelling
-      # the library's own runs. A commit touching BOTH still runs everything, which is the
-      # behaviour that matters: paths-ignore skips only when every changed path matches.
-    paths-ignore:
-      - 'order-router/**'
-      - '.github/workflows/order-router.yml'
   pull_request:
     branches: [ main, master ]
-    paths-ignore:
-      - 'order-router/**'
-      - '.github/workflows/order-router.yml'
 
 permissions:
   contents: write

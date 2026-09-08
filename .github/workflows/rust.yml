@@ -11,20 +11,8 @@ on:
   workflow_dispatch:
   push:
     branches: [ main, master ]
-      # Same rule the other five language workflows carry, and this was the one file without it.
-      # order-router/ is a standalone service that depends on the PUBLISHED ccxt package, so a
-      # change confined to it cannot affect the Rust build — but it still spun this 120-minute job,
-      # and on master that job can push an [Automated changes] commit of regenerated Rust output
-      # that no order-router edit had any business producing. A commit touching BOTH still runs
-      # everything: paths-ignore skips only when every changed path matches.
-    paths-ignore:
-      - 'order-router/**'
-      - '.github/workflows/order-router.yml'
   pull_request:
     branches: [ main, master ]
-    paths-ignore:
-      - 'order-router/**'
-      - '.github/workflows/order-router.yml'
 
 permissions:
   contents: write
