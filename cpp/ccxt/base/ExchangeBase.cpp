@@ -1,9 +1,14 @@
 #include "ExchangeBase.h"
+#include "Starknet.h"
 
 #include <curl/curl.h>
 
 #include <openssl/sha.h>
+#include <openssl/evp.h>
 #include <openssl/rand.h>
+#include <openssl/ec.h>
+#include <openssl/bn.h>
+#include <openssl/obj_mac.h>
 
 #include <nlohmann/json.hpp>
 
@@ -16,9 +21,11 @@
 #include <cctype>
 #include <charconv>
 #include <cstdlib>
+#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <regex>
 #include <set>
 #include <sstream>
 #include <thread>
@@ -852,7 +859,14 @@ std::any ExchangeBase::precisionFromString (std::any value) {
 
 std::any ExchangeBase::parseJson (std::any value) {
     try {
-        return jsonToAny (nlohmann::json::parse (str (value)));
+        // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
+        // 2880534893454904000): nlohmann stores those as double, rounding the
+        // value before any numberToString can recover it. Quote such integer
+        // literals first so they ride through as exact strings.
+        std::string text = str (value);
+        static const std::regex bigInt (R"((?<![.\w-])-?(\d{19,})(?![\d.]))");
+        text = std::regex_replace (text, bigInt, R"("$&")");
+        return jsonToAny (nlohmann::json::parse (text));
     } catch (const std::exception&) {
         return std::any {};   // ccxt returns undefined for unparseable payloads
     }
@@ -1368,6 +1382,7 @@ std::any ExchangeBase::getProperty (const std::string& name) {
     if (name == "walletAddress") return this->walletAddress;
     if (name == "privateKey") return this->privateKey;
     if (name == "token") return this->token;
+    if (name == "accountId") return this->accountId;
     if (name == "verbose") return this->verbose;
     if (name == "reduceFees") return this->reduceFees;
     if (name == "isSandboxModeEnabled") return this->isSandboxModeEnabled;
@@ -1416,6 +1431,7 @@ std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
     if (name == "uid") { this->uid = value; return value; }
     if (name == "walletAddress") { this->walletAddress = value; return value; }
     if (name == "privateKey") { this->privateKey = value; return value; }
+    if (name == "accountId") { this->accountId = value; return value; }
     if (name == "accounts") { this->accounts = value; return value; }
     if (name == "currencies") { this->currencies = value; return value; }
     if (name == "markets") { this->markets = value; return value; }
@@ -1692,12 +1708,102 @@ std::any ExchangeBase::rsa (std::any, std::any, std::any) {
     throw NotSupported ("rsa signing is not implemented in the C++ port yet; only hmac keys work");
 }
 
-std::any ExchangeBase::eddsa (std::any, std::any, std::any) {
-    throw NotSupported ("ed25519 signing is not implemented in the C++ port yet; only hmac keys work");
+std::any ExchangeBase::eddsa (std::any request, std::any secret, std::any curve) {
+    // TS eddsa(request, secret, ed25519): request is the message bytes, secret is the
+    // 32-byte seed (modetrade passes base58ToBinary(secret)); returns base64(signature).
+    if (curve.has_value () && isStr (curve) && str (curve) != "ed25519") {
+        throw NotSupported ("eddsa: only ed25519 is supported in the C++ port");
+    }
+    const bytes message = asBytes (request);
+    bytes seed = asBytes (secret);
+    if (seed.size () > 32 && isStr (secret)) {
+        // the generated call passed a raw base58 seed string (revolutx privateKey);
+        // noble handles <32-byte seeds by padding, and this runtime must not die on
+        // the fixture's short "secretsecret" test key either
+        seed = fromBase58 (str (secret));
+        if (seed.size () > 32) {
+            seed = bytes (std::vector<unsigned char> (seed.data ().begin (), seed.data ().begin () + 32));
+        }
+    }
+    std::vector<unsigned char> seedBytes (seed.data ());
+    if (seedBytes.size () < 32) {
+        seedBytes.resize (32, 0);   // noble pads short seeds
+    }
+    if (seedBytes.size () != 32) {
+        throw NotSupported ("eddsa: ed25519 secret must be at most 32 bytes, got " + std::to_string (seed.size ()));
+    }
+    EVP_PKEY* pkey = EVP_PKEY_new_raw_private_key (EVP_PKEY_ED25519, nullptr,
+                                                   seedBytes.data (), seedBytes.size ());
+    if (pkey == nullptr) {
+        throw NotSupported ("eddsa: invalid ed25519 private key");
+    }
+    EVP_MD_CTX* mdctx = EVP_MD_CTX_new ();
+    std::vector<unsigned char> signature (64);
+    std::size_t signatureLength = signature.size ();
+    const bool ok = mdctx != nullptr
+        && EVP_DigestSignInit (mdctx, nullptr, nullptr, nullptr, pkey) == 1
+        && EVP_DigestSign (mdctx, signature.data (), &signatureLength,
+                           message.data ().data (), message.size ()) == 1;
+    EVP_MD_CTX_free (mdctx);
+    EVP_PKEY_free (pkey);
+    if (!ok) {
+        throw NotSupported ("eddsa: ed25519 signing failed");
+    }
+    signature.resize (signatureLength);
+    return std::any (toBase64 (bytes (std::move (signature))));
 }
 
-std::any ExchangeBase::jwt (std::any, std::any, std::any, std::any, std::any) {
-    throw NotSupported ("jwt is not implemented in the C++ port yet");
+std::any ExchangeBase::jwt (std::any data, std::any secretKey, std::any algorithm, std::any isRSA, std::any opts) {
+    // ts/src/base/functions/rsa.ts jwt(): header {alg, typ, +opts}, payload = data,
+    // base64url segments; signature HS (hmac), ES (ecdsa/p256), Ed (eddsa) or RS.
+    const std::string hashName = algorithm.has_value () ? str (algorithm) : "sha256";
+    if (hashName != "sha256" && hashName != "sha384" && hashName != "sha512") {
+        throw NotSupported ("jwt: unsupported hash " + hashName);
+    }
+    const dict headerOpts = opts.has_value () && isDict (opts) ? std::any_cast<dict> (opts) : dict {};
+    std::string alg = (isTrue (isRSA) ? "RS" : "HS") + hashName.substr (3);
+    const std::any algOpt = headerOpts.get ("alg");
+    if (algOpt.has_value ()) {
+        alg = str (algOpt);
+        for (char& c : alg) c = static_cast<char> (std::toupper (static_cast<unsigned char> (c)));
+    }
+    dict header;
+    header.set ("alg", std::any (alg));
+    header.set ("typ", std::any (std::string ("JWT")));
+    for (const auto& kv : headerOpts.entries ()) {
+        if (kv.first == "alg") {
+            continue;
+        }
+        if (kv.first == "iat" && isDict (data)) {
+            std::any_cast<dict> (data).set ("iat", kv.second);
+            continue;
+        }
+        header.set (kv.first, kv.second);
+    }
+    const std::string encodedHeader = str (this->urlencodeBase64 (std::any (this->json (std::any (header)))));
+    const std::string encodedData = str (this->urlencodeBase64 (std::any (this->json (data))));
+    const std::string token = encodedHeader + "." + encodedData;
+    std::string signature;
+    if (alg.rfind ("HS", 0) == 0) {
+        const std::any mac = this->hmac (std::any (token), secretKey, algorithm, std::any (std::string ("binary")));
+        signature = str (this->urlencodeBase64 (mac));
+    } else if (alg.rfind ("ED", 0) == 0) {
+        // coinbase advanced-trade: secret is the base58 32-byte seed
+        const std::any sig = this->eddsa (std::any (token), secretKey, std::any (std::string ("ed25519")));
+        // base64 -> base64url: '+'->'-', '/'->'_', strip '='
+        std::string b64url = str (sig);
+        for (char& c : b64url) {
+            if (c == '+') c = '-';
+            else if (c == '/') c = '_';
+        }
+        while (!b64url.empty () && b64url.back () == '=') {
+            b64url.pop_back ();
+        }
+        signature = b64url;
+    } else {
+        throw NotSupported ("jwt: algorithm " + alg + " is not implemented in the C++ port yet (only HS and EdDSA)");
+    }
+    return std::any (token + "." + signature);
 }
 
 // ccxt's uuid16/uuid22 are the uuid4 hex with the dashes removed, truncated
@@ -1923,32 +2029,512 @@ std::any ExchangeBase::uuid5 (std::any nspace, std::any name) {
                      + "-" + h.substr (16, 4) + "-" + h.substr (20, 12));
 }
 
-std::any ExchangeBase::convertToBigInt (std::any) {
-    throw NotSupported ("convertToBigInt requires a bigint runtime; not implemented in the C++ port yet");
+std::any ExchangeBase::convertToBigInt (std::any value) {
+    // TS BigInt(value): the value rides through as a numeric string and the
+    // consumers (ethAbiEncode) parse it; no boxed bigint type exists in the port
+    if (isStr (value)) {
+        return std::any (str (value));
+    }
+    return value;
 }
 
-std::any ExchangeBase::ethAbiEncode (std::any, std::any) {
-    throw NotSupported ("ethAbiEncode requires ethers.js ABI encoding; not implemented in the C++ port yet");
+// forward decls: the EIP-712/ABI helpers in the anonymous namespace further down
+namespace {
+std::vector<unsigned char> hexDecode (const std::string& text);
+std::vector<unsigned char> uintToBytes32 (long long value);
+std::vector<unsigned char> intToBytes32 (long long value);
+std::vector<unsigned char> anyToBigUint (const std::any& v);
+std::vector<unsigned char> anyToBigInt (const std::any& v);
 }
 
-std::any ExchangeBase::ethEncodeStructuredData (std::any, std::any, std::any) {
-    throw NotSupported ("ethEncodeStructuredData requires EIP-712 typed-data encoding; not implemented in the C++ port yet");
+std::any ExchangeBase::ethAbiEncode (std::any typesAny, std::any argsAny) {
+    // ethers.encode(types, args) over the static subset the exchanges use:
+    // address / uintN / intN / bool / bytesN -- each argument one 32-byte word.
+    if (!isList (typesAny) || !isList (argsAny)) {
+        throw NotSupported ("ethAbiEncode: types and args must be arrays");
+    }
+    const auto& types = std::any_cast<list> (typesAny).items ();
+    const auto& args = std::any_cast<list> (argsAny).items ();
+    std::vector<unsigned char> out;
+    for (std::size_t i = 0; i < types.size (); i++) {
+        if (i >= args.size ()) {
+            throw NotSupported ("ethAbiEncode: fewer args than types");
+        }
+        const std::string type = str (types[i]);
+        const std::any& value = args[i];
+        if (type == "address") {
+            std::vector<unsigned char> word (32, 0);
+            const std::vector<unsigned char> addr = hexDecode (str (value));
+            if (addr.size () != 20) {
+                throw NotSupported ("ethAbiEncode: address must be 20 bytes, got " + str (value));
+            }
+            std::copy (addr.begin (), addr.end (), word.begin () + 12);
+            out.insert (out.end (), word.begin (), word.end ());
+        } else if (type.rfind ("uint", 0) == 0 || type == "uint") {
+            std::vector<unsigned char> word = anyToBigUint (value);
+            out.insert (out.end (), word.begin (), word.end ());
+        } else if (type.rfind ("int", 0) == 0 || type == "int") {
+            std::vector<unsigned char> word = anyToBigInt (value);
+            out.insert (out.end (), word.begin (), word.end ());
+        } else if (type == "bool") {
+            std::vector<unsigned char> word = uintToBytes32 (isTrue (value) ? 1 : 0);
+            out.insert (out.end (), word.begin (), word.end ());
+        } else if (type.rfind ("bytes", 0) == 0 && type != "bytes") {
+            const std::size_t n = static_cast<std::size_t> (std::stoi (type.substr (5)));
+            std::vector<unsigned char> word (32, 0);
+            const std::vector<unsigned char> raw = hexDecode (str (value));
+            std::copy (raw.begin (), raw.begin () + std::min (raw.size (), n), word.begin ());
+            out.insert (out.end (), word.begin (), word.end ());
+        } else {
+            throw NotSupported ("ethAbiEncode: unsupported type '" + type + "'");
+        }
+    }
+    return std::any (bytes (std::move (out)));
 }
 
-std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any) {
-    throw NotSupported ("ethGetAddressFromPrivateKey requires keccak-256; not implemented in the C++ port yet");
+namespace {
+
+// "0x..." (or bare hex) -> bytes; used by the EIP-712 field encoders
+std::vector<unsigned char> hexDecode (const std::string& text) {
+    std::string s = text;
+    if (s.size () >= 2 && s[0] == '0' && (s[1] == 'x' || s[1] == 'X')) {
+        s = s.substr (2);
+    }
+    std::vector<unsigned char> out;
+    out.reserve (s.size () / 2);
+    for (std::size_t i = 0; i + 1 < s.size (); i += 2) {
+        const auto nib = [](char c) -> int {
+            if (c >= '0' && c <= '9') return c - '0';
+            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+            return 0;
+        };
+        out.push_back (static_cast<unsigned char> ((nib (s[i]) << 4) | nib (s[i + 1])));
+    }
+    return out;
 }
 
-std::any ExchangeBase::starknetEncodeStructuredData (std::any, std::any, std::any, std::any) {
-    throw NotSupported ("starknetEncodeStructuredData requires starknet pedersen hashing; not implemented in the C++ port yet");
+// integer -> 32-byte big-endian (unsigned). A double with no fractional part is
+// converted exactly like the JS number ccxt passes through ethers.
+std::vector<unsigned char> uintToBytes32 (long long value) {
+    std::vector<unsigned char> out (32, 0);
+    for (int i = 31; i >= 0; i--) {
+        out[i] = static_cast<unsigned char> (value & 0xff);
+        value >>= 8;
+    }
+    return out;
 }
 
-std::any ExchangeBase::retrieveStarkAccount (std::any, std::any, std::any) {
-    throw NotSupported ("retrieveStarkAccount requires starknet-crypto (pedersen/poseidon); not implemented in the C++ port yet");
+// two's complement, as ethers encodes intN
+std::vector<unsigned char> intToBytes32 (long long value) {
+    std::vector<unsigned char> result (32, value < 0 ? 0xff : 0x00);
+    const uint64_t v = static_cast<uint64_t> (value);
+    for (int i = 0; i < 8; i++) {
+        result[31 - i] = static_cast<unsigned char> ((v >> (8 * i)) & 0xff);
+    }
+    return result;
 }
 
-std::any ExchangeBase::starknetSign (std::any, std::any) {
-    throw NotSupported ("starknetSign requires starknet curve signing; not implemented in the C++ port yet");
+long long anyToLong (const std::any& v) {
+    if (!v.has_value ()) {
+        return 0;
+    }
+    if (v.type () == typeid (long long)) {
+        return std::any_cast<long long> (v);
+    }
+    if (v.type () == typeid (int)) {
+        return std::any_cast<int> (v);
+    }
+    if (v.type () == typeid (long)) {
+        return std::any_cast<long> (v);
+    }
+    if (v.type () == typeid (double)) {
+        return static_cast<long long> (std::any_cast<double> (v));
+    }
+    if (v.type () == typeid (bool)) {
+        return std::any_cast<bool> (v) ? 1 : 0;
+    }
+    // fall back to a numeric string (Precise strings, big chainIds)
+    return static_cast<long long> (std::stoll (::str (v)));
+}
+
+// 256-bit unsigned integer as a 32-byte big-endian vector. Handles any numeric value
+// the exchanges pass (double, integral types) plus decimal strings wider than 64 bits
+// (repeated mod-256 on the decimal digits).
+std::vector<unsigned char> anyToBigUint (const std::any& v) {
+    if (!v.has_value ()) {
+        return std::vector<unsigned char> (32, 0);
+    }
+    if (isStr (v)) {
+        const std::string s = ::str (v);
+        // strip sign and fraction, if any
+        std::string digits;
+        for (char c : s) {
+            if (c >= '0' && c <= '9') {
+                digits += c;
+            } else if (c == '-' || c == '.' || c == 'e' || c == 'E') {
+                if (c == '-') {
+                    digits.clear ();   // negative unsigned is caller error; encode as 0-ish
+                }
+            }
+        }
+        std::vector<unsigned char> out (32, 0);
+        // repeated division by 256 on the decimal string
+        int pos = 31;
+        while (!digits.empty () && digits != "0") {
+            int carry = 0;
+            std::string next;
+            bool leading = true;
+            for (char c : digits) {
+                const int cur = carry * 10 + (c - '0');
+                const int q = cur / 256;
+                carry = cur % 256;
+                if (!(leading && q == 0)) {
+                    next += static_cast<char> ('0' + q);
+                    leading = false;
+                }
+            }
+            if (pos < 0) {
+                break;   // wider than 256 bits: truncate like a uint256 cast
+            }
+            out[pos--] = static_cast<unsigned char> (carry);
+            digits = next.empty () ? std::string ("0") : next;
+        }
+        return out;
+    }
+    return uintToBytes32 (anyToLong (v));
+}
+
+// signed arbitrary-precision integer as 32-byte two's complement. Handles negative
+// decimal strings (nado sells: Precise.stringMul(x, '-1') = "-27544000000000000000000")
+// and positive values wider than 64 bits (int128).
+std::vector<unsigned char> anyToBigInt (const std::any& v) {
+    std::vector<unsigned char> magnitude (32, 0);
+    if (v.has_value () && isStr (v)) {
+        std::string s = ::str (v);
+        bool negative = false;
+        std::string digits;
+        for (char c : s) {
+            if (c == '-') {
+                negative = !negative;
+            } else if (c >= '0' && c <= '9') {
+                digits += c;
+            }
+        }
+        int pos = 31;
+        while (!digits.empty () && digits != "0") {
+            int carry = 0;
+            std::string next;
+            bool leading = true;
+            for (char c : digits) {
+                const int cur = carry * 10 + (c - '0');
+                const int q = cur / 256;
+                carry = cur % 256;
+                if (!(leading && q == 0)) {
+                    next += static_cast<char> ('0' + q);
+                    leading = false;
+                }
+            }
+            if (pos < 0) {
+                break;
+            }
+            magnitude[pos--] = static_cast<unsigned char> (carry);
+            digits = next.empty () ? std::string ("0") : next;
+        }
+        if (negative) {
+            // two's complement: invert all bytes, then add one
+            for (unsigned char& b : magnitude) {
+                b = static_cast<unsigned char> (~b);
+            }
+            int carry = 1;
+            for (int i = 31; i >= 0 && carry; i--) {
+                const int sum = magnitude[i] + 1;
+                magnitude[i] = static_cast<unsigned char> (sum & 0xff);
+                carry = sum >> 8;
+            }
+        }
+        return magnitude;
+    }
+    return intToBytes32 (anyToLong (v));
+}
+
+} // namespace
+
+// EIP-712 typed-data encoding: flat structs, struct references and arrays of structs
+// (grvt's OrderLeg[]), mirroring ethers' TypedDataEncoder.encode(domain, types, value):
+// keccak256("0x1901" + hashStruct(EIP712Domain) + hashStruct(primaryType)). Domain field
+// types are the canonical EIP712Domain list filtered to the fields present in the dict.
+std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any messageTypesAny, std::any messageDataAny) {
+    if (!isDict (domainAny) || !isDict (messageTypesAny) || !isDict (messageDataAny)) {
+        throw NotSupported ("ethEncodeStructuredData: domain, messageTypes and message must be objects");
+    }
+    const dict domain = std::any_cast<dict> (domainAny);
+    const dict messageTypes = std::any_cast<dict> (messageTypesAny);
+    const dict messageData = std::any_cast<dict> (messageDataAny);
+    if (messageTypes.entries ().empty ()) {
+        throw NotSupported ("ethEncodeStructuredData: empty messageTypes");
+    }
+    const std::string primaryType = messageTypes.entries ().front ().first;
+
+    // -- the struct registry: name -> ordered field list ----------------------------
+    using Fields = std::vector<std::pair<std::string, std::string>>;
+    std::map<std::string, Fields> structs;
+    const auto parseFields = [&](const std::any& fieldsAny) -> Fields {
+        if (!isList (fieldsAny)) {
+            throw NotSupported ("ethEncodeStructuredData: struct fields must be an array");
+        }
+        Fields fields;
+        for (const auto& item : std::any_cast<list> (fieldsAny).items ()) {
+            if (!isDict (item)) {
+                throw NotSupported ("ethEncodeStructuredData: field descriptor must be an object");
+            }
+            const dict field = std::any_cast<dict> (item);
+            fields.push_back ({::str (field.get ("name")), ::str (field.get ("type"))});
+        }
+        return fields;
+    };
+    for (const auto& kv : messageTypes.entries ()) {
+        structs[kv.first] = parseFields (kv.second);
+    }
+    // canonical domain field order; types fixed per EIP-712 (ethers _Types.EIP712Domain)
+    const Fields canonicalDomainFields = {
+        {"name", "string"}, {"version", "string"}, {"chainId", "uint256"},
+        {"verifyingContract", "address"}, {"salt", "bytes32"},
+    };
+    Fields presentDomainFields;
+    for (const auto& field : canonicalDomainFields) {
+        if (domain.has (field.first)) {
+            presentDomainFields.push_back (field);
+        }
+    }
+    structs["EIP712Domain"] = presentDomainFields;
+
+    // -- atomic field encoding (32 bytes) -------------------------------------------
+    const auto encodeAtomic = [&](const std::string& type, const std::any& value) -> std::vector<unsigned char> {
+        if (type == "string") {
+            return keccak256Bytes (::str (value)).data ();
+        }
+        if (type == "address") {
+            std::vector<unsigned char> out (32, 0);
+            const std::vector<unsigned char> addr = hexDecode (::str (value));
+            if (addr.size () != 20) {
+                throw NotSupported ("ethEncodeStructuredData: address must be 20 bytes, got " + ::str (value));
+            }
+            std::copy (addr.begin (), addr.end (), out.begin () + 12);
+            return out;
+        }
+        if (type == "bool") {
+            return uintToBytes32 (isTrue (value) ? 1 : 0);
+        }
+        if (type.rfind ("bytes", 0) == 0 && type != "bytes") {
+            const std::size_t n = static_cast<std::size_t> (std::stoi (type.substr (5)));
+            std::vector<unsigned char> out (32, 0);
+            const std::vector<unsigned char> raw = hexDecode (::str (value));
+            std::copy (raw.begin (), raw.begin () + std::min (raw.size (), n), out.begin ());
+            return out;
+        }
+        if (type.rfind ("uint", 0) == 0) {
+            if (std::stoi (type.substr (4)) > 256) {
+                throw NotSupported ("ethEncodeStructuredData: " + type + " wider than 256 bits is not supported");
+            }
+            return anyToBigUint (value);
+        }
+        if (type.rfind ("int", 0) == 0) {
+            if (std::stoi (type.substr (3)) > 256) {
+                throw NotSupported ("ethEncodeStructuredData: " + type + " wider than 256 bits is not supported");
+            }
+            return anyToBigInt (value);
+        }
+        throw NotSupported ("ethEncodeStructuredData: unsupported field type '" + type + "'");
+    };
+
+    // strip array suffixes: "OrderLeg[]" -> "OrderLeg", "OrderLeg[3]" -> "OrderLeg"
+    const auto arrayBase = [](const std::string& type) -> std::pair<std::string, bool> {
+        const std::size_t bracket = type.rfind ('[');
+        if (bracket != std::string::npos && type.back () == ']') {
+            return {type.substr (0, bracket), true};
+        }
+        return {type, false};
+    };
+
+    // -- recursive encoders ---------------------------------------------------------
+    std::function<std::string (const std::string&)> encodeType;
+    std::function<std::vector<unsigned char> (const std::string&, const std::any&)> hashStruct;
+    std::function<std::vector<unsigned char> (const std::string&, const std::any&)> encodeData;
+
+    // ethers' getDependencies: every referenced struct, recursively, sorted by name,
+    // with the primary type itself excluded from the dependency tail
+    encodeType = [&](const std::string& name) -> std::string {
+        std::set<std::string> deps;
+        std::function<void (const std::string&)> collect = [&](const std::string& current) {
+            const auto it = structs.find (current);
+            if (it == structs.end ()) {
+                return;
+            }
+            for (const auto& field : it->second) {
+                const auto base = arrayBase (field.second);
+                if (structs.count (base.first) && base.first != name) {
+                    if (deps.insert (base.first).second) {
+                        collect (base.first);
+                    }
+                }
+            }
+        };
+        collect (name);
+        std::string typeString = name + "(";
+        for (std::size_t i = 0; i < structs[name].size (); i++) {
+            if (i > 0) {
+                typeString += ",";
+            }
+            typeString += structs[name][i].second + " " + structs[name][i].first;
+        }
+        typeString += ")";
+        for (const std::string& dep : deps) {
+            typeString += dep + "(";
+            for (std::size_t i = 0; i < structs[dep].size (); i++) {
+                if (i > 0) {
+                    typeString += ",";
+                }
+                typeString += structs[dep][i].second + " " + structs[dep][i].first;
+            }
+            typeString += ")";
+        }
+        return typeString;
+    };
+
+    encodeData = [&](const std::string& name, const std::any& value) -> std::vector<unsigned char> {
+        const auto it = structs.find (name);
+        if (it == structs.end ()) {
+            throw NotSupported ("ethEncodeStructuredData: unknown struct '" + name + "'");
+        }
+        const auto& fields = it->second;
+        std::vector<unsigned char> out;
+        for (const auto& field : fields) {
+            std::any fieldValue = isDict (value) ? std::any_cast<dict> (value).get (field.first) : std::any {};
+            const auto base = arrayBase (field.second);
+            std::vector<unsigned char> part;
+            if (base.second) {
+                // array: keccak256 over the concatenated element encodings (structs are
+                // fully field-encoded per EIP-712, atomics are 32-byte encoded)
+                std::vector<unsigned char> concat;
+                if (isList (fieldValue)) {
+                    for (const auto& item : std::any_cast<list> (fieldValue).items ()) {
+                        std::vector<unsigned char> elem = structs.count (base.first)
+                            ? encodeData (base.first, item)
+                            : encodeAtomic (base.first, item);
+                        concat.insert (concat.end (), elem.begin (), elem.end ());
+                    }
+                }
+                part = keccak256Bytes (bytes (concat)).data ();
+            } else if (structs.count (base.first)) {
+                part = hashStruct (base.first, fieldValue);
+            } else {
+                part = encodeAtomic (base.first, fieldValue);
+            }
+            out.insert (out.end (), part.begin (), part.end ());
+        }
+        return out;
+    };
+
+    hashStruct = [&](const std::string& name, const std::any& value) -> std::vector<unsigned char> {
+        std::vector<unsigned char> input = keccak256Bytes (encodeType (name)).data ();
+        const std::vector<unsigned char> data = encodeData (name, value);
+        input.insert (input.end (), data.begin (), data.end ());
+        return keccak256Bytes (bytes (input)).data ();
+    };
+
+    // -- 0x1901 || domainSeparator || hashStruct(primary) ---------------------------
+    const std::vector<unsigned char> domainSeparator =
+        hashStruct ("EIP712Domain", std::any (domain));
+    const std::vector<unsigned char> primaryHash =
+        hashStruct (primaryType, std::any (messageData));
+    std::vector<unsigned char> out = {0x19, 0x01};
+    out.insert (out.end (), domainSeparator.begin (), domainSeparator.end ());
+    out.insert (out.end (), primaryHash.begin (), primaryHash.end ());
+    return std::any (bytes (std::move (out)));
+}
+
+std::any ExchangeBase::ethGetAddressFromPrivateKey (std::any privateKey) {
+    // Ethereum address: keccak256(uncompressed secp256k1 pubkey[1..64])[12..32]
+    std::string key = str (privateKey);
+    if (key.size () >= 2 && key[0] == '0' && (key[1] == 'x' || key[1] == 'X')) {
+        key = key.substr (2);
+    }
+    std::vector<unsigned char> priv (32, 0);
+    for (std::size_t i = 0; i + 1 < key.size () && i / 2 < 32; i += 2) {
+        const auto nib = [](char c) -> int {
+            if (c >= '0' && c <= '9') return c - '0';
+            if (c >= 'a' && c <= 'f') return c - 'a' + 10;
+            if (c >= 'A' && c <= 'F') return c - 'A' + 10;
+            return 0;
+        };
+        priv[i / 2] = static_cast<unsigned char> ((nib (key[i]) << 4) | nib (key[i + 1]));
+    }
+    EC_KEY* ec = EC_KEY_new_by_curve_name (NID_secp256k1);
+    if (ec == nullptr) {
+        throw NotSupported ("ethGetAddressFromPrivateKey: secp256k1 unavailable");
+    }
+    BIGNUM* bn = BN_bin2bn (priv.data (), static_cast<int> (priv.size ()), nullptr);
+    if (bn == nullptr || EC_KEY_set_private_key (ec, bn) != 1) {
+        BN_free (bn);
+        EC_KEY_free (ec);
+        throw NotSupported ("ethGetAddressFromPrivateKey: invalid private key");
+    }
+    const EC_GROUP* group = EC_KEY_get0_group (ec);
+    EC_POINT* pub = EC_POINT_new (group);
+    unsigned char pubBytes[65] = {0};
+    if (pub == nullptr || EC_POINT_mul (group, pub, bn, nullptr, nullptr, nullptr) != 1
+        || EC_POINT_point2oct (group, pub, POINT_CONVERSION_UNCOMPRESSED, pubBytes, sizeof (pubBytes), nullptr) != 65) {
+        BN_free (bn);
+        EC_POINT_free (pub);
+        EC_KEY_free (ec);
+        throw NotSupported ("ethGetAddressFromPrivateKey: public key derivation failed");
+    }
+    BN_free (bn);
+    EC_POINT_free (pub);
+    EC_KEY_free (ec);
+    // keccak256 over pubkey bytes 1..64 (drop the 0x04 prefix)
+    const std::vector<unsigned char> hash =
+        keccak256Bytes (bytes (std::vector<unsigned char> (pubBytes + 1, pubBytes + 65))).data ();
+    // last 20 bytes, checksummed like the TS ethGetAddressFromPrivateKey
+    std::string address = "0x";
+    for (int i = 12; i < 32; i++) {
+        static const char* hexDigits = "0123456789abcdef";
+        address += hexDigits[(hash[i] >> 4) & 0xf];
+        address += hexDigits[hash[i] & 0xf];
+    }
+    return std::any (address);
+}
+
+std::any ExchangeBase::starknetEncodeStructuredData (std::any domain, std::any messageTypes, std::any messageData, std::any address) {
+    if (!isDict (domain) || !isDict (messageTypes) || !isDict (messageData)) {
+        throw NotSupported ("starknetEncodeStructuredData: domain, messageTypes and message must be objects");
+    }
+    return std::any (starkcrypto::messageHashLegacy (
+        std::any_cast<dict> (messageTypes),
+        std::any_cast<dict> (domain),
+        std::any_cast<dict> (messageData),
+        str (address)));
+}
+
+std::any ExchangeBase::retrieveStarkAccount (std::any signature, std::any accountClassHash, std::any accountProxyClassHash) {
+    const std::string priv = starkcrypto::ethSigToPrivate (str (signature));
+    const std::string pub = starkcrypto::getStarkKey (priv);
+    const std::string address = starkcrypto::computeAccountAddress (
+        str (accountClassHash), str (accountProxyClassHash), pub);
+    dict out;
+    out.set ("privateKey", std::any (priv));
+    out.set ("publicKey", std::any (pub));
+    out.set ("address", std::any (address));
+    return std::any (out);
+}
+
+std::any ExchangeBase::starknetSign (std::any message, std::any privateKey) {
+    const auto sig = starkcrypto::sign (str (message), str (privateKey));
+    list out;
+    out.push (std::any (sig.first));
+    out.push (std::any (sig.second));
+    return this->json (std::any (out));
 }
 
 // dydx protobuf signing: mirrors the C# Exchange.cs stubs verbatim
@@ -2244,29 +2830,25 @@ std::shared_future<std::any> ExchangeBase::loadMarkets (std::any reload, std::an
 // ---------------------------------------------------------------------------
 
 std::any ExchangeBase::getProperty (ExchangeBase* self, std::any name) {
-    // checkRequiredCredentials() walks describe().requiredCredentials and reads each
-    // named credential through here, so every name that block can contain has to
-    // resolve -- a missing one reads as undefined and the exchange reports the
-    // credential as unset even when the caller supplied it.
-    const std::string key = str (name);
-    if (key == "apiKey")        return self->apiKey;
-    if (key == "secret")        return self->secret;
-    if (key == "password")      return self->password;
-    if (key == "uid")           return self->uid;
-    if (key == "login")         return self->login;
-    if (key == "walletAddress") return self->walletAddress;
-    if (key == "privateKey")    return self->privateKey;
-    if (key == "token")         return self->token;
-    if (key == "twofa")         return self->twofa;
-    if (key == "options")       return self->options;
-    if (key == "id")            return self->id;
-    return std::any {};
+    // route through the instance-side property table (the full field surface);
+    // checkRequiredCredentials() and the test harness read arbitrary members here.
+    // TS returns undefined for a missing property -- mirror that, not a throw.
+    try {
+        return self->getProperty (str (name));
+    } catch (const NotSupported&) {
+        return std::any {};
+    }
 }
 
 void ExchangeBase::setProperty (ExchangeBase* self, std::any name, std::any value) {
-    const std::string key = str (name);
-    if (key == "options") { self->options = value; return; }
-    if (key == "twofa")   { self->twofa = value; return; }
+    // route through the instance-side property table (the full field surface);
+    // silently dropping unknown keys here hid real harness writes (accountId, apiKey).
+    // Unknown members stay a silent no-op, exactly like the TS free function.
+    try {
+        self->setProperty (str (name), value);
+    } catch (const NotSupported&) {
+        // TS would create an expando property; the C++ port has no bag for those
+    }
 }
 
 std::any ExchangeBase::callDynamically (ExchangeBase*, std::any name, std::any) {
