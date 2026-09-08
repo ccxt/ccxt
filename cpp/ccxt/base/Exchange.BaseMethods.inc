@@ -521,7 +521,7 @@ virtual std::any safeListN(std::any dictionaryOrList, std::any keys,
   if (isTrue(isEqual(value, std::any{}))) {
     return defaultValue;
   }
-  if (isTrue(isArray(value))) {
+  if (isTrue(::isArray(value))) {
     return value;
   }
   return defaultValue;
@@ -536,12 +536,13 @@ virtual std::any safeList2(std::any dictionaryOrList, std::any key1,
    * @returns {Array | undefined}
    */
   std::any value = this->safeValue(dictionaryOrList, key1);
-  if (isTrue(isTrue((!isEqual(value, std::any{}))) && isTrue(isArray(value)))) {
+  if (isTrue(isTrue((!isEqual(value, std::any{}))) &&
+             isTrue(::isArray(value)))) {
     return value;
   }
   std::any value2 = this->safeValue(dictionaryOrList, key2);
   if (isTrue(isTrue((!isEqual(value2, std::any{}))) &&
-             isTrue(isArray(value2)))) {
+             isTrue(::isArray(value2)))) {
     return value2;
   }
   return defaultValue;
@@ -559,7 +560,7 @@ virtual std::any safeList(std::any dictionaryOrList, std::any key,
   if (isTrue(isEqual(value, std::any{}))) {
     return defaultValue;
   }
-  if (isTrue(isArray(value))) {
+  if (isTrue(::isArray(value))) {
     return value;
   }
   return defaultValue;
@@ -3012,11 +3013,12 @@ virtual std::any safeOrder(std::any order, std::any market = std::any{}) {
     // this.number = oldNumber; why parse trades as strings if you read the
     // value using `safeString` ?
     std::any tradesLength = 0;
-    std::any isArray = ::isArray(trades);
-    if (isTrue(isArray)) {
+    std::any isArrayFlag = ::isArray(trades);
+    if (isTrue(isArrayFlag)) {
       tradesLength = getArrayLength(trades);
     }
-    if (isTrue(isTrue(isArray) && isTrue((isGreaterThan(tradesLength, 0))))) {
+    if (isTrue(isTrue(isArrayFlag) &&
+               isTrue((isGreaterThan(tradesLength, 0))))) {
       // move properties that are defined in trades up into the order
       if (isTrue(
               isEqual(::getValue(order, std::string("symbol")), std::any{}))) {
@@ -3327,7 +3329,7 @@ virtual std::any parseOrders(std::any orders, std::any market = std::any{},
     return ccxt::list{};
   }
   std::any results = ccxt::list{};
-  if (isTrue(isArray(orders))) {
+  if (isTrue(::isArray(orders))) {
     for (std::any i = 0; isLessThan(i, getArrayLength(orders));
          postFixIncrement(i)) {
       std::any parsed = this->parseOrder(::getValue(orders, i),
@@ -4421,7 +4423,7 @@ virtual std::any filterBySymbol(std::any objects,
 }
 
 virtual std::any parseOHLCV(std::any ohlcv, std::any market = std::any{}) {
-  if (isTrue(isArray(ohlcv))) {
+  if (isTrue(::isArray(ohlcv))) {
     return ccxt::list{this->safeInteger(ohlcv, 0), this->safeNumber(ohlcv, 1),
                       this->safeNumber(ohlcv, 2),  this->safeNumber(ohlcv, 3),
                       this->safeNumber(ohlcv, 4),  this->safeNumber(ohlcv, 5)};
@@ -4818,7 +4820,7 @@ virtual std::any parseLeverageTiers(std::any response,
   }
   std::any noSymbols = isTrue((isEqual(symbols, std::any{}))) ||
                        isTrue((isEqual(symbolsLength, 0)));
-  if (isTrue(isArray(response))) {
+  if (isTrue(::isArray(response))) {
     for (std::any i = 0; isLessThan(i, getArrayLength(response));
          postFixIncrement(i)) {
       std::any item = ::getValue(response, i);
@@ -5082,7 +5084,7 @@ virtual std::any parseLedger(std::any data, std::any currency = std::any{},
        postFixIncrement(i)) {
     std::any itemOrItems =
         this->parseLedgerEntry(::getValue(arrayData, i), currency);
-    if (isTrue(isArray(itemOrItems))) {
+    if (isTrue(::isArray(itemOrItems))) {
       for (std::any j = 0; isLessThan(j, getArrayLength(itemOrItems));
            postFixIncrement(j)) {
         arrayPush(result, this->extend(::getValue(itemOrItems, j), params));
@@ -5234,7 +5236,7 @@ virtual std::any resolvePath(std::any path, std::any params) {
 
 virtual std::any getListFromObjectValues(std::any objects, std::any key) {
   std::any newArray = objects;
-  if (!isTrue(isArray(objects))) {
+  if (!isTrue(::isArray(objects))) {
     newArray = this->toArray(objects);
   }
   std::any results = ccxt::list{};
@@ -7407,7 +7409,7 @@ virtual std::any parseLastPrices(std::any pricesData,
   //     ]
   //
   std::any results = ccxt::list{};
-  if (isTrue(isArray(pricesData))) {
+  if (isTrue(::isArray(pricesData))) {
     for (std::any i = 0; isLessThan(i, getArrayLength(pricesData));
          postFixIncrement(i)) {
       std::any priceData =
@@ -7455,7 +7457,7 @@ virtual std::any parseTickers(std::any tickers, std::any symbols = std::any{},
   //     ]
   //
   std::any results = ccxt::list{};
-  if (isTrue(isArray(tickers))) {
+  if (isTrue(::isArray(tickers))) {
     for (std::any i = 0; isLessThan(i, getArrayLength(tickers));
          postFixIncrement(i)) {
       std::any parsedTicker = this->parseTicker(::getValue(tickers, i));
@@ -8246,19 +8248,19 @@ virtual std::any parseDepositWithdrawFees(std::any response,
    * currency codes
    */
   std::any depositWithdrawFees = ccxt::dict{};
-  std::any isArray = ::isArray(response);
+  std::any isArrayFlag = ::isArray(response);
   std::any responseKeys = response;
-  if (!isTrue(isArray)) {
+  if (!isTrue(isArrayFlag)) {
     responseKeys = getObjectKeys(response);
   }
   for (std::any i = 0; isLessThan(i, getArrayLength(responseKeys));
        postFixIncrement(i)) {
     std::any entry = ::getValue(responseKeys, i);
     std::any dictionary =
-        (isTrue(isArray) ? std::any(entry)
-                         : std::any(::getValue(response, entry)));
+        (isTrue(isArrayFlag) ? std::any(entry)
+                             : std::any(::getValue(response, entry)));
     std::any currencyId = entry;
-    if (isTrue(isArray)) {
+    if (isTrue(isArrayFlag)) {
       currencyId =
           (isTrue((isEqual(currencyIdKey, std::any{})))
                ? std::any(std::any{})
@@ -9257,7 +9259,7 @@ virtual std::any parseAllGreeks(std::any greeks, std::any symbols = std::any{},
   // the value of greeks is either a dict or a list
   //
   std::any results = ccxt::list{};
-  if (isTrue(isArray(greeks))) {
+  if (isTrue(::isArray(greeks))) {
     for (std::any i = 0; isLessThan(i, getArrayLength(greeks));
          postFixIncrement(i)) {
       std::any parsedTicker = this->parseGreeks(::getValue(greeks, i));

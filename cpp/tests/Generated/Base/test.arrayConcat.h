@@ -8,11 +8,13 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testArrayConcat();
 
-void testArrayConcat()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    assertDeepEqual(exchange, std::any{}, std::string("testArrayConcat"), exchange.arrayConcat(ccxt::list{std::string("b")}, ccxt::list{std::string("a"), std::string("c")}), ccxt::list{std::string("b"), std::string("a"), std::string("c")});
+void testArrayConcat() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  assertDeepEqual(
+      exchange, std::any{}, std::string("testArrayConcat"),
+      exchange.arrayConcat(ccxt::list{std::string("b")},
+                           ccxt::list{std::string("a"), std::string("c")}),
+      ccxt::list{std::string("b"), std::string("a"), std::string("c")});
 }
-
