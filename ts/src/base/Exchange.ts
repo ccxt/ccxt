@@ -1382,8 +1382,19 @@ export class BaseExchange {
                 }
                 if (Array.isArray (error.errors)) { // AggregateError - one inner error per attempted address
                     const innerErrors = error.errors.slice (0, 3).map ((inner: any) => {
-                        const innerCode = (typeof inner.code === 'string') ? inner.code : ((typeof inner.message === 'string') ? inner.message : 'error');
-                        const innerAddress = (inner.address !== undefined) ? (' ' + inner.address + ((inner.port !== undefined) ? (':' + inner.port) : '')) : '';
+                        let innerCode = 'error';
+                        if (typeof inner.code === 'string') {
+                            innerCode = inner.code;
+                        } else if (typeof inner.message === 'string') {
+                            innerCode = inner.message;
+                        }
+                        let innerAddress = '';
+                        if (inner.address !== undefined) {
+                            innerAddress = ' ' + inner.address;
+                            if (inner.port !== undefined) {
+                                innerAddress = innerAddress + ':' + inner.port;
+                            }
+                        }
                         return innerCode + innerAddress;
                     });
                     parts.push ('[' + innerErrors.join (', ') + ((error.errors.length > 3) ? ', ...' : '') + ']');
