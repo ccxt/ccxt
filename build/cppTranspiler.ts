@@ -18,6 +18,8 @@ import errorHierarchy from '../js/src/base/errorHierarchy.js';
 import { overwriteFile, checkCreateFolder } from './fsLocal.js';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile } from './stripOverloads.js';
 import { isMainEntry, filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from './transpile.js';
+import { extractTypesIR } from './typesIR.js';
+import cppTypesEmitter from './typeEmitters/cpp.js';
 
 ansi.nice;
 
@@ -37,6 +39,7 @@ const TS_BASE_FILE          = './ts/src/base/Exchange.ts';
 const BASE_METHODS_FILE     = './cpp/ccxt/base/Exchange.BaseMethods.inc';
 const TRADING_METHODS_FILE  = './cpp/ccxt/base/Exchange.TradingMethods.inc';
 const BASE_DISPATCH_FILE    = './cpp/ccxt/base/Exchange.Dispatch.inc';
+const TYPED_API_FILE        = './cpp/ccxt/base/Exchange.TypedApi.inc';
 const ERRORS_FILE           = './cpp/ccxt/base/Errors.h';
 const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
@@ -44,6 +47,43 @@ const EXCHANGE_TESTS_FOLDER = './cpp/tests/Generated/';
 const TS_BASE_TESTS_FOLDER  = './ts/src/test/base/';
 
 const DELIMITER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT';
+
+// top-level comma split of a TS parameter list (skips nested <>, (), [], {} and quotes)
+function splitTopLevel (text: string): string[] {
+    const out: string[] = [];
+    let depth = 0;
+    let cur = '';
+    for (let i = 0; i < text.length; i++) {
+        const ch = text[i];
+        if (ch === "'" || ch === '"') {
+            const quote = ch;
+            let j = i + 1;
+            while (j < text.length) {
+                if (text[j] === '\\') { j += 2; continue; }
+                if (text[j] === quote) { j++; break; }
+                j++;
+            }
+            cur += text.substring (i, j);
+            i = j - 1;
+            continue;
+        }
+        if (ch === '<' || ch === '(' || ch === '[' || ch === '{') {
+            depth++;
+        } else if (ch === '>' || ch === ')' || ch === ']' || ch === '}') {
+            depth--;
+        }
+        if (ch === ',' && depth === 0) {
+            out.push (cur);
+            cur = '';
+        } else {
+            cur += ch;
+        }
+    }
+    if (cur.trim () !== '') {
+        out.push (cur);
+    }
+    return out;
+}
 
 // ---------------------------------------------------------------------------
 // formatting — clang-format if present, raw otherwise (mirrors formatGoSource)
@@ -627,6 +667,236 @@ class CppTranspilerDriver {
         ].join ('\n');
         overwriteFileAndFolder (BASE_DISPATCH_FILE, dispatch);
         log.green ('[cpp] Generated base dispatch table to', (BASE_DISPATCH_FILE as any).yellow);
+    }
+
+    // -----------------------------------------------------------------------
+    // typed layer: Types.h (structs) + Exchange.TypedApi.inc (PascalCase facade)
+    // -----------------------------------------------------------------------
+    //
+    // The user-facing typed API, mirroring the C# port's PascalCase wrappers
+    // (cs/ccxt/wrappers/*): every unified method declared in ts/src/base/Exchange.ts
+    // whose Promise<T> return type and parameter list both map onto the generated
+    // struct set becomes `T FetchX (...)` calling the dynamic camelCase core and
+    // converting the result. Methods with unmappable pieces stay dynamic-only.
+
+    transpileTypedApi (baseExchangeFile = TS_BASE_FILE, force = true) {
+        if (skipUpToDateStage ('cpp', 'typed api', force,
+            [ baseExchangeFile, './ts/src/base/types.ts' ],
+            [ TYPED_API_FILE, './cpp/ccxt/base/Types.h' ])) {
+            return;
+        }
+        // Types.h itself: same emitter transpileTypes.ts uses, written raw (no
+        // clang-format) so both entry points produce byte-identical output
+        const ir = extractTypesIR ('./ts/src/base/types.ts');
+        for (const output of cppTypesEmitter.emit (ir, process.cwd ())) {
+            checkCreateFolder (path.dirname (output.path));
+            fs.writeFileSync (output.path, output.contents);
+            log.green ('[cpp] Generated typed structs to', (output.path as any).yellow);
+        }
+
+        // ts struct name (and alias) -> cpp struct name
+        const renames: Record<string, string> = {
+            'FeeInterface': 'Fee',
+            'CurrencyInterface': 'Currency',
+            'MarketInterface': 'Market',
+            'TradingFeeInterface': 'TradingFee',
+        };
+        const structNames = new Map<string, string> ();
+        for (const t of ir.types) {
+            if (/^Prediction/.test (t.name) || t.name === 'FeeStringInterface') {
+                continue;
+            }
+            if (t.kind === 'interface' || t.kind === 'dictionary'
+                || (t.kind === 'tuple' && (t.name === 'OHLCV' || t.name === 'OHLCVC'))) {
+                structNames.set (t.name, renames[t.name] !== undefined ? renames[t.name] : t.name);
+            }
+        }
+        for (const t of ir.types) {
+            if (t.kind === 'alias' && t.aliasOf !== undefined && !structNames.has (t.name)) {
+                const target = t.aliasOf.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null')[0];
+                if (target !== undefined && structNames.has (target)) {
+                    structNames.set (t.name, structNames.get (target)!);
+                }
+            }
+        }
+
+        // internal plumbing that happens to have a mappable signature
+        const denylist = new Set ([
+            'loadMarketsHelper', 'fetchRestOrderBookSafe', 'loadOrderBook',
+            'fetchPermissions', 'fetchTransactions',
+        ]);
+
+        const mapReturn = (retRaw: string): { type: string, wrap: (call: string) => string } | undefined => {
+            const ret = retRaw.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
+            if (ret === 'Int' || ret === 'int') {
+                return { 'type': 'std::optional<int64_t>', 'wrap': (c) => 'typedsupport::anyInt (' + c + ')' };
+            }
+            if (ret === 'Str') {
+                return { 'type': 'std::optional<std::string>', 'wrap': (c) => 'typedsupport::anyStr (' + c + ')' };
+            }
+            if (ret === 'Num') {
+                return { 'type': 'std::optional<double>', 'wrap': (c) => 'typedsupport::anyNum (' + c + ')' };
+            }
+            if (ret === 'Bool') {
+                return { 'type': 'std::optional<bool>', 'wrap': (c) => 'typedsupport::anyBool (' + c + ')' };
+            }
+            if (ret.endsWith ('[]')) {
+                const elem = ret.slice (0, -2).trim ();
+                const cpp = structNames.get (elem);
+                if (cpp !== undefined) {
+                    return { 'type': 'std::vector<' + cpp + '>', 'wrap': (c) => 'typedVector<' + cpp + '> (' + c + ')' };
+                }
+                return undefined;
+            }
+            if (ret.startsWith ('Dictionary<') && ret.endsWith ('>')) {
+                const inner = ret.slice (11, -1).trim ();
+                const cpp = structNames.get (inner);
+                if (cpp !== undefined) {
+                    return { 'type': 'std::map<std::string, ' + cpp + '>', 'wrap': (c) => 'typedMap<' + cpp + '> (' + c + ')' };
+                }
+                return undefined;
+            }
+            const cpp = structNames.get (ret);
+            if (cpp !== undefined) {
+                return { 'type': cpp, 'wrap': (c) => cpp + ' (' + c + ')' };
+            }
+            return undefined;
+        };
+
+        const mapParam = (raw: string): { decl: string, conv: string } | undefined => {
+            const text = raw.trim ();
+            if (text === '') {
+                return undefined;
+            }
+            const eq = text.indexOf ('=');
+            const head = (eq >= 0 ? text.slice (0, eq) : text).trim ();
+            const def = eq >= 0 ? text.slice (eq + 1).trim () : undefined;
+            const colon = head.indexOf (':');
+            const name = (colon >= 0 ? head.slice (0, colon) : head).trim ();
+            let type = colon >= 0 ? head.slice (colon + 1).trim () : undefined;
+            if (type !== undefined) {
+                type = type.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
+            }
+            const conv = 'typedAny (' + name + ')';
+            // params bag and other untyped-object args
+            if ((type === undefined || type === 'object' || type === 'any' || type === 'Dict' || type === '{}') && def === '{}') {
+                return { 'decl': 'const dict& ' + name + ' = dict {}', 'conv': conv };
+            }
+            if (type === undefined && def === 'undefined') {
+                return { 'decl': 'const std::any& ' + name + ' = std::any {}', 'conv': conv };
+            }
+            if (type === undefined) {
+                return undefined;
+            }
+            const stringLike = type === 'string' || type === 'OrderType' || type === 'OrderSide' || type === 'MarketType' || type === 'SubType' || type === 'IndexType';
+            if (stringLike) {
+                if (def === undefined) {
+                    return { 'decl': 'const std::string& ' + name, 'conv': conv };
+                }
+                if (def.startsWith ("'") && def.endsWith ("'")) {
+                    return { 'decl': 'const std::string& ' + name + ' = "' + def.slice (1, -1) + '"', 'conv': conv };
+                }
+                if (def === 'undefined') {
+                    return { 'decl': 'const std::optional<std::string>& ' + name + ' = std::nullopt', 'conv': conv };
+                }
+                return undefined;
+            }
+            if (type === 'Str') {
+                return { 'decl': 'const std::optional<std::string>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+            }
+            if (type === 'Strings' || type === 'string[]') {
+                return { 'decl': 'const std::vector<std::string>& ' + name + (def !== undefined ? ' = {}' : ''), 'conv': conv };
+            }
+            if (type === 'Int' || type === 'int') {
+                return { 'decl': 'std::optional<int64_t> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+            }
+            if (type === 'Num') {
+                return { 'decl': 'std::optional<double> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+            }
+            if (type === 'number') {
+                if (def === undefined) {
+                    return { 'decl': 'double ' + name, 'conv': conv };
+                }
+                if (def === 'undefined') {
+                    return { 'decl': 'std::optional<double> ' + name + ' = std::nullopt', 'conv': conv };
+                }
+                if (/^-?[0-9.]+$/.test (def)) {
+                    return { 'decl': 'double ' + name + ' = ' + def, 'conv': conv };
+                }
+                return undefined;
+            }
+            if (type === 'boolean') {
+                if (def === undefined) {
+                    return { 'decl': 'bool ' + name, 'conv': conv };
+                }
+                if (def === 'true' || def === 'false') {
+                    return { 'decl': 'bool ' + name + ' = ' + def, 'conv': conv };
+                }
+                if (def === 'undefined') {
+                    return { 'decl': 'const std::optional<bool>& ' + name + ' = std::nullopt', 'conv': conv };
+                }
+                return undefined;
+            }
+            if (type === 'Bool') {
+                return { 'decl': 'const std::optional<bool>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+            }
+            if (type === 'OrderRequest[]' || type === 'CancellationRequest[]') {
+                const elem = type.slice (0, -2);
+                return { 'decl': 'const std::vector<' + elem + '>& ' + name, 'conv': 'typedAnyList (' + name + ')' };
+            }
+            return undefined;
+        };
+
+        const src = fs.readFileSync (baseExchangeFile, 'utf8');
+        const re = /^    (?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*:\s*Promise<([^{]+?)>\s*\{/gm;
+        const emitted = new Set<string> ();
+        const lines: string[] = [];
+        let match;
+        while ((match = re.exec (src)) !== null) {
+            const name = match[1];
+            // the WS tier (watch*/unWatch*) is not ported to C++; its base stubs would
+            // typecheck but always throw, so keep them off the typed surface
+            if (name.endsWith ('Ws') || name.startsWith ('watch') || name.startsWith ('unWatch')
+                || denylist.has (name) || emitted.has (name)) {
+                continue;
+            }
+            const ret = mapReturn (match[3]);
+            if (ret === undefined) {
+                continue;
+            }
+            const argsText = match[2].trim ();
+            const argPieces = argsText === '' ? [] : splitTopLevel (argsText);
+            const decls: string[] = [];
+            const convs: string[] = [];
+            let mappable = true;
+            for (const piece of argPieces) {
+                const mapped = mapParam (piece);
+                if (mapped === undefined) {
+                    mappable = false;
+                    break;
+                }
+                decls.push (mapped.decl);
+                convs.push (mapped.conv);
+            }
+            if (!mappable) {
+                continue;
+            }
+            emitted.add (name);
+            const pascal = name.charAt (0).toUpperCase () + name.slice (1);
+            const call = 'awaitValue (std::any (this->' + name + ' (' + convs.join (', ') + ')))';
+            lines.push ('    // typed facade over ' + name);
+            lines.push ('    ' + ret.type + ' ' + pascal + ' (' + decls.join (', ') + ') {');
+            lines.push ('        return ' + ret.wrap (call) + ';');
+            lines.push ('    }');
+            lines.push ('');
+        }
+        const header = createGeneratedHeader ().join ('\n')
+            + '\n// Included inside the body of class ccxt::Exchange - see Exchange.h.\n'
+            + '// The typed user-facing API: PascalCase methods returning Types.h structs\n'
+            + '// (C# wrapper parity). Regenerate with `npm run transpileCpp -- --typedApi`.\n\n';
+        checkCreateFolder (path.dirname (TYPED_API_FILE));
+        fs.writeFileSync (TYPED_API_FILE, header + lines.join ('\n') + '\n');
+        log.green ('[cpp] Generated typed API (' + emitted.size.toString () + ' methods) to', (TYPED_API_FILE as any).yellow);
     }
 
     // -----------------------------------------------------------------------
@@ -1482,6 +1752,7 @@ async function runMain () {
     const baseClassOnly = process.argv.includes ('--baseClass');
     const baseTestsOnly = process.argv.includes ('--baseTests');
     const exchangeTestsOnly = process.argv.includes ('--tests');
+    const typedApiOnly = process.argv.includes ('--typedApi');
     const allExchangesOnly = process.argv.includes ('--all');
     const ids = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
 
@@ -1490,6 +1761,11 @@ async function runMain () {
     if (baseClassOnly) {
         driver.transpileErrorHierarchy (force);
         driver.transpileBaseMethods (TS_BASE_FILE, force);
+        driver.transpileTypedApi (TS_BASE_FILE, force);
+        return;
+    }
+    if (typedApiOnly) {
+        driver.transpileTypedApi (TS_BASE_FILE, true);
         return;
     }
     if (baseTestsOnly) {
@@ -1515,6 +1791,7 @@ async function runMain () {
         const exchangeIds: string[] = JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).ids;
         driver.transpileErrorHierarchy (force);
         driver.transpileBaseMethods (TS_BASE_FILE, force);
+        driver.transpileTypedApi (TS_BASE_FILE, force);
         await driver.transpileBaseTests (force);
         driver.transpileMainTest ();
         driver.transpileExchangeTestFiles ();
@@ -1525,6 +1802,7 @@ async function runMain () {
     }
     driver.transpileErrorHierarchy (force);
     driver.transpileBaseMethods (TS_BASE_FILE, force);
+    driver.transpileTypedApi (TS_BASE_FILE, force);
     await driver.transpileBaseTests (force);
     log.bright.green ('[cpp] Transpiled successfully.');
 }

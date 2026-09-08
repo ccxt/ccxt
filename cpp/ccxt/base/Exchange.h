@@ -12,6 +12,7 @@
 // virtual stubs to make those base-to-derived calls dispatch.
 
 #include "ExchangeBase.h"
+#include "Types.h"
 
 #include <memory>
 
@@ -247,6 +248,8 @@ public:
     #include "Exchange.BaseMethods.inc"
     #include "Exchange.TradingMethods.inc"
     #include "Exchange.Dispatch.inc"
+    // GENERATED — the typed user-facing API; regenerate with `npm run transpileCpp -- --typedApi`.
+    #include "Exchange.TypedApi.inc"
 };
 
 // The supported way to build an exchange. It completes construction first, so the

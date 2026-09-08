@@ -63,6 +63,11 @@ target_compile_options (ccxt-tests PRIVATE -g0)
 add_executable (ccxt-smoke-binance tests/smoke_binance.cpp)
 target_link_libraries (ccxt-smoke-binance PRIVATE ccxt)
 
+# typed-layer gate: Types.h structs + the PascalCase typed API over the dynamic core
+add_executable (ccxt-typed-smoke tests/typed_smoke.cpp)
+target_link_libraries (ccxt-typed-smoke PRIVATE ccxt)
+target_compile_options (ccxt-typed-smoke PRIVATE -g0)
+
 # live-test CLI: ccxt-cli <exchangeId> <method> [args...] -- runs real HTTP calls
 add_executable (ccxt-cli cli/main.cpp)
 target_link_libraries (ccxt-cli PRIVATE "$<LINK_LIBRARY:WHOLE_ARCHIVE,ccxt>")
@@ -75,6 +80,7 @@ set (CCXT_TEST_WORKDIR ${CMAKE_CURRENT_SOURCE_DIR}/../..)
 add_test (NAME value-model COMMAND ccxt-value-tests)
 add_test (NAME base-tests COMMAND ccxt-tests --baseTests)
 add_test (NAME smoke-binance COMMAND ccxt-smoke-binance)
+add_test (NAME typed-smoke COMMAND ccxt-typed-smoke)
 # the static request/response tests run through the transpiled tests.ts
 add_test (NAME static-request-binance COMMAND ccxt-tests binance --requestTests)
 set_tests_properties (static-request-binance PROPERTIES WORKING_DIRECTORY ${CCXT_TEST_WORKDIR})
