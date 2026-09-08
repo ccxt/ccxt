@@ -5,6 +5,7 @@ import testWsCacheNative from "./test.cacheNative.js";
 import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testLbankServerPingLivenessWiring from "./test.serverPingLiveness.lbank.js";
+import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
 
 async function testBaseWs () {
     testWsOrderBook ();
@@ -14,6 +15,7 @@ async function testBaseWs () {
     await testWsSingleFlight ();
     await testWsSingleFlightWiring ();
     await testLbankServerPingLivenessWiring ();
+    await testWsKeepAliveTimeout ();
 }
 
 export default testBaseWs;
