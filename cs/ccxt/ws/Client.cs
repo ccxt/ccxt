@@ -241,6 +241,17 @@ public partial class BaseExchange
                         // labeled as "seconds", and raise RequestTimeout instead of a bare
                         // Exception the error-class handling cannot categorize
                         this.onError(this, new RequestTimeout("Connection to " + this.url + " timed out due to a ping-pong keepalive missing on time (no liveness within " + (convertedKeepAlive * this.maxPingPongMisses) + " ms = keepAlive " + convertedKeepAlive + " ms x " + this.maxPingPongMisses + " misses)"));
+                        // onError rejects the pending futures and the exchange drops
+                        // this client from its registry, but the socket itself is
+                        // still open: leaving the loop does not tear it down, and the
+                        // server never asked for a close. left alone the Receiving
+                        // task keeps pulling frames and dispatching them into the
+                        // exchange caches next to the replacement connection the
+                        // next watch call opens. close the transport here so the
+                        // timeout ends the connection and not only the futures
+                        // waiting on it, mirroring ts/src/base/ws/Client.ts
+                        // onPingInterval (ccxt/ccxt#30293)
+                        await this.Close();
                         break;
                     }
                     else
