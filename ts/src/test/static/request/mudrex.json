@@ -180,6 +180,18 @@
                 ],
                 "output": null
             }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders/0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                "input": [
+                    "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                    "DOGE/USDT:USDT"
+                ],
+                "output": null
+            }
         ]
     },
     "outputType": "both"
