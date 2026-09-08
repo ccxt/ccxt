@@ -1066,12 +1066,6 @@ fn fixture_fee_netting(r: &OrderRouter, f: &Value) -> Result<(), String> {
 }
 
 // ---------------------------------------------------------------------------
-// entry point
-// ---------------------------------------------------------------------------
-
-/// Runs the OrderRouter suite. Returns the number of checks that passed.
-
-// ---------------------------------------------------------------------------
 // onStep and the retry policy — the four checks the TypeScript reference added,
 // ported honestly. In THIS port the hook is a field on the router rather than an
 // options key, because `Value` cannot carry a closure; see `OnStepHook`.
@@ -1291,6 +1285,11 @@ fn retry_replaces_under_a_new_id_and_never_retries_an_unknown_outcome() -> Resul
     Ok(())
 }
 
+// ---------------------------------------------------------------------------
+// entry point
+// ---------------------------------------------------------------------------
+
+/// Runs the OrderRouter suite. Returns the number of checks that passed.
 pub fn run() -> Result<usize, String> {
     let f = fixture()?;
     let r = router()?;
