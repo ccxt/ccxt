@@ -1,3 +1,4 @@
+// NO_AUTO_TRANSPILE
 import assert from 'assert';
 import { WebSocketServer } from 'ws';
 import WsClient from '../../../base/ws/WsClient.js';
