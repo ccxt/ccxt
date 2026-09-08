@@ -53,7 +53,7 @@ response := <-modetrade.V1PublicGetPublicVolumeStats(params)
 
 Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; everything else in `params` is sent as the query string or request body. **Cost** is the rate-limiter weight of each call.
 
-📚 **Official modetrade API documentation:** [trade.mode.network](https://trade.mode.network)
+📚 **Official modetrade API documentation:** [orderly.network](https://orderly.network/docs/build-on-omnichain/building-on-omnichain)
 
 > 115 implicit endpoints across 1 access group.
 
