@@ -204,8 +204,11 @@ int main (int argc, char** argv) {
         return runBaseTests ();
     }
     if (exchangeId.empty ()) {
-        std::cout << "[TEST_FAILURE] usage: ccxt-tests [--baseTests] <exchangeId> [symbol|method] [--requestTests|--responseTests|--info ...]" << std::endl;
+        std::cout << "[TEST_FAILURE] usage: ccxt-tests [--baseTests] <exchangeId> [symbol|method] [--requestTests|--responseTests|--info ...] (use 'all' for every exchange)" << std::endl;
         return 1;
+    }
+    if (exchangeId == "all") {
+        exchangeId.clear ();   // the test framework runs every fixture when the target is empty
     }
     // mirror Program.cs InitOptions: the second positional is a symbol when it
     // contains '/', otherwise a method name
