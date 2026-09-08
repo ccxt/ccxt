@@ -1622,7 +1622,11 @@ export default class modetrade extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {string} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
