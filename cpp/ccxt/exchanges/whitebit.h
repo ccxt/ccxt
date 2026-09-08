@@ -2265,7 +2265,7 @@ public:
                      }
                    } catch (const std::exception &error) {
                      if (!isTrue((isInstanceOf<OrderNotFound>(error)))) {
-                       throw error;
+                       throw;
                      }
                    }
                  }
@@ -2299,7 +2299,7 @@ public:
                      }
                    } catch (const std::exception &error) {
                      if (!isTrue((isInstanceOf<OrderNotFound>(error)))) {
-                       throw error;
+                       throw;
                      }
                    }
                  }

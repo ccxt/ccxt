@@ -829,7 +829,7 @@ function createImplicitMethodsCpp(){
             // lost.
             return [
                 `${IDEN}// Calls the ${method} endpoint. Returns ${proseReturnShape (exchange, method)}.`,
-                `${IDEN}virtual std::shared_future<std::any> ${method} (std::any parameters = std::any {}) {`,
+                `${IDEN}virtual std::shared_future<std::any> ${method} (std::any parameters = ccxt::dict {}) {`,
                 `${IDEN}${IDEN}return this->callEndpoint (std::string ("${method}"), parameters);`,
                 `${IDEN}}`,
                 ``,

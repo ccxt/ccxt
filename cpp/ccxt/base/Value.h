@@ -219,6 +219,17 @@ inline double toDouble (const std::any& v) {
     return 0.0;
 }
 
-inline long long toLong (const std::any& v) { return static_cast<long long> (toDouble (v)); }
+inline long long toLong (const std::any& v) {
+    // integer payloads convert exactly; the double round-trip corrupts anything
+    // beyond 2^53 (weex algoId 782042010738492300 -> ...288)
+    if (v.type () == typeid (long long))          return std::any_cast<long long> (v);
+    if (v.type () == typeid (long))               return static_cast<long long> (std::any_cast<long> (v));
+    if (v.type () == typeid (int))                return static_cast<long long> (std::any_cast<int> (v));
+    if (v.type () == typeid (unsigned long long)) return static_cast<long long> (std::any_cast<unsigned long long> (v));
+    if (v.type () == typeid (unsigned))           return static_cast<long long> (std::any_cast<unsigned> (v));
+    if (v.type () == typeid (std::size_t) && typeid (std::size_t) != typeid (unsigned long long))
+        return static_cast<long long> (std::any_cast<std::size_t> (v));
+    return static_cast<long long> (toDouble (v));
+}
 
 } // namespace ccxt

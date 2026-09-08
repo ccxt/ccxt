@@ -17,12 +17,12 @@ public:
     explicit hyperliquidApi (std::any config) : Exchange (config) {}
 
     // Calls the publicPostInfo endpoint. Returns a JSON object, a JSON array or a JSON scalar.
-    virtual std::shared_future<std::any> publicPostInfo (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> publicPostInfo (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicPostInfo"), parameters);
     }
 
     // Calls the privatePostExchange endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostExchange (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostExchange (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostExchange"), parameters);
     }
 
