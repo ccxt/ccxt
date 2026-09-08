@@ -15,9 +15,9 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
     }
     const durationMs = exchange.parseTimeframe (chosenTimeframeKey) * 1000;
     //
-    // check for all four possible "since" & "limit" combinations, where one of them could be undefined and the other not
+    // check for all possible "since" & "limit" combinations, where one of them could be undefined and the other not
     //
-    const sinceArray = [ undefined, exchange.milliseconds () - durationMs * 2000 ];// for example, "since" was theoretically from date of 2000 bars back
+    const sinceArray = [ undefined, exchange.milliseconds () - durationMs * 2800 ]; // eg, "since" was a date of 2800 bars back
     const limitsArray = [ undefined, 50, 25000 ];
     for (let i = 0; i < sinceArray.length; i++) {
         const sinceCurrent = sinceArray[i];
@@ -29,6 +29,7 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
             testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
         }
     }
+    return true;
 }
 
 function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, symbol: string, ohlcvs: any, timeframe: Str, since: Num, limit: Num) {
@@ -79,7 +80,7 @@ function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, s
                 }
             }
         }
-        // we do compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
+        // we compare bar durations below (unless skipped), to ensure current bar's timestamp >= previous bar + one duration
         if (!('compareDuration' in skippedProperties)) {
             if (i > 0) {
                 const previousBarTs = ohlcvs[i - 1][0];
