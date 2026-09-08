@@ -173,5 +173,17 @@ inline const std::any PAD_WITH_ZERO      = 6;
 // compile.
 std::any describeOf (const std::any& exchange);
 
-// WS OrderBook#reset — the pro layer is a non-goal this iteration.
+// WS layer free helpers: `x.reset (snapshot)`, `side.store (p, s)`, `side.storeArray
+// (delta)`, `book.limit ()`, `cache.append (item)`, `cache.getLimit (s, l)` and
+// `cache.clear ()` all funnel through these (the transpiler rewrites member calls on
+// std::any receivers to the free form). Every one mutates through the shared store.
 std::any resetOrderBook (const std::any& book, const std::any& snapshot);
+std::any wsStore (const std::any& side, const std::any& price, const std::any& size);
+std::any wsStoreArray (const std::any& side, const std::any& delta);
+std::any wsLimit (const std::any& bookOrSide);
+std::any wsAppend (const std::any& cache, const std::any& item);
+std::any wsGetLimit (const std::any& cache, const std::any& symbol, const std::any& limit);
+std::any wsClear (const std::any& cache);
+// Recursively converts ws values (books, sides, caches) to plain dict/list shapes so
+// structural comparisons (the test equals) can treat them like their JS originals.
+std::any wsToPlain (const std::any& v);
