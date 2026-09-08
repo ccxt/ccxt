@@ -87,7 +87,8 @@ func (this *DeepcoinCore) Describe() any {
 			},
 		},
 		"streaming": map[string]any{
-			"ping": this.Ping,
+			"ping":      this.Ping,
+			"keepAlive": 15000,
 		},
 	})
 }
@@ -154,9 +155,9 @@ func (this *DeepcoinCore) watchPublicBody(ch chan any, market any, messageHash a
 		"id":      requestId,
 	}
 
-	retRes13715 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
-	ccxt.PanicOnError(retRes13715)
-	ch <- retRes13715
+	retRes14515 := (<-this.Watch(url, messageHash, this.DeepExtend(request, params), messageHash, subscription))
+	ccxt.PanicOnError(retRes14515)
+	ch <- retRes14515
 	return nil
 }
 func (this *DeepcoinCore) UnWatchPublic(market any, messageHash any, topicID any, optionalArgs ...any) <-chan any {
@@ -190,9 +191,9 @@ func (this *DeepcoinCore) unWatchPublicBody(ch chan any, market any, messageHash
 		"id":        requestId,
 	})
 
-	retRes15715 := (<-this.Watch(url, unsubHash, this.DeepExtend(request, params), unsubHash, subscription))
-	ccxt.PanicOnError(retRes15715)
-	ch <- retRes15715
+	retRes16515 := (<-this.Watch(url, unsubHash, this.DeepExtend(request, params), unsubHash, subscription))
+	ccxt.PanicOnError(retRes16515)
+	ch <- retRes16515
 	return nil
 }
 func (this *DeepcoinCore) WatchPrivate(messageHash any, optionalArgs ...any) <-chan any {
@@ -210,9 +211,9 @@ func (this *DeepcoinCore) watchPrivateBody(ch chan any, messageHash any, optiona
 	ccxt.PanicOnError(listenKey)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "private"), "?listenKey="), listenKey)
 
-	retRes16315 := (<-this.Watch(url, messageHash, nil, "private", params))
-	ccxt.PanicOnError(retRes16315)
-	ch <- retRes16315
+	retRes17115 := (<-this.Watch(url, messageHash, nil, "private", params))
+	ccxt.PanicOnError(retRes17115)
+	ch <- retRes17115
 	return nil
 }
 func (this *DeepcoinCore) Authenticate(optionalArgs ...any) <-chan any {
@@ -244,8 +245,8 @@ func (this *DeepcoinCore) authenticateBody(ch chan any, optionalArgs ...any) any
 		// a flight is already in progress - wake when the leader
 		// settles it: the listenKey is then in the bucket
 
-		retRes18512 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-		ccxt.PanicOnError(retRes18512)
+		retRes19312 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes19312)
 
 		ch <- this.SafeString(this.Options, "listenKey")
 		return nil
@@ -315,8 +316,8 @@ func (this *DeepcoinCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from killing the process
 
-	retRes2368 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes2368)
+	retRes2448 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes2448)
 
 	ch <- listenKey
 	return nil
@@ -343,15 +344,15 @@ func (this *DeepcoinCore) watchTickerBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes25112 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes25112)
+		retRes25912 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes25912)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("ticker", "::"), ccxt.GetValue(market, "symbol"))
 
-	retRes25515 := (<-this.WatchPublic(market, messageHash, "7", params))
-	ccxt.PanicOnError(retRes25515)
-	ch <- retRes25515
+	retRes26315 := (<-this.WatchPublic(market, messageHash, "7", params))
+	ccxt.PanicOnError(retRes26315)
+	ch <- retRes26315
 	return nil
 }
 
@@ -376,8 +377,8 @@ func (this *DeepcoinCore) unWatchTickerBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes26912 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes26912)
+		retRes27712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes27712)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("ticker", "::"), ccxt.GetValue(market, "symbol"))
@@ -385,9 +386,9 @@ func (this *DeepcoinCore) unWatchTickerBody(ch chan any, symbol any, optionalArg
 		"topic": "ticker",
 	}
 
-	retRes27615 := (<-this.UnWatchPublic(market, messageHash, "7", params, subscription))
-	ccxt.PanicOnError(retRes27615)
-	ch <- retRes27615
+	retRes28415 := (<-this.UnWatchPublic(market, messageHash, "7", params, subscription))
+	ccxt.PanicOnError(retRes28415)
+	ch <- retRes28415
 	return nil
 }
 func (this *DeepcoinCore) HandleTicker(client any, message any) {
@@ -522,8 +523,8 @@ func (this *DeepcoinCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes39612 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes39612)
+		retRes40412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes40412)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("trades", "::"), ccxt.GetValue(market, "symbol"))
@@ -559,8 +560,8 @@ func (this *DeepcoinCore) unWatchTradesBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes41812 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes41812)
+		retRes42612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes42612)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("trades", "::"), ccxt.GetValue(market, "symbol"))
@@ -568,9 +569,9 @@ func (this *DeepcoinCore) unWatchTradesBody(ch chan any, symbol any, optionalArg
 		"topic": "trades",
 	}
 
-	retRes42515 := (<-this.UnWatchPublic(market, messageHash, "2", params, subscription))
-	ccxt.PanicOnError(retRes42515)
-	ch <- retRes42515
+	retRes43315 := (<-this.UnWatchPublic(market, messageHash, "2", params, subscription))
+	ccxt.PanicOnError(retRes43315)
+	ch <- retRes43315
 	return nil
 }
 func (this *DeepcoinCore) HandleTrades(client any, message any) {
@@ -720,8 +721,8 @@ func (this *DeepcoinCore) watchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes56012 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes56012)
+		retRes56812 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes56812)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -764,8 +765,8 @@ func (this *DeepcoinCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes58712 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes58712)
+		retRes59512 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes59512)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -778,9 +779,9 @@ func (this *DeepcoinCore) unWatchOHLCVBody(ch chan any, symbol any, optionalArgs
 		"symbolsAndTimeframes": []any{[]any{symbol, timeframe}},
 	}
 
-	retRes59915 := (<-this.UnWatchPublic(market, messageHash, "11", params, subscription, suffix))
-	ccxt.PanicOnError(retRes59915)
-	ch <- retRes59915
+	retRes60715 := (<-this.UnWatchPublic(market, messageHash, "11", params, subscription, suffix))
+	ccxt.PanicOnError(retRes60715)
+	ch <- retRes60715
 	return nil
 }
 func (this *DeepcoinCore) HandleOHLCV(client any, message any) {
@@ -873,8 +874,8 @@ func (this *DeepcoinCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes68612 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes68612)
+		retRes69412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes69412)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", "::"), ccxt.GetValue(market, "symbol"))
@@ -908,8 +909,8 @@ func (this *DeepcoinCore) unWatchOrderBookBody(ch chan any, symbol any, optional
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes70612 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes70612)
+		retRes71412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes71412)
 	}
 	var market any = this.Market(symbol)
 	var messageHash any = ccxt.Add(ccxt.Add("orderbook", "::"), ccxt.GetValue(market, "symbol"))
@@ -918,9 +919,9 @@ func (this *DeepcoinCore) unWatchOrderBookBody(ch chan any, symbol any, optional
 		"topic": "orderbook",
 	}
 
-	retRes71415 := (<-this.UnWatchPublic(market, messageHash, "25", params, subscription, suffix))
-	ccxt.PanicOnError(retRes71415)
-	ch <- retRes71415
+	retRes72215 := (<-this.UnWatchPublic(market, messageHash, "25", params, subscription, suffix))
+	ccxt.PanicOnError(retRes72215)
+	ch <- retRes72215
 	return nil
 }
 func (this *DeepcoinCore) HandleOrderBook(client any, message any) {
@@ -985,12 +986,12 @@ func (this *DeepcoinCore) HandleOrderBookSnapshot(client any, message any) {
 		var volume any = this.SafeNumber(entryData, "V")
 		if ccxt.IsTrue(ccxt.IsEqual(side, "0")) {
 			// bid
-			retRes78016 := ccxt.GetValue(orderedEntries, "bids")
-			ccxt.AppendToArray(&retRes78016, []any{price, volume})
+			retRes78816 := ccxt.GetValue(orderedEntries, "bids")
+			ccxt.AppendToArray(&retRes78816, []any{price, volume})
 		} else if ccxt.IsTrue(ccxt.IsEqual(side, "1")) {
 			// ask
-			retRes78316 := ccxt.GetValue(orderedEntries, "asks")
-			ccxt.AppendToArray(&retRes78316, []any{price, volume})
+			retRes79116 := ccxt.GetValue(orderedEntries, "asks")
+			ccxt.AppendToArray(&retRes79116, []any{price, volume})
 		}
 	}
 	var timestamp any = this.SafeInteger(message, "mt", 0)
@@ -1075,8 +1076,8 @@ func (this *DeepcoinCore) watchMyTradesBody(ch chan any, optionalArgs ...any) an
 	var messageHash any = "myTrades"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes85412 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes85412)
+		retRes86212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes86212)
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		symbol = this.Symbol(symbol)
@@ -1174,8 +1175,8 @@ func (this *DeepcoinCore) watchOrdersBody(ch chan any, optionalArgs ...any) any 
 	var messageHash any = "orders"
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes93312 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes93312)
+		retRes94112 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes94112)
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		symbol = this.Symbol(symbol)
@@ -1335,8 +1336,8 @@ func (this *DeepcoinCore) watchPositionsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes107412 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes107412)
+		retRes108212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes108212)
 	}
 
 	listenKey := (<-this.Authenticate())
