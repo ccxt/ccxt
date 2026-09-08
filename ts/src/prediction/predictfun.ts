@@ -30,6 +30,7 @@ export default class predictfun extends Exchange {
                 'swap': false,
                 'future': false,
                 'option': false,
+                'approve': true,
                 'cancelAllOrders': false,
                 'cancelOrder': true,
                 'cancelOrders': true,
@@ -37,20 +38,20 @@ export default class predictfun extends Exchange {
                 'createOrder': true,
                 'createOrders': false,
                 'fetchBalance': false,
-                'fetchClosedOrders': true,
+                'fetchClosedOrders': true, // only limit orders
                 'fetchCurrencies': false,
                 'fetchDeposits': false,
                 'fetchEvent': true,
                 'fetchEvents': true,
                 'fetchLedger': false,
                 'fetchMarkets': true,
-                'fetchMyTrades': false,
+                'fetchMyTrades': true,
                 'fetchOHLCV': false,
                 'fetchOpenInterest': false,
-                'fetchOpenOrders': true,
+                'fetchOpenOrders': true, // only limit orders
                 'fetchOrder': true,
                 'fetchOrderBook': true,
-                'fetchOrders': true,
+                'fetchOrders': false,
                 'fetchOrderTrades': false,
                 'fetchPosition': true,
                 'fetchPositions': true,
@@ -204,6 +205,33 @@ export default class predictfun extends Exchange {
                         'NEG_RISK_CTF_EXCHANGE': '0xd690b2bd441bE36431F6F6639D7Ad351e7B29680',
                         'YIELD_BEARING_CTF_EXCHANGE': '0x8a6B4Fa700A1e310b106E7a48bAFa29111f66e89',
                         'YIELD_BEARING_NEG_RISK_CTF_EXCHANGE': '0x95D5113bc50eD201e319101bbca3e0E250662fCC',
+                    },
+                },
+                // the ERC-1155 contracts the outcome shares themselves live in, which is what a
+                // seller approves, and the neg risk adapter that moves those shares on both sides
+                // of a match - also taken from the sdk's Constants.ts
+                'conditionalTokens': {
+                    '56': {
+                        'CONDITIONAL_TOKENS': '0x22DA1810B194ca018378464a58f6Ac2B10C9d244',
+                        'NEG_RISK_CONDITIONAL_TOKENS': '0x22DA1810B194ca018378464a58f6Ac2B10C9d244',
+                        'YIELD_BEARING_CONDITIONAL_TOKENS': '0x9400F8Ad57e9e0F352345935d6D3175975eb1d9F',
+                        'YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS': '0xF64b0b318AAf83BD9071110af24D24445719A07F',
+                    },
+                    '97': {
+                        'CONDITIONAL_TOKENS': '0x2827AAef52D71910E8FBad2FfeBC1B6C2DA37743',
+                        'NEG_RISK_CONDITIONAL_TOKENS': '0x2827AAef52D71910E8FBad2FfeBC1B6C2DA37743',
+                        'YIELD_BEARING_CONDITIONAL_TOKENS': '0x38BF1cbD66d174bb5F3037d7068E708861D68D7f',
+                        'YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS': '0x26e865CbaAe99b62fbF9D18B55c25B5E079A93D5',
+                    },
+                },
+                'adapters': {
+                    '56': {
+                        'NEG_RISK_ADAPTER': '0xc3Cf7c252f65E0d8D88537dF96569AE94a7F1A6E',
+                        'YIELD_BEARING_NEG_RISK_ADAPTER': '0x41dCe1A4B8FB5e6327701750aF6231B7CD0B2A40',
+                    },
+                    '97': {
+                        'NEG_RISK_ADAPTER': '0x285c1B939380B130D7EBd09467b93faD4BA623Ed',
+                        'YIELD_BEARING_NEG_RISK_ADAPTER': '0xb74aea04bdeBE912Aa425bC9173F9668e6f11F99',
                     },
                 },
                 'createOrder': {
@@ -1313,6 +1341,74 @@ export default class predictfun extends Exchange {
 
     /**
      * @method
+     * @name predictfun#fetchMyTrades
+     * @description fetches the settled matches the wallet took part in, on either side of the book
+     * @see https://dev.predict.fun/get-order-match-events-25663812e0
+     * @param {string} [outcome] unified outcome handle, restricts the call to that outcome's market
+     * @param {int} [since] timestamp in ms of the earliest trade to return, applied client side
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.after] cursor from a previous response, the venue pages back from the most recent match
+     * @param {bool} [params.isSignerMaker] true keeps only the matches the wallet rested, false only the ones it took
+     * @param {string} [params.signerAddress] read another wallet's matches instead of the configured one
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        const signerAddress = this.safeString (params, 'signerAddress', this.walletAddress);
+        if (signerAddress === undefined) {
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress, or a signer address in params to read another wallet');
+        }
+        const request: Dict = {
+            'signerAddress': signerAddress,
+        };
+        let outcomeObj = undefined;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            outcomeObj = this.outcome (outcome);
+            const info = this.safeDict (outcomeObj, 'info', {});
+            request['marketId'] = this.safeString (info, 'marketId');
+        }
+        const query = this.omit (params, 'signerAddress');
+        // the endpoint carries no time filter, it pages back from the most recent match, so
+        // since is applied client side by parsePredictionTrades
+        const response = await this.predictfunGetV1OrdersMatches (this.extend (request, query));
+        // the venue answers with the shape documented in fetchTrades below
+        const data = this.safeList (response, 'data', []);
+        const wallet = signerAddress.toLowerCase ();
+        // a settlement names one taker and several makers, and the wallet may sit on either side,
+        // so the legs it signed are the ones to report - a self trade legitimately yields two rows
+        const flattenTrades: any[] = [];
+        const dataLength = data.length;
+        for (let i = 0; i < dataLength; i++) {
+            const entry = data[i];
+            const taker = this.safeDict (entry, 'taker', {});
+            const takerSigner = this.safeStringLower (taker, 'signer');
+            if (takerSigner === wallet) {
+                const takerParty = this.extend (taker, {
+                    'takerOrMaker': 'taker',
+                    'type': 'market',
+                });
+                flattenTrades.push (this.extend (entry, { 'partyToParse': takerParty }));
+            }
+            const makers = this.safeList (entry, 'makers', []);
+            const makersLength = makers.length;
+            for (let j = 0; j < makersLength; j++) {
+                const maker = makers[j];
+                const makerSigner = this.safeStringLower (maker, 'signer');
+                if (makerSigner === wallet) {
+                    const makerParty = this.extend (maker, {
+                        'takerOrMaker': 'maker',
+                        'type': 'limit',
+                    });
+                    flattenTrades.push (this.extend (entry, { 'partyToParse': makerParty }));
+                }
+            }
+        }
+        return this.parsePredictionTrades (flattenTrades, outcomeObj, since, limit);
+    }
+
+    /**
+     * @method
      * @name predictfun#fetchTrades
      * @description fetches the most recent settled matches for a single prediction outcome token
      * @see https://dev.predict.fun/get-order-match-events-25663812e0
@@ -1420,6 +1516,11 @@ export default class predictfun extends Exchange {
      */
     override parsePredictionTrade (trade: Dict, market: Market = undefined): PredictionTrade {
         const party = this.safeDict (trade, 'partyToParse', {});
+        // fetchMyTrades spans several markets at once, so the row's identity comes from the party
+        // it carries rather than from the outcome the caller asked for
+        const partyOutcome = this.safeDict (party, 'outcome', {});
+        const tokenId = this.safeString (partyOutcome, 'onChainId');
+        const outcomeObj = this.safeOutcome (tokenId, market);
         const takerOrMaker = this.safeString (party, 'takerOrMaker');
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -1457,10 +1558,10 @@ export default class predictfun extends Exchange {
             'order': order,
             'timestamp': timestamp,
             'datetime': this.iso8601 (timestamp),
-            'outcome': this.safeOutcomeSymbol (undefined, market),
-            'outcomeId': this.safeString (market, 'outcomeId'),
-            'label': this.safeString (market, 'label'),
-            'market': this.safeString (market, 'market'),
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
             'type': this.safeString (party, 'type'),
             'side': side,
             'takerOrMaker': takerOrMaker,
@@ -1676,20 +1777,21 @@ export default class predictfun extends Exchange {
         // value is read off the taker leg) and signing at the maximum price of 1 is rejected as
         // create_order_price_out_of_range (it wants 0 < price < 1)
         const amountString: Str = this.numberToString (amount);
-        let priceString = this.numberToString (price);
+        const priceString = this.numberToString (price);
+        let priceToProvide = priceString;
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order. it still
             // has to name a price, so it takes the aggressive end of the
             // range the venue allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill
             // happens at the book's own prices, this is only the worst price the order accepts -
             // which is also the collateral the maker leg has to cover
-            priceString = (isBuy) ? this.numberToString (this.safeNumber (this.options, 'marketBuyPrice', 0.99)) : this.numberToString (this.safeNumber (this.options, 'marketSellPrice', 0.01));
+            priceToProvide = (isBuy) ? this.numberToString (this.safeNumber (this.options, 'marketBuyPrice', 0.99)) : this.numberToString (this.safeNumber (this.options, 'marketSellPrice', 0.01));
         }
         const quantityWei = Precise.stringMul (amountString, '1000000000000000000');
-        const priceWei = Precise.stringMul (priceString, '1000000000000000000');
+        const priceWei = Precise.stringMul (priceToProvide, '1000000000000000000');
         // the collateral leg follows from the price and the size, exactly as for a limit order -
         // both legs have to agree or the venue rejects the order
-        const costWei = Precise.stringMul (priceString, quantityWei);
+        const costWei = Precise.stringMul (priceToProvide, quantityWei);
         let makerAmount = quantityWei;
         let takerAmount = costWei;
         if (isBuy) {
@@ -2150,7 +2252,7 @@ export default class predictfun extends Exchange {
     /**
      * @method
      * @name predictfun#fetchOpenOrders
-     * @description fetches your own orders that are still resting on the book
+     * @description fetches your own orders that are still resting on the book (only limit orders can be fetched)
      * @see https://dev.predict.fun/get-orders-25326902e0
      * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
      * @param {int} [since] not used by predictfun fetchOpenOrders, the venue returns no order timestamps
@@ -2163,13 +2265,13 @@ export default class predictfun extends Exchange {
         const request: Dict = {
             'status': 'OPEN',
         };
-        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (outcome, since, limit, this.extend (request, params));
     }
 
     /**
      * @method
      * @name predictfun#fetchClosedOrders
-     * @description fetches your own orders that filled
+     * @description fetches your own orders that filled (only limit orders can be fetched)
      * @see https://dev.predict.fun/get-orders-25326902e0
      * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
      * @param {int} [since] not used by predictfun fetchClosedOrders, the venue returns no order timestamps
@@ -2184,23 +2286,24 @@ export default class predictfun extends Exchange {
         const request: Dict = {
             'status': 'FILLED',
         };
-        return await this.fetchOrders (outcome, since, limit, this.extend (request, params));
+        return await this.fetchOrdersHelper (outcome, since, limit, this.extend (request, params));
     }
 
     /**
+     * @ignore
      * @method
-     * @name predictfun#fetchOrders
-     * @description fetches your own orders
+     * @name predictfun#fetchOrdersHelper
+     * @description fetches your own orders - the venue answers with the open ones unless a status is named, so each public method passes its own
      * @see https://dev.predict.fun/get-orders-25326902e0
      * @param {string} [outcome] unified outcome handle to filter by, all outcomes when omitted
-     * @param {int} [since] not used by predictfun fetchOrders, the venue returns no order timestamps
+     * @param {int} [since] not used by predictfun, the venue returns no order timestamps
      * @param {int} [limit] the maximum number of orders to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.status] 'OPEN' | 'FILLED' | 'EXPIRED' | 'CANCELLED'
      * @param {string} [params.after] cursor from a previous response, the venue pages back from the newest order
      * @returns {object[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    override async fetchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+    async fetchOrdersHelper (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
         let outcomeObj = undefined;
         if (outcome !== undefined) {
             await this.loadOutcome (outcome);
@@ -2209,25 +2312,38 @@ export default class predictfun extends Exchange {
         // the JWT identifies the wallet whose orders are returned
         await this.authenticate ();
         const request: Dict = {};
-        if (limit !== undefined) {
-            request['first'] = limit;
-        }
         const response = await this.predictfunGetV1Orders (this.extend (request, params));
         //
         //     {
-        //         "cursor": "eyJjcmVhdGVkQXQiOiIyMDI2LTA5LTA2VDE1OjA4OjMyWiJ9",
+        //         "cursor": null,
         //         "data": [
         //             {
-        //                 "id": "415455",
-        //                 "marketId": 1965449,
-        //                 "currency": "USDT",
-        //                 "amount": "5000000000000000000",
+        //                 "amount": "10000000000000000000",
         //                 "amountFilled": "0",
+        //                 "currency": "USDT",
+        //                 "id": "3295357412",
         //                 "isNegRisk": false,
         //                 "isYieldBearing": true,
-        //                 "strategy": "LIMIT",
+        //                 "marketId": 2107,
+        //                 "order": {
+        //                     "expiration": 1788888638,
+        //                     "feeRateBps": "200",
+        //                     "hash": "0x620e0237aaf75a86facfaa6840cba9d3bff4bb7a9c5606ad404c2a65ffadf14d",
+        //                     "maker": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "makerAmount": "1000000000000000000",
+        //                     "nonce": "0",
+        //                     "salt": "1788885038954",
+        //                     "side": 0,
+        //                     "signature": "0x564ea556c53aa58d66497639e82723402fe40fe8214f35ce5963aa5e09fd72e752a35b6bdc616017a55cefd4d34a32005497a0ae324a7d6f30a4998d130b04e81b",
+        //                     "signatureType": 0,
+        //                     "signer": "0x9050dfA063D1bE7cA711c750b18D51fDD13e90Ee",
+        //                     "taker": "0x0000000000000000000000000000000000000000",
+        //                     "takerAmount": "10000000000000000000",
+        //                     "tokenId": "11755619521560507246941857733124673401539364429068333264940202564484253415073"
+        //                 },
+        //                 "rewardEarningRate": 0,
         //                 "status": "OPEN",
-        //                 "order": { "hash": "0x0950ef58...", "tokenId": "43765171...", "makerAmount": "50000000000000000", "takerAmount": "5000000000000000000", "side": 0 }
+        //                 "strategy": "LIMIT"
         //             }
         //         ],
         //         "success": true
@@ -2306,7 +2422,14 @@ export default class predictfun extends Exchange {
         }
         const amount = Precise.stringDiv (amountWei, '1000000000000000000');
         const cost = Precise.stringDiv (costWei, '1000000000000000000');
-        const price = Precise.stringDiv (cost, amount);
+        const type = this.safeStringLower (order, 'strategy');
+        let price: Str = undefined;
+        // orders show same takerAmount and makerAmount as it was when they were placed
+        // the price of market orders will be calculated incorrectly
+        // we can calculate price for limit orders only
+        if (type === 'limit') {
+            price = Precise.stringDiv (cost, amount);
+        }
         const amountFilled = this.safeString (order, 'amountFilled');
         const filled = Precise.stringDiv (amountFilled, '1000000000000000000');
         const filledCost = Precise.stringMul (filled, price);
@@ -2323,8 +2446,7 @@ export default class predictfun extends Exchange {
             'amount': amount,
             'filled': filled,
             'remaining': undefined,
-            'cost': cost,
-            'filledCost': filledCost,
+            'cost': filledCost,
             'fee': undefined,
             'postOnly': this.safeBool (order, 'isPostOnly'),
             'trades': undefined,
@@ -2434,6 +2556,49 @@ export default class predictfun extends Exchange {
     /**
      * @ignore
      * @method
+     * @name predictfun#conditionalTokensAddress
+     * @description the ERC-1155 contract a market's outcome shares live in, which is the contract a seller grants the approval on
+     * @param {bool} isNegRisk whether the market settles through the negative risk exchange
+     * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
+     * @returns {string} the contract address on the active chain
+     */
+    conditionalTokensAddress (isNegRisk: boolean, isYieldBearing: boolean): Str {
+        const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
+        const tokens = this.safeDict (this.options, 'conditionalTokens', {});
+        const byChain = this.safeDict (tokens, this.numberToString (chainIdValue), {});
+        let identifier = 'CONDITIONAL_TOKENS';
+        if (isNegRisk && isYieldBearing) {
+            identifier = 'YIELD_BEARING_NEG_RISK_CONDITIONAL_TOKENS';
+        } else if (isNegRisk) {
+            identifier = 'NEG_RISK_CONDITIONAL_TOKENS';
+        } else if (isYieldBearing) {
+            identifier = 'YIELD_BEARING_CONDITIONAL_TOKENS';
+        }
+        return this.safeString (byChain, identifier);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#adapterAddress
+     * @description the negative risk adapter, which moves a seller's shares itself when a neg risk match mints or merges
+     * @param {bool} isYieldBearing whether the market settles through the yield bearing exchange
+     * @returns {string} the contract address on the active chain
+     */
+    adapterAddress (isYieldBearing: boolean): Str {
+        const chainIdValue = this.safeInteger (this.options, 'chainId', 56);
+        const adapters = this.safeDict (this.options, 'adapters', {});
+        const byChain = this.safeDict (adapters, this.numberToString (chainIdValue), {});
+        let identifier = 'NEG_RISK_ADAPTER';
+        if (isYieldBearing) {
+            identifier = 'YIELD_BEARING_NEG_RISK_ADAPTER';
+        }
+        return this.safeString (byChain, identifier);
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name predictfun#signEvmTransaction
      * @description builds and signs an EIP-1559 transaction, returning the raw signed hex
      * @param {object} tx the transaction fields
@@ -2474,52 +2639,100 @@ export default class predictfun extends Exchange {
     /**
      * @method
      * @name predictfun#approve
-     * @description sets the on-chain USDT allowance the exchange needs before a wallet can buy - without it every order is refused with create_order_insufficient_collateral_allowance. sends a real transaction signed with the privateKey and waits for the receipt, so the wallet needs BNB for gas
+     * @description grants the on-chain approvals a wallet needs before it can trade. The buy side is the USDT allowance the exchange spends, without which every order is refused with create_order_insufficient_collateral_allowance; the sell side is the ERC-1155 approval over the outcome shares themselves. WITHOUT params.amount THE BUY SIDE GRANTS AN UNLIMITED (max uint256) ALLOWANCE, pass params.amount to bound it. sends real transactions signed with the privateKey and waits for each receipt, so the wallet needs BNB for gas
      * @see https://dev.predict.fun/how-to-create-or-cancel-orders-679306m0
-     * @param {string} [outcome] unified outcome handle, used to pick the exchange its market settles through
+     * @param {string} [outcome] unified outcome handle, used to pick the contracts its market settles through
      * @param {object} [params] extra parameters
+     * @param {string} [params.side] 'buy' for the collateral allowance (the default), 'sell' for the outcome share approval
      * @param {string} [params.spender] approve this contract instead of resolving it from the outcome
-     * @param {string} [params.token] the collateral token, defaults to USDT on the active chain
-     * @param {float} [params.amount] the allowance in USDT, unlimited when omitted
+     * @param {string} [params.token] the contract to grant on, defaults to USDT when buying and to the market's conditional tokens when selling
+     * @param {float} [params.amount] the allowance in USDT, unlimited when omitted, buy side only
+     * @param {bool} [params.approved] pass false to revoke instead of grant, sell side only
      * @param {string} [params.owner] the token holder, defaults to walletAddress or the address of the privateKey
      * @param {string} [params.rpcUrl] the rpc to broadcast through, defaults to the public endpoint for the chain
      * @param {string} [params.gasLimit] gas limit as hex, defaults to 0x186a0
-     * @returns {object} the transaction receipt
+     * @returns {object} the transaction receipt when buying, and the list of receipts when selling - a neg risk market needs two
      */
     async approve (outcome: Str = undefined, params = {}): Promise<any> {
         if (this.privateKey === undefined) {
             throw new ArgumentsRequired (this.id + ' approve() requires a privateKey to sign the on-chain transaction');
         }
+        const side = this.safeStringLower (params, 'side', 'buy');
         const chainId = this.safeInteger (this.options, 'chainId', 56);
         const chainKey = this.numberToString (chainId);
         const rpcUrls = this.safeDict (this.options, 'rpcUrls', {});
         const rpcUrl = this.safeString (params, 'rpcUrl', this.safeString (rpcUrls, chainKey));
-        const collaterals = this.safeDict (this.options, 'collateral', {});
-        const token = this.safeString (params, 'token', this.safeString (collaterals, chainKey));
-        let spender = this.safeString (params, 'spender');
-        if (spender === undefined) {
-            // which of the four exchanges settles a market is a property of the market, so an
-            // allowance granted for one of them buys nothing on the others
-            if (outcome === undefined) {
-                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the exchange to approve, or an explicit params.spender');
-            }
-            await this.loadOutcome (outcome);
-            const outcomeObj = this.outcome (outcome);
-            const marketSymbol = this.safeString (outcomeObj, 'market');
-            const marketObj = this.safeDict (this.markets, marketSymbol, {});
-            const marketRow = this.safeDict (marketObj, 'info', {});
-            const isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
-            const isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
-            spender = this.exchangeAddress (isNegRisk, isYieldBearing);
-        }
-        if ((rpcUrl === undefined) || (token === undefined) || (spender === undefined)) {
-            throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl, the token or the spender for chain ' + chainKey);
-        }
         let owner = this.safeString (params, 'owner', this.walletAddress);
         if (owner === undefined) {
             owner = this.ethGetAddressFromPrivateKey (this.privateKey);
         }
         const gasLimit = this.safeString (params, 'gasLimit', '0x186a0');
+        // which of the four exchanges settles a market is a property of the market, so an
+        // approval granted for one of them is worth nothing on the others
+        let isNegRisk = false;
+        let isYieldBearing = false;
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            const marketSymbol = this.safeString (outcomeObj, 'market');
+            const marketObj = this.safeDict (this.markets, marketSymbol, {});
+            const marketRow = this.safeDict (marketObj, 'info', {});
+            isNegRisk = this.safeBool (marketRow, 'isNegRisk', false);
+            isYieldBearing = this.safeBool (marketRow, 'isYieldBearing', false);
+        }
+        if (side === 'sell') {
+            const ctfToken = this.safeString (params, 'token', this.conditionalTokensAddress (isNegRisk, isYieldBearing));
+            const operators: any[] = [];
+            const explicitOperator = this.safeString (params, 'spender');
+            if (explicitOperator !== undefined) {
+                operators.push (explicitOperator);
+            } else if (outcome === undefined) {
+                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the contracts to approve for selling, or an explicit spender in params');
+            } else {
+                operators.push (this.exchangeAddress (isNegRisk, isYieldBearing));
+                // a neg risk match mints and merges through the adapter, which moves the seller's
+                // shares itself, so approving the exchange alone leaves the sell side half open
+                if (isNegRisk) {
+                    operators.push (this.adapterAddress (isYieldBearing));
+                }
+            }
+            if ((rpcUrl === undefined) || (ctfToken === undefined)) {
+                throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl or the conditional tokens for chain ' + chainKey);
+            }
+            const approved = this.safeBool (params, 'approved', true);
+            let approvedHex = '0000000000000000000000000000000000000000000000000000000000000000';
+            if (approved) {
+                approvedHex = '0000000000000000000000000000000000000000000000000000000000000001';
+            }
+            const receipts: any[] = [];
+            const operatorsLength = operators.length;
+            for (let i = 0; i < operatorsLength; i++) {
+                const operatorAddress = operators[i];
+                if (operatorAddress === undefined) {
+                    throw new ArgumentsRequired (this.id + ' approve() could not resolve the operator to approve for chain ' + chainKey);
+                }
+                // setApprovalForAll(operator, approved) -> selector 0xa22cb465
+                const approvalData = '0xa22cb465' + this.padHexAddress (operatorAddress) + approvedHex;
+                // each receipt is awaited before the next transaction goes out, so the nonce the
+                // second one looks up already counts the first
+                const approvalHash = await this.sendEvmTransaction (rpcUrl, chainId, owner, ctfToken, '0x0', approvalData, gasLimit);
+                const receipt = await this.waitForTransactionReceipt (rpcUrl, approvalHash);
+                receipts.push (receipt);
+            }
+            return receipts;
+        }
+        const collaterals = this.safeDict (this.options, 'collateral', {});
+        const token = this.safeString (params, 'token', this.safeString (collaterals, chainKey));
+        let spender = this.safeString (params, 'spender');
+        if (spender === undefined) {
+            if (outcome === undefined) {
+                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the exchange to approve, or an explicit spender in params');
+            }
+            spender = this.exchangeAddress (isNegRisk, isYieldBearing);
+        }
+        if ((rpcUrl === undefined) || (token === undefined) || (spender === undefined)) {
+            throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl, the token or the spender for chain ' + chainKey);
+        }
         let amountHex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
         const amount = this.safeString (params, 'amount');
         if (amount !== undefined) {
