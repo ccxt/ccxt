@@ -8,12 +8,12 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testStringToBase64();
 
-void testStringToBase64()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    // todo: add single & double quotes in transpilable manner
-    assertTrue(isEqual(exchange.stringToBase64(std::string("hello world 123!@#$%^&*()\"-+)S")), std::string("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")));
+void testStringToBase64() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  // todo: add single & double quotes in transpilable manner
+  assertTrue(isEqual(
+      exchange.stringToBase64(std::string("hello world 123!@#$%^&*()\"-+)S")),
+      std::string("aGVsbG8gd29ybGQgMTIzIUAjJCVeJiooKSItKylT")));
 }
-

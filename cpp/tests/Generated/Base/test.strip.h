@@ -8,18 +8,19 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testStrip();
 
-void testStrip()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    assertTrue(isEqual(exchange.strip(std::string(" asd")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("    asd")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("asd ")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("asd    ")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string(" asd ")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("    asd    ")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("asd")), std::string("asd")));
-    assertTrue(isEqual(exchange.strip(std::string("")), std::string("")));
+void testStrip() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  assertTrue(isEqual(exchange.strip(std::string(" asd")), std::string("asd")));
+  assertTrue(
+      isEqual(exchange.strip(std::string("    asd")), std::string("asd")));
+  assertTrue(isEqual(exchange.strip(std::string("asd ")), std::string("asd")));
+  assertTrue(
+      isEqual(exchange.strip(std::string("asd    ")), std::string("asd")));
+  assertTrue(isEqual(exchange.strip(std::string(" asd ")), std::string("asd")));
+  assertTrue(
+      isEqual(exchange.strip(std::string("    asd    ")), std::string("asd")));
+  assertTrue(isEqual(exchange.strip(std::string("asd")), std::string("asd")));
+  assertTrue(isEqual(exchange.strip(std::string("")), std::string("")));
 }
-

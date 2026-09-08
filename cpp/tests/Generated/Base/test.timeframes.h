@@ -10,42 +10,57 @@ void testRoundTimeframe();
 void testParseTimeframe();
 void testTimeframes();
 
-void testRoundTimeframe()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    std::any testDate = exchange.parse8601(std::string("2019-08-12 13:22:08"));
-    if (isTrue(isEqual(testDate, std::any{})))
-    {
-        return;
-    }
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("5m"), testDate, ROUND_DOWN), exchange.parse8601(std::string("2019-08-12 13:20:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("10m"), testDate, ROUND_DOWN), exchange.parse8601(std::string("2019-08-12 13:20:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("30m"), testDate, ROUND_DOWN), exchange.parse8601(std::string("2019-08-12 13:00:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("1d"), testDate, ROUND_DOWN), exchange.parse8601(std::string("2019-08-12 00:00:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("5m"), testDate, ROUND_UP), exchange.parse8601(std::string("2019-08-12 13:25:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("10m"), testDate, ROUND_UP), exchange.parse8601(std::string("2019-08-12 13:30:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("30m"), testDate, ROUND_UP), exchange.parse8601(std::string("2019-08-12 13:30:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("1h"), testDate, ROUND_UP), exchange.parse8601(std::string("2019-08-12 14:00:00"))));
-    assertTrue(isEqual(exchange.roundTimeframe(std::string("1d"), testDate, ROUND_UP), exchange.parse8601(std::string("2019-08-13 00:00:00"))));
+void testRoundTimeframe() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  std::any testDate = exchange.parse8601(std::string("2019-08-12 13:22:08"));
+  if (isTrue(isEqual(testDate, std::any{}))) {
+    return;
+  }
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("5m"), testDate, ROUND_DOWN),
+              exchange.parse8601(std::string("2019-08-12 13:20:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("10m"), testDate, ROUND_DOWN),
+              exchange.parse8601(std::string("2019-08-12 13:20:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("30m"), testDate, ROUND_DOWN),
+              exchange.parse8601(std::string("2019-08-12 13:00:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("1d"), testDate, ROUND_DOWN),
+              exchange.parse8601(std::string("2019-08-12 00:00:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("5m"), testDate, ROUND_UP),
+              exchange.parse8601(std::string("2019-08-12 13:25:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("10m"), testDate, ROUND_UP),
+              exchange.parse8601(std::string("2019-08-12 13:30:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("30m"), testDate, ROUND_UP),
+              exchange.parse8601(std::string("2019-08-12 13:30:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("1h"), testDate, ROUND_UP),
+              exchange.parse8601(std::string("2019-08-12 14:00:00"))));
+  assertTrue(
+      isEqual(exchange.roundTimeframe(std::string("1d"), testDate, ROUND_UP),
+              exchange.parse8601(std::string("2019-08-13 00:00:00"))));
 }
-void testParseTimeframe()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1m")), 60));
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("5m")), 300));
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1h")), 3600));
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1d")), 86400));
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1w")), 604800));
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1M")), 2592000)); // todo: just approx
-    assertTrue(isEqual(exchange.parseTimeframe(std::string("1y")), 31536000)); // todo: just approx
+void testParseTimeframe() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1m")), 60));
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("5m")), 300));
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1h")), 3600));
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1d")), 86400));
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1w")), 604800));
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1M")),
+                     2592000)); // todo: just approx
+  assertTrue(isEqual(exchange.parseTimeframe(std::string("1y")),
+                     31536000)); // todo: just approx
 }
-void testTimeframes()
-{
-    testRoundTimeframe();
-    testParseTimeframe();
+void testTimeframes() {
+  testRoundTimeframe();
+  testParseTimeframe();
 }
-

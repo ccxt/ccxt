@@ -10,29 +10,33 @@ void testEncode();
 void testDecode();
 void testEncodeDecode();
 
-void testEncode()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    std::any input = std::string("encode-test");
-    std::any encoded = exchange.encode(input);
-    std::any decoded = exchange.decode(encoded);
-    assertTrue(isEqual(decoded, input), add(add(add(std::string("decoded should be equal to input, got "), decoded), std::string(" instead of ")), input));
+void testEncode() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  std::any input = std::string("encode-test");
+  std::any encoded = exchange.encode(input);
+  std::any decoded = exchange.decode(encoded);
+  assertTrue(isEqual(decoded, input),
+             add(add(add(std::string("decoded should be equal to input, got "),
+                         decoded),
+                     std::string(" instead of ")),
+                 input));
 }
-void testDecode()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    std::any input = std::string("decode-test");
-    std::any encoded = exchange.encode(input);
-    std::any decoded = exchange.decode(encoded);
-    assertTrue(isEqual(decoded, input), add(add(add(std::string("decoded should be equal to input, got "), decoded), std::string(" instead of ")), input));
+void testDecode() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  std::any input = std::string("decode-test");
+  std::any encoded = exchange.encode(input);
+  std::any decoded = exchange.decode(encoded);
+  assertTrue(isEqual(decoded, input),
+             add(add(add(std::string("decoded should be equal to input, got "),
+                         decoded),
+                     std::string(" instead of ")),
+                 input));
 }
-void testEncodeDecode()
-{
-    testEncode();
-    testDecode();
+void testEncodeDecode() {
+  testEncode();
+  testDecode();
 }
-

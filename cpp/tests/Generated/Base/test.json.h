@@ -8,20 +8,18 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testJson();
 
-void testJson()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("regirock") },
-    });
-    // Test: object
-    std::any obj = ccxt::dict {
-        { std::string("k"), std::string("v") },
-    };
-    std::any objJson = exchange.json(obj);
-    assertTrue(isEqual(objJson, std::string("{\"k\":\"v\"}")));
-    // Test: list
-    std::any list = ccxt::list{1, 2};
-    std::any listJson = exchange.json(list);
-    assertTrue(isEqual(listJson, std::string("[1,2]")));
+void testJson() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("regirock")},
+  });
+  // Test: object
+  std::any obj = ccxt::dict{
+      {std::string("k"), std::string("v")},
+  };
+  std::any objJson = exchange.json(obj);
+  assertTrue(isEqual(objJson, std::string("{\"k\":\"v\"}")));
+  // Test: list
+  std::any list = ccxt::list{1, 2};
+  std::any listJson = exchange.json(list);
+  assertTrue(isEqual(listJson, std::string("[1,2]")));
 }
-

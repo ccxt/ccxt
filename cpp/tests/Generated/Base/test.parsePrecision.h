@@ -8,14 +8,16 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testParsePrecision();
 
-void testParsePrecision()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    assertTrue(isEqual(exchange.parsePrecision(std::string("15")), std::string("0.000000000000001")));
-    assertTrue(isEqual(exchange.parsePrecision(std::string("1")), std::string("0.1")));
-    assertTrue(isEqual(exchange.parsePrecision(std::string("0")), std::string("1")));
-    assertTrue(isEqual(exchange.parsePrecision(std::string("-5")), std::string("100000")));
+void testParsePrecision() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  assertTrue(isEqual(exchange.parsePrecision(std::string("15")),
+                     std::string("0.000000000000001")));
+  assertTrue(
+      isEqual(exchange.parsePrecision(std::string("1")), std::string("0.1")));
+  assertTrue(
+      isEqual(exchange.parsePrecision(std::string("0")), std::string("1")));
+  assertTrue(isEqual(exchange.parsePrecision(std::string("-5")),
+                     std::string("100000")));
 }
-
