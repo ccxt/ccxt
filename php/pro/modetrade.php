@@ -109,7 +109,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_order_book(string $symbol, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/orderbook
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/orderbook
          *
          * watches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
@@ -176,7 +176,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_ticker(string $symbol, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-ticker
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-ticker
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific $market
          * @param {string} $symbol unified $symbol of the $market to fetch the ticker for
@@ -272,7 +272,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_tickers(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/24-hour-$tickers
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/24-hour-$tickers
          *
          * watches a price ticker, a statistical calculation with the information calculated over the past 24 hours for all markets of a specific list
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -335,7 +335,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/bbos
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/bbos
          *
          * watches best bid & ask for $symbols
          * @param {string[]} $symbols unified symbol of the market to fetch the ticker for
@@ -413,7 +413,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches historical candlestick data containing the open, high, low, and close price, and the volume of a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/k-line
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/k-line
          *
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
@@ -501,7 +501,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $trades made in a $market
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/public/trade
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/public/trade
          *
          * @param {string} $symbol unified $market $symbol of the $market $trades were made in
          * @param {int} [$since] the earliest time in ms to fetch $trades for
@@ -730,8 +730,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple $orders made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -772,8 +772,8 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watches information on multiple trades made by the user
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/execution-report
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/algo-execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/execution-report
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/algo-execution-report
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
@@ -1065,7 +1065,7 @@ class modetrade extends \ccxt\async\modetrade {
     private function do_watch_positions(?array $symbols = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/position-push
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/position-push
          *
          * watch all open positions
          * @param {string[]} [$symbols] list of unified market $symbols
@@ -1277,7 +1277,7 @@ class modetrade extends \ccxt\async\modetrade {
         /**
          * watch balance and get the amount of funds available for trading or funds locked in orders
          *
-         * @see https://orderly.network/docs/build-on-evm/evm-api/websocket-api/private/balance
+         * @see https://orderly.network/docs/build-on-omnichain/websocket-api/private/balance
          *
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} a ~@link https://docs.ccxt.com/?id=balance-structure balance structure~

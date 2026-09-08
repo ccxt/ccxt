@@ -5255,8 +5255,10 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} $params->fromAccount(mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
-         * @param {string} $params->toAccount(mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+         * @param {string} [$params->fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless $transferId is provided
+         * @param {string} [$params->toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless $transferId is provided
+         * @param {string} [$params->transferId] the transfer ID, either $transferId or both $fromAccount and $toAccount are required
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
          * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
@@ -5271,10 +5273,11 @@ class bingx extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromAccount = $this->safe_string($params, 'fromAccount');
         $toAccount = $this->safe_string($params, 'toAccount');
+        $transferId = $this->safe_string($params, 'transferId');
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === null || $toId === null) {
-            throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameters are required');
+        if (($transferId === null) && (($fromId === null) || ($toId === null))) {
+            throw new ExchangeError($this->id . ' fetchTransfers() requires $params["transferId"] or both $params["fromAccount"] and $params["toAccount"]');
         }
         if ($fromAccount !== null) {
             $request['fromAccount'] = $fromId;
@@ -5293,7 +5296,7 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['pageSize'] = min($limit, $maxLimit);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = $this->apiV3PrivateGetAssetTransferRecord($this->extend($request, $params));

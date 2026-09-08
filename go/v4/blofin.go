@@ -19,7 +19,7 @@ func (this *BlofinCore) Describe() any {
 		"name":      "BloFin",
 		"countries": []any{"US"},
 		"version":   "v1",
-		"rateLimit": 100,
+		"rateLimit": 200,
 		"pro":       true,
 		"has": map[string]any{
 			"CORS":                                 nil,
@@ -251,34 +251,34 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"trade/orders-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-detail": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-tpsl-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-tpsl-detail": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-algo-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-tpsl-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-algo-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/fills-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order/price-range": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"affiliate/basic": map[string]any{
 						"cost": 1,
@@ -323,19 +323,19 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"copytrading/trade/orders-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/pending-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/position-history-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/orders-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/pending-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"user/query-apikey": map[string]any{
 						"cost": 1,
@@ -352,70 +352,70 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"account/set-margin-mode": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"account/set-position-mode": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"account/set-leverage": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/batch-orders": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-tpsl": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-algo": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-batch-orders": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-tpsl": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-algo": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/close-position": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/account/set-position-mode": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/account/set-leverage": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/close-position-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/close-position-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 				},
 			},

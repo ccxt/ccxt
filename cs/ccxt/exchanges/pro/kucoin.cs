@@ -3849,10 +3849,15 @@ public partial class kucoin : ccxt.kucoin
         string? data = this.safeString2(message, "data", "reason", "");
         if (isTrue(isEqual(data, "token is expired")))
         {
-            string type = "public";
+            object type = "public";
             if (isTrue(isGreaterThanOrEqual(getIndexOf(client.url, "connectId=private"), 0)))
             {
                 type = "private";
+            }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if (isTrue(isGreaterThanOrEqual(getIndexOf(client.url, add(add("connectId=", type), "Futures")), 0)))
+            {
+                type = add(type, "Futures");
             }
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }

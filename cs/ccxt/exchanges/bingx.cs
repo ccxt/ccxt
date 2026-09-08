@@ -5416,8 +5416,10 @@ public partial class bingx : Exchange
      * @param {int} [since] the earliest time in ms to fetch transfers for
      * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
-     * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+     * @param {string} [params.fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided
+     * @param {string} [params.toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+     * @param {string} [params.transferId] the transfer ID, either transferId or both fromAccount and toAccount are required
+     * @param {int} [params.until] the latest time in ms to fetch transfers for
      * @param {boolean} [params.paginate] whether to paginate the results (default false)
      * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
@@ -5437,11 +5439,12 @@ public partial class bingx : Exchange
         object accountsByType = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         string? fromAccount = this.safeString(parameters, "fromAccount");
         string? toAccount = this.safeString(parameters, "toAccount");
+        string? transferId = this.safeString(parameters, "transferId");
         string? fromId = this.safeString(accountsByType, fromAccount, fromAccount);
         string? toId = this.safeString(accountsByType, toAccount, toAccount);
-        if (isTrue(isTrue(isEqual(fromId, null)) || isTrue(isEqual(toId, null))))
+        if (isTrue(isTrue((isEqual(transferId, null))) && isTrue((isTrue((isEqual(fromId, null))) || isTrue((isEqual(toId, null)))))))
         {
-            throw new ExchangeError ((string)add(this.id, " fromAccount & toAccount parameters are required")) ;
+            throw new ExchangeError ((string)add(this.id, " fetchTransfers() requires params[\"transferId\"] or both params[\"fromAccount\"] and params[\"toAccount\"]")) ;
         }
         if (isTrue(!isEqual(fromAccount, null)))
         {
@@ -5467,7 +5470,7 @@ public partial class bingx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["pageSize"] = limit;
+            ((IDictionary<string,object>)request)["pageSize"] = mathMin(limit, maxLimit);
         }
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];

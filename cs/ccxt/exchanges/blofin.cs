@@ -12,7 +12,7 @@ public partial class blofin : Exchange
             { "name", "BloFin" },
             { "countries", new List<object>() {"US"} },
             { "version", "v1" },
-            { "rateLimit", 100 },
+            { "rateLimit", 200 },
             { "pro", true },
             { "has", new Dictionary<string, object>() {
                 { "CORS", null },
@@ -244,34 +244,34 @@ public partial class blofin : Exchange
                             { "cost", 1 },
                         } },
                         { "trade/orders-pending", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order-detail", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/orders-tpsl-pending", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order-tpsl-detail", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/orders-algo-pending", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/orders-history", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/orders-tpsl-history", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/orders-algo-history", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/fills-history", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order/price-range", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "affiliate/basic", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -316,19 +316,19 @@ public partial class blofin : Exchange
                             { "cost", 1 },
                         } },
                         { "copytrading/trade/orders-pending", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/pending-tpsl-by-contract", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/position-history-by-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/orders-history", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/pending-tpsl-by-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "user/query-apikey", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -345,70 +345,70 @@ public partial class blofin : Exchange
                             { "cost", 1 },
                         } },
                         { "account/set-margin-mode", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "account/set-position-mode", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "account/set-leverage", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/batch-orders", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order-tpsl", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/order-algo", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/cancel-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/cancel-batch-orders", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/cancel-tpsl", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/cancel-algo", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "trade/close-position", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/account/set-position-mode", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/account/set-leverage", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/place-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/cancel-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/place-tpsl-by-contract", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/cancel-tpsl-by-contract", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/place-tpsl-by-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/cancel-tpsl-by-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/close-position-by-order", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                         { "copytrading/trade/close-position-by-contract", new Dictionary<string, object>() {
-                            { "cost", 1 },
+                            { "cost", 1.67 },
                         } },
                     } },
                 } },

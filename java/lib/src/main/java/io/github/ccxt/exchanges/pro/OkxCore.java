@@ -60,7 +60,6 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "watchOrderBook", new java.util.HashMap<String, Object>() {{
-                    put( "checksum", true );
                     put( "depth", "books" );
                 }} );
                 put( "watchBalance", "spot" );
@@ -943,7 +942,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchliquidationsForSymbols", market, parameters);
+            var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object channel = "liquidation-orders";

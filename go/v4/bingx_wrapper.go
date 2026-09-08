@@ -1101,8 +1101,10 @@ func (this *Bingx) Transfer(code string, amount float64, fromAccount string, toA
  * @param {int} [since] the earliest time in ms to fetch transfers for
  * @param {int} [limit] the maximum number of transfers structures to retrieve (default 10, max 100)
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} params.fromAccount (mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
- * @param {string} params.toAccount (mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+ * @param {string} [params.fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided
+ * @param {string} [params.toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided
+ * @param {string} [params.transferId] the transfer ID, either transferId or both fromAccount and toAccount are required
+ * @param {int} [params.until] the latest time in ms to fetch transfers for
  * @param {boolean} [params.paginate] whether to paginate the results (default false)
  * @returns {object[]} a list of [transfer structures]{@link https://docs.ccxt.com/?id=transfer-structure}
  */
