@@ -832,7 +832,6 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'margin': (marginTradingEnable == '1'),
                 'swap': False,
                 'future': False,
-                'delivery': False,
                 'option': False,
                 'active': active,
                 'contract': False,

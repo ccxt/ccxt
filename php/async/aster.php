@@ -4160,7 +4160,7 @@ class aster extends Exchange {
         );
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_account_positions(...))($symbols, $params);
     }
 

@@ -1354,7 +1354,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //    }
         //
         Object data = this.safeDict(message, "data");
-        Object marketId = this.safeStringLower(data, "s");
+        String marketId = (String)this.safeStringLower(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object trade = this.parseTrade(data);

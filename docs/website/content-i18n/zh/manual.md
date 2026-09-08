@@ -48,7 +48,7 @@ ccxt 库是一组可用的加密货币*交易所*或交易所类的集合。每�
     +=============================================================+
 ```
 
-所有交易所的完整公共和私有 HTTP REST API 均已在 JavaScript、Python、PHP、C#、Go 和 Java 中实现。WebSocket 实现可在 [CCXT Pro](https://ccxt.pro) 中获得，支持 WebSocket 数据流。
+所有交易所的完整公共和私有 HTTP REST API 均已在 JavaScript、Python、PHP、C#、Go、Java 和 Rust 中实现。WebSocket 实现可在 [CCXT Pro](https://ccxt.pro) 中获得，支持 WebSocket 数据流。
 
 - [**交易所**](#exchanges)
 - [**市场**](#markets)

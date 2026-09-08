@@ -215,7 +215,7 @@ fetches information on open orders with bid (buy) and ask (sell) prices, volumes
 | Param | Type | Required | Description |
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified symbol of the market to fetch the order book for |
-| limit | <code>int</code> | No | the maximum amount of order book entries to return |
+| limit | <code>int</code> | No | the maximum amount of order book entries to return (max 1000) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 
 
@@ -1028,8 +1028,10 @@ fetch a history of internal transfers made on an account
 | since | <code>int</code> | No | the earliest time in ms to fetch transfers for |
 | limit | <code>int</code> | No | the maximum number of transfers structures to retrieve (default 10, max 100) |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
-| params.fromAccount | <code>string</code> | Yes | (mandatory) transfer from (spot, swap (linear or inverse), future, or funding) |
-| params.toAccount | <code>string</code> | Yes | (mandatory) transfer to (spot, swap(linear or inverse), future, or funding) |
+| params.fromAccount | <code>string</code> | No | transfer from (spot, swap (linear or inverse), future, or funding), required unless transferId is provided |
+| params.toAccount | <code>string</code> | No | transfer to (spot, swap(linear or inverse), future, or funding), required unless transferId is provided |
+| params.transferId | <code>string</code> | No | the transfer ID, either transferId or both fromAccount and toAccount are required |
+| params.until | <code>int</code> | No | the latest time in ms to fetch transfers for |
 | params.paginate | <code>boolean</code> | No | whether to paginate the results (default false) |
 
 

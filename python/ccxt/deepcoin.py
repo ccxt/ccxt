@@ -407,7 +407,7 @@ class deepcoin(Exchange, ImplicitAPI):
             result = self.array_concat(result, promises[i])
         return result
 
-    def fetch_markets_by_type(self, type: object, params={}):
+    def fetch_markets_by_type(self, type: object, params={}) -> list[Market]:
         request = {
             'instType': self.convert_to_instrument_type(type),
         }
@@ -2454,16 +2454,16 @@ class deepcoin(Exchange, ImplicitAPI):
             'contractSize': None,
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'lever')),
+            'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
-            'liquidationPrice': self.safe_string(position, 'liqPx'),
+            'liquidationPrice': self.safe_number(position, 'liqPx'),
             'marginMode': self.safe_string(position, 'mgnMode'),
             'hedged': True,
-            'maintenanceMargin': self.safe_string(position, 'useMargin'),
+            'maintenanceMargin': self.safe_number(position, 'useMargin'),
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,

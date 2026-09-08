@@ -43,15 +43,14 @@ import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook, OrderBook
 // ----------------------------------------------------------------------------
 //
 // import types
-import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan } from './types.js';
+import type { Market, Trade, Ticker, OHLCV, OHLCVC, Order, OrderBook, Balance, Balances, Dictionary, Transaction, Currency, MinMax, IndexType, NullableIndexType, Int, OrderType, OrderSide, Position, FundingRate, DepositWithdrawFee, DepositWithdrawFees, LedgerEntry, BorrowInterest, OpenInterest, LeverageTier, TransferEntry, FundingRateHistory, Liquidation, FundingHistory, OrderRequest, MarginMode, Tickers, Greeks, Option, OptionChain, Str, Num, MarketInterface, CurrencyInterface, BalanceAccount, MarginModes, MarketType, Leverage, Leverages, LastPrice, LastPrices, Account, Strings, MarginModification, TradingFeeInterface, Currencies, TradingFees, Conversion, CancellationRequest, IsolatedBorrowRate, IsolatedBorrowRates, CrossBorrowRates, CrossBorrowRate, Dict, FundingRates, LeverageTiers, Bool, int, DepositAddress, LongShortRatio, OrderBooks, OpenInterests, ConstructorArgs, ADL, NullableDict, SubType, NestedDictionary, List, NullableList, Status, PositionModeInfo, MarginLoan, AllGreeks, DepositAddresses } from './types.js';
 // ----------------------------------------------------------------------------
 // move this elsewhere.
 import { ArrayCache, ArrayCacheByTimestamp } from './ws/Cache.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
-import * as Starknet from '../static_dependencies/starknet/index.js';
+import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 
 const {
@@ -193,7 +192,7 @@ export class BaseExchange {
     [key: string]: any;
 
     // this is updated by vss.js when building
-    static ccxtVersion = '4.5.77';
+    static ccxtVersion = '4.5.78';
 
     options: Dict;
 
@@ -951,12 +950,15 @@ export class BaseExchange {
                     // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
                     // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
                     //
-                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
-                    // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
-                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
-                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
-                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    // note: keep the undici dependency at >= 7.29.1 - the GHSA-35p6-xmwp-9g52 mitigation
+                    // ("idle socket validation", 7.28.0+) originally deferred every write on an idle
+                    // kept-alive socket behind a setTimeout(0) tick, ~1.3ms per sequential request, which
+                    // is why this codebase once pinned 7.27.x - resolved upstream by running the
+                    // validation off a ref'd setImmediate instead (issue
+                    // https://github.com/nodejs/undici/issues/5493, fixed via
+                    // https://github.com/nodejs/undici/pull/5499 and
+                    // https://github.com/nodejs/undici/pull/5707, in the 7.x line since 7.29.1) -
+                    // profiled: sequential keep-alive p50 1.74ms on 7.29.0 vs 0.43ms on 7.29.1
                     const undiciModule = await import (/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -1002,7 +1004,10 @@ export class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
+            // the per-attempt timeout is deliberately not set here: node tries addresses sequentially,
+            // aborting each attempt at the timeout before advancing, so any value below a plausible wan
+            // handshake rtt makes every such origin unreachable - omitting it defers to
+            // net.getDefaultAutoSelectFamilyAttemptTimeout() (250ms, tunable per host)
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -2098,7 +2103,7 @@ export class BaseExchange {
     }
 
     ethAbiEncode (types: any, args: any) {
-        return this.base16ToBinary (ethers.encode (types, args).slice (2));
+        return this.base16ToBinary (abiEncode (types, args).slice (2));
     }
 
     ethEncodeStructuredData (domain: any, messageTypes: any, messageData: any) {
@@ -2126,15 +2131,15 @@ export class BaseExchange {
     retrieveStarkAccount (signature: any, accountClassHash: any, accountProxyClassHash: any) {
         const privateKey = ethSigToPrivate (signature);
         const publicKey = getStarkKey (privateKey);
-        const callData = Starknet.CallData.compile ({
+        const callData = Starknet.compileCalldata ({
             'implementation': accountClassHash,
-            'selector': Starknet.hash.getSelectorFromName ('initialize'),
-            'calldata': Starknet.CallData.compile ({
+            'selector': Starknet.getSelectorFromName ('initialize'),
+            'calldata': Starknet.compileCalldata ({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = Starknet.hash.calculateContractAddressFromHash (
+        const address = Starknet.calculateContractAddressFromHash (
             publicKey,
             accountProxyClassHash,
             callData,
@@ -2164,7 +2169,7 @@ export class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = Starknet.typedData.getMessageHash (request, address);
+        const msgHash = Starknet.getMessageHash (request, address);
         return msgHash;
     }
 
@@ -2180,11 +2185,11 @@ export class BaseExchange {
     }
 
     extendedStarknetGetSelectorFromName (name: any) {
-        return Starknet.hash.getSelectorFromName (name);
+        return Starknet.getSelectorFromName (name);
     }
 
     extendedStarknetComputePoseidonHashOnElements (data: any) {
-        return Starknet.hash.computePoseidonHashOnElements (data);
+        return Starknet.computePoseidonHashOnElements (data);
     }
 
     async getZKContractSignatureObj (seed: any, params = {}) {
@@ -4006,7 +4011,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 
-    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         throw new NotSupported (this.id + ' fetchDepositAddressesByNetwork() is not supported yet');
     }
 
@@ -7178,7 +7183,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchGreeks() is not supported yet');
     }
 
-    async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+    async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
         throw new NotSupported (this.id + ' fetchAllGreeks() is not supported yet');
     }
 
@@ -7271,6 +7276,34 @@ export class BaseExchange {
             'used': undefined,
             'total': undefined,
         };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    mergeBalanceAccount (result: Dict, code: string, account: Dict): Dict {
+        if (!(code in result)) {
+            result[code] = account;
+            return result;
+        }
+        const fields = [ 'free', 'used', 'total', 'debt' ];
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const current = this.safeString (result[code], field);
+            const incoming = this.safeString (account, field);
+            if (current === undefined) {
+                result[code][field] = incoming;
+            } else if (incoming !== undefined) {
+                result[code][field] = Precise.stringAdd (current, incoming);
+            }
+        }
+        return result;
     }
 
     commonCurrencyCode (code: string) {
@@ -8734,7 +8767,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' parseGreeks () is not supported yet');
     }
 
-    parseAllGreeks (greeks: any, symbols: Strings = undefined, params = {}): Greeks[] {
+    parseAllGreeks (greeks: any, symbols: Strings = undefined, params = {}): AllGreeks {
         //
         // the value of greeks is either a dict or a list
         //

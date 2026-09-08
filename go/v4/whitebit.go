@@ -1196,7 +1196,7 @@ func (this *WhitebitCore) ParseDepositWithdrawFees(response any, optionalArgs ..
 				"percentage": Ternary(IsTrue((!IsEqual(depositFee, nil))), false, nil),
 			}
 			if IsTrue(!IsEqual(networkId, nil)) {
-				var networkLength any = GetLength(networkId)
+				var networkLength int = GetLength(networkId)
 				networkId = Slice(networkId, 1, Subtract(networkLength, 1))
 				var networkCode any = this.NetworkIdToCode(networkId, code)
 				if IsTrue(!IsEqual(networkCode, nil)) {
@@ -1824,7 +1824,7 @@ func (this *WhitebitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 				response := (<-this.V4PrivatePostOrders(this.Extend(request, params)))
 				PanicOnError(response)
 				// Search for order in active orders response (array format)
-				var orders any = this.ToArray(response)
+				var orders []any = this.ToArray(response)
 				for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 					var order any = GetValue(orders, i)
 					var orderId any = this.SafeString(order, "orderId")
@@ -2376,7 +2376,7 @@ func (this *WhitebitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 		"interval": this.SafeString(this.Timeframes, timeframe, timeframe),
 	}
 	if IsTrue(!IsEqual(since, nil)) {
-		var maxLimit any = 1440
+		var maxLimit int = 1440
 		if IsTrue(IsEqual(limit, nil)) {
 			limit = maxLimit
 		}
@@ -2957,7 +2957,7 @@ func (this *WhitebitCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	closedOrders := GetValue(openOrdersclosedOrdersVariable, 1)
 	var allOrders any = this.ArrayConcat(openOrders, closedOrders)
 	// Sort by timestamp (most recent first)
-	var sortedOrders any = this.SortBy(allOrders, "timestamp", true)
+	var sortedOrders []any = this.SortBy(allOrders, "timestamp", true)
 	// Apply limit if specified (since and symbol filtering already handled by individual methods)
 	if IsTrue(IsTrue(!IsEqual(limit, nil)) && IsTrue(IsGreaterThan(GetArrayLength(sortedOrders), limit))) {
 
@@ -4713,7 +4713,7 @@ func (this *WhitebitCore) ParseFundingHistories(contracts any, optionalArgs ...a
 		var contract any = GetValue(contracts, i)
 		AppendToArray(&result, this.ParseFundingHistory(contract, market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	return this.FilterBySinceLimit(sorted, since, limit)
 }
 
@@ -5372,7 +5372,7 @@ func (this *WhitebitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingRateHistory() requires a symbol argument")))
 	}
-	var maxLimit any = 100
+	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -5465,7 +5465,7 @@ func (this *WhitebitCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(accessibility, "private")) {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		var secret any = this.Encode(this.Secret)
+		var secret string = this.Encode(this.Secret)
 		var request any = Add(Add(Add(Add("/", "api"), "/"), version), pathWithParams)
 		nonceWindowrequestParamsVariable := this.HandleOptionAndParams(params, "sign", "nonceWindow", false)
 		nonceWindow := GetValue(nonceWindowrequestParamsVariable, 0)
@@ -5475,7 +5475,7 @@ func (this *WhitebitCore) Sign(path any, optionalArgs ...any) any {
 			"nonce":       nonce,
 			"nonceWindow": nonceWindow,
 		}, requestParams))
-		var payload any = this.StringToBase64(body)
+		var payload string = this.StringToBase64(body)
 		var signature string = this.Hmac(this.Encode(payload), secret, sha512)
 		headers = map[string]any{
 			"Content-Type":    "application/json",

@@ -1011,7 +1011,7 @@ class latoken extends Exchange {
         }
     }
 
-    public function fetch_public_trading_fee(string $symbol, $params = array()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_public_trading_fee(...))($symbol, $params);
     }
 
@@ -1043,7 +1043,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_private_trading_fee(string $symbol, $params = array()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_private_trading_fee(...))($symbol, $params);
     }
 

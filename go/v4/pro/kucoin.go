@@ -1103,7 +1103,7 @@ func (this *KucoinCore) watchMultiHelperBody(ch chan any, methodName any, channe
 	url := (<-this.Negotiate(false, isFuturesChannel))
 	ccxt.PanicOnError(url)
 	var marketIds any = this.MarketIds(symbols)
-	var joined any = ccxt.Join(marketIds, ",")
+	var joined string = ccxt.Join(marketIds, ",")
 	var requestId string = ccxt.ToString(this.RequestId())
 	var request map[string]any = map[string]any{
 		"id":       requestId,
@@ -3581,7 +3581,7 @@ func (this *KucoinCore) GetCurrentPosition(symbol any) any {
 	}
 	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
 	var symbolCache any = this.SafeValue(cache, symbol, map[string]any{})
-	var values any = ccxt.ObjectValues(symbolCache)
+	var values []any = ccxt.ObjectValues(symbolCache)
 	return this.SafeValue(values, 0)
 }
 func (this *KucoinCore) SetPositionsCache(client any, uta any) {
@@ -4218,9 +4218,13 @@ func (this *KucoinCore) HandleErrorMessage(client any, message any) any {
 	//
 	var data any = this.SafeString2(message, "data", "reason", "")
 	if ccxt.IsTrue(ccxt.IsEqual(data, "token is expired")) {
-		var typeVar string = "public"
+		var typeVar any = "public"
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), "connectId=private"), 0)) {
 			typeVar = "private"
+		}
+		// Match the negotiation cache key; spot tokens can also contain "Futures".
+		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(client.(ccxt.ClientInterface).GetUrl(), ccxt.Add(ccxt.Add("connectId=", typeVar), "Futures")), 0)) {
+			typeVar = ccxt.Add(typeVar, "Futures")
 		}
 		ccxt.AddElementToObject(ccxt.GetValue(this.Options, "urls"), typeVar, nil)
 	}

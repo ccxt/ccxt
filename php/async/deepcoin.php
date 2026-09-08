@@ -419,7 +419,7 @@ class deepcoin extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_by_type(...))($type, $params);
     }
 
@@ -2754,16 +2754,16 @@ class deepcoin extends Exchange {
             'contractSize' => null,
             'side' => $this->safe_string($position, 'posSide'),
             'notional' => null,
-            'leverage' => $this->omit_zero($this->safe_string($position, 'lever')),
+            'leverage' => $this->parse_number($this->omit_zero($this->safe_string($position, 'lever'))),
             'unrealizedPnl' => null,
             'realizedPnl' => null,
             'collateral' => null,
             'entryPrice' => $this->safe_number($position, 'avgPx'),
             'markPrice' => null,
-            'liquidationPrice' => $this->safe_string($position, 'liqPx'),
+            'liquidationPrice' => $this->safe_number($position, 'liqPx'),
             'marginMode' => $this->safe_string($position, 'mgnMode'),
             'hedged' => true,
-            'maintenanceMargin' => $this->safe_string($position, 'useMargin'),
+            'maintenanceMargin' => $this->safe_number($position, 'useMargin'),
             'maintenanceMarginPercentage' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the official Bitvavo SDKs -->
 <!-- description: Bitvavo maintains Python and Node SDKs and has archived its Java, Go and PHP ones. Compared with CCXT on languages, streaming model and rate limits. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all seven of its languages with 74 unified capabilities and 17 streaming methods. -->
+<!-- summary: Bitvavo's Python and Node SDKs are maintained; its Java, Go and PHP wrappers are archived. CCXT covers Bitvavo in all eight of its languages with 74 unified capabilities and 17 streaming methods. -->
 <!-- weight: 100 -->
 
 # CCXT vs the official Bitvavo SDKs
@@ -13,7 +13,7 @@ That shapes the decision. If you write Python or JavaScript, you have a real ven
 ## TL;DR
 
 - **Pick the official SDK** if you are on Python or Node, Bitvavo is your only venue, and you want a client whose method names are Bitvavo's own — `ticker24h`, `placeOrder`, `getRemainingLimit` — mapping one-for-one onto their docs.
-- **Pick CCXT** if you are on any other language, or if Bitvavo is one of several venues: 74 unified capabilities, 33 of them `fetch*`, 17 `watch*` streaming methods and all 41 Bitvavo endpoints as implicit methods, in seven languages.
+- **Pick CCXT** if you are on any other language, or if Bitvavo is one of several venues: 74 unified capabilities, 33 of them `fetch*`, 17 `watch*` streaming methods and all 41 Bitvavo endpoints as implicit methods, in eight languages.
 - **The archived wrappers are the argument.** Bitvavo's Java, Go and PHP clients are read-only repositories now; the same Bitvavo integration in those languages ships in CCXT and is maintained alongside 103 other venues.
 
 ## At a glance
@@ -21,7 +21,7 @@ That shapes the decision. If you write Python or JavaScript, you have a real ven
 | | **CCXT** | **Official Bitvavo SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitvavo is one of them) | Bitvavo only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python and Node maintained; Java, Go and PHP wrappers archived |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python and Node maintained; Java, Go and PHP wrappers archived |
 | Packages to install | 1 (`ccxt`) | 1 per language (`python-bitvavo-api`, `bitvavo` on npm) |
 | Unified market data + trading API | yes — same method names across every exchange | no — Bitvavo's own request/response shapes |
 | Bitvavo capabilities implemented | 74 unified methods, 33 of them `fetch*` | full Bitvavo API surface |
@@ -141,9 +141,9 @@ Both give you a maintained local book — Bitvavo's SDKs do handle the snapshot-
 
 ## Where the differences actually bite
 
-### Four of seven languages have no maintained first-party client
+### Four of eight languages have no maintained first-party client
 
-Bitvavo's Java, Go and PHP wrappers are archived on GitHub — read-only, no further commits — and there has never been a C#/.NET one. CCXT covers Bitvavo in all seven of its targets from a single TypeScript source, so a Bitvavo integration is available and maintained in the language your execution service is actually written in:
+Bitvavo's Java, Go and PHP wrappers are archived on GitHub — read-only, no further commits — and there has never been a C#/.NET one. CCXT covers Bitvavo in all eight of its targets from a single TypeScript source, so a Bitvavo integration is available and maintained in the language your execution service is actually written in:
 
 <!-- tabs:start -->
 

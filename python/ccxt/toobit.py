@@ -2613,7 +2613,7 @@ class toobit(Exchange, ImplicitAPI):
         """
         return self.fetch_deposits_or_withdrawals_helper('withdrawals', code, since, limit, params)
 
-    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}):
+    def fetch_deposits_or_withdrawals_helper(self, type: object, code: object, since: object, limit: object, params={}) -> list[Transaction]:
         if self.markets is None:
             self.load_markets()
         currency = None
@@ -3016,12 +3016,12 @@ class toobit(Exchange, ImplicitAPI):
             'info': position,
             'id': self.safe_string(position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': self.safe_string(position, 'avgPrice'),
-            'markPrice': self.safe_string(position, 'markPrice'),
-            'lastPrice': self.safe_string(position, 'lastPrice'),
-            'notional': self.safe_string(position, 'positionValue'),
+            'entryPrice': self.safe_number(position, 'avgPrice'),
+            'markPrice': self.safe_number(position, 'markPrice'),
+            'lastPrice': self.safe_number(position, 'lastPrice'),
+            'notional': self.safe_number(position, 'positionValue'),
             'collateral': None,
-            'unrealizedPnl': self.safe_string(position, 'unrealizedPnL'),
+            'unrealizedPnl': self.safe_number(position, 'unrealizedPnL'),
             'side': side,
             'contracts': self.parse_number(quantity),
             'contractSize': None,
@@ -3030,7 +3030,7 @@ class toobit(Exchange, ImplicitAPI):
             'hedged': None,
             'maintenanceMargin': None,
             'maintenanceMarginPercentage': None,
-            'initialMargin': self.safe_string(position, 'margin'),
+            'initialMargin': self.safe_number(position, 'margin'),
             'initialMarginPercentage': None,
             'leverage': leverage,
             'liquidationPrice': None,

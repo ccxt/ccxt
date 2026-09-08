@@ -15,7 +15,7 @@ So the real comparison is **CCXT against your own client**, and the question is 
 ## TL;DR
 
 - **Write against the raw API** if you want field-for-field fidelity with Crypto.com's documentation, or if `cdcx-cli` already does what you need from a terminal or an AI agent.
-- **Pick CCXT** if you want spot, margin, swaps, futures and options behind one client that handles the signature scheme, per-endpoint rate limits, order-book maintenance and the UAT sandbox — in seven languages, with the same API on 103 other venues.
+- **Pick CCXT** if you want spot, margin, swaps, futures and options behind one client that handles the signature scheme, per-endpoint rate limits, order-book maintenance and the UAT sandbox — in eight languages, with the same API on 103 other venues.
 - **Choosing CCXT does not hide anything.** All 129 Crypto.com endpoints are generated as [implicit methods](/docs/exchanges/cryptocom/implicit-api).
 
 ## At a glance
@@ -23,7 +23,7 @@ So the real comparison is **CCXT against your own client**, and the question is 
 | | **CCXT** | **Raw Crypto.com Exchange API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Crypto.com is one of them) | Crypto.com only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | any; docs give reference samples in JavaScript, Python, C#, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | any; docs give reference samples in JavaScript, Python, C#, Java |
 | Official client library | `ccxt` — installable from every major package registry | none; `cdcx-cli` is a Rust CLI/MCP server/TUI, not a library |
 | Products in one client | spot, margin, swap, future, option | one API, but you model each product yourself |
 | Unified market data + trading API | yes — 58 unified capabilities, 26 `fetch*` methods | Crypto.com's own request/response shapes |

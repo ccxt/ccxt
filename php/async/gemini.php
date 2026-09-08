@@ -420,7 +420,7 @@ class gemini extends Exchange {
         return Async\await($this->fetch_currencies_from_web($params));
     }
 
-    public function fetch_currencies_from_web($params = array()) {
+    public function fetch_currencies_from_web($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_currencies_from_web(...))($params);
     }
 
@@ -544,7 +544,7 @@ class gemini extends Exchange {
         return Async\await($this->fetch_markets_from_api($params));
     }
 
-    public function fetch_markets_from_web($params = array()) {
+    public function fetch_markets_from_web($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_web(...))($params);
     }
 
@@ -660,7 +660,7 @@ class gemini extends Exchange {
         return $this->safe_bool($statuses, $status, true);
     }
 
-    public function fetch_usdt_markets($params = array()) {
+    public function fetch_usdt_markets($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_usdt_markets(...))($params);
     }
 
@@ -684,7 +684,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_from_api($params = array()) {
+    public function fetch_markets_from_api($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_api(...))($params);
     }
 
@@ -2044,11 +2044,10 @@ class gemini extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $groupedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
+        $indexedByNetwork = Async\await($this->fetch_deposit_addresses_by_network($code, $params));
         $networkCode = null;
         list($networkCode, $params) = $this->handle_network_code_and_params($params);
-        $networkGroup = $this->index_by($this->safe_value($groupedByNetwork, $networkCode), 'currency');
-        return $this->safe_value($networkGroup, $code);
+        return $this->safe_value($indexedByNetwork, $networkCode);
     }
 
     public function fetch_deposit_addresses_by_network(string $code, $params = array()): PromiseInterface {
@@ -2082,7 +2081,9 @@ class gemini extends Exchange {
         );
         $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $params)));
         $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
-        return $this->group_by($results, 'network');
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same)
+        return $this->index_by($results, 'network');
     }
 
     public function sign(mixed $path, mixed $api = 'public', $method = 'GET', $params = array(), ?array $headers = null, ?string $body = null) {

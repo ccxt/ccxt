@@ -818,7 +818,7 @@ func (this *FoxbitCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		PanicOnError(retRes69712)
 	}
 	var market any = this.Market(symbol)
-	var defaultLimit any = 20
+	var defaultLimit int = 20
 	var request map[string]any = map[string]any{
 		"market": GetValue(market, "id"),
 		"depth":  Ternary(IsTrue((IsEqual(limit, nil))), defaultLimit, limit),
@@ -1931,7 +1931,7 @@ func (this *FoxbitCore) fetchTransactionsBody(ch chan any, optionalArgs ...any) 
 	deposits := (<-this.FetchDeposits(code, since, limit, params))
 	PanicOnError(deposits)
 	var allTransactions any = this.ArrayConcat(withdrawals, deposits)
-	var result any = this.SortBy(allTransactions, "timestamp")
+	var result []any = this.SortBy(allTransactions, "timestamp")
 
 	ch <- result
 	return nil
@@ -2594,7 +2594,7 @@ func (this *FoxbitCore) Sign(path any, optionalArgs ...any) any {
 	var url any = Add(GetValue(GetValue(this.Urls, "api"), urlPath), fullPath)
 	params = this.Omit(params, this.ExtractParams(path))
 	var timestamp int64 = this.Milliseconds()
-	var query any = ""
+	var query string = ""
 	var signatureQuery any = ""
 	if IsTrue(IsEqual(method, "GET")) {
 		var paramKeys []string = ObjectKeys(params)

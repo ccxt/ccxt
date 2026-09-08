@@ -42,7 +42,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { TypesIR, IRType, IRField, ensureGeneratedBanner } from '../typesIR.js';
+import { TypesIR, IRType, IRField, resolveScalar, ensureGeneratedBanner } from '../typesIR.js';
 import { EmitterOutput, LanguageEmitter } from '../transpileTypes.js';
 
 const TYPES_DIR = path.join ('java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'types');
@@ -334,6 +334,19 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
         if (key === 'info') {
             return { 'javaType': 'Map<String, Object>', 'statements': [ BODY + 'this.info = TypeHelper.getInfo(data);' ], 'needsCollectors': false };
         }
+        return {
+            'javaType': 'Map<String, Object>',
+            'statements': [
+                BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
+                BODY + 'this.' + javaName + ' = ' + raw + ' instanceof Map ? (Map<String, Object>) ' + raw + ' : null;',
+            ],
+            'needsCollectors': false,
+        };
+    }
+    // `Dict` / `NullableDict` (= Dictionary<any>) is a free-form bag with no declared value
+    // type — the plain map, same as a non-info `any`. Only the aliases: a literal
+    // `Dictionary<any>` (CurrencyInterface.networks) keeps the class the port picked below.
+    if (field.kind === 'scalar' && resolveScalar (ir, stripNullish (field.tsType)) === 'Dictionary<any>') {
         return {
             'javaType': 'Map<String, Object>',
             'statements': [

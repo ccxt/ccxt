@@ -21,7 +21,7 @@ So this is a comparison between [CCXT](/docs/manual) and the client you write yo
 | | **CCXT** | **Raw WOO X API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (WOO X is one of them) | WOO X only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Official client library | — | none published for the exchange |
 | Install | `pip install ccxt` / `npm i ccxt` | your own HTTP and WebSocket client |
 | Products in one client | spot, margin and perpetual swap | one code path per endpoint family |

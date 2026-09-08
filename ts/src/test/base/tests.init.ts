@@ -18,6 +18,7 @@ import testNetworkMethods from './test.networkMethods.js';
 import testLanguageSpecific from './language_specific/test.languageSpecific.js';
 import testSafeMethods from './test.safeMethods.js';
 import testSafeTicker from './test.safeTicker.js';
+import testMergeBalanceAccount from './test.mergeBalanceAccount.js';
 import testJson from './test.json.js';
 import testIo from './test.io.js';
 import testExtractParams from './test.extractParams.js';
@@ -84,6 +85,7 @@ async function baseTestsInit () {
     testPrecise ();
     testSafeMethods ();
     testSafeTicker ();
+    testMergeBalanceAccount ();
     testBase58ToBinary ();
     testToArray ();
     testBinaryToBase58 ();

@@ -21,7 +21,7 @@ The question that decides between them: **do you trade both Poloniex spot and Po
 | | **CCXT** | **Official Poloniex SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Poloniex is one of them) | Poloniex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (spot), Python (futures), Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (spot), Python (futures), Java |
 | Install | `pip install ccxt` / `npm i ccxt` | `git clone` — `polosdk` is not published on PyPI |
 | Poloniex products in one client | spot and v3 futures | separate packages, separate clients |
 | Futures SDK status | same class, same release cadence | `polo-futures-sdk-python` is **archived**, last push July 2024 |

@@ -1939,7 +1939,7 @@ class bitget extends bitget$1["default"] {
             // use the api to determine if the account is uta or not
             let accountIsUTa = false;
             try {
-                await this.privateUtaGetV3AccountSettings(params);
+                await this.privateUtaGetV3AccountSettings();
                 accountIsUTa = true;
             }
             catch (e) {

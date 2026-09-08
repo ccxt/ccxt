@@ -58,6 +58,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static AllGreeks ToAllGreeks(object value)
+    {
+        return value is AllGreeks ? (AllGreeks)value : new AllGreeks(value);
+    }
+
+    public static List<AllGreeks> ToAllGreeksList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<AllGreeks>)
+        {
+            return (List<AllGreeks>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<AllGreeks>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is AllGreeks ? (AllGreeks)row : new AllGreeks(row));
+        }
+        return result;
+    }
+
     public static Balance ToBalance(object value)
     {
         return value is Balance ? (Balance)value : new Balance(value);
@@ -178,6 +202,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static CrossBorrowRates ToCrossBorrowRates(object value)
+    {
+        return value is CrossBorrowRates ? (CrossBorrowRates)value : new CrossBorrowRates(value);
+    }
+
+    public static List<CrossBorrowRates> ToCrossBorrowRatesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<CrossBorrowRates>)
+        {
+            return (List<CrossBorrowRates>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<CrossBorrowRates>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is CrossBorrowRates ? (CrossBorrowRates)row : new CrossBorrowRates(row));
+        }
+        return result;
+    }
+
     public static Currencies ToCurrencies(object value)
     {
         return value is Currencies ? (Currencies)value : new Currencies(value);
@@ -226,6 +274,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static DepositAddresses ToDepositAddresses(object value)
+    {
+        return value is DepositAddresses ? (DepositAddresses)value : new DepositAddresses(value);
+    }
+
+    public static List<DepositAddresses> ToDepositAddressesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<DepositAddresses>)
+        {
+            return (List<DepositAddresses>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<DepositAddresses>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is DepositAddresses ? (DepositAddresses)row : new DepositAddresses(row));
+        }
+        return result;
+    }
+
     public static DepositWithdrawFee ToDepositWithdrawFee(object value)
     {
         return value is DepositWithdrawFee ? (DepositWithdrawFee)value : new DepositWithdrawFee(value);
@@ -246,6 +318,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is DepositWithdrawFee ? (DepositWithdrawFee)row : new DepositWithdrawFee(row));
+        }
+        return result;
+    }
+
+    public static DepositWithdrawFees ToDepositWithdrawFees(object value)
+    {
+        return value is DepositWithdrawFees ? (DepositWithdrawFees)value : new DepositWithdrawFees(value);
+    }
+
+    public static List<DepositWithdrawFees> ToDepositWithdrawFeesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<DepositWithdrawFees>)
+        {
+            return (List<DepositWithdrawFees>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<DepositWithdrawFees>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is DepositWithdrawFees ? (DepositWithdrawFees)row : new DepositWithdrawFees(row));
         }
         return result;
     }
@@ -394,6 +490,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static IsolatedBorrowRates ToIsolatedBorrowRates(object value)
+    {
+        return value is IsolatedBorrowRates ? (IsolatedBorrowRates)value : new IsolatedBorrowRates(value);
+    }
+
+    public static List<IsolatedBorrowRates> ToIsolatedBorrowRatesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<IsolatedBorrowRates>)
+        {
+            return (List<IsolatedBorrowRates>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<IsolatedBorrowRates>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is IsolatedBorrowRates ? (IsolatedBorrowRates)row : new IsolatedBorrowRates(row));
+        }
+        return result;
+    }
+
     public static LastPrices ToLastPrices(object value)
     {
         return value is LastPrices ? (LastPrices)value : new LastPrices(value);
@@ -490,6 +610,54 @@ public partial class BaseExchange
         return result;
     }
 
+    public static LeverageTiers ToLeverageTiers(object value)
+    {
+        return value is LeverageTiers ? (LeverageTiers)value : new LeverageTiers(value);
+    }
+
+    public static List<LeverageTiers> ToLeverageTiersList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<LeverageTiers>)
+        {
+            return (List<LeverageTiers>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<LeverageTiers>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is LeverageTiers ? (LeverageTiers)row : new LeverageTiers(row));
+        }
+        return result;
+    }
+
+    public static Leverages ToLeverages(object value)
+    {
+        return value is Leverages ? (Leverages)value : new Leverages(value);
+    }
+
+    public static List<Leverages> ToLeveragesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Leverages>)
+        {
+            return (List<Leverages>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Leverages>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is Leverages ? (Leverages)row : new Leverages(row));
+        }
+        return result;
+    }
+
     public static Liquidation ToLiquidation(object value)
     {
         return value is Liquidation ? (Liquidation)value : new Liquidation(value);
@@ -558,6 +726,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is MarginMode ? (MarginMode)row : new MarginMode(row));
+        }
+        return result;
+    }
+
+    public static MarginModes ToMarginModes(object value)
+    {
+        return value is MarginModes ? (MarginModes)value : new MarginModes(value);
+    }
+
+    public static List<MarginModes> ToMarginModesList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<MarginModes>)
+        {
+            return (List<MarginModes>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<MarginModes>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is MarginModes ? (MarginModes)row : new MarginModes(row));
         }
         return result;
     }
@@ -658,6 +850,30 @@ public partial class BaseExchange
         return result;
     }
 
+    public static OpenInterests ToOpenInterests(object value)
+    {
+        return value is OpenInterests ? (OpenInterests)value : new OpenInterests(value);
+    }
+
+    public static List<OpenInterests> ToOpenInterestsList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<OpenInterests>)
+        {
+            return (List<OpenInterests>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<OpenInterests>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is OpenInterests ? (OpenInterests)row : new OpenInterests(row));
+        }
+        return result;
+    }
+
     public static Option ToOption(object value)
     {
         return value is Option ? (Option)value : new Option(value);
@@ -750,6 +966,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is OrderBook ? (OrderBook)row : new OrderBook(row));
+        }
+        return result;
+    }
+
+    public static OrderBooks ToOrderBooks(object value)
+    {
+        return value is OrderBooks ? (OrderBooks)value : new OrderBooks(value);
+    }
+
+    public static List<OrderBooks> ToOrderBooksList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<OrderBooks>)
+        {
+            return (List<OrderBooks>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<OrderBooks>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is OrderBooks ? (OrderBooks)row : new OrderBooks(row));
         }
         return result;
     }
@@ -870,6 +1110,30 @@ public partial class BaseExchange
         foreach (var row in rows)
         {
             result.Add(row is PredictionOrder ? (PredictionOrder)row : new PredictionOrder(row));
+        }
+        return result;
+    }
+
+    public static PredictionOrderBook ToPredictionOrderBook(object value)
+    {
+        return value is PredictionOrderBook ? (PredictionOrderBook)value : new PredictionOrderBook(value);
+    }
+
+    public static List<PredictionOrderBook> ToPredictionOrderBookList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<PredictionOrderBook>)
+        {
+            return (List<PredictionOrderBook>)values;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<PredictionOrderBook>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row is PredictionOrderBook ? (PredictionOrderBook)row : new PredictionOrderBook(row));
         }
         return result;
     }
@@ -1226,6 +1490,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.rank != null)
         {
             result["rank"] = typed.rank;
@@ -1280,13 +1548,25 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.code != null)
         {
             result["code"] = typed.code;
+        }
+        else
+        {
+            result["code"] = null;
         }
         if (typed.name != null)
         {
@@ -1310,6 +1590,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromAllGreeks(object value)
+    {
+        if (!(value is AllGreeks))
+        {
+            return value;
+        }
+        var typed = (AllGreeks)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.greeks != null)
+        {
+            var greeksTarget = result;
+            foreach (var entry in typed.greeks)
+            {
+                    greeksTarget[entry.Key] = FromGreeks(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromAllGreeksList(object values)
+    {
+        if (!(values is List<AllGreeks>))
+        {
+            return values;
+        }
+        var typed = (List<AllGreeks>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromAllGreeks(row));
+        }
+        return result;
+    }
+
     public static object FromBalance(object value)
     {
         if (!(value is Balance))
@@ -1322,13 +1640,25 @@ public partial class BaseExchange
         {
             result["free"] = typed.free;
         }
+        else
+        {
+            result["free"] = null;
+        }
         if (typed.used != null)
         {
             result["used"] = typed.used;
         }
+        else
+        {
+            result["used"] = null;
+        }
         if (typed.total != null)
         {
             result["total"] = typed.total;
+        }
+        else
+        {
+            result["total"] = null;
         }
         if (typed.debt != null)
         {
@@ -1348,6 +1678,88 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromBalance(row));
+        }
+        return result;
+    }
+
+    public static object FromBalances(object value)
+    {
+        if (!(value is Balances))
+        {
+            return value;
+        }
+        var typed = (Balances)value;
+        var result = new Dictionary<string, object>();
+        if (typed.balances != null)
+        {
+            var balancesTarget = result;
+            foreach (var entry in typed.balances)
+            {
+                    balancesTarget[entry.Key] = FromBalance(entry.Value);
+            }
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.free != null)
+        {
+            var freeTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.free)
+            {
+                freeTarget[entry.Key] = entry.Value;
+            }
+            result["free"] = freeTarget;
+        }
+        if (typed.used != null)
+        {
+            var usedTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.used)
+            {
+                usedTarget[entry.Key] = entry.Value;
+            }
+            result["used"] = usedTarget;
+        }
+        if (typed.total != null)
+        {
+            var totalTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.total)
+            {
+                totalTarget[entry.Key] = entry.Value;
+            }
+            result["total"] = totalTarget;
+        }
+        if (typed.debt != null)
+        {
+            var debtTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.debt)
+            {
+                debtTarget[entry.Key] = entry.Value;
+            }
+            result["debt"] = debtTarget;
+        }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        return result;
+    }
+
+    public static object FromBalancesList(object values)
+    {
+        if (!(values is List<Balances>))
+        {
+            return values;
+        }
+        var typed = (List<Balances>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromBalances(row));
         }
         return result;
     }
@@ -1438,29 +1850,57 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.fromCurrency != null)
         {
             result["fromCurrency"] = typed.fromCurrency;
+        }
+        else
+        {
+            result["fromCurrency"] = null;
         }
         if (typed.fromAmount != null)
         {
             result["fromAmount"] = typed.fromAmount;
         }
+        else
+        {
+            result["fromAmount"] = null;
+        }
         if (typed.toCurrency != null)
         {
             result["toCurrency"] = typed.toCurrency;
+        }
+        else
+        {
+            result["toCurrency"] = null;
         }
         if (typed.toAmount != null)
         {
             result["toAmount"] = typed.toAmount;
         }
+        else
+        {
+            result["toAmount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = typed.fee;
+        }
+        else
+        {
+            result["fee"] = null;
         }
         return result;
     }
@@ -1496,6 +1936,10 @@ public partial class BaseExchange
         {
             result["rate"] = typed.rate;
         }
+        else
+        {
+            result["rate"] = null;
+        }
         if (typed.period != null)
         {
             result["period"] = typed.period;
@@ -1530,6 +1974,230 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromCrossBorrowRates(object value)
+    {
+        if (!(value is CrossBorrowRates))
+        {
+            return value;
+        }
+        var typed = (CrossBorrowRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.crossBorrowRates != null)
+        {
+            var crossBorrowRatesTarget = result;
+            foreach (var entry in typed.crossBorrowRates)
+            {
+                    crossBorrowRatesTarget[entry.Key] = FromCrossBorrowRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromCrossBorrowRatesList(object values)
+    {
+        if (!(values is List<CrossBorrowRates>))
+        {
+            return values;
+        }
+        var typed = (List<CrossBorrowRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCrossBorrowRates(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrencies(object value)
+    {
+        if (!(value is Currencies))
+        {
+            return value;
+        }
+        var typed = (Currencies)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.currencies != null)
+        {
+            var currenciesTarget = result;
+            foreach (var entry in typed.currencies)
+            {
+                    currenciesTarget[entry.Key] = FromCurrency(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromCurrenciesList(object values)
+    {
+        if (!(values is List<Currencies>))
+        {
+            return values;
+        }
+        var typed = (List<Currencies>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrencies(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrency(object value)
+    {
+        if (!(value is Currency))
+        {
+            return value;
+        }
+        var typed = (Currency)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
+        else
+        {
+            result["id"] = null;
+        }
+        if (typed.code != null)
+        {
+            result["code"] = typed.code;
+        }
+        else
+        {
+            result["code"] = null;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = typed.precision;
+        }
+        else
+        {
+            result["precision"] = null;
+        }
+        if (typed.name != null)
+        {
+            result["name"] = typed.name;
+        }
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.active != null)
+        {
+            result["active"] = typed.active;
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = typed.deposit;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = typed.withdraw;
+        }
+        else
+        {
+            result["withdraw"] = null;
+        }
+        if (typed.numericId != null)
+        {
+            result["numericId"] = typed.numericId;
+        }
+        if (typed.type != null)
+        {
+            result["type"] = typed.type;
+        }
+        if (typed.margin != null)
+        {
+            result["margin"] = typed.margin;
+        }
+        if (typed.limits != null)
+        {
+            result["limits"] = FromCurrencyLimits(typed.limits);
+        }
+        else
+        {
+            result["limits"] = null;
+        }
+        if (typed.networks != null)
+        {
+            var networksTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.networks)
+            {
+                    networksTarget[entry.Key] = FromNetwork(entry.Value);
+            }
+            result["networks"] = networksTarget;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
+        return result;
+    }
+
+    public static object FromCurrencyList(object values)
+    {
+        if (!(values is List<Currency>))
+        {
+            return values;
+        }
+        var typed = (List<Currency>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrency(row));
+        }
+        return result;
+    }
+
+    public static object FromCurrencyLimits(object value)
+    {
+        if (!(value is CurrencyLimits))
+        {
+            return value;
+        }
+        var typed = (CurrencyLimits)value;
+        var result = new Dictionary<string, object>();
+        if (typed.amount != null)
+        {
+            result["amount"] = FromMinMax(typed.amount);
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromMinMax(typed.withdraw);
+        }
+        return result;
+    }
+
+    public static object FromCurrencyLimitsList(object values)
+    {
+        if (!(values is List<CurrencyLimits>))
+        {
+            return values;
+        }
+        var typed = (List<CurrencyLimits>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromCurrencyLimits(row));
+        }
+        return result;
+    }
+
     public static object FromDepositAddress(object value)
     {
         if (!(value is DepositAddress))
@@ -1546,6 +2214,10 @@ public partial class BaseExchange
         {
             result["currency"] = typed.currency;
         }
+        else
+        {
+            result["currency"] = null;
+        }
         if (typed.network != null)
         {
             result["network"] = typed.network;
@@ -1554,9 +2226,20 @@ public partial class BaseExchange
         {
             result["address"] = typed.address;
         }
+        else
+        {
+            result["address"] = null;
+        }
         if (typed.tag != null)
         {
             result["tag"] = typed.tag;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
         }
         return result;
     }
@@ -1572,6 +2255,163 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromDepositAddress(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositAddresses(object value)
+    {
+        if (!(value is DepositAddresses))
+        {
+            return value;
+        }
+        var typed = (DepositAddresses)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.depositAddresses != null)
+        {
+            var depositAddressesTarget = result;
+            foreach (var entry in typed.depositAddresses)
+            {
+                    depositAddressesTarget[entry.Key] = FromDepositAddress(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromDepositAddressesList(object values)
+    {
+        if (!(values is List<DepositAddresses>))
+        {
+            return values;
+        }
+        var typed = (List<DepositAddresses>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositAddresses(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFee(object value)
+    {
+        if (!(value is DepositWithdrawFee))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFee)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromDepositWithdrawFeeNetwork(typed.withdraw);
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = FromDepositWithdrawFeeNetwork(typed.deposit);
+        }
+        if (typed.networks != null)
+        {
+            var networksTarget = new Dictionary<string, object>();
+            foreach (var entry in typed.networks)
+            {
+                    networksTarget[entry.Key] = FromDepositWithdrawFeeNetwork(entry.Value);
+            }
+            result["networks"] = networksTarget;
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeList(object values)
+    {
+        if (!(values is List<DepositWithdrawFee>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFee>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFee(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeNetwork(object value)
+    {
+        if (!(value is DepositWithdrawFeeNetwork))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFeeNetwork)value;
+        var result = new Dictionary<string, object>();
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeeNetworkList(object values)
+    {
+        if (!(values is List<DepositWithdrawFeeNetwork>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFeeNetwork>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFeeNetwork(row));
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFees(object value)
+    {
+        if (!(value is DepositWithdrawFees))
+        {
+            return value;
+        }
+        var typed = (DepositWithdrawFees)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.depositWithdrawFees != null)
+        {
+            var depositWithdrawFeesTarget = result;
+            foreach (var entry in typed.depositWithdrawFees)
+            {
+                    depositWithdrawFeesTarget[entry.Key] = FromDepositWithdrawFee(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromDepositWithdrawFeesList(object values)
+    {
+        if (!(values is List<DepositWithdrawFees>))
+        {
+            return values;
+        }
+        var typed = (List<DepositWithdrawFees>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromDepositWithdrawFees(row));
         }
         return result;
     }
@@ -1592,9 +2432,17 @@ public partial class BaseExchange
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.currency != null)
         {
             result["currency"] = typed.currency;
+        }
+        else
+        {
+            result["currency"] = null;
         }
         return result;
     }
@@ -1630,6 +2478,10 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -1646,13 +2498,25 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.code != null)
         {
             result["code"] = typed.code;
         }
+        else
+        {
+            result["code"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.rate != null)
         {
@@ -1695,6 +2559,10 @@ public partial class BaseExchange
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.datetime != null)
         {
@@ -1794,6 +2662,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
@@ -1805,6 +2677,10 @@ public partial class BaseExchange
         if (typed.fundingRate != null)
         {
             result["fundingRate"] = typed.fundingRate;
+        }
+        else
+        {
+            result["fundingRate"] = null;
         }
         if (typed.markPrice != null)
         {
@@ -1872,6 +2748,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromFundingRates(object value)
+    {
+        if (!(value is FundingRates))
+        {
+            return value;
+        }
+        var typed = (FundingRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.fundingRates != null)
+        {
+            var fundingRatesTarget = result;
+            foreach (var entry in typed.fundingRates)
+            {
+                    fundingRatesTarget[entry.Key] = FromFundingRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromFundingRatesList(object values)
+    {
+        if (!(values is List<FundingRates>))
+        {
+            return values;
+        }
+        var typed = (List<FundingRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromFundingRates(row));
+        }
+        return result;
+    }
+
     public static object FromGreeks(object value)
     {
         if (!(value is Greeks))
@@ -1888,6 +2802,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -1900,21 +2818,41 @@ public partial class BaseExchange
         {
             result["delta"] = typed.delta;
         }
+        else
+        {
+            result["delta"] = null;
+        }
         if (typed.gamma != null)
         {
             result["gamma"] = typed.gamma;
+        }
+        else
+        {
+            result["gamma"] = null;
         }
         if (typed.theta != null)
         {
             result["theta"] = typed.theta;
         }
+        else
+        {
+            result["theta"] = null;
+        }
         if (typed.vega != null)
         {
             result["vega"] = typed.vega;
         }
+        else
+        {
+            result["vega"] = null;
+        }
         if (typed.rho != null)
         {
             result["rho"] = typed.rho;
+        }
+        else
+        {
+            result["rho"] = null;
         }
         if (typed.vanna != null)
         {
@@ -1932,41 +2870,81 @@ public partial class BaseExchange
         {
             result["bidSize"] = typed.bidSize;
         }
+        else
+        {
+            result["bidSize"] = null;
+        }
         if (typed.askSize != null)
         {
             result["askSize"] = typed.askSize;
+        }
+        else
+        {
+            result["askSize"] = null;
         }
         if (typed.bidImpliedVolatility != null)
         {
             result["bidImpliedVolatility"] = typed.bidImpliedVolatility;
         }
+        else
+        {
+            result["bidImpliedVolatility"] = null;
+        }
         if (typed.askImpliedVolatility != null)
         {
             result["askImpliedVolatility"] = typed.askImpliedVolatility;
+        }
+        else
+        {
+            result["askImpliedVolatility"] = null;
         }
         if (typed.markImpliedVolatility != null)
         {
             result["markImpliedVolatility"] = typed.markImpliedVolatility;
         }
+        else
+        {
+            result["markImpliedVolatility"] = null;
+        }
         if (typed.bidPrice != null)
         {
             result["bidPrice"] = typed.bidPrice;
+        }
+        else
+        {
+            result["bidPrice"] = null;
         }
         if (typed.askPrice != null)
         {
             result["askPrice"] = typed.askPrice;
         }
+        else
+        {
+            result["askPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         if (typed.lastPrice != null)
         {
             result["lastPrice"] = typed.lastPrice;
         }
+        else
+        {
+            result["lastPrice"] = null;
+        }
         if (typed.underlyingPrice != null)
         {
             result["underlyingPrice"] = typed.underlyingPrice;
+        }
+        else
+        {
+            result["underlyingPrice"] = null;
         }
         return result;
     }
@@ -1998,21 +2976,41 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.baseCurrency != null)
         {
             result["base"] = typed.baseCurrency;
+        }
+        else
+        {
+            result["base"] = null;
         }
         if (typed.baseRate != null)
         {
             result["baseRate"] = typed.baseRate;
         }
+        else
+        {
+            result["baseRate"] = null;
+        }
         if (typed.quote != null)
         {
             result["quote"] = typed.quote;
         }
+        else
+        {
+            result["quote"] = null;
+        }
         if (typed.quoteRate != null)
         {
             result["quoteRate"] = typed.quoteRate;
+        }
+        else
+        {
+            result["quoteRate"] = null;
         }
         if (typed.period != null)
         {
@@ -2044,6 +3042,140 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromIsolatedBorrowRate(row));
+        }
+        return result;
+    }
+
+    public static object FromIsolatedBorrowRates(object value)
+    {
+        if (!(value is IsolatedBorrowRates))
+        {
+            return value;
+        }
+        var typed = (IsolatedBorrowRates)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.isolatedBorrowRates != null)
+        {
+            var isolatedBorrowRatesTarget = result;
+            foreach (var entry in typed.isolatedBorrowRates)
+            {
+                    isolatedBorrowRatesTarget[entry.Key] = FromIsolatedBorrowRate(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromIsolatedBorrowRatesList(object values)
+    {
+        if (!(values is List<IsolatedBorrowRates>))
+        {
+            return values;
+        }
+        var typed = (List<IsolatedBorrowRates>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromIsolatedBorrowRates(row));
+        }
+        return result;
+    }
+
+    public static object FromLastPrice(object value)
+    {
+        if (!(value is LastPrice))
+        {
+            return value;
+        }
+        var typed = (LastPrice)value;
+        var result = new Dictionary<string, object>();
+        if (typed.symbol != null)
+        {
+            result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        if (typed.price != null)
+        {
+            result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
+        }
+        if (typed.side != null)
+        {
+            result["side"] = typed.side;
+        }
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        return result;
+    }
+
+    public static object FromLastPriceList(object values)
+    {
+        if (!(values is List<LastPrice>))
+        {
+            return values;
+        }
+        var typed = (List<LastPrice>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLastPrice(row));
+        }
+        return result;
+    }
+
+    public static object FromLastPrices(object value)
+    {
+        if (!(value is LastPrices))
+        {
+            return value;
+        }
+        var typed = (LastPrices)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.lastPrices != null)
+        {
+            var lastPricesTarget = result;
+            foreach (var entry in typed.lastPrices)
+            {
+                    lastPricesTarget[entry.Key] = FromLastPrice(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromLastPricesList(object values)
+    {
+        if (!(values is List<LastPrices>))
+        {
+            return values;
+        }
+        var typed = (List<LastPrices>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLastPrices(row));
         }
         return result;
     }
@@ -2150,9 +3282,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.marginMode != null)
         {
             result["marginMode"] = typed.marginMode;
+        }
+        else
+        {
+            result["marginMode"] = null;
         }
         if (typed.leverage != null)
         {
@@ -2162,9 +3302,17 @@ public partial class BaseExchange
         {
             result["longLeverage"] = typed.longLeverage;
         }
+        else
+        {
+            result["longLeverage"] = null;
+        }
         if (typed.shortLeverage != null)
         {
             result["shortLeverage"] = typed.shortLeverage;
+        }
+        else
+        {
+            result["shortLeverage"] = null;
         }
         return result;
     }
@@ -2242,6 +3390,87 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromLeverageTiers(object value)
+    {
+        if (!(value is LeverageTiers))
+        {
+            return value;
+        }
+        var typed = (LeverageTiers)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tiers != null)
+        {
+            var tiersTarget = result;
+            foreach (var entry in typed.tiers)
+            {
+                    var tiersList = new List<object>();
+                    foreach (var item in entry.Value)
+                    {
+                        tiersList.Add(FromLeverageTier(item));
+                    }
+                    tiersTarget[entry.Key] = tiersList;
+            }
+        }
+        return result;
+    }
+
+    public static object FromLeverageTiersList(object values)
+    {
+        if (!(values is List<LeverageTiers>))
+        {
+            return values;
+        }
+        var typed = (List<LeverageTiers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLeverageTiers(row));
+        }
+        return result;
+    }
+
+    public static object FromLeverages(object value)
+    {
+        if (!(value is Leverages))
+        {
+            return value;
+        }
+        var typed = (Leverages)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.leverages != null)
+        {
+            var leveragesTarget = result;
+            foreach (var entry in typed.leverages)
+            {
+                    leveragesTarget[entry.Key] = FromLeverage(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromLeveragesList(object values)
+    {
+        if (!(values is List<Leverages>))
+        {
+            return values;
+        }
+        var typed = (List<Leverages>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromLeverages(row));
+        }
+        return result;
+    }
+
     public static object FromLimits(object value)
     {
         if (!(value is Limits))
@@ -2300,9 +3529,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.quoteValue != null)
         {
@@ -2370,6 +3607,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
@@ -2385,6 +3626,10 @@ public partial class BaseExchange
         if (typed.longShortRatio != null)
         {
             result["longShortRatio"] = typed.longShortRatio;
+        }
+        else
+        {
+            result["longShortRatio"] = null;
         }
         return result;
     }
@@ -2420,9 +3665,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.marginMode != null)
         {
             result["marginMode"] = typed.marginMode;
+        }
+        else
+        {
+            result["marginMode"] = null;
         }
         return result;
     }
@@ -2438,6 +3691,44 @@ public partial class BaseExchange
         foreach (var row in typed)
         {
             result.Add(FromMarginMode(row));
+        }
+        return result;
+    }
+
+    public static object FromMarginModes(object value)
+    {
+        if (!(value is MarginModes))
+        {
+            return value;
+        }
+        var typed = (MarginModes)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.marginModes != null)
+        {
+            var marginModesTarget = result;
+            foreach (var entry in typed.marginModes)
+            {
+                    marginModesTarget[entry.Key] = FromMarginMode(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromMarginModesList(object values)
+    {
+        if (!(values is List<MarginModes>))
+        {
+            return values;
+        }
+        var typed = (List<MarginModes>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromMarginModes(row));
         }
         return result;
     }
@@ -2524,6 +3815,10 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.uppercaseId != null)
         {
             result["uppercaseId"] = typed.uppercaseId;
@@ -2536,73 +3831,145 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.baseCurrency != null)
         {
             result["base"] = typed.baseCurrency;
+        }
+        else
+        {
+            result["base"] = null;
         }
         if (typed.quote != null)
         {
             result["quote"] = typed.quote;
         }
+        else
+        {
+            result["quote"] = null;
+        }
         if (typed.baseId != null)
         {
             result["baseId"] = typed.baseId;
+        }
+        else
+        {
+            result["baseId"] = null;
         }
         if (typed.quoteId != null)
         {
             result["quoteId"] = typed.quoteId;
         }
+        else
+        {
+            result["quoteId"] = null;
+        }
         if (typed.active != null)
         {
             result["active"] = typed.active;
+        }
+        else
+        {
+            result["active"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.spot != null)
         {
             result["spot"] = typed.spot;
+        }
+        else
+        {
+            result["spot"] = null;
         }
         if (typed.margin != null)
         {
             result["margin"] = typed.margin;
         }
+        else
+        {
+            result["margin"] = null;
+        }
         if (typed.swap != null)
         {
             result["swap"] = typed.swap;
+        }
+        else
+        {
+            result["swap"] = null;
         }
         if (typed.future != null)
         {
             result["future"] = typed.future;
         }
+        else
+        {
+            result["future"] = null;
+        }
         if (typed.option != null)
         {
             result["option"] = typed.option;
+        }
+        else
+        {
+            result["option"] = null;
         }
         if (typed.contract != null)
         {
             result["contract"] = typed.contract;
         }
+        else
+        {
+            result["contract"] = null;
+        }
         if (typed.settle != null)
         {
             result["settle"] = typed.settle;
+        }
+        else
+        {
+            result["settle"] = null;
         }
         if (typed.settleId != null)
         {
             result["settleId"] = typed.settleId;
         }
+        else
+        {
+            result["settleId"] = null;
+        }
         if (typed.contractSize != null)
         {
             result["contractSize"] = typed.contractSize;
+        }
+        else
+        {
+            result["contractSize"] = null;
         }
         if (typed.linear != null)
         {
             result["linear"] = typed.linear;
         }
+        else
+        {
+            result["linear"] = null;
+        }
         if (typed.inverse != null)
         {
             result["inverse"] = typed.inverse;
+        }
+        else
+        {
+            result["inverse"] = null;
         }
         if (typed.quanto != null)
         {
@@ -2612,17 +3979,33 @@ public partial class BaseExchange
         {
             result["expiry"] = typed.expiry;
         }
+        else
+        {
+            result["expiry"] = null;
+        }
         if (typed.expiryDatetime != null)
         {
             result["expiryDatetime"] = typed.expiryDatetime;
+        }
+        else
+        {
+            result["expiryDatetime"] = null;
         }
         if (typed.strike != null)
         {
             result["strike"] = typed.strike;
         }
+        else
+        {
+            result["strike"] = null;
+        }
         if (typed.optionType != null)
         {
             result["optionType"] = typed.optionType;
+        }
+        else
+        {
+            result["optionType"] = null;
         }
         if (typed.taker != null)
         {
@@ -2636,9 +4019,17 @@ public partial class BaseExchange
         {
             result["created"] = typed.created;
         }
+        else
+        {
+            result["created"] = null;
+        }
         if (typed.precision != null)
         {
             result["precision"] = FromPrecision(typed.precision);
+        }
+        else
+        {
+            result["precision"] = null;
         }
         if (typed.marginModes != null)
         {
@@ -2648,9 +4039,48 @@ public partial class BaseExchange
         {
             result["limits"] = FromLimits(typed.limits);
         }
+        else
+        {
+            result["limits"] = null;
+        }
+        if (typed.numericId != null)
+        {
+            result["numericId"] = typed.numericId;
+        }
+        if (typed.subType != null)
+        {
+            result["subType"] = typed.subType;
+        }
+        if (typed.index != null)
+        {
+            result["index"] = typed.index;
+        }
         if (typed.stock != null)
         {
             result["stock"] = typed.stock;
+        }
+        if (typed.prediction != null)
+        {
+            result["prediction"] = typed.prediction;
+        }
+        if (typed.percentage != null)
+        {
+            result["percentage"] = typed.percentage;
+        }
+        if (typed.tierBased != null)
+        {
+            result["tierBased"] = typed.tierBased;
+        }
+        if (typed.feeSide != null)
+        {
+            result["feeSide"] = typed.feeSide;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
         }
         return result;
     }
@@ -2682,9 +4112,17 @@ public partial class BaseExchange
         {
             result["cross"] = typed.cross;
         }
+        else
+        {
+            result["cross"] = null;
+        }
         if (typed.isolated != null)
         {
             result["isolated"] = typed.isolated;
+        }
+        else
+        {
+            result["isolated"] = null;
         }
         return result;
     }
@@ -2716,9 +4154,17 @@ public partial class BaseExchange
         {
             result["min"] = typed.min;
         }
+        else
+        {
+            result["min"] = null;
+        }
         if (typed.max != null)
         {
             result["max"] = typed.max;
+        }
+        else
+        {
+            result["max"] = null;
         }
         return result;
     }
@@ -2738,6 +4184,98 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromNetwork(object value)
+    {
+        if (!(value is Network))
+        {
+            return value;
+        }
+        var typed = (Network)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.id != null)
+        {
+            result["id"] = typed.id;
+        }
+        if (typed.fee != null)
+        {
+            result["fee"] = typed.fee;
+        }
+        if (typed.active != null)
+        {
+            result["active"] = typed.active;
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = typed.deposit;
+        }
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = typed.withdraw;
+        }
+        if (typed.precision != null)
+        {
+            result["precision"] = typed.precision;
+        }
+        if (typed.limits != null)
+        {
+            result["limits"] = FromNetworkLimits(typed.limits);
+        }
+        return result;
+    }
+
+    public static object FromNetworkList(object values)
+    {
+        if (!(values is List<Network>))
+        {
+            return values;
+        }
+        var typed = (List<Network>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromNetwork(row));
+        }
+        return result;
+    }
+
+    public static object FromNetworkLimits(object value)
+    {
+        if (!(value is NetworkLimits))
+        {
+            return value;
+        }
+        var typed = (NetworkLimits)value;
+        var result = new Dictionary<string, object>();
+        if (typed.withdraw != null)
+        {
+            result["withdraw"] = FromMinMax(typed.withdraw);
+        }
+        if (typed.deposit != null)
+        {
+            result["deposit"] = FromMinMax(typed.deposit);
+        }
+        return result;
+    }
+
+    public static object FromNetworkLimitsList(object values)
+    {
+        if (!(values is List<NetworkLimits>))
+        {
+            return values;
+        }
+        var typed = (List<NetworkLimits>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromNetworkLimits(row));
+        }
+        return result;
+    }
+
     public static object FromOpenInterest(object value)
     {
         if (!(value is OpenInterest))
@@ -2749,6 +4287,10 @@ public partial class BaseExchange
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.openInterestAmount != null)
         {
@@ -2796,6 +4338,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromOpenInterests(object value)
+    {
+        if (!(value is OpenInterests))
+        {
+            return value;
+        }
+        var typed = (OpenInterests)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.openInterests != null)
+        {
+            var openInterestsTarget = result;
+            foreach (var entry in typed.openInterests)
+            {
+                    openInterestsTarget[entry.Key] = FromOpenInterest(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOpenInterestsList(object values)
+    {
+        if (!(values is List<OpenInterests>))
+        {
+            return values;
+        }
+        var typed = (List<OpenInterests>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOpenInterests(row));
+        }
+        return result;
+    }
+
     public static object FromOption(object value)
     {
         if (!(value is Option))
@@ -2808,9 +4388,17 @@ public partial class BaseExchange
         {
             result["currency"] = typed.currency;
         }
+        else
+        {
+            result["currency"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.timestamp != null)
         {
@@ -2824,49 +4412,97 @@ public partial class BaseExchange
         {
             result["impliedVolatility"] = typed.impliedVolatility;
         }
+        else
+        {
+            result["impliedVolatility"] = null;
+        }
         if (typed.openInterest != null)
         {
             result["openInterest"] = typed.openInterest;
+        }
+        else
+        {
+            result["openInterest"] = null;
         }
         if (typed.bidPrice != null)
         {
             result["bidPrice"] = typed.bidPrice;
         }
+        else
+        {
+            result["bidPrice"] = null;
+        }
         if (typed.askPrice != null)
         {
             result["askPrice"] = typed.askPrice;
+        }
+        else
+        {
+            result["askPrice"] = null;
         }
         if (typed.midPrice != null)
         {
             result["midPrice"] = typed.midPrice;
         }
+        else
+        {
+            result["midPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         if (typed.lastPrice != null)
         {
             result["lastPrice"] = typed.lastPrice;
         }
+        else
+        {
+            result["lastPrice"] = null;
+        }
         if (typed.underlyingPrice != null)
         {
             result["underlyingPrice"] = typed.underlyingPrice;
+        }
+        else
+        {
+            result["underlyingPrice"] = null;
         }
         if (typed.change != null)
         {
             result["change"] = typed.change;
         }
+        else
+        {
+            result["change"] = null;
+        }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
+        }
+        else
+        {
+            result["percentage"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
+        }
+        else
+        {
+            result["quoteVolume"] = null;
         }
         if (typed.info != null)
         {
@@ -2890,6 +4526,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromOptionChain(object value)
+    {
+        if (!(value is OptionChain))
+        {
+            return value;
+        }
+        var typed = (OptionChain)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.chains != null)
+        {
+            var chainsTarget = result;
+            foreach (var entry in typed.chains)
+            {
+                    chainsTarget[entry.Key] = FromOption(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOptionChainList(object values)
+    {
+        if (!(values is List<OptionChain>))
+        {
+            return values;
+        }
+        var typed = (List<OptionChain>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOptionChain(row));
+        }
+        return result;
+    }
+
     public static object FromOrder(object value)
     {
         if (!(value is Order))
@@ -2902,9 +4576,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.clientOrderId != null)
         {
             result["clientOrderId"] = typed.clientOrderId;
+        }
+        else
+        {
+            result["clientOrderId"] = null;
         }
         if (typed.hedged != null)
         {
@@ -2934,13 +4616,25 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.lastTradeTimestamp != null)
         {
             result["lastTradeTimestamp"] = typed.lastTradeTimestamp;
+        }
+        else
+        {
+            result["lastTradeTimestamp"] = null;
         }
         if (typed.lastUpdateTimestamp != null)
         {
@@ -2950,9 +4644,17 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
+        }
+        else
+        {
+            result["type"] = null;
         }
         if (typed.timeInForce != null)
         {
@@ -2962,13 +4664,25 @@ public partial class BaseExchange
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        else
+        {
+            result["cost"] = null;
         }
         if (typed.average != null)
         {
@@ -2978,21 +4692,41 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.filled != null)
         {
             result["filled"] = typed.filled;
+        }
+        else
+        {
+            result["filled"] = null;
         }
         if (typed.remaining != null)
         {
             result["remaining"] = typed.remaining;
         }
+        else
+        {
+            result["remaining"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.trades != null)
         {
@@ -3023,9 +4757,17 @@ public partial class BaseExchange
         {
             result["reduceOnly"] = typed.reduceOnly;
         }
+        else
+        {
+            result["reduceOnly"] = null;
+        }
         if (typed.postOnly != null)
         {
             result["postOnly"] = typed.postOnly;
+        }
+        else
+        {
+            result["postOnly"] = null;
         }
         if (typed.fees != null)
         {
@@ -3058,6 +4800,120 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromOrderBook(object value)
+    {
+        if (!(value is OrderBook))
+        {
+            return value;
+        }
+        var typed = (OrderBook)value;
+        var result = new Dictionary<string, object>();
+        if (typed.bids != null)
+        {
+            var bidsRows = new List<object>();
+            foreach (var level in typed.bids)
+            {
+                bidsRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["bids"] = bidsRows;
+        }
+        if (typed.asks != null)
+        {
+            var asksRows = new List<object>();
+            foreach (var level in typed.asks)
+            {
+                asksRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["asks"] = asksRows;
+        }
+        if (typed.symbol != null)
+        {
+            result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
+        }
+        if (typed.nonce != null)
+        {
+            result["nonce"] = typed.nonce;
+        }
+        else
+        {
+            result["nonce"] = null;
+        }
+        return result;
+    }
+
+    public static object FromOrderBookList(object values)
+    {
+        if (!(values is List<OrderBook>))
+        {
+            return values;
+        }
+        var typed = (List<OrderBook>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOrderBook(row));
+        }
+        return result;
+    }
+
+    public static object FromOrderBooks(object value)
+    {
+        if (!(value is OrderBooks))
+        {
+            return value;
+        }
+        var typed = (OrderBooks)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.orderbooks != null)
+        {
+            var orderbooksTarget = result;
+            foreach (var entry in typed.orderbooks)
+            {
+                    orderbooksTarget[entry.Key] = FromOrderBook(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromOrderBooksList(object values)
+    {
+        if (!(values is List<OrderBooks>))
+        {
+            return values;
+        }
+        var typed = (List<OrderBooks>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromOrderBooks(row));
+        }
+        return result;
+    }
+
     public static object FromPosition(object value)
     {
         if (!(value is Position))
@@ -3069,6 +4925,10 @@ public partial class BaseExchange
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.id != null)
         {
@@ -3097,6 +4957,10 @@ public partial class BaseExchange
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.notional != null)
         {
@@ -3224,6 +5088,10 @@ public partial class BaseExchange
         {
             result["hedged"] = typed.hedged;
         }
+        else
+        {
+            result["hedged"] = null;
+        }
         return result;
     }
 
@@ -3254,13 +5122,29 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        if (typed.baseCurrency != null)
+        {
+            result["base"] = typed.baseCurrency;
+        }
+        if (typed.quote != null)
+        {
+            result["quote"] = typed.quote;
         }
         return result;
     }
@@ -3292,9 +5176,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.eventId != null)
         {
             result["event"] = typed.eventId;
+        }
+        else
+        {
+            result["event"] = null;
         }
         if (typed.title != null)
         {
@@ -3373,6 +5265,13 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 
@@ -3437,9 +5336,17 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.market != null)
         {
             result["market"] = typed.market;
+        }
+        else
+        {
+            result["market"] = null;
         }
         if (typed.eventId != null)
         {
@@ -3448,6 +5355,10 @@ public partial class BaseExchange
         if (typed.marketType != null)
         {
             result["marketType"] = typed.marketType;
+        }
+        else
+        {
+            result["marketType"] = null;
         }
         if (typed.executionModel != null)
         {
@@ -3562,6 +5473,13 @@ public partial class BaseExchange
         {
             result["info"] = typed.info;
         }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
+        }
         return result;
     }
 
@@ -3608,6 +5526,10 @@ public partial class BaseExchange
         {
             result["outcome"] = typed.outcome;
         }
+        else
+        {
+            result["outcome"] = null;
+        }
         if (typed.outcomeId != null)
         {
             result["outcomeId"] = typed.outcomeId;
@@ -3650,21 +5572,41 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.clientOrderId != null)
         {
             result["clientOrderId"] = typed.clientOrderId;
+        }
+        else
+        {
+            result["clientOrderId"] = null;
         }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.lastTradeTimestamp != null)
         {
             result["lastTradeTimestamp"] = typed.lastTradeTimestamp;
+        }
+        else
+        {
+            result["lastTradeTimestamp"] = null;
         }
         if (typed.lastUpdateTimestamp != null)
         {
@@ -3678,17 +5620,33 @@ public partial class BaseExchange
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.price != null)
         {
             result["price"] = typed.price;
         }
+        else
+        {
+            result["price"] = null;
+        }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
+        }
+        else
+        {
+            result["cost"] = null;
         }
         if (typed.average != null)
         {
@@ -3698,21 +5656,41 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.filled != null)
         {
             result["filled"] = typed.filled;
+        }
+        else
+        {
+            result["filled"] = null;
         }
         if (typed.remaining != null)
         {
             result["remaining"] = typed.remaining;
         }
+        else
+        {
+            result["remaining"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.trades != null)
         {
@@ -3727,13 +5705,25 @@ public partial class BaseExchange
         {
             result["reduceOnly"] = typed.reduceOnly;
         }
+        else
+        {
+            result["reduceOnly"] = null;
+        }
         if (typed.postOnly != null)
         {
             result["postOnly"] = typed.postOnly;
         }
+        else
+        {
+            result["postOnly"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -3773,6 +5763,90 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromPredictionOrderBook(object value)
+    {
+        if (!(value is PredictionOrderBook))
+        {
+            return value;
+        }
+        var typed = (PredictionOrderBook)value;
+        var result = new Dictionary<string, object>();
+        if (typed.bids != null)
+        {
+            var bidsRows = new List<object>();
+            foreach (var level in typed.bids)
+            {
+                bidsRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["bids"] = bidsRows;
+        }
+        if (typed.asks != null)
+        {
+            var asksRows = new List<object>();
+            foreach (var level in typed.asks)
+            {
+                asksRows.Add(new List<object>(level.Select(v => (object)v)));
+            }
+            result["asks"] = asksRows;
+        }
+        if (typed.timestamp != null)
+        {
+            result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
+        }
+        if (typed.datetime != null)
+        {
+            result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
+        }
+        if (typed.nonce != null)
+        {
+            result["nonce"] = typed.nonce;
+        }
+        else
+        {
+            result["nonce"] = null;
+        }
+        if (typed.outcome != null)
+        {
+            result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
+        }
+        if (typed.outcomeId != null)
+        {
+            result["outcomeId"] = typed.outcomeId;
+        }
+        if (typed.market != null)
+        {
+            result["market"] = typed.market;
+        }
+        return result;
+    }
+
+    public static object FromPredictionOrderBookList(object values)
+    {
+        if (!(values is List<PredictionOrderBook>))
+        {
+            return values;
+        }
+        var typed = (List<PredictionOrderBook>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromPredictionOrderBook(row));
+        }
+        return result;
+    }
+
     public static object FromPredictionOutcome(object value)
     {
         if (!(value is PredictionOutcome))
@@ -3784,6 +5858,10 @@ public partial class BaseExchange
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -3836,6 +5914,13 @@ public partial class BaseExchange
         if (typed.info != null)
         {
             result["info"] = typed.info;
+        }
+        if (typed.extra != null)
+        {
+            foreach (var pair in typed.extra)
+            {
+                result[pair.Key] = pair.Value;
+            }
         }
         return result;
     }
@@ -3891,6 +5976,10 @@ public partial class BaseExchange
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.notional != null)
         {
             result["notional"] = typed.notional;
@@ -3926,6 +6015,10 @@ public partial class BaseExchange
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -4075,69 +6168,137 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
         }
         if (typed.high != null)
         {
             result["high"] = typed.high;
         }
+        else
+        {
+            result["high"] = null;
+        }
         if (typed.low != null)
         {
             result["low"] = typed.low;
+        }
+        else
+        {
+            result["low"] = null;
         }
         if (typed.bid != null)
         {
             result["bid"] = typed.bid;
         }
+        else
+        {
+            result["bid"] = null;
+        }
         if (typed.bidVolume != null)
         {
             result["bidVolume"] = typed.bidVolume;
+        }
+        else
+        {
+            result["bidVolume"] = null;
         }
         if (typed.ask != null)
         {
             result["ask"] = typed.ask;
         }
+        else
+        {
+            result["ask"] = null;
+        }
         if (typed.askVolume != null)
         {
             result["askVolume"] = typed.askVolume;
+        }
+        else
+        {
+            result["askVolume"] = null;
         }
         if (typed.open != null)
         {
             result["open"] = typed.open;
         }
+        else
+        {
+            result["open"] = null;
+        }
         if (typed.close != null)
         {
             result["close"] = typed.close;
+        }
+        else
+        {
+            result["close"] = null;
         }
         if (typed.last != null)
         {
             result["last"] = typed.last;
         }
+        else
+        {
+            result["last"] = null;
+        }
         if (typed.change != null)
         {
             result["change"] = typed.change;
+        }
+        else
+        {
+            result["change"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.average != null)
         {
             result["average"] = typed.average;
+        }
+        else
+        {
+            result["average"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
         }
+        else
+        {
+            result["quoteVolume"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -4181,6 +6342,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromPredictionTickers(object value)
+    {
+        if (!(value is PredictionTickers))
+        {
+            return value;
+        }
+        var typed = (PredictionTickers)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tickers != null)
+        {
+            var tickersTarget = result;
+            foreach (var entry in typed.tickers)
+            {
+                    tickersTarget[entry.Key] = FromPredictionTicker(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromPredictionTickersList(object values)
+    {
+        if (!(values is List<PredictionTickers>))
+        {
+            return values;
+        }
+        var typed = (List<PredictionTickers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromPredictionTickers(row));
+        }
+        return result;
+    }
+
     public static object FromPredictionTrade(object value)
     {
         if (!(value is PredictionTrade))
@@ -4193,49 +6392,97 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
+        }
+        else
+        {
+            result["id"] = null;
         }
         if (typed.order != null)
         {
             result["order"] = typed.order;
         }
+        else
+        {
+            result["order"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.type != null)
         {
             result["type"] = typed.type;
+        }
+        else
+        {
+            result["type"] = null;
         }
         if (typed.side != null)
         {
             result["side"] = typed.side;
         }
+        else
+        {
+            result["side"] = null;
+        }
         if (typed.takerOrMaker != null)
         {
             result["takerOrMaker"] = typed.takerOrMaker;
+        }
+        else
+        {
+            result["takerOrMaker"] = null;
         }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
         }
+        else
+        {
+            result["fee"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -4287,21 +6534,41 @@ public partial class BaseExchange
         {
             result["maker"] = typed.maker;
         }
+        else
+        {
+            result["maker"] = null;
+        }
         if (typed.taker != null)
         {
             result["taker"] = typed.taker;
+        }
+        else
+        {
+            result["taker"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.tierBased != null)
         {
             result["tierBased"] = typed.tierBased;
         }
+        else
+        {
+            result["tierBased"] = null;
+        }
         if (typed.outcome != null)
         {
             result["outcome"] = typed.outcome;
+        }
+        else
+        {
+            result["outcome"] = null;
         }
         if (typed.outcomeId != null)
         {
@@ -4345,17 +6612,33 @@ public partial class BaseExchange
         {
             result["status"] = typed.status;
         }
+        else
+        {
+            result["status"] = null;
+        }
         if (typed.updated != null)
         {
             result["updated"] = typed.updated;
+        }
+        else
+        {
+            result["updated"] = null;
         }
         if (typed.eta != null)
         {
             result["eta"] = typed.eta;
         }
+        else
+        {
+            result["eta"] = null;
+        }
         if (typed.url != null)
         {
             result["url"] = typed.url;
+        }
+        else
+        {
+            result["url"] = null;
         }
         if (typed.info != null)
         {
@@ -4391,6 +6674,10 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
@@ -4399,73 +6686,145 @@ public partial class BaseExchange
         {
             result["timestamp"] = typed.timestamp;
         }
+        else
+        {
+            result["timestamp"] = null;
+        }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
+        }
+        else
+        {
+            result["datetime"] = null;
         }
         if (typed.high != null)
         {
             result["high"] = typed.high;
         }
+        else
+        {
+            result["high"] = null;
+        }
         if (typed.low != null)
         {
             result["low"] = typed.low;
+        }
+        else
+        {
+            result["low"] = null;
         }
         if (typed.bid != null)
         {
             result["bid"] = typed.bid;
         }
+        else
+        {
+            result["bid"] = null;
+        }
         if (typed.bidVolume != null)
         {
             result["bidVolume"] = typed.bidVolume;
+        }
+        else
+        {
+            result["bidVolume"] = null;
         }
         if (typed.ask != null)
         {
             result["ask"] = typed.ask;
         }
+        else
+        {
+            result["ask"] = null;
+        }
         if (typed.askVolume != null)
         {
             result["askVolume"] = typed.askVolume;
+        }
+        else
+        {
+            result["askVolume"] = null;
         }
         if (typed.vwap != null)
         {
             result["vwap"] = typed.vwap;
         }
+        else
+        {
+            result["vwap"] = null;
+        }
         if (typed.open != null)
         {
             result["open"] = typed.open;
+        }
+        else
+        {
+            result["open"] = null;
         }
         if (typed.close != null)
         {
             result["close"] = typed.close;
         }
+        else
+        {
+            result["close"] = null;
+        }
         if (typed.last != null)
         {
             result["last"] = typed.last;
+        }
+        else
+        {
+            result["last"] = null;
         }
         if (typed.previousClose != null)
         {
             result["previousClose"] = typed.previousClose;
         }
+        else
+        {
+            result["previousClose"] = null;
+        }
         if (typed.change != null)
         {
             result["change"] = typed.change;
+        }
+        else
+        {
+            result["change"] = null;
         }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.average != null)
         {
             result["average"] = typed.average;
+        }
+        else
+        {
+            result["average"] = null;
         }
         if (typed.baseVolume != null)
         {
             result["baseVolume"] = typed.baseVolume;
         }
+        else
+        {
+            result["baseVolume"] = null;
+        }
         if (typed.quoteVolume != null)
         {
             result["quoteVolume"] = typed.quoteVolume;
+        }
+        else
+        {
+            result["quoteVolume"] = null;
         }
         if (typed.info != null)
         {
@@ -4475,9 +6834,17 @@ public partial class BaseExchange
         {
             result["indexPrice"] = typed.indexPrice;
         }
+        else
+        {
+            result["indexPrice"] = null;
+        }
         if (typed.markPrice != null)
         {
             result["markPrice"] = typed.markPrice;
+        }
+        else
+        {
+            result["markPrice"] = null;
         }
         return result;
     }
@@ -4497,6 +6864,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromTickers(object value)
+    {
+        if (!(value is Tickers))
+        {
+            return value;
+        }
+        var typed = (Tickers)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tickers != null)
+        {
+            var tickersTarget = result;
+            foreach (var entry in typed.tickers)
+            {
+                    tickersTarget[entry.Key] = FromTicker(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromTickersList(object values)
+    {
+        if (!(values is List<Tickers>))
+        {
+            return values;
+        }
+        var typed = (List<Tickers>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromTickers(row));
+        }
+        return result;
+    }
+
     public static object FromTrade(object value)
     {
         if (!(value is Trade))
@@ -4509,49 +6914,97 @@ public partial class BaseExchange
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.price != null)
         {
             result["price"] = typed.price;
+        }
+        else
+        {
+            result["price"] = null;
         }
         if (typed.cost != null)
         {
             result["cost"] = typed.cost;
         }
+        else
+        {
+            result["cost"] = null;
+        }
         if (typed.id != null)
         {
             result["id"] = typed.id;
+        }
+        else
+        {
+            result["id"] = null;
         }
         if (typed.order != null)
         {
             result["order"] = typed.order;
         }
+        else
+        {
+            result["order"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.symbol != null)
         {
             result["symbol"] = typed.symbol;
+        }
+        else
+        {
+            result["symbol"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.side != null)
         {
             result["side"] = typed.side;
+        }
+        else
+        {
+            result["side"] = null;
         }
         if (typed.takerOrMaker != null)
         {
             result["takerOrMaker"] = typed.takerOrMaker;
         }
+        else
+        {
+            result["takerOrMaker"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
+        }
+        else
+        {
+            result["fee"] = null;
         }
         if (typed.fees != null)
         {
@@ -4600,21 +7053,45 @@ public partial class BaseExchange
         {
             result["symbol"] = typed.symbol;
         }
+        else
+        {
+            result["symbol"] = null;
+        }
         if (typed.maker != null)
         {
             result["maker"] = typed.maker;
+        }
+        else
+        {
+            result["maker"] = null;
         }
         if (typed.taker != null)
         {
             result["taker"] = typed.taker;
         }
+        else
+        {
+            result["taker"] = null;
+        }
         if (typed.percentage != null)
         {
             result["percentage"] = typed.percentage;
         }
+        else
+        {
+            result["percentage"] = null;
+        }
         if (typed.tierBased != null)
         {
             result["tierBased"] = typed.tierBased;
+        }
+        else
+        {
+            result["tierBased"] = null;
+        }
+        if (typed.tiers != null)
+        {
+            result["tiers"] = typed.tiers;
         }
         if (typed.info != null)
         {
@@ -4638,6 +7115,44 @@ public partial class BaseExchange
         return result;
     }
 
+    public static object FromTradingFees(object value)
+    {
+        if (!(value is TradingFees))
+        {
+            return value;
+        }
+        var typed = (TradingFees)value;
+        var result = new Dictionary<string, object>();
+        if (typed.info != null)
+        {
+            result["info"] = typed.info;
+        }
+        if (typed.tradingFees != null)
+        {
+            var tradingFeesTarget = result;
+            foreach (var entry in typed.tradingFees)
+            {
+                    tradingFeesTarget[entry.Key] = FromTradingFeeInterface(entry.Value);
+            }
+        }
+        return result;
+    }
+
+    public static object FromTradingFeesList(object values)
+    {
+        if (!(values is List<TradingFees>))
+        {
+            return values;
+        }
+        var typed = (List<TradingFees>)values;
+        var result = new List<object>(typed.Count);
+        foreach (var row in typed)
+        {
+            result.Add(FromTradingFees(row));
+        }
+        return result;
+    }
+
     public static object FromTransaction(object value)
     {
         if (!(value is Transaction))
@@ -4654,77 +7169,153 @@ public partial class BaseExchange
         {
             result["id"] = typed.id;
         }
+        else
+        {
+            result["id"] = null;
+        }
         if (typed.txid != null)
         {
             result["txid"] = typed.txid;
+        }
+        else
+        {
+            result["txid"] = null;
         }
         if (typed.address != null)
         {
             result["address"] = typed.address;
         }
+        else
+        {
+            result["address"] = null;
+        }
         if (typed.addressFrom != null)
         {
             result["addressFrom"] = typed.addressFrom;
+        }
+        else
+        {
+            result["addressFrom"] = null;
         }
         if (typed.addressTo != null)
         {
             result["addressTo"] = typed.addressTo;
         }
+        else
+        {
+            result["addressTo"] = null;
+        }
         if (typed.tag != null)
         {
             result["tag"] = typed.tag;
+        }
+        else
+        {
+            result["tag"] = null;
         }
         if (typed.tagFrom != null)
         {
             result["tagFrom"] = typed.tagFrom;
         }
+        else
+        {
+            result["tagFrom"] = null;
+        }
         if (typed.tagTo != null)
         {
             result["tagTo"] = typed.tagTo;
+        }
+        else
+        {
+            result["tagTo"] = null;
         }
         if (typed.type != null)
         {
             result["type"] = typed.type;
         }
+        else
+        {
+            result["type"] = null;
+        }
         if (typed.currency != null)
         {
             result["currency"] = typed.currency;
+        }
+        else
+        {
+            result["currency"] = null;
         }
         if (typed.network != null)
         {
             result["network"] = typed.network;
         }
+        else
+        {
+            result["network"] = null;
+        }
         if (typed.comment != null)
         {
             result["comment"] = typed.comment;
+        }
+        else
+        {
+            result["comment"] = null;
         }
         if (typed.amount != null)
         {
             result["amount"] = typed.amount;
         }
+        else
+        {
+            result["amount"] = null;
+        }
         if (typed.status != null)
         {
             result["status"] = typed.status;
+        }
+        else
+        {
+            result["status"] = null;
         }
         if (typed.updated != null)
         {
             result["updated"] = typed.updated;
         }
+        else
+        {
+            result["updated"] = null;
+        }
         if (typed.timestamp != null)
         {
             result["timestamp"] = typed.timestamp;
+        }
+        else
+        {
+            result["timestamp"] = null;
         }
         if (typed.datetime != null)
         {
             result["datetime"] = typed.datetime;
         }
+        else
+        {
+            result["datetime"] = null;
+        }
         if (typed.fee != null)
         {
             result["fee"] = FromFee(typed.fee);
         }
+        else
+        {
+            result["fee"] = null;
+        }
         if (typed.@internal != null)
         {
             result["internal"] = typed.@internal;
+        }
+        else
+        {
+            result["internal"] = null;
         }
         if (typed.tokenSide != null)
         {
@@ -4822,10 +7413,18 @@ public partial class BaseExchange
                 return FromAccount(value);
             case List<Account> _:
                 return FromAccountList(value);
+            case AllGreeks _:
+                return FromAllGreeks(value);
+            case List<AllGreeks> _:
+                return FromAllGreeksList(value);
             case Balance _:
                 return FromBalance(value);
             case List<Balance> _:
                 return FromBalanceList(value);
+            case Balances _:
+                return FromBalances(value);
+            case List<Balances> _:
+                return FromBalancesList(value);
             case BorrowInterest _:
                 return FromBorrowInterest(value);
             case List<BorrowInterest> _:
@@ -4838,10 +7437,42 @@ public partial class BaseExchange
                 return FromCrossBorrowRate(value);
             case List<CrossBorrowRate> _:
                 return FromCrossBorrowRateList(value);
+            case CrossBorrowRates _:
+                return FromCrossBorrowRates(value);
+            case List<CrossBorrowRates> _:
+                return FromCrossBorrowRatesList(value);
+            case Currencies _:
+                return FromCurrencies(value);
+            case List<Currencies> _:
+                return FromCurrenciesList(value);
+            case Currency _:
+                return FromCurrency(value);
+            case List<Currency> _:
+                return FromCurrencyList(value);
+            case CurrencyLimits _:
+                return FromCurrencyLimits(value);
+            case List<CurrencyLimits> _:
+                return FromCurrencyLimitsList(value);
             case DepositAddress _:
                 return FromDepositAddress(value);
             case List<DepositAddress> _:
                 return FromDepositAddressList(value);
+            case DepositAddresses _:
+                return FromDepositAddresses(value);
+            case List<DepositAddresses> _:
+                return FromDepositAddressesList(value);
+            case DepositWithdrawFee _:
+                return FromDepositWithdrawFee(value);
+            case List<DepositWithdrawFee> _:
+                return FromDepositWithdrawFeeList(value);
+            case DepositWithdrawFeeNetwork _:
+                return FromDepositWithdrawFeeNetwork(value);
+            case List<DepositWithdrawFeeNetwork> _:
+                return FromDepositWithdrawFeeNetworkList(value);
+            case DepositWithdrawFees _:
+                return FromDepositWithdrawFees(value);
+            case List<DepositWithdrawFees> _:
+                return FromDepositWithdrawFeesList(value);
             case Fee _:
                 return FromFee(value);
             case List<Fee> _:
@@ -4858,6 +7489,10 @@ public partial class BaseExchange
                 return FromFundingRateHistory(value);
             case List<FundingRateHistory> _:
                 return FromFundingRateHistoryList(value);
+            case FundingRates _:
+                return FromFundingRates(value);
+            case List<FundingRates> _:
+                return FromFundingRatesList(value);
             case Greeks _:
                 return FromGreeks(value);
             case List<Greeks> _:
@@ -4866,6 +7501,18 @@ public partial class BaseExchange
                 return FromIsolatedBorrowRate(value);
             case List<IsolatedBorrowRate> _:
                 return FromIsolatedBorrowRateList(value);
+            case IsolatedBorrowRates _:
+                return FromIsolatedBorrowRates(value);
+            case List<IsolatedBorrowRates> _:
+                return FromIsolatedBorrowRatesList(value);
+            case LastPrice _:
+                return FromLastPrice(value);
+            case List<LastPrice> _:
+                return FromLastPriceList(value);
+            case LastPrices _:
+                return FromLastPrices(value);
+            case List<LastPrices> _:
+                return FromLastPricesList(value);
             case LedgerEntry _:
                 return FromLedgerEntry(value);
             case List<LedgerEntry> _:
@@ -4878,6 +7525,14 @@ public partial class BaseExchange
                 return FromLeverageTier(value);
             case List<LeverageTier> _:
                 return FromLeverageTierList(value);
+            case LeverageTiers _:
+                return FromLeverageTiers(value);
+            case List<LeverageTiers> _:
+                return FromLeverageTiersList(value);
+            case Leverages _:
+                return FromLeverages(value);
+            case List<Leverages> _:
+                return FromLeveragesList(value);
             case Limits _:
                 return FromLimits(value);
             case List<Limits> _:
@@ -4894,6 +7549,10 @@ public partial class BaseExchange
                 return FromMarginMode(value);
             case List<MarginMode> _:
                 return FromMarginModeList(value);
+            case MarginModes _:
+                return FromMarginModes(value);
+            case List<MarginModes> _:
+                return FromMarginModesList(value);
             case MarginModification _:
                 return FromMarginModification(value);
             case List<MarginModification> _:
@@ -4910,18 +7569,42 @@ public partial class BaseExchange
                 return FromMinMax(value);
             case List<MinMax> _:
                 return FromMinMaxList(value);
+            case Network _:
+                return FromNetwork(value);
+            case List<Network> _:
+                return FromNetworkList(value);
+            case NetworkLimits _:
+                return FromNetworkLimits(value);
+            case List<NetworkLimits> _:
+                return FromNetworkLimitsList(value);
             case OpenInterest _:
                 return FromOpenInterest(value);
             case List<OpenInterest> _:
                 return FromOpenInterestList(value);
+            case OpenInterests _:
+                return FromOpenInterests(value);
+            case List<OpenInterests> _:
+                return FromOpenInterestsList(value);
             case Option _:
                 return FromOption(value);
             case List<Option> _:
                 return FromOptionList(value);
+            case OptionChain _:
+                return FromOptionChain(value);
+            case List<OptionChain> _:
+                return FromOptionChainList(value);
             case Order _:
                 return FromOrder(value);
             case List<Order> _:
                 return FromOrderList(value);
+            case OrderBook _:
+                return FromOrderBook(value);
+            case List<OrderBook> _:
+                return FromOrderBookList(value);
+            case OrderBooks _:
+                return FromOrderBooks(value);
+            case List<OrderBooks> _:
+                return FromOrderBooksList(value);
             case Position _:
                 return FromPosition(value);
             case List<Position> _:
@@ -4954,6 +7637,10 @@ public partial class BaseExchange
                 return FromPredictionOrder(value);
             case List<PredictionOrder> _:
                 return FromPredictionOrderList(value);
+            case PredictionOrderBook _:
+                return FromPredictionOrderBook(value);
+            case List<PredictionOrderBook> _:
+                return FromPredictionOrderBookList(value);
             case PredictionOutcome _:
                 return FromPredictionOutcome(value);
             case List<PredictionOutcome> _:
@@ -4970,6 +7657,10 @@ public partial class BaseExchange
                 return FromPredictionTicker(value);
             case List<PredictionTicker> _:
                 return FromPredictionTickerList(value);
+            case PredictionTickers _:
+                return FromPredictionTickers(value);
+            case List<PredictionTickers> _:
+                return FromPredictionTickersList(value);
             case PredictionTrade _:
                 return FromPredictionTrade(value);
             case List<PredictionTrade> _:
@@ -4986,6 +7677,10 @@ public partial class BaseExchange
                 return FromTicker(value);
             case List<Ticker> _:
                 return FromTickerList(value);
+            case Tickers _:
+                return FromTickers(value);
+            case List<Tickers> _:
+                return FromTickersList(value);
             case Trade _:
                 return FromTrade(value);
             case List<Trade> _:
@@ -4994,6 +7689,10 @@ public partial class BaseExchange
                 return FromTradingFeeInterface(value);
             case List<TradingFeeInterface> _:
                 return FromTradingFeeInterfaceList(value);
+            case TradingFees _:
+                return FromTradingFees(value);
+            case List<TradingFees> _:
+                return FromTradingFeesList(value);
             case Transaction _:
                 return FromTransaction(value);
             case List<Transaction> _:
@@ -5004,6 +7703,8 @@ public partial class BaseExchange
                 return FromTransferEntryList(value);
             case List<OHLCV> _:
                 return FromOHLCVList(value);
+            case Dictionary<string, Dictionary<string, List<OHLCV>>> _:
+                return FromOHLCVDict(value);
             default:
                 return value;
         }

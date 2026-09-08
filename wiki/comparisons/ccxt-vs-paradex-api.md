@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Paradex API and the official Paradex SDKs -->
 <!-- description: Paradex derives a Starknet account from an Ethereum signature and signs each order as typed data. Compare paradex-py and @paradex/sdk with CCXT on auth and coverage. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Paradex publishes Python and JavaScript SDKs; both do the L1-to-L2 onboarding and JWT dance. CCXT does the same derivation internally and adds 50 unified capabilities, options markets and seven languages. -->
+<!-- summary: Paradex publishes Python and JavaScript SDKs; both do the L1-to-L2 onboarding and JWT dance. CCXT does the same derivation internally and adds 50 unified capabilities, options markets and eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Paradex API and the official Paradex SDKs
@@ -15,7 +15,7 @@ Paradex publishes two official SDKs: [`tradeparadex/paradex-py`](https://github.
 ## TL;DR
 
 - **Pick `paradex-py` or `@paradex/sdk`** if Paradex is your only venue, you want request/response shapes that match Paradex's reference exactly, or you need something CCXT does not do — L2-only subkey auth and the threaded WebSocket client are the two concrete examples.
-- **Pick CCXT** if you want Paradex as one venue among many: 50 unified capabilities (30 of them `fetch*`), perps **and** options, seven `watch*` methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you want Paradex as one venue among many: 50 unified capabilities (30 of them `fetch*`), perps **and** options, seven `watch*` methods, and the same code in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **The signing is the same either way.** CCXT does the L1 EIP-712 signature, derives the Starknet account, onboards, caches the JWT and refreshes it before expiry — so the trade-off is API shape and portability, not cryptography.
 
 ## At a glance
@@ -23,7 +23,7 @@ Paradex publishes two official SDKs: [`tradeparadex/paradex-py`](https://github.
 | | **CCXT** | **Official Paradex SDKs** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Paradex is one of them) | Paradex only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (`paradex_py`) and JavaScript/TypeScript (`@paradex/sdk`) |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (`paradex_py`) and JavaScript/TypeScript (`@paradex/sdk`) |
 | Packages to install | **1** (`ccxt`) | `pip install paradex-py` or `npm i @paradex/sdk` |
 | Unified market data + trading API | yes — same method names across every exchange | no — Paradex's own request/response shapes |
 | Unified capabilities implemented | 50 for `paradex`, of which 30 are `fetch*` | n/a |
@@ -204,9 +204,9 @@ price = exchange.price_to_precision('BTC/USD:USDC', 61234.56789)
 
 The SDK's own examples use `Decimal` for exactly this reason; CCXT makes it the default rather than a discipline you have to remember.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — including the Starknet signing, which lives in the base class. Paradex publishes Python and JavaScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — including the Starknet signing, which lives in the base class. Paradex publishes Python and JavaScript; if your execution service is in Go, C# or Java, CCXT is the option that exists.
 
 <!-- tabs:start -->
 

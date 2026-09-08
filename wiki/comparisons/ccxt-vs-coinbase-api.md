@@ -23,7 +23,7 @@ There is no such thing as "the Coinbase API". Coinbase runs several separate tra
 | --- | --- | --- |
 | Exchanges covered | 104 | Coinbase products only |
 | Coinbase products in one library | `coinbase` (Advanced Trade + App v2), `coinbaseexchange`, `coinbaseinternational` | one SDK per product, per language |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python (Advanced Trade), TypeScript, Java, Go — coverage differs per product |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python (Advanced Trade), TypeScript, Java, Go — coverage differs per product |
 | Packages to install | **1** (`ccxt`) | one per product line you use |
 | Unified market data + trading API | yes — same method names across every exchange and every Coinbase product | no — each product's own shapes |
 | WebSockets | yes — 12 `watch*` on `coinbase`, 10 on `coinbaseexchange`, 7 on `coinbaseinternational` | yes in `coinbase-advanced-py`; the sample TypeScript SDK documents REST only |

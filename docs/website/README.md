@@ -15,7 +15,7 @@ ts/src/*.ts (JSDoc) ──jsdoc2md/examples2md──▶ wiki/*.md ──build/wi
 
 - `wiki/*.md` (committed) is the shared source for both this site and the GitHub wiki.
 - `build/wiki-to-fumadocs.ts` converts it to `docs/website/content/docs/**` (gitignored — regenerate, don't edit).
-- `examples2md.js` generates the per-language example pages (JS/Python/TS/PHP/C#/Go/Java) under `wiki/examples/`.
+- `examples2md.js` generates the per-language example pages (JS/Python/TS/PHP/C#/Go/Java/Rust) under `wiki/examples/`.
 
 The one exception is `wiki/comparisons/` — the hand-written "CCXT vs \<X>" pages served at
 `/docs/comparisons`. They are committed markdown, and their metadata (title, description,

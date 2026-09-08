@@ -339,6 +339,28 @@ def test_safe_float():
     assert exchange.safe_float_n(input_dict, ['a', 'b', 'strNumber']) == float(3)
     # @ts-expect-error
     assert exchange.safe_float_n(input_list, [3, 2, 1]) == float(2)
+    # safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+    assert exchange.safe_float(input_dict, 'nonexistent') is None, 'safeFloat failed for missing key'
+    assert exchange.safe_float(input_dict, 'nonexistent', 5) == 5, 'safeFloat failed for missing key with default'
+    assert exchange.safe_float(input_dict, 'emptyString') is None, 'safeFloat failed for empty string'
+    assert exchange.safe_float(input_dict, 'str') is None, 'safeFloat failed for non-numeric string'
+    assert exchange.safe_float(input_dict, 'undefined') is None, 'safeFloat failed for None value'
+    assert exchange.safe_float(None, 'i') is None, 'safeFloat failed for undefined container'
+    assert exchange.safe_float(None, 'i', 7) == 7, 'safeFloat failed for undefined container with default'
+    assert exchange.safe_float(input_list, 5) is None, 'safeFloat failed for out-of-range list index'
+    # safeFloat2 - negative paths
+    assert exchange.safe_float_2(input_dict, 'nonexistent', 'nonexistent2') is None, 'safeFloat2 failed for missing keys'
+    assert exchange.safe_float_2(input_dict, 'nonexistent', 'str') is None, 'safeFloat2 failed for missing then non-numeric'
+    assert exchange.safe_float_2(input_dict, 'nonexistent', 'emptyString') is None, 'safeFloat2 failed for missing then empty string'
+    assert exchange.safe_float_2(input_dict, 'nonexistent', 'nonexistent2', 9) == 9, 'safeFloat2 failed for missing keys with default'
+    assert exchange.safe_float_2(None, 'i', 'f') is None, 'safeFloat2 failed for undefined container'
+    # safeFloatN - negative paths
+    assert exchange.safe_float_n(input_dict, ['a', 'b', 'nonexistent']) is None, 'safeFloatN failed for missing keys'
+    assert exchange.safe_float_n(input_dict, ['a', 'b', 'emptyString']) is None, 'safeFloatN failed for empty string'
+    assert exchange.safe_float_n(input_dict, ['a', 'b', 'str']) is None, 'safeFloatN failed for non-numeric string'
+    assert exchange.safe_float_n(input_dict, ['a', 'b', 'nonexistent'], 11) == 11, 'safeFloatN failed for missing keys with default'
+    assert exchange.safe_float_n(None, ['a', 'b', 'i']) is None, 'safeFloatN failed for undefined container'
+    assert exchange.safe_float_n(input_list, [5, 6]) is None, 'safeFloatN failed for out-of-range list indices'
 
 
 def test_safe_number():

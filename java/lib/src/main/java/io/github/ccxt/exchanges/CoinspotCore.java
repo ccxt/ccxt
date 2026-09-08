@@ -642,7 +642,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
+            String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_post_ro_my_balances"))) || Helpers.isTrue((Helpers.isEqual(method, "privatePostRoMyBalances")))))
             {
@@ -716,7 +716,7 @@ public class CoinspotCore extends CoinspotApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -990,11 +990,11 @@ public class CoinspotCore extends CoinspotApi
         Object timestamp = null;
         Object priceString = null;
         Object fee = null;
-        Object audTotal = this.safeString(trade, "audtotal");
-        Object costString = this.safeString(trade, "total", audTotal);
-        Object side = this.safeString(trade, "side");
-        Object amountString = this.safeString(trade, "amount");
-        Object marketId = this.safeString(trade, "market");
+        String audTotal = this.safeString(trade, "audtotal");
+        String costString = this.safeString(trade, "total", audTotal);
+        String side = this.safeString(trade, "side");
+        String amountString = this.safeString(trade, "amount");
+        String marketId = this.safeString(trade, "market");
         Object symbol = this.safeSymbol(marketId, market, "/");
         Object solddate = this.safeInteger(trade, "solddate");
         if (Helpers.isTrue(!Helpers.isEqual(solddate, null)))
@@ -1004,10 +1004,10 @@ public class CoinspotCore extends CoinspotApi
         } else
         {
             priceString = Precise.stringDiv(costString, amountString);
-            Object createdString = this.safeString(trade, "created");
+            String createdString = this.safeString(trade, "created");
             timestamp = this.parse8601(createdString);
-            Object audfeeExGst = this.safeString(trade, "audfeeExGst");
-            Object audGst = this.safeString(trade, "audGst");
+            String audfeeExGst = this.safeString(trade, "audfeeExGst");
+            String audGst = this.safeString(trade, "audGst");
             // The transaction fee which consumers pay is inclusive of GST by default
             Object feeCost = Precise.stringAdd(audfeeExGst, audGst);
             Object feeCurrencyId = "AUD";
@@ -1117,7 +1117,7 @@ public class CoinspotCore extends CoinspotApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object side = this.safeString(parameters, "side");
+            String side = this.safeString(parameters, "side");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(side, "buy")) && Helpers.isTrue(!Helpers.isEqual(side, "sell"))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
@@ -1151,7 +1151,7 @@ public class CoinspotCore extends CoinspotApi
         {
             return null;  // fallback to default error handler
         }
-        Object status = this.safeString(response, "status");
+        String status = this.safeString(response, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, "error")))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(response));

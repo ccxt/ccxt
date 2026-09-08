@@ -734,7 +734,7 @@ func (this *Mudrex) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Mudrex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Mudrex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Mudrex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Mudrex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -776,7 +776,7 @@ func (this *Mudrex) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Mudrex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Mudrex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Mudrex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Mudrex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

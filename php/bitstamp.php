@@ -772,7 +772,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_markets_from_cache($params = array()) {
+    public function fetch_markets_from_cache($params = array()): array {
         // this method is $now redundant
         // currencies are $now fetched before markets
         $options = $this->safe_value($this->options, 'fetchMarkets', array());

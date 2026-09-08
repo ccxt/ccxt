@@ -65,7 +65,8 @@ pub fn test_types_rest() -> Result<(), String> {
     returns::<Vec<DepositAddress>>(b.fetch_deposit_addresses(None, n.clone()));
     returns::<Vec<LeverageTier>>(b.fetch_market_leverage_tiers("BTC/USDT:USDT", n.clone()));
     returns::<Vec<Liquidation>>(b.fetch_my_liquidations(None, None, None, n.clone()));
-    returns::<Vec<Greeks>>(b.fetch_all_greeks(None, n.clone()));
+    returns::<AllGreeks>(b.fetch_all_greeks(None, n.clone()));
+    returns::<DepositAddresses>(b.fetch_deposit_addresses_by_network("USDT", n.clone()));
     returns::<Vec<OpenInterest>>(b.fetch_open_interest_history("BTC/USDT:USDT", None, None, None, n.clone()));
 
     // ── keyed-map aliases (HashMap<String, T>) ────────────────────────

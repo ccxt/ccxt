@@ -20,8 +20,8 @@ pub async fn testFetchOrderBooks(mut exchange: Value, mut skippedProperties: Val
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&get_array_length(&orderBookKeys), &Value::Int(0))))));
     {
                 let mut i: Value = Value::Int(0);
-        let mut __for_first_1457: bool = true;
-        while { if !__for_first_1457 { i = add(&i, &Value::Int(1)); } __for_first_1457 = false; is_less_than(&i, &get_array_length(&orderBookKeys)) } {
+        let mut __for_first_1459: bool = true;
+        while { if !__for_first_1459 { i = add(&i, &Value::Int(1)); } __for_first_1459 = false; is_less_than(&i, &get_array_length(&orderBookKeys)) } {
         let mut symbolInner: Value = get_value(&orderBookKeys, &i);
         testOrderBook(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&orderBooks, &symbolInner), symbolInner.clone());
     }

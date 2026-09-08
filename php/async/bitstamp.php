@@ -785,7 +785,7 @@ class bitstamp extends Exchange {
         );
     }
 
-    public function fetch_markets_from_cache($params = array()) {
+    public function fetch_markets_from_cache($params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_from_cache(...))($params);
     }
 

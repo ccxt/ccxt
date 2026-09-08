@@ -413,7 +413,7 @@ impl KrakenCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isLimitOrder: Value = Value::Bool(ends_with(&type_var, &Value::Str("limit".to_string()))); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        let mut isLimitOrder: bool = ends_with(&type_var, &Value::Str("limit".to_string())); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if is_true(&isLimitOrder) {
             if is_equal(&price, &Value::Null) {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" limit orders require a price argument".to_string()))));
@@ -446,20 +446,20 @@ impl KrakenCore {
         let mut presetTakeProfit: Value = self.safe_string_k(takeProfit.clone(), "triggerPrice", &[]);
         let mut presetStopLossLimit: Value = self.safe_string_k(stopLoss.clone(), "price", &[]);
         let mut presetTakeProfitLimit: Value = self.safe_string_k(takeProfit.clone(), "price", &[]);
-        let mut isPresetStopLoss: Value = Value::Bool(!is_equal(&presetStopLoss, &Value::Null));
-        let mut isPresetTakeProfit: Value = Value::Bool(!is_equal(&presetTakeProfit, &Value::Null));
+        let mut isPresetStopLoss: bool = !is_equal(&presetStopLoss, &Value::Null);
+        let mut isPresetTakeProfit: bool = !is_equal(&presetTakeProfit, &Value::Null);
         let mut stopLossPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossPriceOrder: Value = Value::Bool(!is_equal(&stopLossPrice, &Value::Null));
-        let mut isTakeProfitPriceOrder: Value = Value::Bool(!is_equal(&takeProfitPrice, &Value::Null));
+        let mut isStopLossPriceOrder: bool = !is_equal(&stopLossPrice, &Value::Null);
+        let mut isTakeProfitPriceOrder: bool = !is_equal(&takeProfitPrice, &Value::Null);
         let mut trailingAmount: Value = self.safe_string_k(params.clone(), "trailingAmount", &[]);
         let mut trailingPercent: Value = self.safe_string_k(params.clone(), "trailingPercent", &[]);
         let mut trailingLimitAmount: Value = self.safe_string_k(params.clone(), "trailingLimitAmount", &[]);
         let mut trailingLimitPercent: Value = self.safe_string_k(params.clone(), "trailingLimitPercent", &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTrailingPercentOrder: Value = Value::Bool(!is_equal(&trailingPercent, &Value::Null));
-        let mut isTrailingLimitAmountOrder: Value = Value::Bool(!is_equal(&trailingLimitAmount, &Value::Null));
-        let mut isTrailingLimitPercentOrder: Value = Value::Bool(!is_equal(&trailingLimitPercent, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTrailingPercentOrder: bool = !is_equal(&trailingPercent, &Value::Null);
+        let mut isTrailingLimitAmountOrder: bool = !is_equal(&trailingLimitAmount, &Value::Null);
+        let mut isTrailingLimitPercentOrder: bool = !is_equal(&trailingLimitPercent, &Value::Null);
         let mut offset: Value = self.safe_string_k(params.clone(), "offset", &[Value::Str("".to_string())]); // can set this to - for minus
         let mut trailingAmountString: Value = ternary(is_true(&(!is_equal(&trailingAmount, &Value::Null))), add(&offset, &self.number_to_string(trailingAmount.clone())), Value::Null);
         let mut trailingPercentString: Value = ternary(is_true(&(!is_equal(&trailingPercent, &Value::Null))), add(&offset, &self.number_to_string(trailingPercent.clone())), Value::Null);
@@ -953,8 +953,8 @@ impl KrakenCore {
         let mut parsed: Value = self.parse_trades(data.clone(), &[market.clone()]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_421: bool = true;
-            while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &get_array_length(&parsed)) } {
+            let mut __for_first_420: bool = true;
+            while { if !__for_first_420 { i = add(&i, &Value::Int(1)); } __for_first_420 = false; is_less_than(&i, &get_array_length(&parsed)) } {
             stored.append(get_value(&parsed, &i));
         }
         }
@@ -1010,8 +1010,8 @@ impl KrakenCore {
         let mut ohlcvsLength: Value = get_array_length(&data);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_422: bool = true;
-            while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &ohlcvsLength) } {
+            let mut __for_first_421: bool = true;
+            while { if !__for_first_421 { i = add(&i, &Value::Int(1)); } __for_first_421 = false; is_less_than(&i, &ohlcvsLength) } {
             let mut candle: Value = get_value(&data, &i);
             let mut candle: Value = get_value(&data, &i);
             let mut datetime: Value = self.safe_string_k(candle.clone(), "interval_begin", &[]);
@@ -1296,8 +1296,8 @@ impl KrakenCore {
             if !is_equal(&symbols, &Value::Null) {
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_423: bool = true;
-                    while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                    let mut __for_first_422: bool = true;
+                    while { if !__for_first_422 { i = add(&i, &Value::Int(1)); } __for_first_422 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                     let mut symbol: Value = get_value(&symbols, &i);
                     let mut symbol: Value = get_value(&symbols, &i);
                     let mut market: Value = self.market(symbol.clone());
@@ -1456,8 +1456,8 @@ impl KrakenCore {
             let mut keys: Value = Value::List(vec![Value::Str("asks".to_string()), Value::Str("bids".to_string())]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_424: bool = true;
-                while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_423: bool = true;
+                while { if !__for_first_423 { i = add(&i, &Value::Int(1)); } __for_first_423 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut key: Value = get_value(&keys, &i);
                 let mut key: Value = get_value(&keys, &i);
                 let mut bookside: Value = get_value(&orderbook, &key);
@@ -1481,8 +1481,8 @@ impl KrakenCore {
                 let mut checkBids: Value = get_value(&orderbook, &Value::Str("bids".to_string()));
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_425: bool = true;
-                    while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &Value::Int(10)) } {
+                    let mut __for_first_424: bool = true;
+                    while { if !__for_first_424 { i = add(&i, &Value::Int(1)); } __for_first_424 = false; is_less_than(&i, &Value::Int(10)) } {
                     let mut currentAsk: Value = self.safe_value(checkAsks.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1493,8 +1493,8 @@ impl KrakenCore {
                 }
                 {
                                         let mut i: Value = Value::Int(0);
-                    let mut __for_first_426: bool = true;
-                    while { if !__for_first_426 { i = add(&i, &Value::Int(1)); } __for_first_426 = false; is_less_than(&i, &Value::Int(10)) } {
+                    let mut __for_first_425: bool = true;
+                    while { if !__for_first_425 { i = add(&i, &Value::Int(1)); } __for_first_425 = false; is_less_than(&i, &Value::Int(10)) } {
                     let mut currentBid: Value = self.safe_value(checkBids.clone(), i.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
@@ -1520,8 +1520,8 @@ impl KrakenCore {
     pub fn custom_handle_deltas(&self, mut bookside: Value, mut deltas: Value) {
         {
                         let mut j: Value = Value::Int(0);
-            let mut __for_first_427: bool = true;
-            while { if !__for_first_427 { j = add(&j, &Value::Int(1)); } __for_first_427 = false; is_less_than(&j, &get_array_length(&deltas)) } {
+            let mut __for_first_426: bool = true;
+            while { if !__for_first_426 { j = add(&j, &Value::Int(1)); } __for_first_426 = false; is_less_than(&j, &get_array_length(&deltas)) } {
             let mut delta: Value = get_value(&deltas, &j);
             let mut delta: Value = get_value(&deltas, &j);
             let mut price: Value = self.safe_number_k(delta.clone(), "price", &[]);
@@ -1738,8 +1738,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_428: bool = true;
-                while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&allTrades)) } {
+                let mut __for_first_427: bool = true;
+                while { if !__for_first_427 { i = add(&i, &Value::Int(1)); } __for_first_427 = false; is_less_than(&i, &get_array_length(&allTrades)) } {
                 let mut trade: Value = self.safe_dict(allTrades.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1755,8 +1755,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_429: bool = true;
-                while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_428: bool = true;
+                while { if !__for_first_428 { i = add(&i, &Value::Int(1)); } __for_first_428 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&keys, &i));
                 client.resolve(&[self.myTrades.clone(), messageHash.clone()]);
             }
@@ -1904,8 +1904,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             });
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_430: bool = true;
-                while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
+                let mut __for_first_429: bool = true;
+                while { if !__for_first_429 { i = add(&i, &Value::Int(1)); } __for_first_429 = false; is_less_than(&i, &get_array_length(&allOrders)) } {
                 let mut order: Value = self.safe_dict(allOrders.clone(), i.clone(), &[Value::Map({
                     let mut m = indexmap::IndexMap::new();
                     m
@@ -1942,8 +1942,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut keys: Value = object_keys(&symbols);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_431: bool = true;
-                while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&keys)) } {
+                let mut __for_first_430: bool = true;
+                while { if !__for_first_430 { i = add(&i, &Value::Int(1)); } __for_first_430 = false; is_less_than(&i, &get_array_length(&keys)) } {
                 let mut messageHash: Value = add(&add(&name, &Value::Str(":".to_string())), &get_value(&keys, &i));
                 client.resolve(&[self.orders.clone(), messageHash.clone()]);
             }
@@ -2046,8 +2046,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut messageHashes: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_432: bool = true;
-            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_431: bool = true;
+            while { if !__for_first_431 { i = add(&i, &Value::Int(1)); } __for_first_431 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut eventTrigger: Value = self.safe_string_k(params.clone(), "event_trigger", &[]);
             if !is_equal(&eventTrigger, &Value::Null) {
                 append_to_array(&mut messageHashes, self.get_message_hash(channelName.clone(), &[Value::Null, self.symbol(get_value(&symbols, &i))]));
@@ -2141,8 +2141,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_433: bool = true;
-            while { if !__for_first_433 { i = add(&i, &Value::Int(1)); } __for_first_433 = false; is_less_than(&i, &get_array_length(&data)) } {
+            let mut __for_first_432: bool = true;
+            while { if !__for_first_432 { i = add(&i, &Value::Int(1)); } __for_first_432 = false; is_less_than(&i, &get_array_length(&data)) } {
             let mut currencyId: Value = self.safe_string_k(get_value(&data, &i), "asset", &[]);
             let mut code: Value = self.safe_currency_code(currencyId.clone(), &[]);
             let mut account: Value = self.account();
@@ -2168,7 +2168,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol = get_arg(optional_args, 1, Value::Null);
         // unifiedElementName can be : orderbook, trade, ticker, bidask ...
         // subChannelName only applies to channel that needs specific variation (i.e. depth_50, depth_100..) to be selected
-        let mut withSymbol: Value = Value::Bool(!is_equal(&symbol, &Value::Null));
+        let mut withSymbol: bool = !is_equal(&symbol, &Value::Null);
         let mut messageHash: Value = unifiedElementName.clone();
         if !is_true(&withSymbol) {
             messageHash = add(&messageHash, &Value::Str("s".to_string()));

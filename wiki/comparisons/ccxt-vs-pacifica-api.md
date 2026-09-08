@@ -15,7 +15,7 @@ The client library Pacifica's own [API documentation](https://docs.pacifica.fi/a
 ## TL;DR
 
 - **Use Pacifica's examples** if you are learning the signing scheme, want a one-file-per-endpoint reference alongside the docs, or need something CCXT does not do — hardware-wallet signing in particular.
-- **Pick CCXT** if you want an installable dependency: 59 unified capabilities, 13 `watch*` / `unWatch*` streaming methods, credit-aware rate limiting and testnet support, in seven languages.
+- **Pick CCXT** if you want an installable dependency: 59 unified capabilities, 13 `watch*` / `unWatch*` streaming methods, credit-aware rate limiting and testnet support, in eight languages.
 - **The cryptography is identical.** CCXT's `sortJsonKeys` / `prepareMessage` / `signMessage` produce the same bytes as the examples' `sort_json_keys` / `prepare_message` / `sign_message`, including agent-wallet support. The choice is about packaging and coverage, not signing.
 
 ## At a glance
@@ -24,7 +24,7 @@ The client library Pacifica's own [API documentation](https://docs.pacifica.fi/a
 | --- | --- | --- |
 | Exchanges covered | 104 (Pacifica is one of them) | Pacifica only |
 | Distribution | `pip install ccxt`, `npm install ccxt`, … | clone the repository; no PyPI package, no releases |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python only |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python only |
 | Unified market data + trading API | yes — same method names across every exchange | no — one script per endpoint |
 | Unified capabilities implemented | 59 for `pacifica`, of which 24 are `fetch*` | n/a |
 | Symbols | `'BTC/USDC:USDC'` | `"BTC"` |
@@ -211,9 +211,9 @@ price = exchange.price_to_precision('BTC/USDC:USDC', 61234.56789)
 
 The unified surface for `pacifica` is 59 capabilities, including `fetchPositions`, `fetchLeverage` / `setLeverage`, `fetchMarginMode` / `setMarginMode`, `fetchFundingRates` and `fetchFundingRateHistory`, `fetchOpenInterest` / `fetchOpenInterests`, `fetchLedger`, `fetchTradingFee`, `createOrders`, `editOrder`, `cancelOrders` and `createOrderWithTakeProfitAndStopLoss` — each returning a unified structure. Reproducing that from the examples means one signing block per operation.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures — including the Ed25519 signing, which is base-class code rather than something you re-derive per language.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures — including the Ed25519 signing, which is base-class code rather than something you re-derive per language.
 
 <!-- tabs:start -->
 

@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the Bitget API and the official Bitget SDK -->
 <!-- description: CCXT compared with BitgetLimited's v3 API SDK on install shape, raw endpoint coverage, WebSockets, demo trading, rate limits and unified structures. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: Bitget's official Python SDK is a signed HTTP client you vendor from the repository. CCXT gives you the same raw reach — 637 Bitget endpoints as named methods — plus 94 unified capabilities in seven languages. -->
+<!-- summary: Bitget's official Python SDK is a signed HTTP client you vendor from the repository. CCXT gives you the same raw reach — 637 Bitget endpoints as named methods — plus 94 unified capabilities in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the Bitget API and the official Bitget SDK
@@ -15,7 +15,7 @@ The question that decides between them: **do you want a signed HTTP client for o
 ## TL;DR
 
 - **Pick the official Bitget SDK** if Bitget is your only venue, you want request payloads that mirror Bitget's docs literally — `productType: "umcbl"`, `symbol: "BTCUSDT_UMCBL"` — and you are comfortable vendoring the directory into your project.
-- **Pick CCXT** if you want spot, margin and futures behind one client, in any of seven languages, with the order book, rate limiter, precision handling and error types already written.
+- **Pick CCXT** if you want spot, margin and futures behind one client, in any of eight languages, with the order book, rate limiter, precision handling and error types already written.
 - **Raw access is not what you trade away.** CCXT generates **637** Bitget endpoints as implicit methods, so choosing it does not cut you off from anything Bitget publishes.
 
 ## At a glance
@@ -23,7 +23,7 @@ The question that decides between them: **do you want a signed HTTP client for o
 | | **CCXT** | **Official Bitget SDK** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bitget is one of them) | Bitget only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Java, Python, Node, Go, PHP — separate SDKs in one repository |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Java, Python, Node, Go, PHP — separate SDKs in one repository |
 | Install (Python) | `pip install ccxt` | copy the `bitget-python-sdk-api` directory, then `pip install requests websocket-client` |
 | Unified market data + trading API | yes — 94 unified capabilities, 47 `fetch*` methods | no — Bitget's own paths, params and payloads |
 | Products in one client | spot, margin, USDT-M, coin-M and USDC-M futures | product type is a parameter you pass (`umcbl`, `dmcbl`, …) |
@@ -176,9 +176,9 @@ exchange.create_order('BTC/USDT:USDT', 'limit', 'buy', 0.01, 60000)    # USDT-M 
 exchange.create_order('BTC/USD:BTC', 'limit', 'buy', 1, 60000)         # coin-M contract
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, so method names, arguments and return structures are identical in all of them.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, so method names, arguments and return structures are identical in all of them.
 
 <!-- tabs:start -->
 
@@ -207,7 +207,7 @@ ticker, err := exchange.FetchTicker("BTC/USDT:USDT")
 
 <!-- tabs:end -->
 
-Bitget's repository also holds five language SDKs, but they are five codebases with five sets of names and idioms — not one API expressed seven ways.
+Bitget's repository also holds five language SDKs, but they are five codebases with five sets of names and idioms — not one API expressed eight ways.
 
 ### Rate limits you do not have to model
 

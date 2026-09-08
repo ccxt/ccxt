@@ -23,7 +23,7 @@ So the real comparison here is not CCXT against a vendor SDK. It is **CCXT again
 | | **CCXT** | **Raw Bit2C REST API** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Bit2C is one of them) | Bit2C only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write it in |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write it in |
 | Packages to install | **1** (`ccxt`) | an HTTP client plus your own wrapper |
 | First-party client library | n/a | **none** — only small community wrappers |
 | Markets | `BTC/NIS`, `ETH/NIS`, `LTC/NIS`, `USDC/NIS` as unified symbols | `BtcNis`, `EthNis`, `LtcNis`, `UsdcNis` |
@@ -143,7 +143,7 @@ amount = exchange.amount_to_precision('BTC/NIS', 0.0012345678)
 price = exchange.price_to_precision('BTC/NIS', 254321.987)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
 There is no maintained Bit2C client for Python, Go, Java or PHP, so in every one of those languages you would be starting from zero. CCXT is written once in TypeScript and transpiled, with identical method names and structures:
 

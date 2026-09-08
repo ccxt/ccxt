@@ -525,7 +525,7 @@ func (this *LunoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	//
 	var currenciesData any = this.SafeList(response, "data", []any{})
 	var grouped map[string]any = this.GroupBy(currenciesData, "native_currency")
-	var values any = ObjectValues(grouped)
+	var values []any = ObjectValues(grouped)
 
 	ch <- this.ParseCurrencies(values)
 	return nil
@@ -2152,7 +2152,7 @@ func (this *LunoCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsTrue((IsEqual(api, "private"))) || IsTrue((IsEqual(api, "exchangePrivate")))) {
 		this.CheckRequiredCredentials()
-		var auth any = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
+		var auth string = this.StringToBase64(Add(Add(this.ApiKey, ":"), this.Secret))
 		headers = map[string]any{
 			"Authorization": Add("Basic ", auth),
 		}

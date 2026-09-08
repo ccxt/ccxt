@@ -99,22 +99,8 @@ export default class latoken extends Exchange {
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
     fetchTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
-    fetchPublicTradingFee(symbol: string, params?: {}): Promise<{
-        info: Dict;
-        symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
-    }>;
-    fetchPrivateTradingFee(symbol: string, params?: {}): Promise<{
-        info: Dict;
-        symbol: string;
-        maker: Num;
-        taker: Num;
-        percentage: undefined;
-        tierBased: undefined;
-    }>;
+    fetchPublicTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
+    fetchPrivateTradingFee(symbol: string, params?: {}): Promise<TradingFeeInterface>;
     /**
      * @method
      * @name latoken#fetchMyTrades

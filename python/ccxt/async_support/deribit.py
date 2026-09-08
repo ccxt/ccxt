@@ -2770,7 +2770,7 @@ class deribit(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'result')
         return self.parse_positions(result, symbols)
 
-    async def fetch_volatility_history(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params={}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 

@@ -1565,7 +1565,7 @@ class hibachi extends Exchange {
          * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
          *
          * @param {string} [$symbol] unified $market $symbol to filter by
-         * @param {int} [$since] milisecond timestamp of the earliest order
+         * @param {int} [$since] millisecond timestamp of the earliest order
          * @param {int} [$limit] the maximum number of open orders to return
          * @param {array} [$params] extra parameters
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -2325,7 +2325,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 

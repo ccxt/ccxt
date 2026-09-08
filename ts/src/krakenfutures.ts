@@ -3,7 +3,7 @@
 import { sha256, sha512 } from '@noble/hashes/sha2.js';
 import Exchange from './abstract/krakenfutures.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ContractUnavailable, DDoSProtection, DuplicateOrderId, ExchangeError, ExchangeNotAvailable, InsufficientFunds, InvalidNonce, InvalidOrder, OrderImmediatelyFillable, OrderNotFillable, OrderNotFound, RateLimitExceeded } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import type { Balances, Bool, Currency, Dict, FundingRate, FundingRateHistory, FundingRates, int, Int, LedgerEntry, Leverage, Leverages, LeverageTier, LeverageTiers, List, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, TradingFees, TransferEntry, NullableDict, FeeString, Endpoint } from './base/types.js';
 
@@ -78,7 +78,7 @@ export default class krakenfutures extends Exchange {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': 'emulated',
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -116,8 +116,11 @@ export default class krakenfutures extends Exchange {
                     'get': {
                         'feeschedules': { 'cost': 1 } as Endpoint<Dict>,
                         'instruments': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'instruments/{symbol}/status': { 'cost': 1 } as Endpoint<Dict>,
                         'orderbook': { 'cost': 1 } as Endpoint<Dict>,
                         'tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        'tickers/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'history': { 'cost': 1 } as Endpoint<Dict>,
                         'historicalfundingrates': { 'cost': 1 } as Endpoint<Dict>,
                     },
@@ -137,12 +140,17 @@ export default class krakenfutures extends Exchange {
                         'assignmentprogram/current': { 'cost': 1 } as Endpoint<Dict>,
                         'assignmentprogram/history': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/status': { 'cost': 1 } as Endpoint<Dict>,
+                        'unwindqueue': { 'cost': 1 } as Endpoint<Dict>,
+                        'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'sendorder': { 'cost': 1 } as Endpoint<Dict>,
                         'editorder': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelorder': { 'cost': 1 } as Endpoint<Dict>,
                         'transfer': { 'cost': 1 } as Endpoint<Dict>,
+                        'transfer/subaccount': { 'cost': 1 } as Endpoint<Dict>,
                         'batchorder': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelallorders': { 'cost': 1 } as Endpoint<Dict>,
                         'cancelallordersafter': { 'cost': 1 } as Endpoint<Dict>,
@@ -153,11 +161,14 @@ export default class krakenfutures extends Exchange {
                     'put': {
                         'leveragepreferences': { 'cost': 1 } as Endpoint<Dict>,
                         'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
+                        'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'charts': {
                     'get': {
                         '{price_type}/{symbol}/{interval}': { 'cost': 1 } as Endpoint<Dict>,
+                        'analytics/liquidity-pool': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'history': {
@@ -169,6 +180,8 @@ export default class krakenfutures extends Exchange {
                         'account-log': { 'cost': 1 } as Endpoint<Dict>,
                         'market/{symbol}/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'market/{symbol}/executions': { 'cost': 1 } as Endpoint<Dict>,
+                        'market/{symbol}/price': { 'cost': 1 } as Endpoint<Dict>,
+                        'positions': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },
@@ -223,6 +236,7 @@ export default class krakenfutures extends Exchange {
                     'notFound': BadRequest,
                     'Server Error': ExchangeError,
                     'unknownError': ExchangeError,
+                    'contractNotFound': BadSymbol,
                 },
                 'broad': {
                     'invalidArgument': BadRequest,
@@ -240,6 +254,7 @@ export default class krakenfutures extends Exchange {
                             'triggers': 'private',
                             'accountlogcsv': 'private',
                             'account-log': 'private',
+                            'positions': 'private',
                         },
                     },
                 },
@@ -259,6 +274,7 @@ export default class krakenfutures extends Exchange {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                            'analytics/liquidity-pool': 'v1',
                         },
                     },
                     'history': {
@@ -597,6 +613,50 @@ export default class krakenfutures extends Exchange {
         const timestamp = this.parse8601 (this.safeString (response, 'serverTime'));
         const orderBook = this.safeDict (response, 'orderBook', {});
         return this.parseOrderBook (orderBook, symbol, timestamp);
+    }
+
+    /**
+     * @method
+     * @name krakenfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    override async fetchTicker (symbol: string, params = {}): Promise<Ticker> {
+        await this.loadMarkets ();
+        const market = this.market (symbol);
+        const request: Dict = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol (this.extend (request, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "ticker": {
+        //            "tag": "perpetual",
+        //            "pair": "XBT:USD",
+        //            "symbol": "PF_XBTUSD",
+        //            "markPrice": 77343.38154086835,
+        //            "bid": 77333,
+        //            "bidSize": 0.0776,
+        //            "ask": 77334,
+        //            "askSize": 0.4929,
+        //            "vol24h": 8309.2546,
+        //            "openInterest": 1950.596600000000000,
+        //            "open24h": 77332,
+        //            "indexPrice": 77340.22,
+        //            "last": 77334,
+        //            "lastTime": "2026-09-02T17:52:21.057577Z",
+        //            "lastSize": 0.0114,
+        //            "suspended": false
+        //        },
+        //        "serverTime": "2026-09-02T17:52:21.671Z"
+        //    }
+        //
+        const ticker = this.safeDict (response, 'ticker', {});
+        return this.parseTicker (ticker, market);
     }
 
     /**

@@ -38,8 +38,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1475: bool = true;
-                while { if !__for_first_1475 { i = add(&i, &Value::Int(1)); } __for_first_1475 = false; is_less_than(&i, &get_array_length(&response)) } {
+                let mut __for_first_1477: bool = true;
+                while { if !__for_first_1477 { i = add(&i, &Value::Int(1)); } __for_first_1477 = false; is_less_than(&i, &get_array_length(&response)) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&response, &i), Value::Null, now.clone());
             }
             }
@@ -68,8 +68,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             now = exchange.milliseconds();
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1476: bool = true;
-                while { if !__for_first_1476 { i = add(&i, &Value::Int(1)); } __for_first_1476 = false; is_less_than(&i, &get_array_length(&positionsForSymbols)) } {
+                let mut __for_first_1478: bool = true;
+                while { if !__for_first_1478 { i = add(&i, &Value::Int(1)); } __for_first_1478 = false; is_less_than(&i, &get_array_length(&positionsForSymbols)) } {
                 testPosition(exchange.clone(), skippedProperties.clone(), method.clone(), get_value(&positionsForSymbols, &i), symbol.clone(), now.clone());
             }
             }

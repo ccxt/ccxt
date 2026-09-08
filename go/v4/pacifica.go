@@ -1538,7 +1538,7 @@ func (this *PacificaCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchOHLCV() requires a \"symbol\" argument")))
 	}
-	var defaultMaxLimit any = 3950 // 4000 by docs, but in fact >~3960 returns error
+	var defaultMaxLimit int = 3950 // 4000 by docs, but in fact >~3960 returns error
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
 		retRes119812 := (<-this.LoadMarkets())
@@ -1737,7 +1737,7 @@ func (this *PacificaCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchMyTrades", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	var defaultLimit any = 100 // Default max limit
+	var defaultLimit int = 100 // Default max limit
 	if IsTrue(paginate) {
 
 		retRes134919 := (<-this.FetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
@@ -2639,7 +2639,7 @@ func (this *PacificaCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var defaultLimit any = 100 // Default max limit
+	var defaultLimit int = 100 // Default max limit
 	if IsTrue(paginate) {
 
 		retRes206919 := (<-this.FetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
@@ -2687,7 +2687,7 @@ func (this *PacificaCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySinceLimit(sorted, since, limit, "timestamp")
 	return nil
@@ -3036,7 +3036,7 @@ func (this *PacificaCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var defaultLimit any = 100 // max default 100
+	var defaultLimit int = 100 // max default 100
 	if IsTrue(paginate) {
 
 		retRes233519 := (<-this.FetchPaginatedCallCursor("fetchOrders", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
@@ -3195,7 +3195,7 @@ func (this *PacificaCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	//
 	var data any = this.SafeList(response, "data", []any{})
 	// return last state
-	var sorted any = this.SortBy(data, "created_at", true)
+	var sorted []any = this.SortBy(data, "created_at", true)
 	var lastIdx int = GetArrayLength(sorted)
 	var lastInfo any = map[string]any{}
 	if IsTrue(IsGreaterThan(lastIdx, 0)) {
@@ -3920,7 +3920,7 @@ func (this *PacificaCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any 
 	userAddressparamsVariable := this.HandleOriginAndSingleAddress("fetchLedger", params)
 	userAddress = GetValue(userAddressparamsVariable, 0)
 	params = GetValue(userAddressparamsVariable, 1)
-	var defaultLimit any = 100 // Default max limit
+	var defaultLimit int = 100 // Default max limit
 	if IsTrue(paginate) {
 
 		retRes303819 := (<-this.FetchPaginatedCallCursor("fetchLedger", code, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
@@ -4065,7 +4065,7 @@ func (this *PacificaCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...a
 	if IsTrue(!IsEqual(limit, nil)) {
 		AddElementToObject(request, "limit", limit)
 	}
-	var defaultLimit any = 100
+	var defaultLimit int = 100
 	if IsTrue(paginate) {
 
 		retRes315419 := (<-this.FetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, params, "next_cursor", "cursor", nil, defaultLimit))
@@ -4538,7 +4538,7 @@ func (this *PacificaCore) SortJsonKeys(value any) any {
 	if IsTrue(this.IsDictionary(value)) {
 		var result any = map[string]any{}
 		var keys []string = ObjectKeys(value)
-		var sortedKeys any = this.Sort(keys)
+		var sortedKeys []any = this.Sort(keys)
 		for i := 0; IsLessThan(i, GetArrayLength(sortedKeys)); i++ {
 			var key any = GetValue(sortedKeys, i)
 			AddElementToObject(result, key, this.SortJsonKeys(GetValue(value, key)))
@@ -4566,12 +4566,12 @@ func (this *PacificaCore) PrepareMessage(header any, payload any) any {
 }
 func (this *PacificaCore) SignMessage(header any, payload any, privateKey any) any {
 	var message any = this.PrepareMessage(header, payload)
-	var messageBytes any = this.Encode(message)
-	var secretBytes any = this.Base58ToBinary(privateKey)
+	var messageBytes string = this.Encode(message)
+	var secretBytes []byte = this.Base58ToBinary(privateKey)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
-	var signatureBase64 any = Eddsa(messageBytes, seed, ed25519)
-	var signatureBinary any = this.Base64ToBinary(signatureBase64)
-	var signatureBase58 any = this.BinaryToBase58(signatureBinary)
+	var signatureBase64 string = Eddsa(messageBytes, seed, ed25519)
+	var signatureBinary []byte = this.Base64ToBinary(signatureBase64)
+	var signatureBase58 string = this.BinaryToBase58(signatureBinary)
 	return signatureBase58
 }
 func (this *PacificaCore) PostActionRequest(operationType any, sigPayload any, params any) any {

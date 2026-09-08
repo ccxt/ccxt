@@ -1107,7 +1107,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (symbols);
     }
 
-    async fetchSwapAndFutureMarkets (params = {}) {
+    async fetchSwapAndFutureMarkets (params = {}): Promise<Market[]> {
         const markets = await Promise.all ([ this.publicLinearGetFutureMarketV1PublicSymbolList (params), this.publicInverseGetFutureMarketV1PublicSymbolList (params) ]);
         //
         //     {
@@ -2581,7 +2581,7 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2650,7 +2650,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params = {}) {
+    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

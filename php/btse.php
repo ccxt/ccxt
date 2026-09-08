@@ -2340,7 +2340,7 @@ class btse extends Exchange {
         return $this->safe_string($priceTypes, $priceType, $priceType);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * fetches information on an open $order made by the user
          *

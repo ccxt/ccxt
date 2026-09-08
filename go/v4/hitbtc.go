@@ -1338,7 +1338,7 @@ func (this *HitbtcCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
 		var marketIds any = this.MarketIds(symbols)
-		var delimited any = Join(marketIds, ",")
+		var delimited string = Join(marketIds, ",")
 		AddElementToObject(request, "symbols", delimited)
 	}
 
@@ -2282,7 +2282,7 @@ func (this *HitbtcCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	//         },
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -3698,7 +3698,7 @@ func (this *HitbtcCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			})
 		}
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4844,10 +4844,10 @@ func (this *HitbtcCore) Sign(path any, optionalArgs ...any) any {
 			}
 		}
 		AppendToArray(&payload, timestamp)
-		var payloadString any = Join(payload, "")
+		var payloadString string = Join(payload, "")
 		var signature string = this.Hmac(this.Encode(payloadString), this.Encode(this.Secret), sha256, "hex")
 		var secondPayload any = Add(Add(Add(Add(this.ApiKey, ":"), signature), ":"), timestamp)
-		var encoded any = this.StringToBase64(secondPayload)
+		var encoded string = this.StringToBase64(secondPayload)
 		AddElementToObject(headers, "Authorization", Add("HS256 ", encoded))
 	}
 	return map[string]any{

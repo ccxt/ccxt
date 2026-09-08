@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the HollaEx API -->
 <!-- description: HollaEx is white-label exchange software as well as an exchange. CCXT and the official hollaex-node-lib compared on languages, WebSockets, rate limits and sandbox. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: HollaEx Kit powers many exchanges that share one v2 API. HollaEx's maintained client library is Node-only and its Python library is archived; CCXT covers the same API in seven languages. -->
+<!-- summary: HollaEx Kit powers many exchanges that share one v2 API. HollaEx's maintained client library is Node-only and its Python library is archived; CCXT covers the same API in eight languages. -->
 <!-- weight: 100 -->
 
 # CCXT vs the HollaEx API
@@ -21,7 +21,7 @@ That shapes the comparison. The question is not only "CCXT or the vendor library
 | | **CCXT** | **hollaex-node-lib** |
 | --- | --- | --- |
 | Exchanges covered | 104 (HollaEx is one of them) | any HollaEx Kit exchange, via `apiURL` |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Node.js only |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Node.js only |
 | Other official clients | n/a | the Python library repository, `hollaex-py-lib-old`, was archived by its owner in September 2025 |
 | Packages to install | 1 (`ccxt`) | 1 (`hollaex-node-lib`) |
 | Unified market data + trading API | yes — 40 unified capabilities, 21 `fetch*` methods | no — HollaEx's own request and response shapes |
@@ -107,7 +107,7 @@ Same call, different vocabulary: `size` versus a unified `amount` argument, and 
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
 This is the decisive difference for HollaEx specifically. The maintained vendor client is Node-only, and the Python library repository was archived by its owner in September 2025. If you write Python, PHP, C#, Go or Java, CCXT is the maintained option — written once in TypeScript and transpiled to all of them with identical method names and return structures.
 

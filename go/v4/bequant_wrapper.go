@@ -145,7 +145,7 @@ func (this *Bequant) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Bequant) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bequant) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bequant) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bequant) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Bequant) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Bequant) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bequant) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bequant) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bequant) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

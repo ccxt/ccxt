@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleexchange" },
             });
             // CASE 1: by id
-            object array1 = new List<object>() {new Dictionary<string, object>() {
+            List<object> array1 = new List<object>() {new Dictionary<string, object>() {
             { "id", "a" },
             { "timestamp", 1 },
             { "uniq", "x1" },
@@ -37,7 +37,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(getValue(res1, 1), "uniq"), "x2"));
             Assert(isEqual(getValue(getValue(res1, 2), "uniq"), "x4"));
             // CASE 2: by timestamp
-            object array2 = new List<object>() {new Dictionary<string, object>() {
+            List<object> array2 = new List<object>() {new Dictionary<string, object>() {
             { "id", null },
             { "timestamp", 1 },
             { "uniq", "x1" },
@@ -61,7 +61,7 @@ public partial class BaseTest
             Assert(isEqual(getValue(getValue(res2, 1), "uniq"), "x2"));
             Assert(isEqual(getValue(getValue(res2, 2), "uniq"), "x4"));
             // CASE 3: by timestamp index (used in ohlcv)
-            object array3 = new List<object>() {new List<object>() {555, 1, 1, "x1"}, new List<object>() {666, 1, 1, "x2"}, new List<object>() {555, 1, 1, "x3"}};
+            List<object> array3 = new List<object>() {new List<object>() {555, 1, 1, "x1"}, new List<object>() {666, 1, 1, "x2"}, new List<object>() {555, 1, 1, "x3"}};
             object res3 = exchange.removeRepeatedElementsFromArray(array3, true);
             Assert(isEqual(getArrayLength(res3), 2));
             Assert(isEqual(getValue(getValue(res3, 0), 3), "x1"));

@@ -21,7 +21,7 @@ The question that decides between CCXT and Coinbase's own tooling here is unusua
 | | **CCXT** | **Coinbase's own Exchange clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (Coinbase Exchange is one of them) | Coinbase Exchange only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Go and TypeScript REST SDKs; Python scripts for FIX |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Go and TypeScript REST SDKs; Python scripts for FIX |
 | Packages to install | **1** (`ccxt`) | `exchange-sdk-go`, or `@coinbase-sample/exchange-sdk-ts` |
 | Positioning | production library | "sample library … only available for demonstration purposes" (both READMEs) |
 | Unified market data + trading API | yes — 42 capabilities on `coinbaseexchange` | no — Coinbase Exchange's own shapes |
@@ -149,9 +149,9 @@ That right-hand column is not a straw man. Coinbase's own WebSocket documentatio
 
 ## Where the differences actually bite
 
-### Seven languages, one API
+### Eight languages, one API
 
-Coinbase publishes Exchange REST clients in two languages. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures:
+Coinbase publishes Exchange REST clients in two languages. CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures:
 
 <!-- tabs:start -->
 

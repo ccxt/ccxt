@@ -15,7 +15,7 @@ So the honest comparison here is not CCXT against a vendor SDK. It is **CCXT aga
 ## TL;DR
 
 - **Write it yourself** if you need one or two NDAX endpoints, in a language CCXT does not cover, and you are comfortable owning the auth handshake and the OMS-id plumbing forever.
-- **Pick CCXT** if you want NDAX with 36 unified capabilities, four `watch*` streaming methods, a rate limiter, typed errors and testnet support — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go or Java.
+- **Pick CCXT** if you want NDAX with 36 unified capabilities, four `watch*` streaming methods, a rate limiter, typed errors and testnet support — in TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java or Rust.
 - **Choosing CCXT does not hide the raw API.** All 104 NDAX endpoints are generated as [implicit methods](/docs/exchanges/ndax/implicit-api), signed and rate-limited, so anything the unified API does not model is still one call away.
 
 ## At a glance
@@ -24,7 +24,7 @@ So the honest comparison here is not CCXT against a vendor SDK. It is **CCXT aga
 | --- | --- | --- |
 | Exchanges covered | 104 (NDAX is one of them) | NDAX only |
 | Official client library | n/a | **none published** |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | whatever you write; one unaffiliated .NET library exists |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | whatever you write; one unaffiliated .NET library exists |
 | Unified market data + trading API | yes — same method names across every exchange | no — AlphaPoint request/response shapes |
 | Unified capabilities implemented | 36 for `ndax`, of which 19 are `fetch*` | n/a |
 | Symbols | `'BTC/CAD'`, `'BTC/USDT'` | numeric `InstrumentId`, plus `OMSId` |
@@ -211,9 +211,9 @@ amount = exchange.amount_to_precision('BTC/CAD', 0.0012345678)
 price = exchange.price_to_precision('BTC/CAD', 81234.56789)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures in every one. On the raw path, each language is a fresh implementation of the same handshake.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures in every one. On the raw path, each language is a fresh implementation of the same handshake.
 
 <!-- tabs:start -->
 
@@ -270,7 +270,7 @@ An honest list — hand-rolling is not always the wrong call:
 - **The WebSocket API is the whole API.** AlphaPoint exposes essentially every function over the socket, including private ones. CCXT's `ndax` uses the socket for four public market-data methods and REST for everything else, so private streams — order and balance events — are simply not available through CCXT for this venue. If you need them, you write the client.
 - **The docs map one-to-one onto raw frames.** Reading apidoc.ndax.io while debugging your own client is a direct correspondence: `SendOrder` is `SendOrder`. CCXT's unified names are a deliberate abstraction, which is an extra hop.
 - **A far smaller dependency.** If you need three endpoints, sixty lines of `requests` code is a smaller install and a smaller attack surface than a library covering 104 exchanges.
-- **Any language you like.** CCXT ships seven. If your service is in Rust, Elixir or Swift, the raw API is the only route — and `RobJohnston/Ndax.Api` shows that a focused single-venue client is a tractable weekend project.
+- **Any language you like.** CCXT ships eight. If your service is in Elixir, Swift or Kotlin, the raw API is the only route — and `RobJohnston/Ndax.Api` shows that a focused single-venue client is a tractable weekend project.
 - **AlphaPoint knowledge transfers.** The same frame format and OMS conventions appear across other AlphaPoint deployments, so a client you write is partly reusable at other white-label venues.
 
 If NDAX is your only venue, you need its private WebSocket events, and you are in a language CCXT does not ship, writing your own client is the right answer.

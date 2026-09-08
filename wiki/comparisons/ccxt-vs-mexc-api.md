@@ -21,7 +21,7 @@ The question that decides between them: **do you need anything beyond spot REST?
 | | **CCXT** | **Official MEXC SDK** |
 | --- | --- | --- |
 | Exchanges covered | 104 (MEXC is one of them) | MEXC only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, JavaScript, Go, Java, .NET — generated from one spec |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, JavaScript, Go, Java, .NET — generated from one spec |
 | Install | `pip install ccxt` / `npm i ccxt` | `git clone`, then unzip the `dist/` folder for your language |
 | MEXC products covered | spot, margin, swap | spot |
 | Unified market data + trading API | yes — same method names on every exchange | no — MEXC's own request/response shapes |
@@ -154,9 +154,9 @@ One thing to know before you plan around it: MEXC's own contract documentation c
 
 The official SDK is not published to PyPI or npm by MEXC. Its README installs it by cloning the repository and unzipping the `dist/` folder for your language. That works, but it does not pin cleanly in a lockfile or a container build. CCXT is one package from your language's ordinary registry.
 
-### Seven languages, one API
+### Eight languages, one API
 
-CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go and Java, with identical method names and return structures.
+CCXT is written once in TypeScript and transpiled to JavaScript, Python, PHP, C#/.NET, Go, Java and Rust, with identical method names and return structures.
 
 <!-- tabs:start -->
 

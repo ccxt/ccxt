@@ -2429,7 +2429,7 @@ class btse extends Exchange {
         return $this->safe_string($priceTypes, $priceType, $priceType);
     }
 
-    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_open_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_open_order(...))($id, $symbol, $params);
     }
 

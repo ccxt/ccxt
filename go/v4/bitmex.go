@@ -1314,7 +1314,7 @@ func (this *BitmexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 		"datetime":  nil,
 		"nonce":     nil,
 	}
-	var orders any = this.ToArray(response)
+	var orders []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = GetValue(orders, i)
 		var side any = Ternary(IsTrue((IsEqual(GetValue(order, "side"), "Sell"))), "asks", "bids")
@@ -2058,7 +2058,7 @@ func (this *BitmexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	PanicOnError(response)
 	// same response as under "fetchMarkets"
 	var result map[string]any = map[string]any{}
-	var rawTickers any = this.ToArray(response)
+	var rawTickers []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawTickers)); i++ {
 		var ticker any = this.ParseTicker(GetValue(rawTickers, i))
 		var symbol any = this.SafeString(ticker, "symbol")
@@ -3418,7 +3418,7 @@ func (this *BitmexCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) 
 	PanicOnError(response)
 	// same response as under "fetchMarkets"
 	var filteredResponse any = []any{}
-	var rawItems any = this.ToArray(response)
+	var rawItems []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawItems)); i++ {
 		var item any = GetValue(rawItems, i)
 		var marketId any = this.SafeString(item, "symbol")
@@ -4433,7 +4433,7 @@ func (this *BitmexCore) ParseSettlements(settlements any, optionalArgs ...any) a
 	for i := 0; IsLessThan(i, GetArrayLength(settlements)); i++ {
 		AppendToArray(&result, this.ParseSettlement(GetValue(settlements, i), market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 	var symbol any = this.SafeString(market, "symbol")
 	return this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 }

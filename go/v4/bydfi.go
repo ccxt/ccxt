@@ -845,7 +845,7 @@ func (this *BydfiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 500
+		var maxLimit int = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -1017,7 +1017,7 @@ func (this *BydfiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 		retRes83812 := (<-this.LoadMarkets())
 		PanicOnError(retRes83812)
 	}
-	var maxLimit any = 500 // docs says max 1500, but in practice only 500 works
+	var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -2111,7 +2111,7 @@ func (this *BydfiCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 500
+		var maxLimit int = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -3377,7 +3377,7 @@ func (this *BydfiCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 50
+		var maxLimit int = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -3573,7 +3573,7 @@ func (this *BydfiCore) fetchTransactionsHelperBody(ch chan any, typeVar any, cod
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 50
+		var maxLimit int = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -3735,7 +3735,7 @@ func (this *BydfiCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
 	var endpoint any = Add("/", path)
-	var query any = ""
+	var query string = ""
 	var sortedParams map[string]any = this.Keysort(params)
 	if IsTrue(IsEqual(method, "GET")) {
 		query = this.Urlencode(sortedParams)

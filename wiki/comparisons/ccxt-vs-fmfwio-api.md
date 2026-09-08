@@ -25,7 +25,7 @@ A distinct venue with its own accounts and listings, sharing the HitBTC request/
 | WebSocket `watch*` methods | none — this venue has no CCXT WebSocket support |
 | Raw endpoints as implicit methods | 111 |
 | Testnet via `setSandboxMode` | no |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust |
 | Licence | MIT |
 
 <sub>Figures verified September 2026 against CCXT v{{CCXT_VERSION}}, read from the source tree with `build/comparisons-facts.cjs`. Counts include everything inherited from `hitbtc`.</sub>

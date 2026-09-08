@@ -1335,7 +1335,7 @@ class kraken(Exchange, ImplicitAPI):
             items.append(value)
         return self.parse_ledger(items, currency, since, limit)
 
-    def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params={}):
+    def fetch_ledger_entries_by_ids(self, ids: object, code: Str = None, params={}) -> list[LedgerEntry]:
         # https://www.kraken.com/features/api#query-ledgers
         if self.markets is None:
             self.load_markets()
@@ -3076,7 +3076,7 @@ class kraken(Exchange, ImplicitAPI):
         }
         return self.fetch_deposit_address(code, self.extend(request, params))
 
-    def fetch_deposit_methods(self, code: str, params={}):
+    def fetch_deposit_methods(self, code: str, params={}) -> list[dict]:
         """
         fetch deposit methods for a currency associated with self account
 

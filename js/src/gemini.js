@@ -1932,11 +1932,10 @@ export default class gemini extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), 'currency');
-        return this.safeValue(networkGroup, code);
+        return this.safeValue(indexedByNetwork, networkCode);
     }
     /**
      * @method
@@ -1965,7 +1964,9 @@ export default class gemini extends Exchange {
         };
         const response = await this.privatePostV1AddressesNetwork(this.extend(request, params));
         const results = this.parseDepositAddresses(response, [code], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy(results, 'network');
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy(results, 'network');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);

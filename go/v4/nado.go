@@ -2198,7 +2198,7 @@ func (this *NadoCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) any 
 	response := (<-this.GatewayV2PublicGetAssets(params))
 	PanicOnError(response)
 	var result map[string]any = map[string]any{}
-	var assets any = this.ToArray(response)
+	var assets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 		var currency any = GetValue(assets, i)
 		var parsed any = this.ParseCurrency(currency)
@@ -2266,7 +2266,7 @@ func (this *NadoCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var tickers any = this.ToArray(response)
+	var tickers []any = this.ToArray(response)
 
 	ch <- this.ParseTickers(tickers, symbols)
 	return nil
@@ -2444,7 +2444,7 @@ func (this *NadoCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 	for i := 0; IsLessThan(i, GetArrayLength(fundingPayments)); i++ {
 		AppendToArray(&result, this.ParseFundingHistory(GetValue(fundingPayments, i), market))
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -3544,7 +3544,7 @@ func (this *NadoCore) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...an
 	var reduceOnly any = this.SafeBool(params, "reduceOnly", false)
 	var postOnly any = this.IsPostOnly(false, nil, params)
 	var timeInForce any = this.SafeStringUpper(params, "timeInForce")
-	var orderType any = 0
+	var orderType int = 0
 	if IsTrue(IsEqual(timeInForce, "IOC")) {
 		orderType = 1
 	} else if IsTrue(IsEqual(timeInForce, "FOK")) {
@@ -3586,7 +3586,7 @@ func (this *NadoCore) CreateSubaccount(walletAddress any, optionalArgs ...any) a
 	if IsTrue(!IsEqual(GetArrayLength(address), 40)) {
 		panic(BadRequest(Add(this.Id, " createOrder() requires a 20-byte walletAddress")))
 	}
-	var encoded any = this.Remove0xPrefix(this.StringToBase16(subaccount))
+	var encoded string = this.Remove0xPrefix(this.StringToBase16(subaccount))
 	if IsTrue(IsGreaterThan(GetArrayLength(encoded), 24)) {
 		panic(BadRequest(Add(this.Id, " createOrder() subaccount must fit in 12 bytes")))
 	}
@@ -3742,7 +3742,7 @@ func (this *NadoCore) SignHash(hash any, privateKey any) any {
 	if IsTrue(IsEqual(privateKey, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " signHash() requires privateKey")))
 	}
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
 	var v string = ToLower(this.IntToBase16(this.Sum(27, GetValue(signature, "v"))))

@@ -6,7 +6,7 @@
 from ccxt.base.exchange import Exchange
 from ccxt.abstract.coinbase import ImplicitAPI
 import hashlib
-from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
+from ccxt.base.types import Account, Balances, Conversion, Currencies, Currency, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -853,7 +853,7 @@ class coinbase(Exchange, ImplicitAPI):
             'info': response,
         }
 
-    def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_sells(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch sells
@@ -875,7 +875,7 @@ class coinbase(Exchange, ImplicitAPI):
         sellsData = self.safe_list(sells, 'data', [])
         return self.parse_trades(sellsData, None, since, limit)
 
-    def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_buys(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
  @ignore
         fetch buys
@@ -897,7 +897,7 @@ class coinbase(Exchange, ImplicitAPI):
         buysData = self.safe_list(buys, 'data', [])
         return self.parse_trades(buysData, None, since, limit)
 
-    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_transactions_with_method(self, method: object, code: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Transaction]:
         request = None
         request, params = self.prepare_account_request_with_currency_code(code, limit, params)
         if self.markets is None:
@@ -4071,7 +4071,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data', {})
         return self.parse_transaction(data, currency)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch the deposit address for a currency associated with self account
 
@@ -4223,7 +4223,7 @@ class coinbase(Exchange, ImplicitAPI):
             'tag': self.safe_string(addressInfo, 'destination_tag'),
         }
 
-    def deposit(self, code: str, amount: float, id: str, params={}):
+    def deposit(self, code: str, amount: float, id: str, params={}) -> Transaction:
         """
         make a deposit
 
@@ -4294,7 +4294,7 @@ class coinbase(Exchange, ImplicitAPI):
         data = self.safe_dict_2(response, 'data', 'transfer', {})
         return self.parse_transaction(data)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit, fiat only, for crypto transactions use fetchLedger
 
@@ -4395,7 +4395,7 @@ class coinbase(Exchange, ImplicitAPI):
         result = self.safe_list(response, 'payment_methods', [])
         return self.parse_deposit_method_ids(result)
 
-    def fetch_deposit_method_id(self, id: str, params={}):
+    def fetch_deposit_method_id(self, id: str, params={}) -> dict:
         """
         fetch the deposit id for a fiat currency associated with self account
 

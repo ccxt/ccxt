@@ -1,7 +1,7 @@
 <!-- title: CCXT vs the bitbank API and python_bitbankcc -->
 <!-- description: CCXT compared with bitbank's official Python, Node, Java and Ruby clients on signing, language coverage, streaming and unified structures for JPY spot. -->
 <!-- group: Exchange APIs and official SDKs -->
-<!-- summary: bitbank maintains its own clients in four languages, documented in Japanese and installed from Git. CCXT covers 15 unified capabilities and all 28 endpoints in seven languages — but implements no WebSocket support for this venue. -->
+<!-- summary: bitbank maintains its own clients in four languages, documented in Japanese and installed from Git. CCXT covers 15 unified capabilities and all 28 endpoints in eight languages — but implements no WebSocket support for this venue. -->
 <!-- weight: 100 -->
 
 # CCXT vs the bitbank API and python_bitbankcc
@@ -13,7 +13,7 @@ That is a real vendor SDK situation, not an absence. The question that decides b
 ## TL;DR
 
 - **Pick bitbank's own client** if bitbank is your only venue, you work in Python, Node, Ruby or Java, and you want method names that match bitbank's own reference — or you need its **real-time streams**, which CCXT does not implement for this exchange.
-- **Pick CCXT** if you want bitbank's spot markets behind the same API you use everywhere else, in seven languages, with rate limiting, precision handling and typed errors included.
+- **Pick CCXT** if you want bitbank's spot markets behind the same API you use everywhere else, in eight languages, with rate limiting, precision handling and typed errors included.
 - **Be clear about the gap:** `bitbank` in CCXT has **zero** `watch*` methods. bitbank documents both public and private streams; if you need them, that is code you write, or a reason to use the vendor client.
 
 ## At a glance
@@ -21,7 +21,7 @@ That is a real vendor SDK situation, not an absence. The question that decides b
 | | **CCXT** | **bitbank's official clients** |
 | --- | --- | --- |
 | Exchanges covered | 104 (bitbank is one of them) | bitbank only |
-| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java — one API | Python, Node/TypeScript, Ruby, Java — four separate codebases |
+| Languages | TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java, Rust — one API | Python, Node/TypeScript, Ruby, Java — four separate codebases |
 | Packages to install | **1** (`ccxt`) | one per language |
 | Install route | `pip install ccxt`, `npm install ccxt`, and so on | `node-bitbankcc` is on npm; `python_bitbankcc`'s README recommends `pip install git+https://github.com/bitbankinc/python-bitbankcc@<commit_hash>` |
 | Documentation language | English | Japanese (with English code samples) |
@@ -131,9 +131,9 @@ amount = exchange.amount_to_precision('BTC/JPY', 0.00012345678)
 price = exchange.price_to_precision('BTC/JPY', 13159412.3456)
 ```
 
-### Seven languages, one API
+### Eight languages, one API
 
-bitbank's own clients cover Python, Node/TypeScript, Ruby and Java. CCXT covers TypeScript, JavaScript, Python, PHP, C#/.NET, Go and Java with **identical** method names and return structures, because it is one codebase transpiled rather than four codebases maintained in parallel:
+bitbank's own clients cover Python, Node/TypeScript, Ruby and Java. CCXT covers TypeScript, JavaScript, Python, PHP, C#/.NET, Go, Java and Rust with **identical** method names and return structures, because it is one codebase transpiled rather than four codebases maintained in parallel:
 
 <!-- tabs:start -->
 

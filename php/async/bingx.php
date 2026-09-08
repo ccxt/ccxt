@@ -1028,7 +1028,7 @@ class bingx extends Exchange {
         return $this->parse_markets($markets);
     }
 
-    public function fetch_inverse_swap_markets(mixed $params) {
+    public function fetch_inverse_swap_markets(mixed $params): PromiseInterface {
         return Async\async(self::do_fetch_inverse_swap_markets(...))($params);
     }
 
@@ -1626,7 +1626,7 @@ class bingx extends Exchange {
          * @see https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
-         * @param {int} [$limit] the maximum amount of order book entries to return
+         * @param {int} [$limit] the maximum amount of order book entries to return (max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
@@ -1637,11 +1637,15 @@ class bingx extends Exchange {
         $request = array(
             'symbol' => $market['id'],
         );
-        if ($limit !== null) {
-            $request['limit'] = $limit;
-        }
         $marketType = null;
         list($marketType, $params) = $this->handle_market_type_and_params('fetchOrderBook', $market, $params);
+        if ($limit !== null) {
+            if ($marketType === 'spot') {
+                $request['limit'] = min($limit, 1000); // api maximum 1000
+            } else {
+                $request['limit'] = $this->find_nearest_ceiling(array( 5, 10, 20, 50, 100, 500, 1000 ), $limit);
+            }
+        }
         if ($marketType === 'spot') {
             $response = Async\await($this->spotV1PublicGetMarketDepth($this->extend($request, $params)));
         } else {
@@ -5419,8 +5423,10 @@ class bingx extends Exchange {
          * @param {int} [$since] the earliest time in ms to fetch transfers for
          * @param {int} [$limit] the maximum number of transfers structures to retrieve (default 10, max 100)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} $params->fromAccount(mandatory) transfer from (spot, swap (linear or inverse), future, or funding)
-         * @param {string} $params->toAccount(mandatory) transfer to (spot, swap(linear or inverse), future, or funding)
+         * @param {string} [$params->fromAccount] transfer from (spot, swap (linear or inverse), future, or funding), required unless $transferId is provided
+         * @param {string} [$params->toAccount] transfer to (spot, swap(linear or inverse), future, or funding), required unless $transferId is provided
+         * @param {string} [$params->transferId] the transfer ID, either $transferId or both $fromAccount and $toAccount are required
+         * @param {int} [$params->until] the latest time in ms to fetch transfers for
          * @param {boolean} [$params->paginate] whether to $paginate the results (default false)
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=transfer-structure transfer structures~
          */
@@ -5435,10 +5441,11 @@ class bingx extends Exchange {
         $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $fromAccount = $this->safe_string($params, 'fromAccount');
         $toAccount = $this->safe_string($params, 'toAccount');
+        $transferId = $this->safe_string($params, 'transferId');
         $fromId = $this->safe_string($accountsByType, $fromAccount, $fromAccount);
         $toId = $this->safe_string($accountsByType, $toAccount, $toAccount);
-        if ($fromId === null || $toId === null) {
-            throw new ExchangeError($this->id . ' $fromAccount & $toAccount parameters are required');
+        if (($transferId === null) && (($fromId === null) || ($toId === null))) {
+            throw new ExchangeError($this->id . ' fetchTransfers() requires $params["transferId"] or both $params["fromAccount"] and $params["toAccount"]');
         }
         if ($fromAccount !== null) {
             $request['fromAccount'] = $fromId;
@@ -5457,7 +5464,7 @@ class bingx extends Exchange {
             $request['startTime'] = $since;
         }
         if ($limit !== null) {
-            $request['pageSize'] = $limit;
+            $request['pageSize'] = min($limit, $maxLimit);
         }
         list($request, $params) = $this->handle_until_option('endTime', $request, $params);
         $response = Async\await($this->apiV3PrivateGetAssetTransferRecord($this->extend($request, $params)));

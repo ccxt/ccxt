@@ -1322,7 +1322,7 @@ impl DeribitCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: Value = Value::Bool(is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string()))))))));
+        let mut isOption: bool = is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-C".to_string()))))) || is_true(&(Value::Bool(ends_with(&marketId, &Value::Str("-P".to_string())))))));
         if is_true(&isOption) && is_true(&(is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))))) {
             return self.create_expired_option_market(marketId.clone());
         }
@@ -1620,8 +1620,8 @@ impl DeribitCore {
             let mut currenciesResult: Value = self.safe_value_k(currenciesResponse.clone(), "result", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_621: bool = true;
-                while { if !__for_first_621 { i = add(&i, &Value::Int(1)); } __for_first_621 = false; is_less_than(&i, &get_array_length(&currenciesResult)) } {
+                let mut __for_first_622: bool = true;
+                while { if !__for_first_622 { i = add(&i, &Value::Int(1)); } __for_first_622 = false; is_less_than(&i, &get_array_length(&currenciesResult)) } {
                 let mut currencyId: Value = self.safe_string_k(get_value(&currenciesResult, &i), "currency", &[]);
                 let mut request: Value = Value::Map({
                     let mut m = indexmap::IndexMap::new();
@@ -1709,13 +1709,13 @@ impl DeribitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_623: bool = true;
-            while { if !__for_first_623 { i = add(&i, &Value::Int(1)); } __for_first_623 = false; is_less_than(&i, &get_array_length(&instrumentsResponses)) } {
+            let mut __for_first_624: bool = true;
+            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&instrumentsResponses)) } {
             let mut instrumentsResult: Value = self.safe_value_k(get_value(&instrumentsResponses, &i), "result", &[Value::List(vec![])]);
             {
                                 let mut k: Value = Value::Int(0);
-                let mut __for_first_622: bool = true;
-                while { if !__for_first_622 { k = add(&k, &Value::Int(1)); } __for_first_622 = false; is_less_than(&k, &get_array_length(&instrumentsResult)) } {
+                let mut __for_first_623: bool = true;
+                while { if !__for_first_623 { k = add(&k, &Value::Int(1)); } __for_first_623 = false; is_less_than(&k, &get_array_length(&instrumentsResult)) } {
                 let mut market: Value = get_value(&instrumentsResult, &k);
                 let mut market: Value = get_value(&instrumentsResult, &k);
                 let mut kind: Value = self.safe_string_k(market.clone(), "kind", &[]);
@@ -1740,7 +1740,7 @@ impl DeribitCore {
                 if is_equal(&kind, &Value::Null) {
                     panic!("{}", crate::exchange_errors::exchange_error(add(&self.id, &Value::Str(" method() missing kind".to_string()))));
                 }
-                let mut isComboMarket: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&kind, &Value::Str("combo".to_string())), &Value::Int(0)));
+                let mut isComboMarket: bool = is_greater_than_or_equal(&get_index_of(&kind, &Value::Str("combo".to_string())), &Value::Int(0));
                 let mut expiry: Value = self.safe_integer_k(market.clone(), "expiration_timestamp", &[]);
                 let mut strike: Value = Value::Null;
                 let mut optionType: Value = Value::Null;
@@ -1868,8 +1868,8 @@ impl DeribitCore {
         }
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_624: bool = true;
-            while { if !__for_first_624 { i = add(&i, &Value::Int(1)); } __for_first_624 = false; is_less_than(&i, &get_array_length(&summaries)) } {
+            let mut __for_first_625: bool = true;
+            while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&summaries)) } {
             let mut data: Value = get_value(&summaries, &i);
             let mut data: Value = get_value(&summaries, &i);
             let mut currencyId: Value = self.safe_string_k(data.clone(), "currency", &[]);
@@ -2261,8 +2261,8 @@ impl DeribitCore {
         if !is_equal(&symbols, &Value::Null) {
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_625: bool = true;
-                while { if !__for_first_625 { i = add(&i, &Value::Int(1)); } __for_first_625 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+                let mut __for_first_626: bool = true;
+                while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&symbols)) } {
                 let mut market: Value = self.market(get_value(&symbols, &i));
                 if !is_equal(&code, &Value::Null) && !is_equal(&code, &get_value(&market, &Value::Str("base".to_string()))) {
                     panic!("{}", crate::exchange_errors::bad_request(add(&self.id, &Value::Str(" fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency".to_string()))));
@@ -2335,8 +2335,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_626: bool = true;
-            while { if !__for_first_626 { i = add(&i, &Value::Int(1)); } __for_first_626 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_627: bool = true;
+            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut ticker: Value = self.parse_ticker(get_value(&result, &i), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {
@@ -2714,8 +2714,8 @@ impl DeribitCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_627: bool = true;
-            while { if !__for_first_627 { i = add(&i, &Value::Int(1)); } __for_first_627 = false; is_less_than(&i, &get_array_length(&fees)) } {
+            let mut __for_first_628: bool = true;
+            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &get_array_length(&fees)) } {
             let mut fee: Value = get_value(&fees, &i);
             let mut fee: Value = get_value(&fees, &i);
             let mut instrumentType: Value = self.safe_string_k(fee.clone(), "instrument_type", &[]);
@@ -2753,8 +2753,8 @@ impl DeribitCore {
         let mut symbols: Value = self.symbols.clone();
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_628: bool = true;
-            while { if !__for_first_628 { i = add(&i, &Value::Int(1)); } __for_first_628 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_629: bool = true;
+            while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut symbol: Value = get_value(&symbols, &i);
             let mut symbol: Value = get_value(&symbols, &i);
             let mut market: Value = self.market(symbol.clone());
@@ -3119,18 +3119,18 @@ impl DeribitCore {
         // only take profit buy orders are allowed when price crossed from below
         let mut takeProfitPrice: Value = self.safe_value_k(params.clone(), "takeProfitPrice", &[]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trigger_offset".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isStopLimit: Value = Value::Bool(is_equal(&type_var, &Value::Str("stop_limit".to_string())));
-        let mut isStopMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("stop_market".to_string())));
-        let mut isTakeLimit: Value = Value::Bool(is_equal(&type_var, &Value::Str("take_limit".to_string())));
-        let mut isTakeMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("take_market".to_string())));
-        let mut isStopLossOrder: Value = Value::Bool(is_true(&isStopLimit) || is_true(&isStopMarket) || is_true(&(!is_equal(&stopLossPrice, &Value::Null))));
-        let mut isTakeProfitOrder: Value = Value::Bool(is_true(&isTakeLimit) || is_true(&isTakeMarket) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null))));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isStopLimit: bool = is_equal(&type_var, &Value::Str("stop_limit".to_string()));
+        let mut isStopMarket: bool = is_equal(&type_var, &Value::Str("stop_market".to_string()));
+        let mut isTakeLimit: bool = is_equal(&type_var, &Value::Str("take_limit".to_string()));
+        let mut isTakeMarket: bool = is_equal(&type_var, &Value::Str("take_market".to_string()));
+        let mut isStopLossOrder: bool = is_true(&isStopLimit) || is_true(&isStopMarket) || is_true(&(!is_equal(&stopLossPrice, &Value::Null)));
+        let mut isTakeProfitOrder: bool = is_true(&isTakeLimit) || is_true(&isTakeMarket) || is_true(&(!is_equal(&takeProfitPrice, &Value::Null)));
         if is_true(&isStopLossOrder) && is_true(&isTakeProfitOrder) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" createOrder () only allows one of stopLossPrice or takeProfitPrice to be specified".to_string()))));
         }
-        let mut isStopOrder: Value = Value::Bool(is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
-        let mut isLimitOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&isStopLimit) || is_true(&isTakeLimit));
+        let mut isStopOrder: bool = is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder);
+        let mut isLimitOrder: bool = is_true(&(is_equal(&type_var, &Value::Str("limit".to_string())))) || is_true(&isStopLimit) || is_true(&isTakeLimit);
         let mut isMarketOrder: Value = Value::Bool(is_true(&(is_equal(&type_var, &Value::Str("market".to_string())))) || is_true(&isStopMarket) || is_true(&isTakeMarket));
         let mut exchangeSpecificPostOnly: Value = self.safe_value_k(params.clone(), "post_only", &[]);
         let mut postOnly: Value = self.is_post_only(isMarketOrder.clone(), exchangeSpecificPostOnly.clone(), &[params.clone()]);
@@ -3295,7 +3295,7 @@ impl DeribitCore {
             add_element_to_object(&mut request, &Value::Str("price".to_string()), self.price_to_precision(symbol.clone(), price.clone()));
         }
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trigger_offset".to_string()), &[]);
-        let mut isTrailingAmountOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
+        let mut isTrailingAmountOrder: bool = !is_equal(&trailingAmount, &Value::Null);
         if is_true(&isTrailingAmountOrder) {
             add_element_to_object(&mut request, &Value::Str("trigger_offset".to_string()), self.parse_to_numeric(trailingAmount.clone()));
             params = self.omit(params.clone(), Value::Str("trigger_offset".to_string()), &[]);
@@ -4136,8 +4136,8 @@ impl DeribitCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_629: bool = true;
-            while { if !__for_first_629 { i = add(&i, &Value::Int(1)); } __for_first_629 = false; is_less_than(&i, &get_array_length(&volatilityResult)) } {
+            let mut __for_first_630: bool = true;
+            while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&volatilityResult)) } {
             let mut timestamp: Value = self.safe_integer(get_value(&volatilityResult, &i), Value::Int(0), &[]);
             let mut volatilityObj: Value = self.safe_number(get_value(&volatilityResult, &i), Value::Int(1), &[]);
             append_to_array(&mut result, Value::Map({
@@ -4595,8 +4595,8 @@ impl DeribitCore {
         let mut result: Value = self.safe_value_k(response.clone(), "result", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_630: bool = true;
-            while { if !__for_first_630 { i = add(&i, &Value::Int(1)); } __for_first_630 = false; is_less_than(&i, &get_array_length(&result)) } {
+            let mut __for_first_631: bool = true;
+            while { if !__for_first_631 { i = add(&i, &Value::Int(1)); } __for_first_631 = false; is_less_than(&i, &get_array_length(&result)) } {
             let mut fr: Value = get_value(&result, &i);
             let mut fr: Value = get_value(&result, &i);
             let mut rate: Value = self.parse_funding_rate(fr.clone(), &[market.clone()]);

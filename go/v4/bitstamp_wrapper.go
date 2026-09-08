@@ -41,12 +41,12 @@ func (this *Bitstamp) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Bitstamp) FetchMarketsFromCache(params ...any) (map[string]any, error) {
+func (this *Bitstamp) FetchMarketsFromCache(params ...any) ([]map[string]any, error) {
 	res := <-this.Core.FetchMarketsFromCache(params...)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -916,7 +916,7 @@ func (this *Bitstamp) EditOrders(orders []OrderRequest, options ...EditOrdersOpt
 func (this *Bitstamp) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bitstamp) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bitstamp) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bitstamp) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -955,7 +955,7 @@ func (this *Bitstamp) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, er
 func (this *Bitstamp) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bitstamp) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bitstamp) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bitstamp) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

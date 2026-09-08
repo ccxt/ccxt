@@ -3797,7 +3797,7 @@ class aster(Exchange, ImplicitAPI):
             'percentage': percentage,
         }
 
-    def fetch_account_positions(self, symbols: Strings = None, params={}):
+    def fetch_account_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
  @ignore
         fetch account positions
