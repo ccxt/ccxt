@@ -282,18 +282,28 @@ function testSafeInteger () {
     assert (exchange.safeInteger (inputDict, 'f') === 0);
     assert (exchange.safeInteger (inputDict, 'strNumber') === 3);
     assert (exchange.safeInteger (inputList, 1) === 2);
+    // non-numeric inputs must resolve to the default (pins the empty-string / bool / undefined dispatch)
+    assert (exchange.safeInteger (inputDict, 'emptyString') === undefined, 'safeInteger failed for empty string');
+    assert (exchange.safeInteger (inputDict, 'bool') === undefined, 'safeInteger failed for boolean');
+    assert (exchange.safeInteger (inputDict, 'undefined') === undefined, 'safeInteger failed for undefined');
 
     // safeInteger2
     assert (exchange.safeInteger2 (inputDict, 'a', 'i') === 1);
     assert (exchange.safeInteger2 (inputDict, 'a', 'f') === 0);
     assert (exchange.safeInteger2 (inputDict, 'a', 'strNumber') === 3);
     assert (exchange.safeInteger2 (inputList, 2, 1) === 2);
+    assert (exchange.safeInteger2 (inputDict, 'a', 'emptyString') === undefined, 'safeInteger2 failed for empty string');
+    assert (exchange.safeInteger2 (inputDict, 'a', 'bool') === undefined, 'safeInteger2 failed for boolean');
+    assert (exchange.safeInteger2 (inputDict, 'a', 'undefined') === undefined, 'safeInteger2 failed for undefined');
 
     // safeIntegerN
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'i' ]) === 1);
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'f' ]) === 0);
     assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'strNumber' ]) === 3);
     assert (exchange.safeIntegerN (inputList, [ 3, 2, 1 ]) === 2);
+    assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'emptyString' ]) === undefined, 'safeIntegerN failed for empty string');
+    assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'bool' ]) === undefined, 'safeIntegerN failed for boolean');
+    assert (exchange.safeIntegerN (inputDict, [ 'a', 'b', 'undefined' ]) === undefined, 'safeIntegerN failed for undefined');
 
     // safeIntegerOmitZero
     assert (exchange.safeIntegerOmitZero (inputDict, 'i') === 1);

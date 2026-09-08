@@ -49,6 +49,18 @@ const getValueFromKeysInArray = <T>(
 
 const asFloat = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? parseFloat (x) : NaN);
 const asInteger = (x: any): number | typeof NaN => (((isString (x) && x.length !== 0) || isNumber (x)) ? Math.trunc (Number (x)) : NaN);
+// shared number/string/default dispatch for the safeInteger family (safeInteger / safeInteger2 / safeIntegerN)
+// keep the empty-string guard here in one place so the three call sites cannot drift apart
+const asIntegerOr = (x: any, $default?: number): Int => {
+    if (isNumber (x)) {
+        return Math.trunc (x);
+    }
+    if (isString (x) && x !== '') {
+        const num = Math.trunc (Number (x));
+        return isNumber (num) ? num : $default;
+    }
+    return $default;
+};
 /*  .............................................   */
 
 function safeFloat (o: safeInputType, k: NullableIndexType, $default?: number): Num {
@@ -59,8 +71,7 @@ function safeFloat (o: safeInputType, k: NullableIndexType, $default?: number): 
 function safeInteger (o: safeInputType, k: NullableIndexType, $default: number): number;
 function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number): Int;
 function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number): Int {
-    const n = asInteger (prop (o, k));
-    return isNumber (n) ? n : $default;
+    return asIntegerOr (prop (o, k), $default);
 }
 
 function safeIntegerProduct (o: safeInputType, k: NullableIndexType, $factor: number, $default?: number): Int {
@@ -110,8 +121,7 @@ function safeFloat2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexT
 function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default: number): number;
 function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Int;
 function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: number): Int {
-    const n = asInteger (prop2 (o, k1, k2));
-    return isNumber (n) ? n : $default;
+    return asIntegerOr (prop2 (o, k1, k2), $default);
 }
 
 function safeIntegerProduct2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int {
@@ -171,8 +181,7 @@ function safeIntegerN (o: safeInputType, k: (NullableIndexType)[], $default?: nu
     if (found === undefined) {
         return $default;
     }
-    const n = asInteger (found);
-    return isNumber (n) ? n : $default;
+    return asIntegerOr (found, $default);
 }
 
 function safeIntegerProductN (o: safeInputType, k: (NullableIndexType)[], $factor: number, $default?: number): Int {
