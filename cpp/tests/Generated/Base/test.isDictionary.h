@@ -8,26 +8,25 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testIsDictionary();
 
-void testIsDictionary()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    // populated dict
-    assertTrue(isEqual(exchange.isDictionary(ccxt::dict {
-    { std::string("a"), 1 },
-}), true));
-    // populated list is not a dict
-    assertTrue(isEqual(exchange.isDictionary(ccxt::list{1, 2, 3}), false));
-    // null is not a dict, in js typeof null is object so the explicit
-    // null check matters, see https://github.com/ccxt/ccxt/pull/29704
-    assertTrue(isEqual(exchange.isDictionary(null), false));
-    // undefined is not a dict
-    assertTrue(isEqual(exchange.isDictionary(std::any{}), false));
-    // scalars are not dicts
-    assertTrue(isEqual(exchange.isDictionary(std::string("str")), false));
-    assertTrue(isEqual(exchange.isDictionary(5), false));
-    assertTrue(isEqual(exchange.isDictionary(true), false));
-    assertTrue(isEqual(exchange.isDictionary(ccxt::dict {}), true));
+void testIsDictionary() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  // populated dict
+  assertTrue(isEqual(exchange.isDictionary(ccxt::dict{
+                         {std::string("a"), 1},
+                     }),
+                     true));
+  // populated list is not a dict
+  assertTrue(isEqual(exchange.isDictionary(ccxt::list{1, 2, 3}), false));
+  // null is not a dict, in js typeof null is object so the explicit
+  // null check matters, see https://github.com/ccxt/ccxt/pull/29704
+  assertTrue(isEqual(exchange.isDictionary(null), false));
+  // undefined is not a dict
+  assertTrue(isEqual(exchange.isDictionary(std::any{}), false));
+  // scalars are not dicts
+  assertTrue(isEqual(exchange.isDictionary(std::string("str")), false));
+  assertTrue(isEqual(exchange.isDictionary(5), false));
+  assertTrue(isEqual(exchange.isDictionary(true), false));
+  assertTrue(isEqual(exchange.isDictionary(ccxt::dict{}), true));
 }
-

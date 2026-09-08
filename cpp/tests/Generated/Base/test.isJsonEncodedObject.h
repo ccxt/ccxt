@@ -8,25 +8,23 @@
 // forward declarations - TS hoists function declarations, C++ does not
 void testIsJsonEncodedObject();
 
-void testIsJsonEncodedObject()
-{
-    ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict {
-        { std::string("id"), std::string("sampleexchange") },
-    });
-    assertTrue(exchange.isJsonEncodedObject(std::string("{\"key\":\"value\"}")));
-    assertTrue(exchange.isJsonEncodedObject(std::string("{}")));
-    assertTrue(exchange.isJsonEncodedObject(std::string("[]")));
-    // todo: the belows  are not ideal, but currently valid
-    assertTrue(exchange.isJsonEncodedObject(std::string("{x")));
-    assertTrue(exchange.isJsonEncodedObject(std::string("[x")));
-    assertTrue(exchange.isJsonEncodedObject(std::string("{")));
-    assertTrue(exchange.isJsonEncodedObject(std::string("[")));
-    // invalid
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("x"))));
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string(""))));
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("}"))));
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("]"))));
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("null"))));
-    assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("undefined"))));
+void testIsJsonEncodedObject() {
+  ccxt::Exchange exchange = ccxt::Exchange(ccxt::dict{
+      {std::string("id"), std::string("sampleexchange")},
+  });
+  assertTrue(exchange.isJsonEncodedObject(std::string("{\"key\":\"value\"}")));
+  assertTrue(exchange.isJsonEncodedObject(std::string("{}")));
+  assertTrue(exchange.isJsonEncodedObject(std::string("[]")));
+  // todo: the belows  are not ideal, but currently valid
+  assertTrue(exchange.isJsonEncodedObject(std::string("{x")));
+  assertTrue(exchange.isJsonEncodedObject(std::string("[x")));
+  assertTrue(exchange.isJsonEncodedObject(std::string("{")));
+  assertTrue(exchange.isJsonEncodedObject(std::string("[")));
+  // invalid
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("x"))));
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string(""))));
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("}"))));
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("]"))));
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("null"))));
+  assertTrue(!isTrue(exchange.isJsonEncodedObject(std::string("undefined"))));
 }
-
