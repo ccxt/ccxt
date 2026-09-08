@@ -2199,7 +2199,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(isEqual(reduceOnly, true)))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;

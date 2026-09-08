@@ -302,7 +302,7 @@ public partial class binance : PredictionExchange
             {
                 ((IList<object>)collected).Add(getValue(pageTopics, i));
             }
-            object hasMore = this.safeBool(response, "hasMore", false);
+            bool? hasMore = this.safeBool(response, "hasMore", false);
             if (isTrue(isTrue((!isEqual(hasMore, true))) || isTrue((isLessThan(pageTopicsLength, reqLimit)))))
             {
                 break;
@@ -393,7 +393,7 @@ public partial class binance : PredictionExchange
     public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
         if (isTrue(!isEqual(allowUnscopedFetchEvents, true)))
         {
             this.requireEventQuery(parameters);

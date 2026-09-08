@@ -1020,8 +1020,8 @@ public partial class cryptocom : Exchange
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
             string? strike = this.safeString(market, "strike");
-            object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
-            object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
+            bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
+            bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
@@ -1704,7 +1704,7 @@ public partial class cryptocom : Exchange
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isTrue((isEqual(postOnly, true))) || isTrue((isEqual(timeInForce, "PO")))))
         {
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
@@ -1967,7 +1967,7 @@ public partial class cryptocom : Exchange
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isTrue((isEqual(postOnly, true))) || isTrue((isEqual(timeInForce, "PO")))))
         {
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
@@ -3158,7 +3158,7 @@ public partial class cryptocom : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams(methodName, parameters);

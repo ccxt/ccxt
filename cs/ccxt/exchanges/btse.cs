@@ -804,7 +804,7 @@ public partial class btse : Exchange
         string? minPriceString = this.safeString(market, "minOrderPrice");
         string? pricePrecision = this.safeString(market, "minPriceIncrement");
         string? amountPrecision = this.safeString(market, "minSizeIncrement");
-        object active = this.safeBool(market, "active");
+        bool? active = this.safeBool(market, "active");
         string type = "spot";
         Int64? expiry = null;
         string? contractSize = null;
@@ -1803,7 +1803,7 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.omit(parameters, "paginate");
@@ -2712,7 +2712,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
         }
-        object isSlide = this.safeBool(parameters, "slide", false);
+        bool? isSlide = this.safeBool(parameters, "slide", false);
         if (isTrue(isTrue(isTrue(isTrue((isEqual(amount, null))) && isTrue((isEqual(price, null)))) && isTrue((isEqual(triggerPrice, null)))) && isTrue((!isEqual(isSlide, true)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
@@ -3916,7 +3916,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
-        object hedged = this.safeBool(parameters, "hedged");
+        bool? hedged = this.safeBool(parameters, "hedged");
         if (isTrue(isEqual(marginModeVar, "cross")))
         {
             if (!isTrue((inOp(parameters, "hedged"))))
@@ -4121,7 +4121,7 @@ public partial class btse : Exchange
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? spotErrorCode = this.safeString(response, "code");

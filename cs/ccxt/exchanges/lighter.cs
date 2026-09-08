@@ -759,12 +759,12 @@ public partial class lighter : Exchange
 
     public async virtual Task<object> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(!isEqual(buildFee, true)))
         {
             return false;
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;
@@ -894,7 +894,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
         }
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
         string orderSide = ((string)((string)side)).ToUpper();
@@ -2639,7 +2639,7 @@ public partial class lighter : Exchange
         string? marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeTimestamp(order, "timestamp");
-        object isAsk = this.safeBool(order, "is_ask");
+        bool? isAsk = this.safeBool(order, "is_ask");
         if (isTrue(isEqual(isAsk, null)))
         {
             Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
@@ -2683,7 +2683,7 @@ public partial class lighter : Exchange
         {
             tif = this.safeString(order, "time_in_force");
         }
-        object reduceOnly = this.safeBool(order, "reduce_only");
+        bool? reduceOnly = this.safeBool(order, "reduce_only");
         if (isTrue(isEqual(reduceOnly, null)))
         {
             Int64? reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
@@ -3435,7 +3435,7 @@ public partial class lighter : Exchange
         string? accountIndex = this.safeString(trade, "account_index");
         string? askAccountId = this.safeString(trade, "ask_account_id");
         string? bidAccountId = this.safeString(trade, "bid_account_id");
-        object isMakerAsk = this.safeBool(trade, "is_maker_ask");
+        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
         string? side = null;
         string? orderId = null;
         if (isTrue(!isEqual(accountIndex, null)))

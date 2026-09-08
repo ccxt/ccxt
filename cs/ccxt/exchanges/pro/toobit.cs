@@ -664,7 +664,7 @@ public partial class toobit : ccxt.toobit
         //         shared: false
         //     }
         //
-        object isSnapshot = this.safeBool(message, "f", false);
+        bool? isSnapshot = this.safeBool(message, "f", false);
         if (isTrue(isEqual(isSnapshot, true)))
         {
             this.setOrderBookSnapshot(client as WebSocketClient, message, "diffDepth");
@@ -1419,7 +1419,7 @@ public partial class toobit : ccxt.toobit
         return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/api/v1/ws/"), getValue(getValue(this.options, "ws"), "listenKey"));
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1434,8 +1434,8 @@ public partial class toobit : ccxt.toobit
             object msg = add(add(add(add(this.id, " code: "), code), " message: "), desc);
             var exception = new ExchangeError(((string)msg)); // c# fix
             ((WebSocketClient)client).reject(exception);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 }

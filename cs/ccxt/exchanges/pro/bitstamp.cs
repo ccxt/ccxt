@@ -579,7 +579,7 @@ public partial class bitstamp : ccxt.bitstamp
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         // {
         //     "event": "bts:error",
@@ -594,7 +594,7 @@ public partial class bitstamp : ccxt.bitstamp
             object code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -1703,8 +1703,8 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         // Extract control parameters from params
-        object checkActive = this.safeBool(parameters, "checkActive", true);
-        object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        bool? checkActive = this.safeBool(parameters, "checkActive", true);
+        bool? checkExecuted = this.safeBool(parameters, "checkExecuted", true);
         parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -3051,8 +3051,8 @@ public partial class whitebit : Exchange
         }
         object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
-        object postOnly = this.safeBool(order, "postOnly");
-        object ioc = this.safeBool(order, "ioc");
+        bool? postOnly = this.safeBool(order, "postOnly");
+        bool? ioc = this.safeBool(order, "ioc");
         string? timeInForce = null;
         if (isTrue(isEqual(ioc, true)))
         {
@@ -4720,10 +4720,10 @@ public partial class whitebit : Exchange
         });
     }
 
-    public virtual object isFiat(object currency)
+    public virtual bool isFiat(object currency)
     {
         object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
-        return this.inArray(currency, fiatCurrencies);
+        return ((bool)((object)(this.inArray(currency, fiatCurrencies)))!);
     }
 
     /**
@@ -4907,7 +4907,7 @@ public partial class whitebit : Exchange
                 throw new ExchangeError ((string)feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            object success = this.safeBool(response, "success", true);
+            bool? success = this.safeBool(response, "success", true);
             if (isTrue(!isEqual(success, true)))
             {
                 object errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});

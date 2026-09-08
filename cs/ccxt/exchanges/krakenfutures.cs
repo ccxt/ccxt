@@ -805,7 +805,7 @@ public partial class krakenfutures : Exchange
         string? volume = this.safeString(ticker, "vol24h");
         object baseVolume = null;
         object quoteVolume = null;
-        object isIndex = this.safeBool(market, "index", false);
+        bool? isIndex = this.safeBool(market, "index", false);
         if (isTrue(!isEqual(isIndex, true)))
         {
             if (isTrue(isEqual(getValue(market, "linear"), true)))
@@ -1294,7 +1294,7 @@ public partial class krakenfutures : Exchange
         }
         market = this.safeMarket(marketId, market);
         string? cost = null;
-        object linear = this.safeBool(market, "linear");
+        bool? linear = this.safeBool(market, "linear");
         if (isTrue(isTrue(isTrue((!isEqual(amount, null))) && isTrue((!isEqual(price, null)))) && isTrue((!isEqual(market, null)))))
         {
             if (isTrue(isEqual(linear, true)))
@@ -1973,7 +1973,7 @@ public partial class krakenfutures : Exchange
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object response = null;
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -2048,7 +2048,7 @@ public partial class krakenfutures : Exchange
             ((IDictionary<string,object>)request)["from"] = since;
         }
         object response = null;
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         if (isTrue(isEqual(isTrigger, true)))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});

@@ -1069,25 +1069,25 @@ public partial class aster : Exchange
         });
     }
 
-    public virtual object isInverse(object type, object subType = null)
+    public virtual bool isInverse(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return (isEqual(type, "delivery"));
+            return ((bool)((object)((isEqual(type, "delivery"))))!);
         } else
         {
-            return isEqual(subType, "inverse");
+            return ((bool)((object)(isEqual(subType, "inverse")))!);
         }
     }
 
-    public virtual object isLinear(object type, object subType = null)
+    public virtual bool isLinear(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")));
+            return ((bool)((object)(isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")))))!);
         } else
         {
-            return isEqual(subType, "linear");
+            return ((bool)((object)(isEqual(subType, "linear")))!);
         }
     }
 
@@ -1571,21 +1571,21 @@ public partial class aster : Exchange
         string? costString = this.safeString2(trade, "quoteQty", "baseQty");
         Int64? timestamp = this.safeInteger2(trade, "time", "T");
         string? side = this.safeStringLower(trade, "side");
-        object isMaker = this.safeBool(trade, "maker");
+        bool? isMaker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
             if (isTrue(isEqual(side, null)))
             {
-                object isBuyer = this.safeBool(trade, "buyer");
+                bool? isBuyer = this.safeBool(trade, "buyer");
                 if (isTrue(!isEqual(isBuyer, null)))
                 {
                     side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
                 }
             }
         }
-        object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
+        bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
             side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
@@ -3253,7 +3253,7 @@ public partial class aster : Exchange
         // TRAILING_STOP_MARKET callbackRate
         //
         // additional required fields depending on the order type
-        object closePosition = this.safeBool(parameters, "closePosition", false);
+        bool? closePosition = this.safeBool(parameters, "closePosition", false);
         bool timeInForceIsRequired = false;
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
@@ -4436,7 +4436,7 @@ public partial class aster : Exchange
         {
             timestamp = null;
         }
-        object isolated = this.safeBool(position, "isolated");
+        bool? isolated = this.safeBool(position, "isolated");
         if (isTrue(isEqual(isolated, null)))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
@@ -5074,12 +5074,12 @@ public partial class aster : Exchange
     public async virtual Task<object> initializeClient(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+        bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
         if (isTrue(!isEqual(builderFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved

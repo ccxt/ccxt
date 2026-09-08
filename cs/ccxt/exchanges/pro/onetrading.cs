@@ -1156,7 +1156,7 @@ public partial class onetrading : ccxt.onetrading
             if (isTrue(!isEqual(subscription, null)))
             {
                 object ohlcvMarket = this.safeValue(subscription, marketId, new Dictionary<string, object>() {});
-                object marketSubscribed = this.safeBool(ohlcvMarket, timeframeVar, false);
+                bool? marketSubscribed = this.safeBool(ohlcvMarket, timeframeVar, false);
                 if (isTrue(!isEqual(marketSubscribed, true)))
                 {
                     type = "UPDATE_SUBSCRIPTION";
@@ -1319,7 +1319,7 @@ public partial class onetrading : ccxt.onetrading
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         throw new ExchangeError ((string)add(add(this.id, " "), this.json(message))) ;
     }
@@ -1436,7 +1436,7 @@ public partial class onetrading : ccxt.onetrading
                 for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
-                    object marketSubscribed = this.safeBool(subscription, marketId, false);
+                    bool? marketSubscribed = this.safeBool(subscription, marketId, false);
                     if (isTrue(!isEqual(marketSubscribed, true)))
                     {
                         type = "UPDATE_SUBSCRIPTION";

@@ -543,7 +543,7 @@ public partial class limitless : PredictionExchange
         object tokens = this.safeValue(raw, "tokens", new Dictionary<string, object>() {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
-        object isExpired = this.safeBool(raw, "expired", false);
+        bool? isExpired = this.safeBool(raw, "expired", false);
         string? marketStatus = this.safeString(raw, "status");
         bool active = isTrue((!isEqual(isExpired, true))) && isTrue((isEqual(marketStatus, "FUNDED")));
         // expiry is a ms timestamp string (`expirationTimestamp`); `deadline`/`expiresAt` do not exist

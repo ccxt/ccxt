@@ -992,7 +992,7 @@ public partial class coinex : ccxt.coinex
         object messageHash = add(add(name, ":"), symbol);
         Int64? timestamp = this.safeInteger(depth, "updated_at");
         object currentOrderBook = this.safeValue(this.orderbooks, symbol);
-        object fullOrderBook = this.safeBool(data, "is_full", false);
+        bool? fullOrderBook = this.safeBool(data, "is_full", false);
         if (isTrue(isEqual(fullOrderBook, true)))
         {
             object snapshot = this.parseOrderBook(depth, symbol, timestamp);
@@ -1041,7 +1041,7 @@ public partial class coinex : ccxt.coinex
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object messageHash = "orders";
         object market = null;

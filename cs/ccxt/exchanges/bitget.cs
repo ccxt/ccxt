@@ -3284,7 +3284,7 @@ public partial class bitget : Exchange
             object res = this.safeDict(results, i);
             object data = this.safeList(res, "data", new List<object>() {});
             object firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            object isBorrowable = this.safeBool(firstData, "isBorrowable");
+            bool? isBorrowable = this.safeBool(firstData, "isBorrowable");
             if (isTrue(isTrue(fetchMargins) && isTrue(!isEqual(isBorrowable, null))))
             {
                 // cross and isolated availability are per-symbol - a coin can be listed by
@@ -3297,13 +3297,13 @@ public partial class bitget : Exchange
                 {
                     object entry = this.safeDict(data, j, new Dictionary<string, object>() {});
                     string? entrySymbol = this.safeString(entry, "symbol");
-                    object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                    bool? entryBorrowable = this.safeBool(entry, "isBorrowable", true);
                     if (isTrue(isTrue((isEqual(entryBorrowable, true))) && isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
                     {
                         ((IList<object>)crossKeys).Add(entrySymbol);
                     }
-                    object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
-                    object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                    bool? isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                    bool? isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                     if (isTrue(isTrue((isEqual(entryBorrowable, true))) && isTrue((isTrue((isEqual(isolatedBase, true))) || isTrue((isEqual(isolatedQuote, true)))))))
                     {
                         ((IList<object>)isolatedKeys).Add(entrySymbol);
@@ -4356,7 +4356,7 @@ public partial class bitget : Exchange
         object result = this.parseTransaction(data, currency);
         ((IDictionary<string,object>)result)["type"] = "withdrawal";
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)result)["currency"] = code;
@@ -5756,7 +5756,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            object margin = this.safeBool(parameters, "margin", false);
+            bool? margin = this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, "margin");
             if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(margin, true)))))
             {
@@ -5888,7 +5888,7 @@ public partial class bitget : Exchange
         //         "1399132.341"
         //     ]
         //
-        object inverse = this.safeBool(market, "inverse");
+        bool? inverse = this.safeBool(market, "inverse");
         int volumeIndex = ((bool) isTrue((isEqual(inverse, true)))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
@@ -5930,8 +5930,8 @@ public partial class bitget : Exchange
         int defaultLimit = 100; // default 100, max 1000
         int maxLimitForRecentEndpoint = 1000;
         int maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
-        object useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
+        bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        bool? useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -7122,7 +7122,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)request)["timeInForce"] = "ioc";
             }
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object hedged = null;
         var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
         hedged = ((IList<object>)hedgedparametersVariable)[0];
@@ -7218,7 +7218,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         string? exchangeSpecificTifParam = this.safeString2(parameters, "force", "timeInForce");
         object postOnly = null;
@@ -7803,7 +7803,7 @@ public partial class bitget : Exchange
         {
             string? cost = this.safeString(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
+            bool? editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue((isTrue((isEqual(editMarketBuyOrderRequiresPrice, true))) || isTrue((!isEqual(cost, null))))) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
                 if (isTrue(isTrue(isEqual(price, null)) && isTrue(isEqual(cost, null))))
@@ -8347,7 +8347,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         object uta = null;
@@ -8697,8 +8697,8 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, sinceVar, limit, parameters, cursorReceived, cursorSent));
         }
         object response = null;
-        object trailing = this.safeBool(parameters, "trailing");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool planTypeDefined = !isEqual(this.safeString(parameters, "planType"), null);
         bool isTrigger = isTrue((isEqual(trigger, true))) || isTrue(planTypeDefined);
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
@@ -9213,8 +9213,8 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, sinceVar, limit, parameters, cursorReceived, "idLessThan"));
         }
         object response = null;
-        object trailing = this.safeBool(parameters, "trailing");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "trailing"});
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -9545,7 +9545,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(trigger, true)))
         {
@@ -10298,7 +10298,7 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan"));
         }
         object method = null;
-        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         if (isTrue(isEqual(useHistoryEndpoint, true)))
         {
             method = "privateMixGetV2MixPositionHistoryPosition";
@@ -13597,7 +13597,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isTrue(isTrue((isEqual(sandboxMode, true))) && isTrue((!isEqual(path, "v2/public/time")))) && isTrue((!isEqual(path, "v3/market/current-fund-rate")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336

@@ -1876,8 +1876,8 @@ public partial class bitrue : Exchange
         string? orderId = this.safeString(trade, "orderId");
         string? id = this.safeString2(trade, "id", "tradeId");
         string? side = null;
-        object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy";
@@ -1895,7 +1895,7 @@ public partial class bitrue : Exchange
             };
         }
         string? takerOrMaker = null;
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -3626,7 +3626,7 @@ public partial class bitrue : Exchange
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? messageInner = this.safeString(response, "msg");

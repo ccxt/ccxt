@@ -1292,7 +1292,7 @@ public partial class bullish : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
         string? side = this.safeStringLower(trade, "side");
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         object currency = getValue(market, "quote");
         object code = this.safeCurrencyCode(currency);
         object feeCost = this.safeNumber(trade, "quoteFee");
@@ -1687,7 +1687,7 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2079,7 +2079,7 @@ public partial class bullish : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = ((string)type).ToUpper();
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isEqual(postOnly, true)))
         {
             parameters = this.omit(parameters, "postOnly");
@@ -3043,7 +3043,7 @@ public partial class bullish : Exchange
         //     }
         //
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         object transfer = this.parseTransfer(response, currency);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {

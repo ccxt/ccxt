@@ -1057,7 +1057,7 @@ public partial class hyperliquid : Exchange
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
         string? pricePrecisionStr = this.numberToString(pricePrecision);
-        object isDelisted = this.safeBool(market, "isDelisted");
+        bool? isDelisted = this.safeBool(market, "isDelisted");
         bool active = true;
         if (isTrue(!isEqual(isDelisted, null)))
         {
@@ -1788,7 +1788,7 @@ public partial class hyperliquid : Exchange
     public virtual object signL1Action(object action, object nonce, object vaultAdress = null, object expiresAfter = null)
     {
         object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
-        object isTestnet = this.safeBool(this.options, "sandboxMode", false);
+        bool? isTestnet = this.safeBool(this.options, "sandboxMode", false);
         object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
         //     'domain': {
@@ -2002,7 +2002,7 @@ public partial class hyperliquid : Exchange
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
@@ -2049,8 +2049,8 @@ public partial class hyperliquid : Exchange
 
     public async virtual Task<object> handleBuilderFeeApproval()
     {
-        object buildFee = this.safeBool(this.options, "builderFee", true);
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -2158,7 +2158,7 @@ public partial class hyperliquid : Exchange
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(parameters, "type", "userSetAbstraction");
         parameters = this.omit(parameters, "type");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -2210,7 +2210,7 @@ public partial class hyperliquid : Exchange
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(parameters, "type", "userDexAbstraction");
         parameters = this.omit(parameters, "type");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -2333,7 +2333,7 @@ public partial class hyperliquid : Exchange
         Int64 nonce = this.milliseconds();
         bool isBuy = (isEqual(side, "BUY"));
         object vaultAddress = null;
-        object randomize = this.safeBool(parameters, "randomize", false);
+        bool? randomize = this.safeBool(parameters, "randomize", false);
         parameters = this.omit(parameters, "randomize");
         var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
@@ -2466,7 +2466,7 @@ public partial class hyperliquid : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         string? slippage = this.safeString(parameters, "slippage");
         string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isEqual(postOnly, true)))
         {
             defaultTimeInForce = "alo";
@@ -2491,7 +2491,7 @@ public partial class hyperliquid : Exchange
             px = this.priceToPrecision(symbol, price);
         }
         object sz = this.amountToPrecision(symbol, amount);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Dictionary<string, object> orderType = new Dictionary<string, object>() {};
         if (isTrue(isTrigger))
         {
@@ -3094,7 +3094,7 @@ public partial class hyperliquid : Exchange
             string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
-            object postOnly = this.safeBool(orderParams, "postOnly", false);
+            bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             if (isTrue(isEqual(postOnly, true)))
             {
                 defaultTimeInForce = "alo";
@@ -3106,7 +3106,7 @@ public partial class hyperliquid : Exchange
             string? stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             string? takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
             bool isTrigger = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
-            object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new List<object>() {"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"});
             object px = this.numberToString(price);
             if (isTrue(isMarket))
@@ -4070,7 +4070,7 @@ public partial class hyperliquid : Exchange
         }
         string? fee = this.safeString(trade, "fee");
         string? takerOrMaker = null;
-        object crossed = this.safeBool(trade, "crossed");
+        bool? crossed = this.safeBool(trade, "crossed");
         if (isTrue(!isEqual(crossed, null)))
         {
             takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
@@ -4581,7 +4581,7 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode");
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode");
         Int64 nonce = this.milliseconds();
         if (isTrue(this.inArray(fromAccount, new List<object>() {"spot", "swap", "perp"})))
         {
@@ -4770,7 +4770,7 @@ public partial class hyperliquid : Exchange
             sig = this.signL1Action(action, nonce);
         } else
         {
-            object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Dictionary<string, object> payload = new Dictionary<string, object>() {
                 { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
                 { "destination", address },

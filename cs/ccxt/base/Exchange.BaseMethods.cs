@@ -397,7 +397,7 @@ public partial class BaseExchange
         this.positions = null;
     }
 
-    public virtual object safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
+    public virtual bool? safeBoolN(object dictionaryOrList, object keys, object defaultValue = null)
     {
         /**
          * @ignore
@@ -408,12 +408,12 @@ public partial class BaseExchange
         object value = this.safeValueN(dictionaryOrList, keys, defaultValue);
         if (isTrue((value is bool)))
         {
-            return value;
+            return ((bool?)((object)(value)));
         }
-        return defaultValue;
+        return ((bool?)((object)(defaultValue)));
     }
 
-    public virtual object safeBool2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
+    public virtual bool? safeBool2(object dictionaryOrList, object key1, object key2, object defaultValue = null)
     {
         /**
          * @ignore
@@ -424,17 +424,17 @@ public partial class BaseExchange
         object value = this.safeValue(dictionaryOrList, key1);
         if (isTrue((value is bool)))
         {
-            return value;
+            return ((bool?)((object)(value)));
         }
         object value2 = this.safeValue(dictionaryOrList, key2);
         if (isTrue((value2 is bool)))
         {
-            return value2;
+            return ((bool?)((object)(value2)));
         }
-        return defaultValue;
+        return ((bool?)((object)(defaultValue)));
     }
 
-    public virtual object safeBool(object dictionaryOrList, object key, object defaultValue = null)
+    public virtual bool? safeBool(object dictionaryOrList, object key, object defaultValue = null)
     {
         /**
          * @ignore
@@ -445,9 +445,9 @@ public partial class BaseExchange
         object value = this.safeValue(dictionaryOrList, key, defaultValue);
         if (isTrue((value is bool)))
         {
-            return value;
+            return ((bool?)((object)(value)));
         }
-        return defaultValue;
+        return ((bool?)((object)(defaultValue)));
     }
 
     public virtual object safeDictN(object dictionaryOrList, object keys, object defaultValue = null)
@@ -1551,7 +1551,7 @@ public partial class BaseExchange
         // init the request rate limiter
         this.initRestRateLimiter();
         // sanbox mode
-        object isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
+        bool? isSandbox = this.safeBool2(this.options, "sandbox", "testnet", false);
         if (isTrue(isEqual(isSandbox, true)))
         {
             this.setSandboxMode(isSandbox);
@@ -1923,14 +1923,14 @@ public partial class BaseExchange
             {
                 object key = getValue(keys, i);
                 object network = getValue(networks, key);
-                object deposit = this.safeBool(network, "deposit");
-                object currencyDeposit = this.safeBool(currency, "deposit");
+                bool? deposit = this.safeBool(network, "deposit");
+                bool? currencyDeposit = this.safeBool(currency, "deposit");
                 if (isTrue(isTrue(isEqual(currencyDeposit, null)) || isTrue((isEqual(deposit, true)))))
                 {
                     ((IDictionary<string,object>)currency)["deposit"] = deposit;
                 }
-                object withdraw = this.safeBool(network, "withdraw");
-                object currencyWithdraw = this.safeBool(currency, "withdraw");
+                bool? withdraw = this.safeBool(network, "withdraw");
+                bool? currencyWithdraw = this.safeBool(currency, "withdraw");
                 if (isTrue(isTrue(isEqual(currencyWithdraw, null)) || isTrue((isEqual(withdraw, true)))))
                 {
                     ((IDictionary<string,object>)currency)["withdraw"] = withdraw;
@@ -2548,7 +2548,7 @@ public partial class BaseExchange
             }
         }
         // ensure that the average field is calculated correctly
-        object inverse = this.safeBool(market, "inverse", false);
+        bool? inverse = this.safeBool(market, "inverse", false);
         string? contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
@@ -2852,7 +2852,7 @@ public partial class BaseExchange
             object multiplyPrice = price;
             if (isTrue(!isEqual(contractSize, null)))
             {
-                object inverse = this.safeBool(market, "inverse", false);
+                bool? inverse = this.safeBool(market, "inverse", false);
                 if (isTrue(isEqual(inverse, true)))
                 {
                     multiplyPrice = Precise.stringDiv("1", price);
@@ -3381,7 +3381,7 @@ public partial class BaseExchange
     {
         object errorMessage = "";
         object options = this.safeValue(this.options, method, new Dictionary<string, object>() {});
-        object muteOnFailure = this.safeBool(options, "webApiMuteFailure", true);
+        bool? muteOnFailure = this.safeBool(options, "webApiMuteFailure", true);
         try
         {
             // if it was not explicitly disabled, then don't fetch
@@ -3643,8 +3643,8 @@ public partial class BaseExchange
 
     public virtual object safeNetwork(object network)
     {
-        object withdrawEnabled = this.safeBool(network, "withdraw");
-        object depositEnabled = this.safeBool(network, "deposit");
+        bool? withdrawEnabled = this.safeBool(network, "withdraw");
+        bool? depositEnabled = this.safeBool(network, "deposit");
         object limits = this.safeDict(network, "limits");
         object withdraw = this.safeDict(limits, "withdraw");
         object deposit = this.safeDict(limits, "deposit");
@@ -3976,7 +3976,7 @@ public partial class BaseExchange
                 string? id = ((bool) isTrue((isEqual(marketIdKey, null)))) ? null : this.safeString(item, marketIdKey);
                 object market = this.safeMarket(id, null, null, "swap");
                 object symbol = getValue(market, "symbol");
-                object contract = this.safeBool(market, "contract", false);
+                bool? contract = this.safeBool(market, "contract", false);
                 if (isTrue(isTrue((isEqual(contract, true))) && isTrue((isTrue(noSymbols) || isTrue((isTrue((!isEqual(symbols, null))) && isTrue(this.inArray(symbol, symbols))))))))
                 {
                     ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
@@ -3991,7 +3991,7 @@ public partial class BaseExchange
                 object item = getValue(response, marketId);
                 object market = this.safeMarket(marketId, null, null, "swap");
                 object symbol = getValue(market, "symbol");
-                object contract = this.safeBool(market, "contract", false);
+                bool? contract = this.safeBool(market, "contract", false);
                 if (isTrue(isTrue((isEqual(contract, true))) && isTrue((isTrue(noSymbols) || isTrue((isTrue((!isEqual(symbols, null))) && isTrue(this.inArray(symbol, symbols))))))))
                 {
                     ((IDictionary<string,object>)tiers)[(string)symbol] = this.parseMarketLeverageTiers(item, market);
@@ -4291,7 +4291,7 @@ public partial class BaseExchange
 
     public virtual object handleParamBool(object parameters, object paramName, object defaultValue = null)
     {
-        object value = this.safeBool(parameters, paramName, defaultValue);
+        bool? value = this.safeBool(parameters, paramName, defaultValue);
         if (isTrue(!isEqual(value, null)))
         {
             parameters = this.omit(parameters, paramName);
@@ -4301,7 +4301,7 @@ public partial class BaseExchange
 
     public virtual object handleParamBool2(object parameters, object paramName1, object paramName2, object defaultValue = null)
     {
-        object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
+        bool? value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
         if (isTrue(!isEqual(value, null)))
         {
             parameters = this.omit(parameters, new List<object>() {paramName1, paramName2});
@@ -4576,7 +4576,7 @@ public partial class BaseExchange
         int tradesLength = getArrayLength(trades);
         object oldest = mathMin(tradesLength, limit);
         object options = this.safeDict(this.options, "buildOHLCVC", new Dictionary<string, object>() {});
-        object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
+        bool? skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
         for (int i = 0; isLessThan(i, oldest); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
@@ -5640,7 +5640,7 @@ public partial class BaseExchange
         throw new NotSupported ((string)add(this.id, " createExpiredOptionMarket () is not supported yet")) ;
     }
 
-    public virtual object isLeveragedCurrency(object currencyCode, object checkBaseCoin = null, object existingCurrencies = null)
+    public virtual bool isLeveragedCurrency(object currencyCode, object checkBaseCoin = null, object existingCurrencies = null)
     {
         checkBaseCoin ??= false;
         List<object> leverageSuffixes = new List<object>() {"2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"};
@@ -5652,19 +5652,19 @@ public partial class BaseExchange
             {
                 if (!isTrue(checkBaseCoin))
                 {
-                    return true;
+                    return ((bool)((object)(true))!);
                 } else
                 {
                     // check if base currency is inside dict
                     string baseCurrencyCode = ((string)currencyCode).Replace((string)leverageSuffix, (string)"");
                     if (isTrue(isTrue((!isEqual(existingCurrencies, null))) && isTrue((inOp(existingCurrencies, baseCurrencyCode)))))
                     {
-                        return true;
+                        return ((bool)((object)(true))!);
                     }
                 }
             }
         }
-        return false;
+        return ((bool)((object)(false))!);
     }
 
     public virtual object handleWithdrawTagAndParams(object tag, object parameters)
@@ -6220,7 +6220,7 @@ public partial class BaseExchange
 
     public virtual object handleTriggerAndParams(object parameters)
     {
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isEqual(isTrigger, true)))
         {
             parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});

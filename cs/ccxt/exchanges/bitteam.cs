@@ -512,7 +512,7 @@ public partial class bitteam : Exchange
         Int64? created = this.parse8601(timeStart);
         object minCost = null;
         object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new Dictionary<string, object>() {});
-        object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
+        bool? quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (isTrue(isEqual(quoteInUsd, true)))
         {
             object settings = this.safeValue(market, "settings", new Dictionary<string, object>() {});
@@ -709,7 +709,7 @@ public partial class bitteam : Exchange
         string? id = this.safeString(currency, "symbol");
         Int64? numericId = this.safeInteger(currency, "id");
         object code = this.safeCurrencyCode(id);
-        object active = this.safeBool(currency, "active", false);
+        bool? active = this.safeBool(currency, "active", false);
         object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
         string? minWithdraw = this.safeString(txLimits, "minWithdraw");

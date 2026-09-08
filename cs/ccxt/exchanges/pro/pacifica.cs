@@ -307,7 +307,7 @@ public partial class pacifica : ccxt.pacifica
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
-            object success = this.safeBool(order, "success", false);
+            bool? success = this.safeBool(order, "success", false);
             string? marketId = this.safeString(order, "symbol");
             object market = this.safeMarket(marketId);
             string? orderId = this.safeString(order, "i");
@@ -1354,7 +1354,7 @@ public partial class pacifica : ccxt.pacifica
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // 'rl' key is present only when a rate-limited API key is used
@@ -1374,9 +1374,9 @@ public partial class pacifica : ccxt.pacifica
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e, id);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public virtual void handleOrderBookUnsubscription(WebSocketClient client, object subscription)

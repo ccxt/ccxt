@@ -2066,8 +2066,8 @@ public partial class bitfinex : Exchange
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         string? trailingAmount = this.safeString(parameters, "trailingAmount");
         string? timeInForce = this.safeString(parameters, "timeInForce");
-        object postOnlyParam = this.safeBool(parameters, "postOnly", false);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? postOnlyParam = this.safeBool(parameters, "postOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
         object orderType = ((string)type).ToUpper();
         if (isTrue(!isEqual(trailingAmount, null)))
@@ -3295,7 +3295,7 @@ public partial class bitfinex : Exchange
             ((IDictionary<string,object>)request)["payment_id"] = tag;
         }
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
+        bool? includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if (isTrue(isEqual(includeFee, true)))
         {
             ((IDictionary<string,object>)request)["fee_deduct"] = 1;
@@ -4542,8 +4542,8 @@ public partial class bitfinex : Exchange
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         string? trailingAmount = this.safeString(parameters, "trailingAmount");
         string? timeInForce = this.safeString(parameters, "timeInForce");
-        object postOnlyParam = this.safeBool(parameters, "postOnly", false);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? postOnlyParam = this.safeBool(parameters, "postOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Int64? clientOrderId = this.safeInteger2(parameters, "cid", "clientOrderId");
         if (isTrue(!isEqual(trailingAmount, null)))
         {

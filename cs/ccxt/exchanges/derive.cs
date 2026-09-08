@@ -1433,7 +1433,7 @@ public partial class derive : Exchange
     public virtual object hashOrderMessage(object order)
     {
         object accountHash = this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string DOMAIN_SEPARATOR = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         object prefix = this.base16ToBinary("1901");
@@ -1513,10 +1513,10 @@ public partial class derive : Exchange
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("createOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
-        object test = this.safeBool(parameters, "test", false);
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? test = this.safeBool(parameters, "test", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
         bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1524,7 +1524,7 @@ public partial class derive : Exchange
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         Int64? signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string? priceString = this.numberToString(price);
         object maxFee = null;
@@ -1707,9 +1707,9 @@ public partial class derive : Exchange
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("editOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
         bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1717,7 +1717,7 @@ public partial class derive : Exchange
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         object priceString = ((string)this.numberToString(price));
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
@@ -1868,7 +1868,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("cancelOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -2036,7 +2036,7 @@ public partial class derive : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500));
         }
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchOrders", parameters);
@@ -2297,7 +2297,7 @@ public partial class derive : Exchange
         string? filled = this.safeString(order, "filled_amount");
         string? fee = this.safeString(order, "order_fee");
         string? orderType = this.safeStringLower(order, "order_type");
-        object isBid = this.safeBool(order, "is_bid");
+        bool? isBid = this.safeBool(order, "is_bid");
         string? side = this.safeString(order, "direction");
         if (isTrue(isEqual(side, null)))
         {

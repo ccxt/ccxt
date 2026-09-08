@@ -947,7 +947,7 @@ public partial class extended : ccxt.extended
         return null;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     { "status": "ERROR", "error": { "code": 1001, "message": "Market not found." } }
@@ -955,7 +955,7 @@ public partial class extended : ccxt.extended
         object error = this.safeValue(message, "error");
         if (isTrue(isEqual(error, null)))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         object feedback = add(add(this.id, " "), this.json(message));
         string? errorCode = this.safeString(error, "code");

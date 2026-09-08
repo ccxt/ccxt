@@ -2207,7 +2207,7 @@ public partial class bitso : Exchange
             //
             //     {"success":false,"error":{"code":104,"message":"Cannot perform request - nonce must be higher than 1520307203724237"}}
             //
-            object success = this.safeBool(response, "success", false);
+            bool? success = this.safeBool(response, "success", false);
             if (isTrue((success is string)))
             {
                 if (isTrue(isTrue((isEqual(success, "true"))) || isTrue((isEqual(success, "1")))))

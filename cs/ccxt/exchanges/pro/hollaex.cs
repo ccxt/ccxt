@@ -546,7 +546,7 @@ public partial class hollaex : ccxt.hollaex
         return await this.watch(signedUrl, messageHash, message, messageHash);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     { error: "Bearer or HMAC authentication required" }
@@ -564,10 +564,10 @@ public partial class hollaex : ccxt.hollaex
         {
             if (isTrue(e is AuthenticationError))
             {
-                return false;
+                return ((bool?)((object)(false)));
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

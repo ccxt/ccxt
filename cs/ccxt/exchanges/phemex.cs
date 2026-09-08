@@ -2993,7 +2993,7 @@ public partial class phemex : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        object isSwap = this.safeBool(market, "swap", false);
+        bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = isTrue(isTrue((inOp(order, "closedPnl"))) || isTrue((inOp(order, "closedPnlRv")))) || isTrue((inOp(order, "totalPnlRv")));
         if (isTrue(isTrue((isEqual(isSwap, true))) || isTrue(hasPnl)))
         {
@@ -3119,14 +3119,14 @@ public partial class phemex : Exchange
             }
         } else if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            object hedged = this.safeBool(parameters, "hedged", false);
+            bool? hedged = this.safeBool(parameters, "hedged", false);
             parameters = this.omit(parameters, "hedged");
             string? posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
                 if (isTrue(isEqual(hedged, true)))
                 {
-                    object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                    bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if (isTrue(isEqual(reduceOnly, true)))
                     {
                         sideVar = ((bool) isTrue((isEqual(sideVar, "buy")))) ? "sell" : "buy";
@@ -5349,7 +5349,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        object isHedged = this.safeBool(parameters, "hedged", false);
+        bool? isHedged = this.safeBool(parameters, "hedged", false);
         Int64? longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
         Int64? shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
         object market = this.market(symbol);
@@ -5457,7 +5457,7 @@ public partial class phemex : Exchange
             transfer = this.parseTransfer(response);
         }
         object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             if (isTrue(isEqual(getValue(transfer, "fromAccount"), null)))

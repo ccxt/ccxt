@@ -856,7 +856,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, add(add(channel, "::"), getValue(fundingRate, "symbol"))});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -869,7 +869,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         string? type = this.safeString(message, "type");
         if (isTrue(!isEqual(type, "REJECT")))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         string? reason = this.safeString(message, "reason");
         string? errMsg = this.safeString(message, "message");
@@ -883,7 +883,7 @@ public partial class coinbaseinternational : ccxt.coinbaseinternational
         {
             ((WebSocketClient)client).reject(e);
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

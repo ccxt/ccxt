@@ -209,8 +209,8 @@ public partial class bybit : ccxt.bybit
         if (isTrue(isPrivate))
         {
             object unified = await this.isUnifiedEnabled();
-            object isUnifiedMargin = this.safeBool(unified, 0, false);
-            object isUnifiedAccount = this.safeBool(unified, 1, false);
+            bool? isUnifiedMargin = this.safeBool(unified, 0, false);
+            bool? isUnifiedAccount = this.safeBool(unified, 1, false);
             if (isTrue(isTrue(isTrue(isUsdcSettled) && isTrue((!isEqual(isUnifiedMargin, true)))) && isTrue((!isEqual(isUnifiedAccount, true)))))
             {
                 url = getValue(getValue(url, accessibility), "usdc");
@@ -2297,8 +2297,8 @@ public partial class bybit : ccxt.bybit
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         object unified = await this.isUnifiedEnabled();
-        object isUnifiedMargin = this.safeBool(unified, 0, false);
-        object isUnifiedAccount = this.safeBool(unified, 1, false);
+        bool? isUnifiedMargin = this.safeBool(unified, 0, false);
+        bool? isUnifiedAccount = this.safeBool(unified, 1, false);
         object url = await this.getUrlByMarketType(null, true, method, parameters);
         await this.authenticate(url);
         Dictionary<string, object> topicByMarket = new Dictionary<string, object>() {
@@ -2677,7 +2677,7 @@ public partial class bybit : ccxt.bybit
         return await (future as Exchange.Future);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //   {
@@ -2747,7 +2747,7 @@ public partial class bybit : ccxt.bybit
                     throw new ExchangeError ((string)add(add(this.id, " "), ret_msg)) ;
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             string? messageHash = this.safeString2(message, "req_id", "reqId");
@@ -2778,7 +2778,7 @@ public partial class bybit : ccxt.bybit
             {
                 ((WebSocketClient)client).reject(error, messageHash);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

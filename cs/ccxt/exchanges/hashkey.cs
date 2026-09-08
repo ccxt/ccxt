@@ -1135,7 +1135,7 @@ public partial class hashkey : Exchange
         bool active = isEqual(status, "TRADING");
         bool? isLinear = null;
         string? subType = null;
-        object isInverse = this.safeBool(market, "inverse");
+        bool? isInverse = this.safeBool(market, "inverse");
         if (isTrue(!isEqual(isInverse, null)))
         {
             if (isTrue(isInverse))
@@ -1587,18 +1587,18 @@ public partial class hashkey : Exchange
         {
             side = this.safeString(((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
         }
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         string? takerOrMaker = null;
-        object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
+        bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
-        object isBuyerMaker = this.safeBool(trade, "ibm");
+        bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
@@ -2335,7 +2335,7 @@ public partial class hashkey : Exchange
         string? status = this.safeString(transaction, "status"); // for fetchDeposits
         if (isTrue(isEqual(status, null)))
         {
-            object success = this.safeBool(transaction, "success", false); // for withdraw
+            bool? success = this.safeBool(transaction, "success", false); // for withdraw
             if (isTrue(isEqual(success, true)))
             {
                 status = "ok";
@@ -2450,7 +2450,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(transfer, "timestamp");
         string? currencyId = this.safeString(currency, "id");
         string? status = null;
-        object success = this.safeBool(transfer, "success", false);
+        bool? success = this.safeBool(transfer, "success", false);
         if (isTrue(isEqual(success, true)))
         {
             status = "ok";
@@ -2806,7 +2806,7 @@ public partial class hashkey : Exchange
         }
         object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
         object response = new Dictionary<string, object>() {};
-        object test = this.safeBool(parameters, "test");
+        bool? test = this.safeBool(parameters, "test");
         if (isTrue(isEqual(test, true)))
         {
             parameters = this.omit(parameters, "test");

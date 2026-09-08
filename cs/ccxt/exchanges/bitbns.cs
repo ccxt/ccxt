@@ -839,7 +839,7 @@ public partial class bitbns : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "entry_id", id },
@@ -881,7 +881,7 @@ public partial class bitbns : Exchange
             { "symbol", getValue(market, "id") },
             { "entry_id", id },
         };
-        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isEqual(trigger, true)))
         {
             throw new BadRequest ((string)add(this.id, " fetchOrder cannot fetch stop orders")) ;
@@ -942,7 +942,7 @@ public partial class bitbns : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtListOpen" : "listOpen";
         Dictionary<string, object> request = new Dictionary<string, object>() {

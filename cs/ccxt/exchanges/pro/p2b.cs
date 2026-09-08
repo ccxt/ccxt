@@ -465,7 +465,7 @@ public partial class p2b : ccxt.p2b
         //    }
         //
         object parameters = this.safeList(message, "params", new List<object>() {});
-        object isFullUpdate = this.safeBool(parameters, 0, false);
+        bool? isFullUpdate = this.safeBool(parameters, 0, false);
         object data = this.safeDict(parameters, 1);
         object asks = this.safeList(data, "asks");
         object bids = this.safeList(data, "bids");
@@ -542,14 +542,14 @@ public partial class p2b : ccxt.p2b
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         string? error = this.safeString(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
             throw new ExchangeError ((string)add(add(this.id, " error: "), this.json(error))) ;
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override object ping(WebSocketClient client)

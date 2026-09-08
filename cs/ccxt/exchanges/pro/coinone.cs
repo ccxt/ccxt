@@ -384,7 +384,7 @@ public partial class coinone : ccxt.coinone
         }, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -396,9 +396,9 @@ public partial class coinone : ccxt.coinone
         string? type = this.safeString(message, "response_type", "");
         if (isTrue(isEqual(type, "ERROR")))
         {
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

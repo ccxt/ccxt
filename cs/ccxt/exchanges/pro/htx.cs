@@ -2671,7 +2671,7 @@ public partial class htx : ccxt.htx
         callDynamically(promise, "resolve", new object[] {message});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -2710,7 +2710,7 @@ public partial class htx : ccxt.htx
             string? id = this.safeString(message, "id");
             if (isTrue(isEqual(id, null)))
             {
-                return false;
+                return ((bool?)((object)(false)));
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = this.safeValue(subscriptionsById, id);
@@ -2743,7 +2743,7 @@ public partial class htx : ccxt.htx
                     }
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
         string? code = this.safeString2(message, "code", "err-code");
         if (isTrue(isTrue(!isEqual(code, null)) && isTrue((isTrue((!isEqual(code, "200"))) && isTrue((!isEqual(code, "0")))))))
@@ -2763,14 +2763,14 @@ public partial class htx : ccxt.htx
                     {
                         ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)method);
                     }
-                    return false;
+                    return ((bool?)((object)(false)));
                 } else
                 {
                     ((WebSocketClient)client).reject(e);
                 }
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -3265,7 +3265,7 @@ public partial class htx : ccxt.htx
             };
         }
         bool isLinear = isEqual(subtype, "linear");
-        object isV5 = this.safeBool(subscriptionParams, "isV5", false);
+        bool? isV5 = this.safeBool(subscriptionParams, "isV5", false);
         object url = this.getUrlByMarketType(type, isLinear, true, false, isV5);
         object hostname = ((bool) isTrue((isEqual(type, "spot")))) ? getValue(getValue(this.urls, "hostnames"), "spot") : getValue(getValue(this.urls, "hostnames"), "contract");
         Dictionary<string, object> authParams = new Dictionary<string, object>() {

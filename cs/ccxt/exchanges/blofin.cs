@@ -818,7 +818,7 @@ public partial class blofin : Exchange
         object symbol = getValue(market, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
-        object spot = this.safeBool(market, "spot", false);
+        bool? spot = this.safeBool(market, "spot", false);
         string? quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCurrency24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
@@ -1493,7 +1493,7 @@ public partial class blofin : Exchange
         string? triggerPriceAny = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopLossPrice", "takeProfitPrice"});
         string? triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
         string? timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        object isHedged = this.safeBool(parameters, "hedged", false);
+        bool? isHedged = this.safeBool(parameters, "hedged", false);
         if (isTrue(isEqual(isHedged, true)))
         {
             ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(side, "buy")))) ? "long" : "short";
@@ -1747,7 +1747,7 @@ public partial class blofin : Exchange
         bool isCombinedSlTp = isTrue((isTrue(isStopLossPriceDefined) && isTrue(isTakeProfitPriceDefined))) || isTrue(isTpslEndpoint);
         bool isSlOrTp = isTrue(isStopLossPriceDefined) || isTrue(isTakeProfitPriceDefined);
         object response = null;
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
         {
             ((IDictionary<string,object>)parameters)["reduceOnly"] = ((bool) isTrue(reduceOnly)) ? "true" : "false";
@@ -1782,7 +1782,7 @@ public partial class blofin : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        object hedged = this.safeBool(parameters, "hedged", false);
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         string positionSide = "net";
         if (isTrue(isEqual(hedged, true)))
         {
@@ -1873,8 +1873,8 @@ public partial class blofin : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
-        object isTrigger = this.safeBool(parameters, "trigger", false);
-        object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+        bool? isTrigger = this.safeBool(parameters, "trigger", false);
+        bool? isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -1986,8 +1986,8 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit; // default 100, max 100
         }
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger"}, false);
-        object isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+        bool? isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger"}, false);
+        bool? isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -2445,7 +2445,7 @@ public partial class blofin : Exchange
         object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
         object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
         object tpslIds = this.parseIds(this.safeValue(parameters, "tpslId"));
-        object trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl"});
         if (isTrue(isEqual(trigger, true)))
         {
             method = "privatePostTradeCancelTpsl";
@@ -3099,7 +3099,7 @@ public partial class blofin : Exchange
         {
             ((IDictionary<string,object>)request)["begin"] = since;
         }
-        object isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
+        bool? isTrigger = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "tpsl", "TPSL"}, false);
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];

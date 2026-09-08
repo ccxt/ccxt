@@ -1696,7 +1696,7 @@ public partial class kraken : Exchange
             symbol = getValue(market, "symbol");
         }
         string? cost = this.safeString(trade, "cost");
-        object maker = this.safeBool(trade, "maker");
+        bool? maker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
@@ -2213,7 +2213,7 @@ public partial class kraken : Exchange
         //         "oflags": "fciq"
         //     }
         //
-        object isUsingCost = this.safeBool(order, "usingCost", false);
+        bool? isUsingCost = this.safeBool(order, "usingCost", false);
         order = this.omit(order, "usingCost");
         object description = this.safeDict(order, "descr", new Dictionary<string, object>() {});
         object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
@@ -2448,7 +2448,7 @@ public partial class kraken : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         if (isTrue(isStopLossOrTakeProfitTrigger))
         {
             if (isTrue(isStopLossTriggerOrder))

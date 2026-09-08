@@ -1035,7 +1035,7 @@ public partial class whitebit : ccxt.whitebit
             bool hasSymbolSubscription = true;
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            object isSubscribed = this.safeBool(subscription, marketId, false);
+            bool? isSubscribed = this.safeBool(subscription, marketId, false);
             if (isTrue(!isEqual(isSubscribed, true)))
             {
                 if (isTrue(!isEqual(marketId, null)))
@@ -1197,7 +1197,7 @@ public partial class whitebit : ccxt.whitebit
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1224,10 +1224,10 @@ public partial class whitebit : ccxt.whitebit
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
                 }
-                return false;
+                return ((bool?)((object)(false)));
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -445,7 +445,7 @@ public partial class nado : Exchange
         parameters = ((IList<object>)recvWindowparametersVariable)[1];
         object nonce = this.createOrderNonce(recvWindow);
         Int64? requestId = this.safeInteger(parameters, "id");
-        object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
+        bool? spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "sender", sender },
@@ -634,8 +634,8 @@ public partial class nado : Exchange
             appendix = this.createOrderAppendix(false, parameters);
         }
         Int64? requestId = this.safeInteger(parameters, "id");
-        object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
-        object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
+        bool? spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
+        bool? placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
         parameters = this.omit(parameters, new List<object>() {"expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled"});
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> cancelTx = new Dictionary<string, object>() {
@@ -728,7 +728,7 @@ public partial class nado : Exchange
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         object response = null;
@@ -832,7 +832,7 @@ public partial class nado : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         object response = null;
@@ -1001,7 +1001,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(trigger, true)))
         {
@@ -1091,7 +1091,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
@@ -1174,7 +1174,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
@@ -1740,10 +1740,10 @@ public partial class nado : Exchange
                 ((IDictionary<string,object>)assetsByCode)[(string)assetCode] = rawAsset;
             } else
             {
-                object previousDeposit = this.safeBool(previous, "can_deposit", false);
-                object previousWithdraw = this.safeBool(previous, "can_withdraw", false);
-                object currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
-                object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
+                bool? previousDeposit = this.safeBool(previous, "can_deposit", false);
+                bool? previousWithdraw = this.safeBool(previous, "can_withdraw", false);
+                bool? currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
+                bool? currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
                 if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(currentDeposit, true))) || isTrue((isEqual(currentWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)assetsByCode)[(string)assetCode] = rawAsset;
@@ -1870,15 +1870,15 @@ public partial class nado : Exchange
                 continue;
             }
             object previous = this.safeDict(result, code);
-            object canDeposit = this.safeBool(currency, "can_deposit", false);
-            object canWithdraw = this.safeBool(currency, "can_withdraw", false);
+            bool? canDeposit = this.safeBool(currency, "can_deposit", false);
+            bool? canWithdraw = this.safeBool(currency, "can_withdraw", false);
             if (isTrue(isEqual(previous, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = parsed;
             } else
             {
-                object previousDeposit = this.safeBool(previous, "deposit", false);
-                object previousWithdraw = this.safeBool(previous, "withdraw", false);
+                bool? previousDeposit = this.safeBool(previous, "deposit", false);
+                bool? previousWithdraw = this.safeBool(previous, "withdraw", false);
                 if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(canDeposit, true))) || isTrue((isEqual(canWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = parsed;
@@ -2423,7 +2423,7 @@ public partial class nado : Exchange
             price = ((bool) isTrue((isEqual(parsedPrice, null)))) ? null : this.numberToString(parsedPrice);
         }
         string? takerOrMaker = null;
-        object isTaker = this.safeBool(trade, "is_taker");
+        bool? isTaker = this.safeBool(trade, "is_taker");
         if (isTrue(!isEqual(isTaker, null)))
         {
             if (isTrue(isTaker))
@@ -2634,8 +2634,8 @@ public partial class nado : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
-        object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
+        bool? canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
+        bool? canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         string? id = this.safeString(rawCurrency, "product_id");
         string? currencyId = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
@@ -2859,15 +2859,15 @@ public partial class nado : Exchange
         });
     }
 
-    public virtual object isArchiveOrderClosed(object order)
+    public virtual bool isArchiveOrderClosed(object order)
     {
         string? amount = this.safeString(order, "amount");
         string? filled = this.safeString(order, "base_filled");
         if (isTrue(isTrue((isEqual(amount, null))) || isTrue((isEqual(filled, null)))))
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
-        return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
+        return ((bool)((object)(Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount))))!);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -3127,7 +3127,7 @@ public partial class nado : Exchange
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         parameters ??= new Dictionary<string, object>();
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object postOnly = this.isPostOnly(false, null, parameters);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         int orderType = 0;
@@ -3153,7 +3153,7 @@ public partial class nado : Exchange
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(isEqual(buildFee, true)))
         {
             string? builder = this.safeString(this.options, "builder", "4500");

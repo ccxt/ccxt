@@ -742,12 +742,12 @@ public partial class grvt : Exchange
     public async virtual Task<object> initializeClient(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+        bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
         if (isTrue(!isEqual(builderFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -802,7 +802,7 @@ public partial class grvt : Exchange
                 // }
                 //
                 object authResult = this.safeDict(authResponse, "result");
-                object ack = this.safeBool(authResult, "ack");
+                bool? ack = this.safeBool(authResult, "ack");
                 if (isTrue(!isEqual(ack, true)))
                 {
                     throw new ExchangeError ((string)add("Builder authorization failed, ", this.json(authResponse))) ;
@@ -1312,7 +1312,7 @@ public partial class grvt : Exchange
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         string? takerOrMaker = null;
-        object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
+        bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
         if (isTrue(!isEqual(isTakerBuyer, null)))
         {
@@ -1690,7 +1690,7 @@ public partial class grvt : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
-        object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (isTrue(isEqual(useTransfersEndpoint, true)))
         {
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
@@ -1757,7 +1757,7 @@ public partial class grvt : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = this.numberToString(multiply(since, 1000000));
         }
-        object useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
+        bool? useTransfersEndpoint = this.safeBool(this.options, "useTransfersEndpointForDepositsWithdrawals", true);
         if (isTrue(isEqual(useTransfersEndpoint, true)))
         {
             object transfers = await this.internalFetchTransfers(this.extend(request, parameters), currency, since, limit);
@@ -2347,7 +2347,7 @@ public partial class grvt : Exchange
         parameters = this.omit(parameters, new List<object>() {"clientOrderId"});
         bool isMarketOrder = (isEqual(type, "market"));
         object subAccountId = this.getSubAccountId(parameters);
-        object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Dictionary<string, object> orderRequest = new Dictionary<string, object>() {
             { "sub_account_id", subAccountId },
             { "time_in_force", null },
@@ -2453,7 +2453,7 @@ public partial class grvt : Exchange
             parameters = this.omit(parameters, new List<object>() {"triggerDirection", "triggerPriceType", "closePosition"});
         }
         string eipType = "EIP712_ORDER_TYPE";
-        object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
+        bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
         if (isTrue(isEqual(builderFee, true)))
         {
             eipType = "EIP712_ORDER_WITH_BUILDER_TYPE";
@@ -3400,10 +3400,10 @@ public partial class grvt : Exchange
                 { "id", null },
             });
         }
-        object isMarket = this.safeBool(order, "is_market");
+        bool? isMarket = this.safeBool(order, "is_market");
         string orderType = ((bool) isTrue((isEqual(isMarket, true)))) ? "market" : "limit";
-        object isPostOnly = this.safeBool(order, "post_only");
-        object isReduceOnly = this.safeBool(order, "reduce_only");
+        bool? isPostOnly = this.safeBool(order, "post_only");
+        bool? isReduceOnly = this.safeBool(order, "reduce_only");
         string? timeInForceRaw = this.safeString(order, "time_in_force");
         object timeInForce = ((bool) isTrue((isEqual(isPostOnly, true)))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         string? size = null;

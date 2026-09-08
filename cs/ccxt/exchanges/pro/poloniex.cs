@@ -1424,7 +1424,7 @@ public partial class poloniex : ccxt.poloniex
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1484,10 +1484,10 @@ public partial class poloniex : ccxt.poloniex
                 {
                     ((WebSocketClient)client).reject(e, id);
                 }
-                return true;
+                return ((bool?)((object)(true)));
             }
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public virtual object handleAuthenticate(WebSocketClient client, object message)

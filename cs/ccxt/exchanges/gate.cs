@@ -1770,7 +1770,7 @@ public partial class gate : Exchange
     public async virtual Task<object> loadUnifiedStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        bool? unifiedAccount = this.safeBool(this.options, "unifiedAccount");
         if (isTrue(isEqual(unifiedAccount, null)))
         {
             try
@@ -5671,7 +5671,7 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
                 }
             }
-            object textIsRequired = this.safeBool(parameters, "textIsRequired", false);
+            bool? textIsRequired = this.safeBool(parameters, "textIsRequired", false);
             if (isTrue(!isEqual(clientOrderId, null)))
             {
                 // user-defined, must follow the rules if not empty
@@ -6185,7 +6185,7 @@ public partial class gate : Exchange
         //         "amend_text": "-"
         //     }
         //
-        object succeeded = this.safeBool(order, "succeeded", true);
+        bool? succeeded = this.safeBool(order, "succeeded", true);
         if (isTrue(!isEqual(succeeded, true)))
         {
             // cancelOrders response
@@ -6326,8 +6326,8 @@ public partial class gate : Exchange
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         object initial = this.safeDict(order, "initial", new Dictionary<string, object>() {});
-        object reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
-        object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
+        bool? reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
+        bool? reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         string? clientOrderId = this.safeString(order, "text");
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -6370,7 +6370,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         object orderId = id;
@@ -6426,7 +6426,7 @@ public partial class gate : Exchange
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         string? type = this.safeString(result, 0);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
@@ -6643,7 +6643,7 @@ public partial class gate : Exchange
             symbol = getValue(market, "symbol");
         }
         // don't omit here, omits done in prepareOrdersByStatusRequest
-        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         string? type = this.safeString(res, 0);
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
@@ -6882,7 +6882,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -7145,7 +7145,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -9702,7 +9702,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object isUnified = this.safeBool(parameters, "unified");
+        bool? isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
         if (isTrue(isEqual(this.safeBool(market, "spot"), true)))
         {
@@ -9743,7 +9743,7 @@ public partial class gate : Exchange
         }
         symbols = this.marketSymbols(symbols);
         object response = null;
-        object isUnified = this.safeBool(parameters, "unified");
+        bool? isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
         string marketIdRequest = "id";
         if (isTrue(isEqual(isUnified, true)))

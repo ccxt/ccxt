@@ -1841,7 +1841,7 @@ public partial class lbank : Exchange
         }
         object market = this.market(symbol);
         string? clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         parameters = this.omit(parameters, new List<object>() {"custom_id", "clientOrderId", "timeInForce", "postOnly"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3410,7 +3410,7 @@ public partial class lbank : Exchange
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
-                object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
+                bool? cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
                 if (isTrue(isEqual(cacheSecretAsPem, true)))
                 {

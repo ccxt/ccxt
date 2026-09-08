@@ -1889,7 +1889,7 @@ public partial class gemini : Exchange
                     ((IDictionary<string,object>)request)["options"] = new List<object>() {"maker-or-cancel"};
                 }
             }
-            object postOnly = this.safeBool(parameters, "postOnly", false);
+            bool? postOnly = this.safeBool(parameters, "postOnly", false);
             parameters = this.omit(parameters, "postOnly");
             if (isTrue(isEqual(postOnly, true)))
             {

@@ -925,7 +925,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object active = this.safeBool(account, "active");
+        bool? active = this.safeBool(account, "active");
         string? currencyIdV3 = this.safeString(account, "currency");
         object currency = this.safeDict(account, "currency", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(currency, "code", currencyIdV3);
@@ -1361,7 +1361,7 @@ public partial class coinbase : Exchange
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if (isTrue(isEqual(status, null)))
         {
-            object committed = this.safeBool(transaction, "committed");
+            bool? committed = this.safeBool(transaction, "committed");
             status = ((bool) isTrue((isEqual(committed, true)))) ? "ok" : "pending";
         }
         string? id = this.safeString(transaction, "id");
@@ -1493,7 +1493,7 @@ public partial class coinbase : Exchange
                 symbol = add(add(bs, "/"), quote);
             }
         }
-        object sizeInQuote = this.safeBool(trade, "size_in_quote");
+        bool? sizeInQuote = this.safeBool(trade, "size_in_quote");
         string? v3Price = this.safeString(trade, "price");
         object v3Cost = null;
         string? v3Amount = this.safeString(trade, "size");
@@ -1867,7 +1867,7 @@ public partial class coinbase : Exchange
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
         string? marketType = this.safeStringLower(market, "product_type");
-        object tradingDisabled = this.safeBool(market, "trading_disabled");
+        bool? tradingDisabled = this.safeBool(market, "trading_disabled");
         object stablePairs = this.safeList(this.options, "stablePairs", new List<object>() {});
         object defaultTakerFee = this.safeNumber(getValue(this.fees, "trading"), "taker");
         object defaultMakerFee = this.safeNumber(getValue(this.fees, "trading"), "maker");
@@ -2057,7 +2057,7 @@ public partial class coinbase : Exchange
         string? quoteId = this.safeString(market, "quote_currency_id");
         object bs = this.safeCurrencyCode(baseId);
         object quote = this.safeCurrencyCode(quoteId);
-        object tradingDisabled = this.safeBool(market, "is_disabled");
+        bool? tradingDisabled = this.safeBool(market, "is_disabled");
         object symbol = add(add(bs, "/"), quote);
         string? type = null;
         if (isTrue(isSwap))
@@ -2781,7 +2781,7 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object isV3 = this.safeBool(parameters, "v3", false);
+        bool? isV3 = this.safeBool(parameters, "v3", false);
         parameters = this.omit(parameters, new List<object>() {"v3"});
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -3407,7 +3407,7 @@ public partial class coinbase : Exchange
             { "product_id", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
         };
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(isEqual(reduceOnly, true)))
         {
             parameters = this.omit(parameters, "reduceOnly");
@@ -3421,7 +3421,7 @@ public partial class coinbase : Exchange
         bool isStopLoss = !isEqual(stopLossPrice, null);
         bool isTakeProfit = !isEqual(takeProfitPrice, null);
         string? timeInForce = this.safeString(parameters, "timeInForce");
-        object postOnly = ((bool) isTrue((isEqual(timeInForce, "PO")))) ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
+        bool? postOnly = ((bool) isTrue((isEqual(timeInForce, "PO")))) ? true : this.safeBool2(parameters, "postOnly", "post_only", false);
         string? endTime = this.safeString(parameters, "end_time");
         string? stopDirection = this.safeString(parameters, "stop_direction");
         if (isTrue(isEqual(type, "limit")))
@@ -3587,7 +3587,7 @@ public partial class coinbase : Exchange
             }
         }
         parameters = this.omit(parameters, new List<object>() {"timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode"});
-        object preview = this.safeBool2(parameters, "preview", "test", false);
+        bool? preview = this.safeBool2(parameters, "preview", "test", false);
         object response = null;
         if (isTrue(isEqual(preview, true)))
         {
@@ -3635,7 +3635,7 @@ public partial class coinbase : Exchange
         //         }
         //     }
         //
-        object success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success");
         if (isTrue(!isEqual(success, true)))
         {
             object errorResponse = this.safeDict(response, "error_response");
@@ -3733,7 +3733,7 @@ public partial class coinbase : Exchange
         bool isStop = (isTrue((!isEqual(stopLimitGTC, null))) || isTrue((!isEqual(stopLimitGTD, null))));
         string? price = null;
         string? amount = null;
-        object postOnly = null;
+        bool? postOnly = null;
         string? triggerPrice = null;
         if (isTrue(isLimit))
         {
@@ -3898,7 +3898,7 @@ public partial class coinbase : Exchange
         object orders = this.safeList(response, "results", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
-            object success = this.safeBool(getValue(orders, i), "success");
+            bool? success = this.safeBool(getValue(orders, i), "success");
             if (isTrue(!isEqual(success, true)))
             {
                 throw new BadRequest ((string)add(this.id, " cancelOrders() has failed, check your arguments and parameters")) ;
@@ -3941,7 +3941,7 @@ public partial class coinbase : Exchange
         {
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
-        object preview = this.safeBool2(parameters, "preview", "test", false);
+        bool? preview = this.safeBool2(parameters, "preview", "test", false);
         object response = null;
         if (isTrue(isEqual(preview, true)))
         {

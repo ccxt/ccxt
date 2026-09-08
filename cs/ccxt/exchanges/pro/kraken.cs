@@ -171,7 +171,7 @@ public partial class kraken : ccxt.kraken
         string priceType = ((bool) isTrue((isTrue(isTrailingPercentOrder) || isTrue(isTrailingLimitPercentOrder)))) ? "pct" : "quote";
         if (isTrue(isEqual(method, "createOrderWs")))
         {
-            object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
             if (isTrue(isEqual(reduceOnly, true)))
             {
                 ((IDictionary<string,object>)getValue(request, "params"))["reduce_only"] = true;
@@ -1757,7 +1757,7 @@ public partial class kraken : ccxt.kraken
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1796,9 +1796,9 @@ public partial class kraken : ccxt.kraken
             {
                 ((WebSocketClient)client).reject(exception, requestId);
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -1092,7 +1092,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isUnifiedEnabled = null;
+        bool? isUnifiedEnabled = null;
         object unifiedResult = await this.isUnifiedEnabled("watchBalance", userAddress, false, parameters);
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
         parameters = this.safeDict(unifiedResult, 1, parameters);
@@ -1150,7 +1150,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         var typeparametersVariable = this.handleMarketTypeAndParams("unWatchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isUnifiedEnabled = null;
+        bool? isUnifiedEnabled = null;
         object unifiedResult = await this.isUnifiedEnabled("unWatchBalance", userAddress, false, parameters);
         isUnifiedEnabled = this.safeBool(unifiedResult, 0);
         parameters = this.safeDict(unifiedResult, 1, parameters);
@@ -1625,7 +1625,7 @@ public partial class hyperliquid : ccxt.hyperliquid
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1665,11 +1665,11 @@ public partial class hyperliquid : ccxt.hyperliquid
                 // a duplicate subscribe is harmless - the server-side subscription is intact
                 // and data keeps flowing; rejecting all pending futures here would poison the
                 // whole connection, see https://github.com/ccxt/ccxt/issues/28369
-                return true;
+                return ((bool?)((object)(true)));
             }
             var error = new ExchangeError(add(add(this.id, " "), ret_msg));
             ((WebSocketClient)client).reject(error);
-            return true;
+            return ((bool?)((object)(true)));
         }
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? id = this.safeString(message, "id");
@@ -1684,14 +1684,14 @@ public partial class hyperliquid : ccxt.hyperliquid
         {
             var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
             ((WebSocketClient)client).reject(error, id);
-            return true;
+            return ((bool?)((object)(true)));
         }
         string? type = this.safeString(payload, "type");
         if (isTrue(isEqual(type, "error")))
         {
             var error = new ExchangeError(add(add(this.id, " "), this.json(payload)));
             ((WebSocketClient)client).reject(error, id);
-            return true;
+            return ((bool?)((object)(true)));
         }
         try
         {
@@ -1699,9 +1699,9 @@ public partial class hyperliquid : ccxt.hyperliquid
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e, id);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public virtual void handleOrderBookUnsubscription(WebSocketClient client, object subscription)

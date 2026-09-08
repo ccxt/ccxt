@@ -2772,7 +2772,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isEqual(sandboxMode, true)))
         {
             string? instType = this.safeString(args, "instType");
@@ -2799,7 +2799,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isEqual(sandboxMode, true)))
         {
             string? instType = this.safeString(args, "instType");
@@ -2826,7 +2826,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPublic") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isEqual(sandboxMode, true)))
         {
             object argsArrayFirst = this.safeDict(argsArray, 0, new Dictionary<string, object>() {});
@@ -2878,7 +2878,7 @@ public partial class bitget : ccxt.bitget
     {
         parameters ??= new Dictionary<string, object>();
         object url = ((bool) isTrue((isEqual(uta, true)))) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "utaPrivate") : getValue(getValue(getValue(this.urls, "api"), "ws"), "private");
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isEqual(sandboxMode, true)))
         {
             string? instType = this.safeString(args, "instType");
@@ -2914,7 +2914,7 @@ public partial class bitget : ccxt.bitget
         (future as Future).resolve(true);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    { event: "error", code: 30015, msg: "Invalid sign" }
@@ -2931,7 +2931,7 @@ public partial class bitget : ccxt.bitget
                 this.throwBroadlyMatchedException(getValue(getValue(this.exceptions, "ws"), "broad"), msg, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception e)
         {
             if (isTrue(e is AuthenticationError))
@@ -2947,7 +2947,7 @@ public partial class bitget : ccxt.bitget
                 // Note: if error happens on a subscribe event, user will have to close exchange to resubscribe. Issue #19041
                 ((WebSocketClient)client).reject(e);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

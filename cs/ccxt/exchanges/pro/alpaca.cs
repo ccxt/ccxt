@@ -280,7 +280,7 @@ public partial class alpaca : ccxt.alpaca
         object symbol = this.safeSymbol(marketId);
         string? datetime = this.safeString(message, "t");
         Int64? timestamp = this.parse8601(datetime);
-        object isSnapshot = this.safeBool(message, "r", false);
+        bool? isSnapshot = this.safeBool(message, "r", false);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -708,7 +708,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {

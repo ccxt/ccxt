@@ -973,7 +973,7 @@ public partial class woo : ccxt.woo
         string? cost = Precise.stringMul(price, amount);
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object maker = this.safeBool(trade, "maker");
+        bool? maker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(maker, null)))
         {
@@ -1099,7 +1099,7 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = topic;
@@ -1144,7 +1144,7 @@ public partial class woo : ccxt.woo
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreportv2" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = "myTrades";
@@ -1719,19 +1719,19 @@ public partial class woo : ccxt.woo
         callDynamically(client as WebSocketClient, "resolve", new object[] {fundingRate, messageHash});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!isTrue((inOp(message, "success"))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
-        object success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success");
         if (isTrue(isEqual(success, true)))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
@@ -1741,7 +1741,7 @@ public partial class woo : ccxt.woo
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             if (isTrue(error is AuthenticationError))
@@ -1756,7 +1756,7 @@ public partial class woo : ccxt.woo
             {
                 ((WebSocketClient)client).reject(error);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

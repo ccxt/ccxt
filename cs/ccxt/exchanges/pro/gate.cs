@@ -243,7 +243,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_cancel_cp");
         var channelparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
@@ -618,7 +618,7 @@ public partial class gate : ccxt.gate
         //      "event":"update"
         //   }
         object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        object full = this.safeBool(result, "full", false);
+        bool? full = this.safeBool(result, "full", false);
         string? marketIdWithPrefix = this.safeString(result, "s");
         if (isTrue(isEqual(marketIdWithPrefix, null)))
         {
@@ -2119,7 +2119,7 @@ public partial class gate : ccxt.gate
         });
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2216,9 +2216,9 @@ public partial class gate : ccxt.gate
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public virtual void handleBalanceSubscription(WebSocketClient client, object message, object subscription = null)
@@ -2451,7 +2451,7 @@ public partial class gate : ccxt.gate
             object data = this.safeDict(message, "data");
             // use safeValue as result may be Array or an Object
             object result = this.safeValue(data, "result");
-            object ack = this.safeBool(message, "ack");
+            bool? ack = this.safeBool(message, "ack");
             if (isTrue(!isEqual(ack, true)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, requestId});

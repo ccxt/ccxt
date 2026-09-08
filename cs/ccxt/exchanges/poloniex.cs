@@ -2035,7 +2035,7 @@ public partial class poloniex : Exchange
         }
         string? clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         string? marginMode = this.safeStringLower(order, "mgnMode");
-        object reduceOnly = this.safeBool(order, "reduceOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
         Int64? leverage = this.safeInteger(order, "lever");
         bool hedged = !isEqual(this.safeString(order, "posSide"), "BOTH");
         return this.safeOrder(new Dictionary<string, object>() {

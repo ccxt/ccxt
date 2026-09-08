@@ -1005,8 +1005,8 @@ public partial class polymarket : PredictionExchange
             string? conditionId = this.safeString(market, "conditionId");
             string? marketId = this.safeString(market, "id");
             string? marketSlug = this.safeString(market, "slug", conditionId);
-            object active = this.safeBool(market, "active", false);
-            object closed = this.safeBool(market, "closed", false);
+            bool? active = this.safeBool(market, "active", false);
+            bool? closed = this.safeBool(market, "closed", false);
             // resolution: a closed/uma-resolved market settles each outcome price to 0 or 1
             bool marketResolved = isTrue((isEqual(closed, true))) || isTrue((isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
             object resolvedOutcome = null;
@@ -1015,7 +1015,7 @@ public partial class polymarket : PredictionExchange
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             object orderMinSize = this.safeNumber(market, "orderMinSize", 1);
             object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
-            object negRisk = this.safeBool(market, "negRisk", false);
+            bool? negRisk = this.safeBool(market, "negRisk", false);
             string? endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
             // Gamma API returns these arrays as JSON-encoded strings
             object outcomeLabels = new List<object>() {};
@@ -2536,9 +2536,9 @@ public partial class polymarket : PredictionExchange
         // outcome object (set in parseMarket) and can be overridden via params to keep requests deterministic
         object outcomePrecision = this.safeDict(outcomeObj, "precision", new Dictionary<string, object>() {});
         string? tickSize = this.safeString(parameters, "tickSize", this.numberToString(this.safeNumber(outcomePrecision, "price", 0.01)));
-        object negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
+        bool? negRisk = this.safeBool(parameters, "negRisk", this.safeBool(outcomeObj, "negRisk", false));
         // maker-only: the CLOB rejects the order if it would immediately take
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
         Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
@@ -2568,7 +2568,7 @@ public partial class polymarket : PredictionExchange
             object builderHex = this.remove0xPrefix(builderRaw);
             if (isTrue(isLessThanOrEqual(getArrayLength(builderHex), 40)))
             {
-                object builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
+                bool? builderFeeEnabled = this.safeBool(this.options, "builderFee", true);
                 object feeRate = 0;
                 if (isTrue(isEqual(builderFeeEnabled, true)))
                 {
@@ -3180,8 +3180,8 @@ public partial class polymarket : PredictionExchange
         string? createdAt = this.safeString2(rawEvent, "createdAt", "created_date_iso");
         string? endDate = this.safeString2(rawEvent, "endDate", "end_date_iso");
         string? updatedAt = this.safeString2(rawEvent, "updatedAt", "last_updated_date_iso");
-        object rawActive = this.safeBool(rawEvent, "active");
-        object closed = this.safeBool(rawEvent, "closed", false);
+        bool? rawActive = this.safeBool(rawEvent, "active");
+        bool? closed = this.safeBool(rawEvent, "closed", false);
         bool? active = null;
         if (isTrue(!isEqual(rawActive, null)))
         {

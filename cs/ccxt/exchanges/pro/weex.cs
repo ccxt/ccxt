@@ -94,7 +94,7 @@ public partial class weex : ccxt.weex
         subscription ??= new Dictionary<string, object>();
         object id = this.requestId();
         string method = "SUBSCRIBE";
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
             method = "UNSUBSCRIBE";
@@ -121,7 +121,7 @@ public partial class weex : ccxt.weex
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
             method = "UNSUBSCRIBE";
@@ -1774,8 +1774,8 @@ public partial class weex : ccxt.weex
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
@@ -1791,7 +1791,7 @@ public partial class weex : ccxt.weex
             return;
         }
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -2140,10 +2140,10 @@ public partial class weex : ccxt.weex
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
-            object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+            bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
             object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
             object subHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
             for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
@@ -2166,7 +2166,7 @@ public partial class weex : ccxt.weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        object result = this.safeBool(message, "result", true);
+        bool? result = this.safeBool(message, "result", true);
         if (isTrue(!isEqual(result, true)))
         {
             string? msg = this.safeString(message, "msg", "");

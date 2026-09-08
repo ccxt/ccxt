@@ -827,7 +827,7 @@ public partial class cex : ccxt.cex
             order = this.parseWsOrderUpdate(data, market);
         }
         ((IDictionary<string,object>)order)["remaining"] = remains;
-        object canceled = this.safeBool(data, "cancel", false);
+        bool? canceled = this.safeBool(data, "cancel", false);
         if (isTrue(isEqual(canceled, true)))
         {
             ((IDictionary<string,object>)order)["status"] = "canceled";
@@ -934,7 +934,7 @@ public partial class cex : ccxt.cex
         {
             timestamp = this.parse8601(time);
         }
-        object canceled = this.safeBool(order, "cancel", false);
+        bool? canceled = this.safeBool(order, "cancel", false);
         string status = "open";
         if (isTrue(isEqual(canceled, true)))
         {
@@ -1623,7 +1623,7 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         try
         {
@@ -1641,7 +1641,7 @@ public partial class cex : ccxt.cex
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
-                return true;
+                return ((bool?)((object)(true)));
             } else
             {
                 throw error;

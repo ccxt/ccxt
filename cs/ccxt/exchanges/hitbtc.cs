@@ -846,7 +846,7 @@ public partial class hitbtc : Exchange
             Int64? expiry = this.safeInteger(market, "expiry");
             bool contract = (isEqual(marketType, "futures"));
             bool spot = (isEqual(marketType, "spot"));
-            object marginTrading = this.safeBool(market, "margin_trading", false);
+            bool? marginTrading = this.safeBool(market, "margin_trading", false);
             bool margin = isTrue(spot) && isTrue(marginTrading);
             bool future = (!isEqual(expiry, null));
             bool swap = (isTrue(contract) && !isTrue(future));
@@ -3131,7 +3131,7 @@ public partial class hitbtc : Exchange
             parameters = this.omit(parameters, "network");
         }
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
+        bool? includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if (isTrue(isEqual(includeFee, true)))
         {
             ((IDictionary<string,object>)request)["include_fee"] = true;
@@ -4234,7 +4234,7 @@ public partial class hitbtc : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         object marginMode = null;
         var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];

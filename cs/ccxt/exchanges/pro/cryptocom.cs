@@ -1502,7 +1502,7 @@ public partial class cryptocom : ccxt.cryptocom
         return await this.watch(url, messageHash, message, messageHash);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1527,7 +1527,7 @@ public partial class cryptocom : ccxt.cryptocom
                 }
                 throw new ExchangeError ((string)feedback) ;
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception e)
         {
             if (isTrue(e is AuthenticationError))
@@ -1542,7 +1542,7 @@ public partial class cryptocom : ccxt.cryptocom
             {
                 ((WebSocketClient)client).reject(e, id);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

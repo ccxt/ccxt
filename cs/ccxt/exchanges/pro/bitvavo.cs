@@ -2011,7 +2011,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string messageHash = "authenticated";
-        object authenticated = this.safeBool(message, "authenticated", false);
+        bool? authenticated = this.safeBool(message, "authenticated", false);
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -2028,7 +2028,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2062,9 +2062,9 @@ public partial class bitvavo : ccxt.bitvavo
         if (!isTrue(rejected))
         {
             ((WebSocketClient)client).reject(message, messageHash);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

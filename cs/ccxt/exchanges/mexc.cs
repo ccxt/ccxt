@@ -2800,7 +2800,7 @@ public partial class mexc : Exchange
         {
             await this.loadMarkets();
         }
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
         object response = null;
@@ -2941,8 +2941,8 @@ public partial class mexc : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
             }
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object hedged = this.safeBool(parameters, "hedged", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         object sideInteger = null;
         if (isTrue(isEqual(hedged, true)))
         {
@@ -4442,7 +4442,7 @@ public partial class mexc : Exchange
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         string? marginMode = this.safeString(parameters, "marginMode");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, new List<object>() {"margin", "marginMode"});
         object response = null;
         if (isTrue(isTrue(isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(isMargin, true)))) || isTrue((isEqual(marketType, "margin")))))
@@ -6258,7 +6258,7 @@ public partial class mexc : Exchange
         var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
-        object intern = this.safeBool(parameters, "internal", false);
+        bool? intern = this.safeBool(parameters, "internal", false);
         if (isTrue(isEqual(intern, true)))
         {
             parameters = this.omit(parameters, "internal");
@@ -6665,7 +6665,7 @@ public partial class mexc : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         object marginMode = null;
         var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -6939,7 +6939,7 @@ public partial class mexc : Exchange
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        object success = this.safeBool(response, "success", false); // v1
+        bool? success = this.safeBool(response, "success", false); // v1
         if (isTrue(isEqual(success, true)))
         {
             return null;

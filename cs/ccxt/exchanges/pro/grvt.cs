@@ -1052,7 +1052,7 @@ public partial class grvt : ccxt.grvt
         return this.parseOrder(order, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object response)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object response)
     {
         //
         //    {
@@ -1077,6 +1077,6 @@ public partial class grvt : ccxt.grvt
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 }

@@ -1039,7 +1039,7 @@ public partial class foxbit : Exchange
             throw new InvalidOrder ((string)add(add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object triggerPrice = this.safeNumber(parameters, "triggerPrice");
         if (isTrue(isEqual(side, null)))
         {
@@ -1130,7 +1130,7 @@ public partial class foxbit : Exchange
                 throw new InvalidOrder ((string)add(add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             string? timeInForce = this.safeStringUpper(orderParams, "timeInForce");
-            object postOnly = this.safeBool(orderParams, "postOnly", false);
+            bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             object triggerPrice = this.safeNumber(orderParams, "triggerPrice");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "market_symbol", getValue(market, "id") },

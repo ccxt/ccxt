@@ -32,7 +32,7 @@
 //   - a local/parameter in the same method literally named like a C# type token
 //
 // Helpers whose C# signature is `object` (safeDict, safeList, safeValue, safeNumber,
-// safeBool, safeCurrencyCode, safeSymbol, market, currency, getValue, add, every parse*,
+// safeCurrencyCode, safeSymbol, market, currency, getValue, add, every parse*,
 // anything awaited, ...) stay `object` on purpose: their box holds a value this module
 // cannot name without retyping the base.
 //
@@ -69,6 +69,11 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeFloat': 'double?',
     'safeFloat2': 'double?',
     'safeFloatN': 'double?',
+    // Exchange.BaseMethods.cs — generated `bool?` (the printer honours a `: boolean | undefined`
+    // return annotation; the nullable spelling is what keeps a missing key null, not false)
+    'safeBool': 'bool?',
+    'safeBool2': 'bool?',
+    'safeBoolN': 'bool?',
     // Exchange.Time.cs (iso8601/ymd* are declared `string` but return null for a null input)
     'parse8601': 'Int64?',
     'iso8601': 'string?',

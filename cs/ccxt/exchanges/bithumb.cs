@@ -2145,7 +2145,7 @@ public partial class bithumb : Exchange
         {
             market = this.market(symbol);
         }
-        object twap = this.safeBool(parameters, "twap", false);
+        bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
@@ -2564,7 +2564,7 @@ public partial class bithumb : Exchange
         object response = null;
         if (isTrue(isEqual(generation, 2)))
         {
-            object twap = this.safeBool(parameters, "twap", false);
+            bool? twap = this.safeBool(parameters, "twap", false);
             if (isTrue(twap))
             {
                 ((IDictionary<string,object>)parameters)["state"] = "progress";
@@ -2630,7 +2630,7 @@ public partial class bithumb : Exchange
             throw new BadRequest ((string)add(this.id, " fetchOrders is only supported for the generation 2 API")) ;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object twap = this.safeBool(parameters, "twap", false);
+        bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         if (!isTrue(twap))
         {
@@ -2791,7 +2791,7 @@ public partial class bithumb : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object twap = this.safeBool(parameters, "twap", false);
+        bool? twap = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         if (isTrue(twap))
         {

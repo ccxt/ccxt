@@ -1375,8 +1375,8 @@ public partial class hyperliquid : PredictionExchange
         bool isMarket = (isEqual(((string)type).ToUpper(), "MARKET"));
         Int64? assetId = this.safeInteger(outcomeInfo, "assetId");
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
         string? slippage = this.safeString(parameters, "slippage", defaultSlippage);
         string defaultTif = ((bool) isTrue(isMarket)) ? "Ioc" : "Gtc";
@@ -2379,7 +2379,7 @@ public partial class hyperliquid : PredictionExchange
     {
         this.checkRequiredCredentials();
         object hash = this.actionHash(action, vaultAddress, nonce);
-        object isTestnet = this.safeBool(this.options, "sandboxMode", false);
+        bool? isTestnet = this.safeBool(this.options, "sandboxMode", false);
         object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         string? zeroAddress = this.safeString(this.options, "zeroAddress");
         Dictionary<string, object> domain = new Dictionary<string, object>() {
@@ -2448,7 +2448,7 @@ public partial class hyperliquid : PredictionExchange
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
@@ -2479,7 +2479,7 @@ public partial class hyperliquid : PredictionExchange
         // resolve the outcome's market and precision. loading them also keeps this method genuinely
         // async for the PHP and typed transpilers, which mishandle an async body that never suspends
         await this.loadMarkets();
-        object buildFee = this.safeBool(this.options, "builderFee", false);
+        bool? buildFee = this.safeBool(this.options, "builderFee", false);
         if (isTrue(!isEqual(buildFee, true)))
         {
             return null;
@@ -2544,7 +2544,7 @@ public partial class hyperliquid : PredictionExchange
         method ??= "POST";
         parameters ??= new Dictionary<string, object>();
         object apiGroup = ((bool) isTrue(((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? getValue(api, 0) : api;
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseUrl = null;
         if (isTrue(isEqual(sandboxMode, true)))
         {

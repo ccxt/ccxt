@@ -643,7 +643,7 @@ public partial class paradex : ccxt.paradex
         };
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -662,7 +662,7 @@ public partial class paradex : ccxt.paradex
         object error = this.safeDict(message, "error");
         if (isTrue(isEqual(error, null)))
         {
-            return true;
+            return ((bool?)((object)(true)));
         } else
         {
             string? errorCode = this.safeString(error, "code");
@@ -676,7 +676,7 @@ public partial class paradex : ccxt.paradex
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
     }
 

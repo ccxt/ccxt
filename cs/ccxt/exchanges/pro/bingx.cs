@@ -2070,7 +2070,7 @@ public partial class bingx : ccxt.bingx
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-        object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        bool? isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);

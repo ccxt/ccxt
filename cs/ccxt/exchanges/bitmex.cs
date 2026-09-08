@@ -655,8 +655,8 @@ public partial class bitmex : Exchange
             object network = this.networkIdToCode(networkId, code);
             string? withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-            object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
-            object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
+            bool? isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
+            bool? isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
             bool active = (isTrue((isEqual(isDepositEnabled, true))) && isTrue((isEqual(isWithdrawEnabled, true))));
             if (isTrue(isEqual(isDepositEnabled, true)))
             {
@@ -2457,7 +2457,7 @@ public partial class bitmex : Exchange
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() does not support reduceOnly for "), getValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "postOnly"});
         string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
         object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
@@ -3185,7 +3185,7 @@ public partial class bitmex : Exchange
             object item = getValue(rawItems, i);
             string? marketId = this.safeString(item, "symbol");
             object market = this.safeMarket(marketId);
-            object swap = this.safeBool(market, "swap", false);
+            bool? swap = this.safeBool(market, "swap", false);
             if (isTrue(isEqual(swap, true)))
             {
                 ((IList<object>)filteredResponse).Add(item);

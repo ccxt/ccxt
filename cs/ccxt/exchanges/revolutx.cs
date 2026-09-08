@@ -1420,7 +1420,7 @@ public partial class revolutx : Exchange
         object amount = this.safeNumber(trade, "q");
         string? side = this.safeStringLower(trade, "s");
         Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
-        object isMaker = this.safeBool(trade, "im", false);
+        bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
         object cost = null;
         if (isTrue(isTrue(!isEqual(price, null)) && isTrue(!isEqual(amount, null))))

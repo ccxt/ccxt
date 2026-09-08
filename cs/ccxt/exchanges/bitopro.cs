@@ -403,8 +403,8 @@ public partial class bitopro : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         string? currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
-        object deposit = this.safeBool(rawCurrency, "deposit");
-        object withdraw = this.safeBool(rawCurrency, "withdraw");
+        bool? deposit = this.safeBool(rawCurrency, "deposit");
+        bool? withdraw = this.safeBool(rawCurrency, "withdraw");
         bool isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -741,7 +741,7 @@ public partial class bitopro : Exchange
         string? side = this.safeStringLower(trade, "action");
         if (isTrue(isEqual(side, null)))
         {
-            object isBuyer = this.safeBool(trade, "isBuyer");
+            bool? isBuyer = this.safeBool(trade, "isBuyer");
             if (isTrue(isEqual(isBuyer, true)))
             {
                 side = "buy";
@@ -766,7 +766,7 @@ public partial class bitopro : Exchange
                 { "rate", null },
             };
         }
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {

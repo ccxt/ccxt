@@ -74,9 +74,9 @@ public partial class PredictionExchange : BaseExchange
         });
     }
 
-    public virtual object isPrediction()
+    public virtual bool isPrediction()
     {
-        return this.safeBool(this.has, "prediction", false);
+        return ((bool)((object)(this.safeBool(this.has, "prediction", false)))!);
     }
 
     public virtual object parseSearchQueries(object parameters = null)
@@ -217,7 +217,7 @@ public partial class PredictionExchange : BaseExchange
         for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object isActive = this.safeBool(eventVar, "active");
+            bool? isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isTrue(isTrue((isEqual(isActive, null))) || isTrue((isEqual(isActive, wantActive)))))
             {
@@ -502,24 +502,24 @@ public partial class PredictionExchange : BaseExchange
         throw new BadSymbol ((string)add(add(add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
-    public virtual object hasOutcome(object outcomeIdOrSymbol)
+    public virtual bool hasOutcome(object outcomeIdOrSymbol)
     {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
         if (isTrue(isEqual(outcomeIdOrSymbol, null)))
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
         if (isTrue(isTrue((!isEqual(this.outcomes, null))) && isTrue((inOp(this.outcomes, outcomeIdOrSymbol)))))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
         if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeIdOrSymbol)))))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
-        return false;
+        return ((bool)((object)(false))!);
     }
 
     public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
@@ -848,7 +848,7 @@ public partial class PredictionExchange : BaseExchange
             }
             int missingLength = getArrayLength(missing);
             bool wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
-            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (isTrue(isTrue(isTrue(isTrue((isGreaterThan(missingLength, 0))) && isTrue((isEqual(loadAll, true)))) && !isTrue(wasWarm)) && !isTrue(reload)))
             {
                 await this.loadOutcomes();
@@ -927,7 +927,7 @@ public partial class PredictionExchange : BaseExchange
                     return this.safeOutcome(outcomeSymbol);
                 }
             }
-            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (isTrue(isTrue((isEqual(loadAll, true))) && !isTrue(wasWarm)))
             {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
@@ -1583,7 +1583,7 @@ public partial class PredictionExchange : BaseExchange
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         string? orderType = this.safeString(outcomeOrder, "type");
         string? timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        object postOnly = this.safeBool(outcomeOrder, "postOnly");
+        bool? postOnly = this.safeBool(outcomeOrder, "postOnly");
         if (isTrue(isEqual(timeInForce, null)))
         {
             if (isTrue(isEqual(orderType, "market")))

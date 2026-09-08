@@ -1955,7 +1955,7 @@ public partial class okx : ccxt.okx
         var typeparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "type", "ANY");
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isEqual(this.markets, null)))
         {
@@ -2754,7 +2754,7 @@ public partial class okx : ccxt.okx
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     { event: 'error', msg: "Illegal request: {"op":"subscribe","args":["spot/ticker:BTC-USDT"]}", code: "60012" }
@@ -2814,12 +2814,12 @@ public partial class okx : ccxt.okx
             if (isTrue(!isEqual(id, null)))
             {
                 ((WebSocketClient)client).reject(e, id);
-                return false;
+                return ((bool?)((object)(false)));
             }
             ((WebSocketClient)client).reject(e);
-            return false;
+            return ((bool?)((object)(false)));
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

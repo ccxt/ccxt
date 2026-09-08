@@ -767,7 +767,7 @@ public partial class derive : ccxt.derive
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {
@@ -777,7 +777,7 @@ public partial class derive : ccxt.derive
         //
         if (!isTrue((inOp(message, "error"))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         object errorMessage = this.safeDict(message, "error");
         string? errorCode = this.safeString(errorMessage, "code");
@@ -789,7 +789,7 @@ public partial class derive : ccxt.derive
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             if (isTrue(error is AuthenticationError))
@@ -804,7 +804,7 @@ public partial class derive : ccxt.derive
             {
                 ((WebSocketClient)client).reject(error);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

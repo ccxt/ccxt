@@ -1450,7 +1450,7 @@ public partial class bittrade : Exchange
         object depositEnabled = this.safeValue(currency, "deposit-enabled");
         object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
         object countryDisabled = this.safeValue(currency, "country-disabled");
-        object visible = this.safeBool(currency, "visible", false);
+        bool? visible = this.safeBool(currency, "visible", false);
         string? state = this.safeString(currency, "state");
         bool active = isTrue(isTrue(isTrue(isTrue((isEqual(visible, true))) && isTrue((isEqual(depositEnabled, true)))) && isTrue((isEqual(withdrawEnabled, true)))) && isTrue((isEqual(state, "online")))) && isTrue((!isEqual(countryDisabled, true)));
         string? name = this.safeString(currency, "display-name");

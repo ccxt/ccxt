@@ -1199,7 +1199,7 @@ public partial class bingx : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isEqual(isSandbox, true)))
         {
             return new Dictionary<string, object>() {};
@@ -1539,7 +1539,7 @@ public partial class bingx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> requests = new List<object> {this.FetchSwapMarkets(parameters)};
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isEqual(isSandbox, true)))
         {
             ((IList<object>)requests).Add(this.FetchInverseSwapMarkets(parameters));
@@ -1933,9 +1933,9 @@ public partial class bingx : Exchange
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         string? currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         object currencyCode = this.safeCurrencyCode(currencyId);
-        object m = this.safeBool(trade, "m");
+        bool? m = this.safeBool(trade, "m");
         string? marketId = this.safeString2(trade, "s", "symbol");
-        object isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
+        bool? isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
         string? takeOrMaker = null;
         bool isMakerSide = isTrue((isEqual(isBuyerMaker, true))) || isTrue((isEqual(m, true)));
         if (isTrue(isTrue((!isEqual(isBuyerMaker, null))) || isTrue((!isEqual(m, null)))))
@@ -1951,12 +1951,12 @@ public partial class bingx : Exchange
                 takeOrMaker = "taker";
             }
         }
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takeOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -2532,7 +2532,7 @@ public partial class bingx : Exchange
         string? id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
-        object inverse = this.safeBool(market, "inverse", false);
+        bool? inverse = this.safeBool(market, "inverse", false);
         bool isInverse = (isEqual(inverse, true));
         object openInterestAmount = ((bool) isTrue(isInverse)) ? openInterest : null;
         object openInterestValue = ((bool) isTrue(isInverse)) ? null : openInterest;
@@ -3360,7 +3360,7 @@ public partial class bingx : Exchange
         //
         object marketId = ((string)this.safeString(position, "symbol", ""));
         marketId = ((string)marketId).Replace((string)"/", (string)"-"); // standard return different format
-        object isolated = this.safeBool(position, "isolated");
+        bool? isolated = this.safeBool(position, "isolated");
         string? marginMode = null;
         if (isTrue(!isEqual(isolated, null)))
         {
@@ -3617,7 +3617,7 @@ public partial class bingx : Exchange
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             if (isTrue(isTriggerOrder))
             {
                 ((IDictionary<string,object>)request)["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
@@ -3708,7 +3708,7 @@ public partial class bingx : Exchange
                 }
             }
             string? positionSide = null;
-            object hedged = this.safeBool(parameters, "hedged", false);
+            bool? hedged = this.safeBool(parameters, "hedged", false);
             if (isTrue(isEqual(hedged, true)))
             {
                 parameters = this.omit(parameters, "reduceOnly");
@@ -3724,7 +3724,7 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            object closePosition = this.safeBool(parameters, "closePosition", false);
+            bool? closePosition = this.safeBool(parameters, "closePosition", false);
             if (isTrue(!isEqual(closePosition, true)))
             {
                 object amountReq = amount;
@@ -3781,7 +3781,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
@@ -3961,7 +3961,7 @@ public partial class bingx : Exchange
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
-            object sync = this.safeBool(parameters, "sync", false);
+            bool? sync = this.safeBool(parameters, "sync", false);
             if (isTrue(isEqual(sync, true)))
             {
                 ((IDictionary<string,object>)request)["sync"] = true;
@@ -4487,7 +4487,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        bool? isTwapOrder = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         object response = null;
         object market = null;
@@ -4844,7 +4844,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        bool? isTwapOrder = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         object response = null;
         object market = null;
@@ -5040,7 +5040,7 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
         } else
         {
-            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            bool? isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (isTrue(isEqual(isTwapOrder, true)))
             {
@@ -5308,7 +5308,7 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters));
         } else
         {
-            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            bool? isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (isTrue(isEqual(isTwapOrder, true)))
             {
@@ -7095,7 +7095,7 @@ public partial class bingx : Exchange
         object type = getValue(section, 0);
         object version = getValue(section, 1);
         object access = getValue(section, 2);
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
         if (isTrue(isTrue((isEqual(isSandbox, true))) && isTrue(isEqual(url, null))))
         {

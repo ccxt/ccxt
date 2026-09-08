@@ -2186,8 +2186,8 @@ public partial class bybit : Exchange
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         parameters ??= new Dictionary<string, object>();
-        object enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
-        object enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
+        bool? enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
+        bool? enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
         if (isTrue(isTrue(isEqual(enableUnifiedMargin, null)) || isTrue(isEqual(enableUnifiedAccount, null))))
         {
             if (isTrue(isEqual(getValue(this.options, "enableDemoTrading"), true)))
@@ -3588,7 +3588,7 @@ public partial class bybit : Exchange
         //         "2.4343353100000003"
         //     ]
         //
-        object isInverse = this.safeBool(market, "inverse");
+        bool? isInverse = this.safeBool(market, "inverse");
         int volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
@@ -4185,7 +4185,7 @@ public partial class bybit : Exchange
                 side = ((bool) isTrue((!isEqual(isBuyer, 0)))) ? "buy" : "sell";
             }
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -5003,7 +5003,7 @@ public partial class bybit : Exchange
         string? rawTimeInForce = this.safeString(order, "timeInForce");
         object timeInForce = this.parseTimeInForce(rawTimeInForce);
         object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        object reduceOnly = this.safeBool(order, "reduceOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
         object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         string? triggerDirection = this.safeString(order, "triggerDirection");
@@ -5232,8 +5232,8 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object hedged = this.safeBool(parameters, "hedged", false);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? hedged = this.safeBool(parameters, "hedged", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
@@ -5916,7 +5916,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             // only works for spot market
-            object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+            bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopOrder" : "Order";
         }
@@ -6270,7 +6270,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["settleCoin"] = this.safeString(parameters, "settleCoin", defaultSettle);
             }
         }
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6347,7 +6347,7 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -6523,7 +6523,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6628,7 +6628,7 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -6670,7 +6670,7 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
@@ -6726,7 +6726,7 @@ public partial class bybit : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6934,7 +6934,7 @@ public partial class bybit : Exchange
             }
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -8288,7 +8288,7 @@ public partial class bybit : Exchange
             if (isTrue(isEqual(getValue(market, "settle"), "USDC")))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
+                bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
                 object price = ((bool) isTrue(useMarkPrice)) ? markPrice : entryPrice;
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
@@ -8801,7 +8801,7 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate");
+        bool? paginate = this.safeBool(parameters, "paginate");
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.omit(parameters, "paginate");
@@ -10948,8 +10948,8 @@ public partial class bybit : Exchange
         {
             object entry = getValue(coins, i);
             string? id = this.safeString(entry, "coin");
-            object disableFrom = this.safeBool(entry, "disableFrom");
-            object disableTo = this.safeBool(entry, "disableTo");
+            bool? disableFrom = this.safeBool(entry, "disableFrom");
+            bool? disableTo = this.safeBool(entry, "disableTo");
             bool inactive = isTrue((isEqual(disableFrom, true))) || isTrue((isEqual(disableTo, true)));
             object code = this.safeCurrencyCode(id);
             if (isTrue(!isEqual(code, null)))

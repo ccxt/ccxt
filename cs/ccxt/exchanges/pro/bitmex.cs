@@ -755,7 +755,7 @@ public partial class bitmex : ccxt.bitmex
 
     public virtual void handleAuthenticationMessage(WebSocketClient client, object message)
     {
-        object authenticated = this.safeBool(message, "success", false);
+        bool? authenticated = this.safeBool(message, "success", false);
         string messageHash = "authenticated";
         if (isTrue(isEqual(authenticated, true)))
         {
@@ -1811,7 +1811,7 @@ public partial class bitmex : ccxt.bitmex
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // generic error format
@@ -1849,10 +1849,10 @@ public partial class bitmex : ccxt.bitmex
                     exception = this.newException(getValue(broad, broadKey), error);
                 }
                 ((WebSocketClient)client).reject(exception, messageHash);
-                return false;
+                return ((bool?)((object)(false)));
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

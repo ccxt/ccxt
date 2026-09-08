@@ -4712,11 +4712,11 @@ public partial class htx : Exchange
             }
         } else
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
-            object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing");
             bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             string? clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
@@ -5028,11 +5028,11 @@ public partial class htx : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object response = null;
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        object stopLoss = this.safeBool(parameters, "stopLoss");
-        object takeProfit = this.safeBool(parameters, "takeProfit");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? stopLoss = this.safeBool(parameters, "stopLoss");
+        bool? takeProfit = this.safeBool(parameters, "takeProfit");
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         if (isTrue(!isEqual(since, null)))
@@ -5140,11 +5140,11 @@ public partial class htx : Exchange
         object market = this.market(symbol);
         if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             if (isTrue(isEqual(isAlgo, true)))
             {
@@ -5266,11 +5266,11 @@ public partial class htx : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
-                object trigger = this.safeBool2(parameters, "stop", "trigger");
+                bool? trigger = this.safeBool2(parameters, "stop", "trigger");
                 object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                object stopLoss = this.safeBool(parameters, "stopLoss");
-                object takeProfit = this.safeBool(parameters, "takeProfit");
-                object trailing = this.safeBool(parameters, "trailing", false);
+                bool? stopLoss = this.safeBool(parameters, "stopLoss");
+                bool? takeProfit = this.safeBool(parameters, "takeProfit");
+                bool? trailing = this.safeBool(parameters, "trailing", false);
                 bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
                 if (isTrue(isEqual(isAlgo, true)))
                 {
@@ -5428,11 +5428,11 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["page_size"] = limit;
                 }
             }
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
-            object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             if (isTrue(isLinear))
             {
@@ -6069,7 +6069,7 @@ public partial class htx : Exchange
         }
         string? average = this.safeString(order, "trade_avg_price");
         object trades = this.safeValue(order, "trades");
-        object reduceOnly = null;
+        bool? reduceOnly = null;
         if (isTrue(isEqual(isLinearOrder, true)))
         {
             reduceOnly = this.safeBool(order, "reduce_only");
@@ -6368,8 +6368,8 @@ public partial class htx : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isLinear = (isEqual(subType, "linear"));
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        object hedged = this.safeBool(parameters, "hedged", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (isTrue(isLinear))
         {
@@ -6996,9 +6996,9 @@ public partial class htx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isLinear = (isEqual(subType, "linear"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        object stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -7197,7 +7197,7 @@ public partial class htx : Exchange
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
         object response = null;
@@ -7537,9 +7537,9 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId");
             }
             ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {

@@ -1396,7 +1396,7 @@ public partial class upbit : Exchange
         object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;

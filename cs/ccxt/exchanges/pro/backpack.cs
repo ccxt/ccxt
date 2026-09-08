@@ -852,7 +852,7 @@ public partial class backpack : ccxt.backpack
         string? id = this.safeString(trade, "t");
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object isBuyerMaker = this.safeBool(trade, "m");
+        bool? isBuyerMaker = this.safeBool(trade, "m");
         string? side = null;
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
@@ -1552,7 +1552,7 @@ public partial class backpack : ccxt.backpack
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1572,11 +1572,11 @@ public partial class backpack : ccxt.backpack
                 string? msg = this.safeString(error, "message");
                 throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
             }
-            return true;
+            return ((bool?)((object)(true)));
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e);
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 }

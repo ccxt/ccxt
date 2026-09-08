@@ -1689,7 +1689,7 @@ public partial class woo : Exchange
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only"});
         string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(this.markets, null)))
@@ -1935,7 +1935,7 @@ public partial class woo : Exchange
                 ((IDictionary<string,object>)request)["callbackRate"] = convertedTrailingPercent;
             }
         }
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop"});
         bool isConditional = isTrue(isTrue(isTrue((isEqual(isTrigger, true))) || isTrue(isTrailing)) || isTrue((!isEqual(triggerPrice, null)))) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         object response = null;
@@ -1996,7 +1996,7 @@ public partial class woo : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isTrue((!isEqual(isTrigger, true))) && isTrue((isEqual(symbol, null)))))
         {
@@ -2078,7 +2078,7 @@ public partial class woo : Exchange
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -2164,7 +2164,7 @@ public partial class woo : Exchange
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
@@ -2227,7 +2227,7 @@ public partial class woo : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -3377,7 +3377,7 @@ public partial class woo : Exchange
         ((IDictionary<string,object>)data)["status"] = "ok";
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transfer)["amount"] = amount;
@@ -3500,7 +3500,7 @@ public partial class woo : Exchange
         //
         object code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
-        object success = this.safeBool(transfer, "success");
+        bool? success = this.safeBool(transfer, "success");
         string? status = null;
         if (isTrue(!isEqual(success, null)))
         {
@@ -3680,7 +3680,7 @@ public partial class woo : Exchange
             this.checkRequiredCredentials();
             if (isTrue(isTrue(isEqual(method, "POST")) && isTrue((isTrue(isEqual(path, "trade/algoOrder")) || isTrue(isEqual(path, "trade/order"))))))
             {
-                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (isTrue(!isEqual(isSandboxMode, true)))
                 {
                     string applicationId = "bc830de7-50f3-460b-9ee0-f430f83f9dad";
@@ -3756,7 +3756,7 @@ public partial class woo : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        object success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success");
         string? errorCode = this.safeString(response, "code");
         if (isTrue(!isEqual(success, true)))
         {

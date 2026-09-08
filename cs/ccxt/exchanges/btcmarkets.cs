@@ -1333,7 +1333,7 @@ public partial class btcmarkets : Exchange
         string? id = this.safeString(order, "orderId");
         string? clientOrderId = this.safeString(order, "clientOrderId");
         string? timeInForce = this.safeString(order, "timeInForce");
-        object postOnly = this.safeBool(order, "postOnly");
+        bool? postOnly = this.safeBool(order, "postOnly");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

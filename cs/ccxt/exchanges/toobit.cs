@@ -1142,7 +1142,7 @@ public partial class toobit : Exchange
         object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         object symbol = add(add(bs, "/"), quote);
         bool isContract = (inOp(market, "contractMultiplier"));
-        object inverse = this.safeBool2(market, "isInverse", "inverse");
+        bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isTrue(isContract))
         {
             symbol = add(symbol, add(":", settle));
@@ -1343,12 +1343,12 @@ public partial class toobit : Exchange
         Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = null;
-        object isBuyerMaker = this.safeBool(trade, "ibm");
+        bool? isBuyerMaker = this.safeBool(trade, "ibm");
         if (isTrue(isEqual(isBuyerMaker, null)))
         {
-            object isBuyerTaker = this.safeBool(trade, "m");
+            bool? isBuyerTaker = this.safeBool(trade, "m");
             if (isTrue(!isEqual(isBuyerTaker, null)))
             {
                 isBuyerMaker = !isTrue(isBuyerTaker);
@@ -1383,7 +1383,7 @@ public partial class toobit : Exchange
                 { "cost", feeAmount },
             };
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {

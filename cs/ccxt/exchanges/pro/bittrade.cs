@@ -667,7 +667,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -684,7 +684,7 @@ public partial class bittrade : ccxt.bittrade
             string? id = this.safeString(message, "id");
             if (isTrue(isEqual(id, null)))
             {
-                return false;
+                return ((bool?)((object)(false)));
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = this.safeValue(subscriptionsById, id);
@@ -705,9 +705,9 @@ public partial class bittrade : ccxt.bittrade
                     }
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

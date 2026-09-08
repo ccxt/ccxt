@@ -807,7 +807,7 @@ public partial class deepcoin : Exchange
             ((IDictionary<string,object>)request)["after"] = until;
             parameters = this.omit(parameters, "until");
         }
-        object calculateUntil = this.safeBool(parameters, "calculateUntil", false);
+        bool? calculateUntil = this.safeBool(parameters, "calculateUntil", false);
         if (isTrue(isEqual(calculateUntil, true)))
         {
             parameters = this.omit(parameters, "calculateUntil");
@@ -1646,7 +1646,7 @@ public partial class deepcoin : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transfer)["fromAccount"] = fromAccount;
@@ -1895,7 +1895,7 @@ public partial class deepcoin : Exchange
             parameters = ((IList<object>)mrgPositionparametersVariable)[1];
             ((IDictionary<string,object>)request)["mrgPosition"] = mrgPosition;
             string? posSide = null;
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             if (isTrue(isEqual(reduceOnly, true)))
             {
                 if (isTrue(isEqual(side, "buy")))
@@ -1982,7 +1982,7 @@ public partial class deepcoin : Exchange
         {
             isCrossMargin = 0;
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         parameters = this.omit(parameters, "reduceOnly");
         ((IDictionary<string,object>)request)["isCrossMargin"] = isCrossMargin;
         ((IDictionary<string,object>)request)["tdMode"] = marginMode;
@@ -2237,7 +2237,7 @@ public partial class deepcoin : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchCanceledAndClosedOrders", symbol, since, limit, parameters));
         }
-        object trigger = this.safeBool(parameters, "trigger", false);
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         object methodName = "fetchCanceledAndClosedOrders";
         var methodNameparametersVariable = this.handleParamString(parameters, "methodName", methodName);
         methodName = ((IList<object>)methodNameparametersVariable)[0];
@@ -2438,7 +2438,7 @@ public partial class deepcoin : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object trigger = this.safeBool(parameters, "trigger", false);
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         object response = null;
         if (isTrue(isEqual(trigger, true)))
         {
@@ -2559,7 +2559,7 @@ public partial class deepcoin : Exchange
             { "ordId", id },
         };
         object response = null;
-        object trigger = this.safeBool(parameters, "trigger", false);
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         if (isTrue(isEqual(trigger, true)))
         {
             parameters = this.omit(parameters, "trigger");

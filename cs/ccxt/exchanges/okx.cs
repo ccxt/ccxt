@@ -2893,7 +2893,7 @@ public partial class okx : Exchange
         // therefore we check the keys here
         // and fallback to generating the currencies from the markets
         parameters ??= new Dictionary<string, object>();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isTrue(this.checkRequiredCredentials(false)) || isTrue((isEqual(isSandboxMode, true)))))
         {
             return new Dictionary<string, object>() {};
@@ -3135,7 +3135,7 @@ public partial class okx : Exchange
         object symbol = getValue(market, "symbol");
         string? last = this.safeString(ticker, "last");
         string? open = this.safeString(ticker, "open24h");
-        object spot = this.safeBool(market, "spot", false);
+        bool? spot = this.safeBool(market, "spot", false);
         string? quoteVolume = ((bool) isTrue((isEqual(spot, true)))) ? this.safeString(ticker, "volCcy24h") : null;
         string? baseVolume = this.safeString(ticker, "vol24h");
         string? high = this.safeString(ticker, "high24h");
@@ -4868,7 +4868,7 @@ public partial class okx : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         object trigger = this.safeValue2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = isTrue((!isEqual(trigger, null))) && isTrue((!isEqual(trigger, false)));
         if (isTrue(isTrue(isTrigger) || isTrue((isEqual(trailing, true)))))
         {
@@ -4950,7 +4950,7 @@ public partial class okx : Exchange
         object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
         object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
         object trigger = this.safeValue2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = isTrue((!isEqual(trigger, null))) && isTrue((!isEqual(trigger, false)));
         if (isTrue(isTrue(isTrigger) || isTrue((isEqual(trailing, true)))))
         {
@@ -5071,8 +5071,8 @@ public partial class okx : Exchange
         object options = this.safeDict(this.options, "cancelOrders", new Dictionary<string, object>() {});
         string? defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
         string? method = this.safeString(parameters, "method", defaultMethod);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isStopOrTrailing = isTrue((isEqual(trigger, true))) || isTrue((isEqual(trailing, true)));
         if (isTrue(isEqual(isStopOrTrailing, true)))
         {
@@ -5707,7 +5707,7 @@ public partial class okx : Exchange
         string? method = this.safeString(parameters, "method", defaultMethod);
         string? ordType = this.safeString(parameters, "ordType");
         object trigger = this.safeValue2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = isTrue((!isEqual(trigger, null))) && isTrue((!isEqual(trigger, false)));
         if (isTrue(isTrue(isTrue((isEqual(trailing, true))) || isTrue(isTrigger)) || isTrue((isTrue((!isEqual(ordType, null))) && isTrue((inOp(algoOrderTypes, ordType)))))))
         {
@@ -5876,7 +5876,7 @@ public partial class okx : Exchange
         string? method = this.safeString(parameters, "method", defaultMethod);
         string? ordType = this.safeString(parameters, "ordType");
         object trigger = this.safeValue2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isTrigger = isTrue((!isEqual(trigger, null))) && isTrue((!isEqual(trigger, false)));
         if (isTrue(isEqual(trailing, true)))
         {
@@ -6081,8 +6081,8 @@ public partial class okx : Exchange
         string? defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
         string? method = this.safeString(parameters, "method", defaultMethod);
         string? ordType = this.safeString(parameters, "ordType");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         if (isTrue(isTrue(isTrue((isEqual(trailing, true))) || isTrue((isEqual(trigger, true)))) || isTrue((isTrue((!isEqual(ordType, null))) && isTrue((inOp(algoOrderTypes, ordType)))))))
         {
             method = "privateGetTradeOrdersAlgoHistory";
@@ -10782,7 +10782,7 @@ public partial class okx : Exchange
         {
             await this.loadMarkets();
         }
-        object auto = this.safeBool(parameters, "auto");
+        bool? auto = this.safeBool(parameters, "auto");
         if (isTrue(isEqual(type, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;

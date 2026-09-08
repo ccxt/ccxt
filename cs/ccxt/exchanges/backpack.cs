@@ -1455,9 +1455,9 @@ public partial class backpack : Exchange
         market = this.safeMarket(marketId, market);
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
-        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -1818,7 +1818,7 @@ public partial class backpack : Exchange
         string? addressFrom = this.safeString(transaction, "fromAddress");
         string? tag = this.safeString(transaction, "platformMemo");
         object feeCost = this.safeNumber(transaction, "fee");
-        object intern = this.safeBool(transaction, "isInternal", false);
+        bool? intern = this.safeBool(transaction, "isInternal", false);
         Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2373,8 +2373,8 @@ public partial class backpack : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         string? triggerPrice = this.safeString(order, "triggerPrice");
         string? filled = this.safeString(order, "executedQuantity");
-        object reduceOnly = this.safeBool(order, "reduceOnly");
-        object postOnly = this.safeBool(order, "postOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
+        bool? postOnly = this.safeBool(order, "postOnly");
         string? stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         string? takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {

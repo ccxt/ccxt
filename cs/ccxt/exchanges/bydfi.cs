@@ -570,7 +570,7 @@ public partial class bydfi : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        object inverse = this.safeBool(market, "reverse");
+        bool? inverse = this.safeBool(market, "reverse");
         string? limitMaxQty = this.safeString(market, "limitMaxQty");
         string? marketMaxQty = this.safeString(market, "marketMaxQty");
         string? maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
@@ -790,7 +790,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 500;
@@ -1466,7 +1466,7 @@ public partial class bydfi : Exchange
         var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = ((IList<object>)hedgedparametersVariable)[0];
         parameters = ((IList<object>)hedgedparametersVariable)[1];
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(hedged))
         {
             parameters = this.omit(parameters, "reduceOnly");
@@ -1478,7 +1478,7 @@ public partial class bydfi : Exchange
                 ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "LONG" : "SHORT";
             }
         }
-        object closePosition = this.safeBool(parameters, "closePosition", false);
+        bool? closePosition = this.safeBool(parameters, "closePosition", false);
         if (isTrue(!isEqual(closePosition, true)))
         {
             parameters = this.omit(parameters, "closePosition");
@@ -1913,7 +1913,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 500;
@@ -2990,7 +2990,7 @@ public partial class bydfi : Exchange
         //
         object transfer = this.parseTransfer(response, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             Int64 timestamp = this.milliseconds();
@@ -3029,7 +3029,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 50;
@@ -3184,7 +3184,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 50;

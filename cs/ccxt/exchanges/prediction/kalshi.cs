@@ -990,7 +990,7 @@ public partial class kalshi : PredictionExchange
         //
         //     { "exchange_active": true, "trading_active": true }
         //
-        object tradingActive = this.safeBool(response, "trading_active", false);
+        bool? tradingActive = this.safeBool(response, "trading_active", false);
         return ccxt.BaseExchange.ToStatus(new Dictionary<string, object>() {             { "status", ((bool) isTrue((isEqual(tradingActive, true)))) ? "ok" : "maintenance" },             { "updated", null },             { "eta", null },             { "url", null },             { "info", response },         });
     }
 
@@ -1756,7 +1756,7 @@ public partial class kalshi : PredictionExchange
         {
             cost = multiply(price, amount);
         }
-        object isTaker = this.safeBool(fill, "is_taker", true);
+        bool? isTaker = this.safeBool(fill, "is_taker", true);
         string takerOrMaker = ((bool) isTrue((isEqual(isTaker, true)))) ? "taker" : "maker";
         object feeCost = this.safeNumber(fill, "fee_cost");
         Dictionary<string, object> fee = null;

@@ -2673,7 +2673,7 @@ public partial class kucoin : Exchange
     public virtual object handleHfAndParams(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object migrated = this.safeBool(this.options, "hf", false);
+        bool? migrated = this.safeBool(this.options, "hf", false);
         bool? loadedHf = null;
         if (isTrue(!isEqual(migrated, null)))
         {
@@ -2685,7 +2685,7 @@ public partial class kucoin : Exchange
                 loadedHf = false;
             }
         }
-        object hf = this.safeBool(parameters, "hf", loadedHf);
+        bool? hf = this.safeBool(parameters, "hf", loadedHf);
         parameters = this.omit(parameters, "hf");
         return new List<object>() {hf, parameters};
     }
@@ -4606,7 +4606,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object testOrder = this.safeBool(parameters, "test", false);
+        bool? testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
@@ -4839,7 +4839,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object testOrder = this.safeBool(parameters, "test", false);
+        bool? testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         bool hasTpOrSlOrder = isTrue((!isEqual(this.safeValue(parameters, "stopLoss"), null))) || isTrue((!isEqual(this.safeValue(parameters, "takeProfit"), null)));
         object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
@@ -5010,7 +5010,7 @@ public partial class kucoin : Exchange
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a visibleSize parameter for iceberg orders")) ;
             }
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object hedged = null;
         var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
         hedged = ((IList<object>)hedgedparametersVariable)[0];
@@ -5194,7 +5194,7 @@ public partial class kucoin : Exchange
                         }
                     }
                 }
-                object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+                bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
                 object hedged = false;
                 var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", hedged);
                 hedged = ((IList<object>)hedgedparametersVariable)[0];
@@ -5718,7 +5718,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -6037,7 +6037,7 @@ public partial class kucoin : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -6305,7 +6305,7 @@ public partial class kucoin : Exchange
         }
         string lowercaseStatus = ((string)status).ToLower();
         Int64? until = this.safeInteger(parameters, "until");
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -6426,7 +6426,7 @@ public partial class kucoin : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallDynamic("fetchOrdersByStatus", symbol, since, limit, parameters));
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, new List<object>() {"stop", "until", "trigger"});
         if (isTrue(isEqual(status, "closed")))
@@ -6847,7 +6847,7 @@ public partial class kucoin : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         object hf = null;
         var hfparametersVariable = this.handleHfAndParams(parameters);
         hf = ((IList<object>)hfparametersVariable)[0];
@@ -7269,7 +7269,7 @@ public partial class kucoin : Exchange
         // const average = Precise.stringDiv (cost, Precise.stringMul (filled, market['contractSize']));
         // bool
         object isActive = this.safeValue(order, "isActive");
-        object cancelExist = this.safeBool(order, "cancelExist", false);
+        bool? cancelExist = this.safeBool(order, "cancelExist", false);
         object status = null;
         if (isTrue(!isEqual(isActive, null)))
         {
@@ -7442,11 +7442,11 @@ public partial class kucoin : Exchange
         string? marketId = this.safeString(order, "symbol");
         Int64? timestamp = this.safeInteger(order, "createdAt");
         string? feeCurrencyId = this.safeString(order, "feeCurrency");
-        object cancelExist = this.safeBool(order, "cancelExist", false);
+        bool? cancelExist = this.safeBool(order, "cancelExist", false);
         string? responseStop = this.safeString(order, "stop");
         bool trigger = !isEqual(responseStop, null);
-        object stopTriggered = this.safeBool(order, "stopTriggered", false);
-        object isActive = this.safeBool2(order, "isActive", "active");
+        bool? stopTriggered = this.safeBool(order, "stopTriggered", false);
+        bool? isActive = this.safeBool2(order, "isActive", "active");
         string? responseStatus = this.safeString(order, "status");
         string? status = null;
         if (isTrue(!isEqual(isActive, null)))
@@ -8837,7 +8837,7 @@ public partial class kucoin : Exchange
                 updated = multiply(updated, 1000);
             }
         }
-        object intern = this.safeBool(transaction, "isInner");
+        bool? intern = this.safeBool(transaction, "isInner");
         string? tag = this.safeString(transaction, "memo");
         string? chainId = this.safeString(transaction, "chain");
         return new Dictionary<string, object>() {
@@ -9800,7 +9800,7 @@ public partial class kucoin : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transfer)["amount"] = amount;
@@ -9902,7 +9902,7 @@ public partial class kucoin : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object transfer = this.parseTransfer(data, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transfer)["amount"] = amount;
@@ -9913,9 +9913,9 @@ public partial class kucoin : Exchange
         return ccxt.BaseExchange.ToTransferEntry(transfer);
     }
 
-    public virtual object isHfOrMining(object fromId, object toId)
+    public virtual bool isHfOrMining(object fromId, object toId)
     {
-        return (isTrue(isTrue(isTrue(isEqual(fromId, "trade_hf")) || isTrue(isEqual(toId, "trade_hf"))) || isTrue(isEqual(fromId, "pool"))) || isTrue(isEqual(toId, "pool")));
+        return ((bool)((object)((isTrue(isTrue(isTrue(isEqual(fromId, "trade_hf")) || isTrue(isEqual(toId, "trade_hf"))) || isTrue(isEqual(fromId, "pool"))) || isTrue(isEqual(toId, "pool")))))!);
     }
 
     public override object parseTransfer(object transfer, object currency = null)
@@ -12706,7 +12706,7 @@ public partial class kucoin : Exchange
         }
         object market = this.market(symbol);
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object testOrder = this.safeBool(parameters, "test", false);
+        bool? testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, new List<object>() {"test", "clientOrderId"});
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -13070,7 +13070,7 @@ public partial class kucoin : Exchange
     public async override Task<object> isUTAEnabled(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object uta = this.safeBool(this.options, "uta");
+        bool? uta = this.safeBool(this.options, "uta");
         if (isTrue(isEqual(uta, null)))
         {
             object response = await this.utaPrivateGetAccountMode(parameters);

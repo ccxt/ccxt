@@ -752,7 +752,7 @@ public partial class coinsph : Exchange
     {
         string? id = this.safeString(rawCurrency, "coin");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        bool? isFiat = this.safeBool(rawCurrency, "isLegalMoney");
         object networkList = this.safeList(rawCurrency, "networkList", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
@@ -1479,7 +1479,7 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
+        bool? isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         string? side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1601,7 +1601,7 @@ public partial class coinsph : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object testOrder = this.safeBool(parameters, "test", false);
+        bool? testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object orderType = this.safeString(parameters, "type", type);
         orderType = this.encodeOrderType(orderType);
@@ -2189,7 +2189,7 @@ public partial class coinsph : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "withdraw");
-        object warning = this.safeBool(options, "warning", true);
+        bool? warning = this.safeBool(options, "warning", true);
         if (isTrue(isEqual(warning, true)))
         {
             throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;

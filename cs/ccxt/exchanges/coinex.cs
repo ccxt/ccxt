@@ -2676,7 +2676,7 @@ public partial class coinex : Exchange
         bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, isEqual(option, "maker_only"), parameters);
         string? timeInForceRaw = this.safeStringUpper(parameters, "timeInForce");
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(isEqual(reduceOnly, true)))
         {
             if (isTrue(!isEqual(getValue(market, "swap"), true)))
@@ -2829,7 +2829,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         string? triggerPrice = this.safeString2(parameters, "stopPrice", "triggerPrice");
         string? stopLossTriggerPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitTriggerPrice = this.safeString(parameters, "takeProfitPrice");
@@ -3031,7 +3031,7 @@ public partial class coinex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         List<object> requestIds = new List<object>() {};
@@ -3291,7 +3291,7 @@ public partial class coinex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTriggerOrder = this.safeBool2(parameters, "stop", "trigger");
+        bool? isTriggerOrder = this.safeBool2(parameters, "stop", "trigger");
         object swap = getValue(market, "swap");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -3497,7 +3497,7 @@ public partial class coinex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object marketType = null;
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
@@ -5426,7 +5426,7 @@ public partial class coinex : Exchange
         }
         object market = this.market(symbol);
         object currency = this.currency(code);
-        object isAutoRenew = this.safeBool2(parameters, "isAutoRenew", "is_auto_renew", false);
+        bool? isAutoRenew = this.safeBool2(parameters, "isAutoRenew", "is_auto_renew", false);
         parameters = this.omit(parameters, "isAutoRenew");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
@@ -5710,7 +5710,7 @@ public partial class coinex : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(chains)); postFixIncrement(ref i))
         {
             object entry = getValue(chains, i);
-            object isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
+            bool? isWithdrawEnabled = this.safeBool(entry, "withdraw_enabled");
             if (isTrue(isEqual(isWithdrawEnabled, true)))
             {
                 ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(entry, "withdrawal_fee");
@@ -5973,7 +5973,7 @@ public partial class coinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         object marginMode = null;
         var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];

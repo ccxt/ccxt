@@ -795,7 +795,7 @@ public partial class extended : Exchange
         }
         string? name = this.safeString(currency, "name");
         Int64? precision = this.safeInteger(currency, "precision", 0);
-        object isActive = this.safeBool(currency, "isActive");
+        bool? isActive = this.safeBool(currency, "isActive");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -1337,7 +1337,7 @@ public partial class extended : Exchange
     { "cost", feeCost },
     { "currency", ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "settle") },
 };
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
@@ -2184,7 +2184,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object validSignature = this.safeBool(data, "validSignature");
+        bool? validSignature = this.safeBool(data, "validSignature");
         Int64 now = this.milliseconds();
         string status = "pending";
         if (isTrue(!isEqual(validSignature, null)))
@@ -2210,7 +2210,7 @@ public partial class extended : Exchange
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        object validSignature = this.safeBool(transfer, "validSignature");
+        bool? validSignature = this.safeBool(transfer, "validSignature");
         object status = null;
         if (isTrue(!isEqual(validSignature, null)))
         {
@@ -2913,7 +2913,7 @@ public partial class extended : Exchange
         object amountString = this.amountToPrecision(symbol, amount);
         object priceString = this.priceToPrecision(symbol, price);
         object postOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), null, parameters);
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(timeInForce, null)))
         {
@@ -3193,8 +3193,8 @@ public partial class extended : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument")) ;
         }
         Int64? expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-        object postOnly = this.safeBool(parameters, "postOnly");
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(amountVar, null))) || isTrue((isEqual(priceVar, null)))) || isTrue((isEqual(expiryEpochMillis, null)))) || isTrue((isEqual(postOnly, null)))) || isTrue((isEqual(reduceOnly, null)))) || isTrue((isEqual(cancelId, null)))))
         {

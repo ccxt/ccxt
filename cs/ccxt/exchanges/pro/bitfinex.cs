@@ -65,7 +65,7 @@ public partial class bitfinex : ccxt.bitfinex
         object result = await this.watch(url, messageHash, this.deepExtend(request, parameters), messageHash, new Dictionary<string, object>() {
             { "checksum", false },
         });
-        object checksum = this.safeBool(this.options, "checksum", true);
+        bool? checksum = this.safeBool(this.options, "checksum", true);
         if (isTrue(isTrue((isEqual(checksum, true))) && isTrue((isEqual(channel, "book")))))
         {
             object sub = getValue(((WebSocketClient)client).subscriptions, messageHash);

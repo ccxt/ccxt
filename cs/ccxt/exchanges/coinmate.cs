@@ -965,7 +965,7 @@ public partial class coinmate : Exchange
         //
         object data = this.safeValue(response, "data");
         object transaction = this.parseTransaction(data, currency);
-        object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transaction)["amount"] = amount;

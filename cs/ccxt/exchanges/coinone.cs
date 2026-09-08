@@ -909,7 +909,7 @@ public partial class coinone : Exchange
         //
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        object isSellerMaker = this.safeBool(trade, "is_seller_maker");
+        bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {

@@ -1360,7 +1360,7 @@ public partial class binance : ccxt.binance
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
-        object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        bool? isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);
@@ -2645,7 +2645,7 @@ public partial class binance : ccxt.binance
         symbols = this.marketSymbols(symbols, null, true, false, true);
         bool isBidAsk = (isEqual(channelName, "bookTicker"));
         bool isMarkPrice = (isEqual(channelName, "markPrice"));
-        object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+        bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
         object firstMarket = null;
         object marketType = null;
         bool symbolsDefined = (!isEqual(symbols, null));
@@ -3309,7 +3309,7 @@ public partial class binance : ccxt.binance
             {
                 // Step 1: Create listenToken via REST API
                 string? symbol = this.safeString(parameters, "symbol");
-                object isIsolated = this.safeBool(parameters, "isIsolated", false);
+                bool? isIsolated = this.safeBool(parameters, "isIsolated", false);
                 Int64? validity = this.safeInteger(parameters, "validity");
                 Dictionary<string, object> request = new Dictionary<string, object>() {};
                 if (isTrue(isEqual(isIsolated, true)))
@@ -3387,7 +3387,7 @@ public partial class binance : ccxt.binance
         string? type = this.safeString(parameters, "type", "margin");
         object options = this.safeDict(this.options, type, new Dictionary<string, object>() {});
         string? symbol = this.safeString(options, "symbol");
-        object isIsolated = this.safeBool(options, "isIsolated", false);
+        bool? isIsolated = this.safeBool(options, "isIsolated", false);
         Int64? validity = this.safeInteger(options, "validity");
         Dictionary<string, object> renewParams = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -3684,7 +3684,7 @@ public partial class binance : ccxt.binance
             return;
         }
         object options = this.safeValue(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -4018,7 +4018,7 @@ public partial class binance : ccxt.binance
                 urlType = "papi";
             } else if (isTrue(isEqual(type, "option")))
             {
-                object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (isTrue(isTrue((isEqual(demoMode, true))) || isTrue(this.isSandboxModeEnabled)))
                 {
                     throw new NotSupported ((string)add(this.id, " watchBalance() does not support option markets in demo/testnet mode")) ;
@@ -4031,8 +4031,8 @@ public partial class binance : ccxt.binance
         this.setBalanceCache(client as WebSocketClient, type, isPortfolioMargin);
         this.setPositionsCache(client as WebSocketClient, type, null, isPortfolioMargin);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
@@ -4276,7 +4276,7 @@ public partial class binance : ccxt.binance
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "ws-api"), marketType);
         object requestId = this.requestId(url);
         string messageHash = ((object)requestId).ToString();
-        object sor = this.safeBool2(parameters, "sor", "SOR", false);
+        bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
         parameters = this.omit(parameters, "sor", "SOR");
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -4294,7 +4294,7 @@ public partial class binance : ccxt.binance
         returnRateLimits = ((IList<object>)returnRateLimitsparametersVariable)[0];
         parameters = ((IList<object>)returnRateLimitsparametersVariable)[1];
         ((IDictionary<string,object>)payload)["returnRateLimits"] = returnRateLimits;
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         if (isTrue(isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))) && isTrue(isConditional)))
         {
@@ -4635,7 +4635,7 @@ public partial class binance : ccxt.binance
             { "symbol", this.marketId(symbol) },
             { "returnRateLimits", returnRateLimits },
         };
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "origClientOrderId", "clientOrderId"});
         bool shouldUseAlgoOrder = isTrue(isTrue((isEqual(getValue(market, "linear"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))) && isTrue((isEqual(isConditional, true)));
         if (isTrue(!isEqual(clientOrderId, null)))
@@ -5025,7 +5025,7 @@ public partial class binance : ccxt.binance
                 urlType = "papi";
             } else if (isTrue(isEqual(type, "option")))
             {
-                object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (isTrue(isTrue((isEqual(demoMode, true))) || isTrue(this.isSandboxModeEnabled)))
                 {
                     throw new NotSupported ((string)add(this.id, " watchOrders() does not support option markets in demo/testnet mode")) ;
@@ -5677,7 +5677,7 @@ public partial class binance : ccxt.binance
             urlType = "papi";
         } else if (isTrue(isEqual(type, "option")))
         {
-            object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+            bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
             if (isTrue(isTrue((isEqual(demoMode, true))) || isTrue(this.isSandboxModeEnabled)))
             {
                 throw new NotSupported ((string)add(this.id, " watchPositions() does not support option markets in demo/testnet mode")) ;
@@ -6188,7 +6188,7 @@ public partial class binance : ccxt.binance
                 urlType = "papi";
             } else if (isTrue(isEqual(type, "option")))
             {
-                object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
                 if (isTrue(isTrue((isEqual(demoMode, true))) || isTrue(this.isSandboxModeEnabled)))
                 {
                     throw new NotSupported ((string)add(this.id, " watchMyTrades() does not support option markets in demo/testnet mode")) ;

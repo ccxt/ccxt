@@ -103,7 +103,7 @@ public partial class bydfi : ccxt.bydfi
         Dictionary<string, object> subscriptionParams = new Dictionary<string, object>() {
             { "id", id },
         };
-        object unsubscribe = this.safeBool(parameters, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(parameters, "unsubscribe", false);
         string method = "SUBSCRIBE";
         if (isTrue(isEqual(unsubscribe, true)))
         {
@@ -1011,8 +1011,8 @@ public partial class bydfi : ccxt.bydfi
         var client = this.client(url);
         this.fetchBalanceSnapshot(client);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future("fetchBalanceSnapshot");
@@ -1024,7 +1024,7 @@ public partial class bydfi : ccxt.bydfi
     public virtual void fetchBalanceSnapshot(WebSocketClient client)
     {
         object options = this.safeValue(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             string messageHash = "fetchBalanceSnapshot";
@@ -1132,7 +1132,7 @@ public partial class bydfi : ccxt.bydfi
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
         object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-        object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        bool? isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client as WebSocketClient, subscription);
@@ -1143,7 +1143,7 @@ public partial class bydfi : ccxt.bydfi
     public virtual void handleUnSubscription(WebSocketClient client, object subscription)
     {
         object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-        object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+        bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object unsubHash = getValue(messageHashes, i);

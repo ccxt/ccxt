@@ -1160,7 +1160,7 @@ public partial class opinion : PredictionExchange
         string? takerAmount = this.safeString(amounts, "takerAmount");
         int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object rest = this.omit(parameters, new List<object>() {"postOnly"});
         object maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
@@ -1235,7 +1235,7 @@ public partial class opinion : PredictionExchange
         };
         object response = await this.opinionPrivatePostOrderCancel(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object canceled = this.safeBool(result, "result", false);
+        bool? canceled = this.safeBool(result, "result", false);
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them

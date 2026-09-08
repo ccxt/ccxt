@@ -960,7 +960,7 @@ public partial class myriad : PredictionExchange
         }
         // the on-chain AMM path requires native gas and has not been verified end to end; keep it behind
         // an explicit opt-in so callers do not silently hit an untested signing/broadcast path
-        object enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
+        bool? enableAmm = this.safeBool2(parameters, "enableAmm", "enableAmmOrders", this.safeBool(this.options, "enableAmmOrders", false));
         if (isTrue(!isEqual(enableAmm, true)))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() only supports the gasless order book; this market uses the on-chain AMM (needs native gas and is unverified) — pass params.enableAmm=true to opt in")) ;
@@ -1218,7 +1218,7 @@ public partial class myriad : PredictionExchange
         // plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         parameters ??= new Dictionary<string, object>();
         string? sideLower = ((bool) isTrue((!isEqual(side, null)))) ? ((string)((string)side)).ToLower() : null;
-        object isCostDenominated = this.safeBool(parameters, "costDenominated", false);
+        bool? isCostDenominated = this.safeBool(parameters, "costDenominated", false);
         if (isTrue(isTrue((isEqual(sideLower, "buy"))) && isTrue((!isEqual(isCostDenominated, true)))))
         {
             throw new NotSupported ((string)add(this.id, " createOrder() market buy on the AMM sizes by collateral, not shares — use createMarketBuyOrderWithCost(outcome, collateral) for a dollar buy, or the default order book (omit enableAmm) for a share-denominated order")) ;
@@ -1256,12 +1256,12 @@ public partial class myriad : PredictionExchange
         object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
         string? txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
         bool hasPreBroadcastTxHash = (!isEqual(txHashParam, null));
-        object skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
+        bool? skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
         if (isTrue(isTrue(isTrue((isEqual(sideStr, "buy"))) && isTrue((!isEqual(tokenAddress, null)))) && isTrue((!isEqual(skipAllowance, true)))))
         {
             await this.ensureErc20Allowance(rpcUrl, networkId, tokenAddress, fromAddress, predictionMarket);
         }
-        object skipWaitForReceipt = this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
+        bool? skipWaitForReceipt = this.safeBool(parameters, "skipWaitForReceipt", hasPreBroadcastTxHash);
         object txHash = txHashParam;
         if (isTrue(isEqual(txHash, null)))
         {
@@ -2416,7 +2416,7 @@ public partial class myriad : PredictionExchange
         bool active = isEqual(state, "open");
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         string? resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
-        object voided = this.safeBool(raw, "voided", false);
+        bool? voided = this.safeBool(raw, "voided", false);
         bool hasResolution = isTrue(isTrue((!isEqual(resolvedOutcomeId, "-1"))) && isTrue((!isEqual(resolvedOutcomeId, null)))) && isTrue((!isEqual(resolvedOutcomeId, "")));
         bool marketResolved = isTrue(hasResolution) || isTrue(voided);
         object resolvedOutcome = null;
@@ -3389,7 +3389,7 @@ public partial class myriad : PredictionExchange
     public async override Task<List<ccxt.PredictionEvent>> FetchEvents(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
+        bool? allowUnscopedFetchEvents = this.safeBool(this.options, "allowUnscopedFetchEvents", false);
         if (isTrue(!isEqual(allowUnscopedFetchEvents, true)))
         {
             this.requireEventQuery(parameters);

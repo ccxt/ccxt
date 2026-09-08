@@ -515,7 +515,7 @@ public partial class mexc : ccxt.mexc
     public async virtual Task<object> watchSpotPublic(object channel, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
+        bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
         string method = ((bool) isTrue((isEqual(unsubscribed, true)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
@@ -2187,7 +2187,7 @@ public partial class mexc : ccxt.mexc
         // otherwise the user-data subscriptions would be split across two connections
         var client = this.client(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"));
         string messageHash = "authenticate:listenKey";
-        object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
+        bool? isFetching = this.safeBool(this.options, "listenKeyFetching", false);
         if (isTrue(isEqual(isFetching, true)))
         {
             await client.future(messageHash);

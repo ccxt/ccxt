@@ -1047,7 +1047,7 @@ public partial class nado : ccxt.nado
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             throw new NotSupported ((string)add(this.id, " cancelOrdersWs() does not support trigger orders, use cancelOrders() instead")) ;
@@ -1111,7 +1111,7 @@ public partial class nado : ccxt.nado
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             throw new NotSupported ((string)add(this.id, " cancelAllOrdersWs() does not support trigger orders, use cancelAllOrders() instead")) ;
@@ -1438,7 +1438,7 @@ public partial class nado : ccxt.nado
         string? marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         object timestamp = this.parseWsTimestamp(trade, "timestamp");
-        object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
+        bool? isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         string? side = null;
         if (isTrue(!isEqual(isTakerBuyer, null)))
         {
@@ -1485,13 +1485,13 @@ public partial class nado : ccxt.nado
         string? marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
         object timestamp = this.parseWsTimestamp(trade, "timestamp");
-        object isBid = this.safeBool(trade, "is_bid");
+        bool? isBid = this.safeBool(trade, "is_bid");
         string? side = null;
         if (isTrue(!isEqual(isBid, null)))
         {
             side = ((bool) isTrue(isBid)) ? "buy" : "sell";
         }
-        object isTaker = this.safeBool(trade, "is_taker");
+        bool? isTaker = this.safeBool(trade, "is_taker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
@@ -2140,13 +2140,13 @@ public partial class nado : ccxt.nado
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         object error = this.safeValue(message, "error");
         string? status = this.safeString(message, "status");
         if (isTrue(isTrue((isEqual(error, null))) && isTrue((!isEqual(status, "failure")))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         var feedback = new ExchangeError(add(add(this.id, " "), this.json(message)));
         string? id = this.safeString(message, "id");
@@ -2158,7 +2158,7 @@ public partial class nado : ccxt.nado
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)executeHash);
                 ((WebSocketClient)client).reject(feedback, executeHash);
-                return true;
+                return ((bool?)((object)(true)));
             }
         }
         object subscription = this.safeDict(((WebSocketClient)client).subscriptions, add("subscription:", id));
@@ -2171,7 +2171,7 @@ public partial class nado : ccxt.nado
         {
             ((WebSocketClient)client).reject(feedback);
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -207,7 +207,7 @@ public partial class independentreserve : ccxt.independentreserve
         object orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
         object messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
-        object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
+        bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))

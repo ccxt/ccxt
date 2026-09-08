@@ -192,7 +192,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -220,7 +220,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -554,7 +554,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2083,7 +2083,7 @@ public partial class kucoin : ccxt.kucoin
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
-        object isUnSub = this.safeBool(subscription, "unsubscribe", false);
+        bool? isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSub, true)))
         {
             object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
@@ -2195,7 +2195,7 @@ public partial class kucoin : ccxt.kucoin
             orders = await this.subscribePrivateUta(new List<object>() {messageHash}, messageHash, channel, symbolVar, parameters);
         } else
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
@@ -2330,7 +2330,7 @@ public partial class kucoin : ccxt.kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         string? triggerPrice = this.safeString(order, "stopPrice");
-        object triggerSuccess = this.safeBool(order, "triggerSuccess");
+        bool? triggerSuccess = this.safeBool(order, "triggerSuccess");
         bool triggerFail = isTrue((!isEqual(triggerSuccess, true))) && isTrue((!isEqual(triggerSuccess, null))); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if (isTrue(isTrue((isEqual(status, "triggered"))) && isTrue(triggerFail)))
         {
@@ -2902,8 +2902,8 @@ public partial class kucoin : ccxt.kucoin
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, uniformType);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(uniformType, ":fetchBalanceSnapshot"));
@@ -2942,7 +2942,7 @@ public partial class kucoin : ccxt.kucoin
             return;
         }
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -3829,7 +3829,7 @@ public partial class kucoin : ccxt.kucoin
         client.lastPong = this.milliseconds();
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -3857,7 +3857,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }
         this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -3879,7 +3879,7 @@ public partial class kucoin : ccxt.kucoin
             this.handleSubject(client as WebSocketClient, message);
         } else if (isTrue(inOp(message, "result")))
         {
-            object result = this.safeBool(message, "result", true);
+            bool? result = this.safeBool(message, "result", true);
             if (isTrue(!isEqual(result, true)))
             {
                 this.handleErrorMessage(client as WebSocketClient, message);

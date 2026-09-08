@@ -4200,25 +4200,25 @@ public partial class binance : Exchange
         });
     }
 
-    public virtual object isInverse(object type, object subType = null)
+    public virtual bool isInverse(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return (isEqual(type, "delivery"));
+            return ((bool)((object)((isEqual(type, "delivery"))))!);
         } else
         {
-            return isEqual(subType, "inverse");
+            return ((bool)((object)(isEqual(subType, "inverse")))!);
         }
     }
 
-    public virtual object isLinear(object type, object subType = null)
+    public virtual bool isLinear(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")));
+            return ((bool)((object)(isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")))))!);
         } else
         {
-            return isEqual(subType, "linear");
+            return ((bool)((object)(isEqual(subType, "linear")))!);
         }
     }
 
@@ -4618,7 +4618,7 @@ public partial class binance : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
+        bool? fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
         if (isTrue(!isEqual(fetchCurrenciesEnabled, true)))
         {
             return new Dictionary<string, object>() {};
@@ -4643,7 +4643,7 @@ public partial class binance : Exchange
             return new Dictionary<string, object>() {};
         }
         List<object> promises = new List<object> {this.sapiGetCapitalConfigGetall(parameters)};
-        object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
+        bool? fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         if (isTrue(isEqual(fetchMargins, true)))
         {
             ((IList<object>)promises).Add(this.sapiGetMarginAllPairs(parameters));
@@ -4794,7 +4794,7 @@ public partial class binance : Exchange
         string? id = this.safeString(entry, "coin");
         string? name = this.safeString(entry, "name");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.safeBool(entry, "isLegalMoney");
+        bool? isFiat = this.safeBool(entry, "isLegalMoney");
         object networkList = this.safeList(entry, "networkList", new List<object>() {});
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
         object fee = null;
@@ -4808,13 +4808,13 @@ public partial class binance : Exchange
             isETF = (isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
-            object depositEnable = this.safeBool(networkItem, "depositEnable");
-            object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
+            bool? depositEnable = this.safeBool(networkItem, "depositEnable");
+            bool? withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
             if (isTrue(!isEqual(networkCode, null)))
             {
                 ((IDictionary<string,object>)fees)[(string)networkCode] = withdrawFee;
             }
-            object isDefault = this.safeBool(networkItem, "isDefault");
+            bool? isDefault = this.safeBool(networkItem, "isDefault");
             if (isTrue(isTrue((isEqual(isDefault, true))) || isTrue((isEqual(fee, null)))))
             {
                 fee = withdrawFee;
@@ -4864,7 +4864,7 @@ public partial class binance : Exchange
         {
             type = "crypto";
         }
-        object trading = this.safeBool(entry, "trading");
+        bool? trading = this.safeBool(entry, "trading");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", id },
             { "name", name },
@@ -4919,8 +4919,8 @@ public partial class binance : Exchange
                 ((IList<object>)rawFetchMarkets).Add("option");
             }
         }
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? demoMode = this.safeBool(this.options, "enableDemoTrading", false);
         bool isDemoEnv = isTrue((isEqual(demoMode, true))) || isTrue((isEqual(sandboxMode, true)));
         List<object> fetchMarkets = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rawFetchMarkets)); postFixIncrement(ref i))
@@ -4932,7 +4932,7 @@ public partial class binance : Exchange
             }
             ((IList<object>)fetchMarkets).Add(type);
         }
-        object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
+        bool? fetchMargins = this.safeBool(this.options, "fetchMargins", false);
         for (int i = 0; isLessThan(i, getArrayLength(fetchMarkets)); postFixIncrement(ref i))
         {
             object marketType = getValue(fetchMarkets, i);
@@ -5326,7 +5326,7 @@ public partial class binance : Exchange
                 }
             }
         }
-        object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
+        bool? isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
         Dictionary<string, object> marginModes = null;
         if (isTrue(spot))
         {
@@ -6298,13 +6298,13 @@ public partial class binance : Exchange
             response = await this.dapiPublicGetTicker24hr(this.extend(request, parameters));
         } else
         {
-            object stock = this.safeBool(market, "stock", false);
+            bool? stock = this.safeBool(market, "stock", false);
             if (isTrue(isEqual(stock, true)))
             {
                 response = await this.sapiGetEquityMarketQuote(this.extend(request, parameters));
             } else
             {
-                object rolling = this.safeBool(parameters, "rolling", false);
+                bool? rolling = this.safeBool(parameters, "rolling", false);
                 parameters = this.omit(parameters, "rolling");
                 if (isTrue(isEqual(rolling, true)))
                 {
@@ -6522,7 +6522,7 @@ public partial class binance : Exchange
             response = await this.dapiPublicGetTicker24hr(parameters);
         } else if (isTrue(isEqual(type, "spot")))
         {
-            object rolling = this.safeBool(parameters, "rolling", false);
+            bool? rolling = this.safeBool(parameters, "rolling", false);
             parameters = this.omit(parameters, "rolling");
             if (isTrue(isEqual(rolling, true)))
             {
@@ -6721,7 +6721,7 @@ public partial class binance : Exchange
         //         "closeTime": 1677097200000
         //     }
         //
-        object inverse = this.safeBool(market, "inverse");
+        bool? inverse = this.safeBool(market, "inverse");
         int volumeIndex = ((bool) isTrue((isEqual(inverse, true)))) ? 7 : 5;
         return new List<object> {this.safeInteger2(ohlcv, 0, "openTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")};
     }
@@ -7120,7 +7120,7 @@ public partial class binance : Exchange
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
         string? side = null;
-        object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
+        bool? buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(buyerMaker, null)))
         {
@@ -8778,8 +8778,8 @@ public partial class binance : Exchange
         // don't handle/omit params here, omitting happens inside createOrderRequest
         string? marketType = this.safeString(parameters, "type", getValue(market, "type"));
         string? marginMode = this.safeString(parameters, "marginMode");
-        object porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
-        object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
+        bool? porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
+        bool? isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
         string? takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -8788,9 +8788,9 @@ public partial class binance : Exchange
         bool isStopLoss = !isEqual(stopLossPrice, null);
         bool isTakeProfit = !isEqual(takeProfitPrice, null);
         bool isConditional = isTrue(isTrue(isTrue((!isEqual(triggerPrice, null))) || isTrue(isTrailingPercentOrder)) || isTrue(isStopLoss)) || isTrue(isTakeProfit);
-        object sor = this.safeBool2(parameters, "sor", "SOR", false);
-        object test = this.safeBool(parameters, "test", false);
-        object stock = this.safeBool(market, "stock", false);
+        bool? sor = this.safeBool2(parameters, "sor", "SOR", false);
+        bool? test = this.safeBool(parameters, "test", false);
+        bool? stock = this.safeBool(market, "stock", false);
         parameters = this.omit(parameters, new List<object>() {"sor", "SOR", "test"});
         // if (isPortfolioMargin) {
         //     params['portfolioMargin'] = isPortfolioMargin;
@@ -8908,7 +8908,7 @@ public partial class binance : Exchange
         }
         object market = this.market(symbol);
         string? marketType = this.safeString(parameters, "type", getValue(market, "type"));
-        object stock = this.safeBool(market, "stock", false);
+        bool? stock = this.safeBool(market, "stock", false);
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clientAlgoId", "newClientOrderId", "clientOrderId"});
         string initialUppercaseType = ((string)type).ToUpper();
         bool isMarketOrder = isEqual(initialUppercaseType, "MARKET");
@@ -8926,7 +8926,7 @@ public partial class binance : Exchange
         var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
         parameters = ((IList<object>)marginModeparametersVariable)[1];
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(isEqual(reduceOnly, true)))
         {
             if (isTrue(isTrue(isEqual(marketType, "margin")) || isTrue((isTrue((!isEqual(getValue(market, "contract"), true))) && isTrue((!isEqual(marginMode, null)))))))
@@ -9120,7 +9120,7 @@ public partial class binance : Exchange
         }
         ((IDictionary<string,object>)request)[(string)typeRequest] = uppercaseType;
         // additional required fields depending on the order type
-        object closePosition = this.safeBool(parameters, "closePosition", false);
+        bool? closePosition = this.safeBool(parameters, "closePosition", false);
         bool timeInForceIsRequired = false;
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
@@ -9334,7 +9334,7 @@ public partial class binance : Exchange
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        object hedged = this.safeBool(parameters, "hedged", false);
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         if (isTrue(isTrue(isTrue((!isEqual(getValue(market, "spot"), true))) && isTrue((!isEqual(getValue(market, "option"), true)))) && isTrue((isEqual(hedged, true)))))
         {
             if (isTrue(isEqual(reduceOnly, true)))
@@ -9517,7 +9517,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = isEqual(type, "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
@@ -9672,7 +9672,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = isEqual(type, "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
@@ -10028,7 +10028,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOpenOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object stock = null;
         var stockparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "stock", false);
         stock = ((IList<object>)stockparametersVariable)[0];
@@ -10043,8 +10043,8 @@ public partial class binance : Exchange
             }
         } else if (!isTrue(stock))
         {
-            object warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
-            object optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
+            bool? warnWithoutSymbol = this.safeBool(getValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
+            bool? optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
             if (isTrue(isTrue((isEqual(optValue, true))) || isTrue((isTrue(isEqual(optValue, null)) && isTrue((isEqual(warnWithoutSymbol, true)))))))
             {
                 throw new ExchangeError ((string)add(add(add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
@@ -10175,7 +10175,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "fetchOpenOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isPortfolioMarginConditional = (isTrue(isPortfolioMargin) && isTrue(isConditional));
         string orderIdRequest = ((bool) isTrue((isEqual(isPortfolioMarginConditional, true)))) ? "strategyId" : "orderId";
@@ -10594,7 +10594,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "cancelOrder", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         bool isOptionType = isEqual(type, "option");
         object isLinearType = this.isLinear(type, subType);
         object isInverseType = this.isInverse(type, subType);
@@ -10758,7 +10758,7 @@ public partial class binance : Exchange
         var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "cancelAllOrders", "papi", "portfolioMargin", false);
         isPortfolioMargin = ((IList<object>)isPortfolioMarginparametersVariable)[0];
         parameters = ((IList<object>)isPortfolioMarginparametersVariable)[1];
-        object isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
+        bool? isConditional = this.safeBoolN(parameters, new List<object>() {"stop", "trigger", "conditional"});
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "spot");
         type = ((IList<object>)typeparametersVariable)[0];
@@ -11498,7 +11498,7 @@ public partial class binance : Exchange
         object response = null;
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object legalMoney = this.safeDict(this.options, "legalMoney", new Dictionary<string, object>() {});
-        object fiatOnly = this.safeBool(parameters, "fiat", false);
+        bool? fiatOnly = this.safeBool(parameters, "fiat", false);
         parameters = this.omit(parameters, "fiatOnly");
         Int64? until = this.safeInteger(parameters, "until");
         parameters = this.omit(parameters, "until");
@@ -11590,7 +11590,7 @@ public partial class binance : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters));
         }
         object legalMoney = this.safeDict(this.options, "legalMoney", new Dictionary<string, object>() {});
-        object fiatOnly = this.safeBool(parameters, "fiat", false);
+        bool? fiatOnly = this.safeBool(parameters, "fiat", false);
         parameters = this.omit(parameters, "fiatOnly");
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         Int64? until = this.safeInteger(parameters, "until");
@@ -12125,7 +12125,7 @@ public partial class binance : Exchange
         {
             await this.loadMarkets();
         }
-        object intern = this.safeBool(parameters, "internal");
+        bool? intern = this.safeBool(parameters, "internal");
         parameters = this.omit(parameters, "internal");
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
@@ -12513,7 +12513,7 @@ public partial class binance : Exchange
             string? networkId = this.safeString(networkEntry, "network");
             object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
-            object isDefault = this.safeBool(networkEntry, "isDefault");
+            bool? isDefault = this.safeBool(networkEntry, "isDefault");
             if (isTrue(isEqual(isDefault, true)))
             {
                 ((IDictionary<string,object>)result)["withdraw"] = new Dictionary<string, object>() {
@@ -13417,7 +13417,7 @@ public partial class binance : Exchange
         {
             timestamp = null;
         }
-        object isolated = this.safeBool(position, "isolated");
+        bool? isolated = this.safeBool(position, "isolated");
         if (isTrue(isEqual(isolated, null)))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
@@ -14910,7 +14910,7 @@ public partial class binance : Exchange
     public override object parseLeverage(object leverage, object market = null)
     {
         string? marketId = this.safeString(leverage, "symbol");
-        object marginModeRaw = this.safeBool(leverage, "isolated");
+        bool? marginModeRaw = this.safeBool(leverage, "isolated");
         string? marginMode = null;
         if (isTrue(!isEqual(marginModeRaw, null)))
         {
@@ -15710,7 +15710,7 @@ public partial class binance : Exchange
             return null;  // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? messageNew = this.safeString(response, "msg");
@@ -17293,7 +17293,7 @@ public partial class binance : Exchange
         //        dualSidePosition: false
         //    }
         //
-        object dualSidePosition = this.safeBool(response, "dualSidePosition");
+        bool? dualSidePosition = this.safeBool(response, "dualSidePosition");
         return ccxt.BaseExchange.ToPositionModeInfo(new Dictionary<string, object>() {             { "info", response },             { "hedged", dualSidePosition },         });
     }
 
@@ -17394,7 +17394,7 @@ public partial class binance : Exchange
     {
         string? marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
-        object marginModeRaw = this.safeBool(marginMode, "isolated");
+        bool? marginModeRaw = this.safeBool(marginMode, "isolated");
         string? reMarginMode = null;
         if (isTrue(!isEqual(marginModeRaw, null)))
         {

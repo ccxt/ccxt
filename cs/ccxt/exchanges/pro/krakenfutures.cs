@@ -1761,7 +1761,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         return messageHash;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1781,7 +1781,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         // mirrors the bitmart 90008 fix.
         if (isTrue(isTrue(!isEqual(errMsg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(errMsg, "Already subscribed"), 0))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         try
         {
@@ -1789,7 +1789,7 @@ public partial class krakenfutures : ccxt.krakenfutures
         } catch(Exception error)
         {
             ((WebSocketClient)client).reject(error);
-            return false;
+            return ((bool?)((object)(false)));
         }
     }
 

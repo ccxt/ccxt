@@ -1401,7 +1401,7 @@ public partial class hollaex : Exchange
         string? filled = this.safeString(order, "filled");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object meta = this.safeValue(order, "meta", new Dictionary<string, object>() {});
-        object postOnly = this.safeBool(meta, "post_only", false);
+        bool? postOnly = this.safeBool(meta, "post_only", false);
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -1458,7 +1458,7 @@ public partial class hollaex : Exchange
         };
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
-        object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
+        bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))

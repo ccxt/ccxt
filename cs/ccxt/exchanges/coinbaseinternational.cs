@@ -957,7 +957,7 @@ public partial class coinbaseinternational : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(networksArray)); postFixIncrement(ref i))
         {
             object info = getValue(getValue(networksArray, i), "info");
-            object is_default = this.safeBool(info, "is_default", false);
+            bool? is_default = this.safeBool(info, "is_default", false);
             if (isTrue(isEqual(is_default, true)))
             {
                 return getValue(networksArray, i);
@@ -1947,7 +1947,7 @@ public partial class coinbaseinternational : Exchange
             { "to", toAccount },
         };
         object response = await this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters));
-        object success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success");
         return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },         });
     }
 
@@ -2022,7 +2022,7 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["portfolio"] = portfolio;
         }
-        object postOnly = this.safeBool2(parameters, "postOnly", "post_only");
+        bool? postOnly = this.safeBool2(parameters, "postOnly", "post_only");
         object tif = this.safeString2(parameters, "tif", "timeInForce");
         // market orders must be IOC
         if (isTrue(isEqual(typeId, "MARKET")))

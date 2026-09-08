@@ -298,7 +298,7 @@ public partial class mudrex : Exchange
         {
             return null;
         }
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             object errors = this.safeList(response, "errors", new List<object>() {});

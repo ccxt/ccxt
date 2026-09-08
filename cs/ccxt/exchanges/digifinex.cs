@@ -2159,7 +2159,7 @@ public partial class digifinex : Exchange
         object postOnlyParsed = null;
         if (isTrue(swap))
         {
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             string? timeInForce = this.safeString(parameters, "timeInForce");
             object orderType = null;
             if (isTrue(isEqual(side, "buy")))
@@ -4736,7 +4736,7 @@ public partial class digifinex : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         object marginMode = null;
         var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];

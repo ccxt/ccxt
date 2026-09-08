@@ -1429,7 +1429,7 @@ public partial class tokocrypto : Exchange
      * @param {object} market a unified market structure
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
-    public virtual object isNativeMarket(object market)
+    public virtual bool isNativeMarket(object market)
     {
         object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? symbolType = this.safeString(marketInfo, "type");
@@ -1437,7 +1437,7 @@ public partial class tokocrypto : Exchange
         // host, the route that answers with data for every symbol type 1 market
         // and errors out loudly for the others, whereas open/v1 would answer an
         // empty list for them
-        return isTrue((!isEqual(symbolType, null))) && isTrue((!isEqual(symbolType, "1")));
+        return ((bool)((object)(isTrue((!isEqual(symbolType, null))) && isTrue((!isEqual(symbolType, "1")))))!);
     }
 
     /**
@@ -1953,7 +1953,7 @@ public partial class tokocrypto : Exchange
         }
         object market = this.market(symbol);
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         // only supported for spot/margin api
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -2947,7 +2947,7 @@ public partial class tokocrypto : Exchange
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? messageInner = this.safeString(response, "msg");

@@ -644,7 +644,7 @@ public partial class hashkey : ccxt.hashkey
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "t");
-        object isBuyerMaker = this.safeBool(trade, "m");
+        bool? isBuyerMaker = this.safeBool(trade, "m");
         bool isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         string? side = null;
         string? takerOrMaker = null;
@@ -839,7 +839,7 @@ public partial class hashkey : ccxt.hashkey
             return;
         }
         object options = this.safeDict(this.options, "watchBalance");
-        object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
+        bool? snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if (isTrue(isEqual(snapshot, true)))
         {
             object messageHash = add(add(type, ":"), "fetchBalanceSnapshot");
