@@ -1001,7 +1001,7 @@ export class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 250, // ms a single connection attempt gets to complete its tcp handshake before node ABORTS it and tries the next address (sequential abort-and-advance, not parallel racing) - any value below the origin's handshake rtt makes that origin deterministically unreachable, every address dies mid-handshake and the connect fails with an empty-message AggregateError (ETIMEDOUT) after cycling all of them - observed in production with a 10ms setting against an exchange api behind a transatlantic cloudfront pop (~45ms rtt) - 250ms matches node's own default, do not lower it below plausible wan handshake rtts
+            'autoSelectFamilyAttemptTimeout': 250, // ms a single connection attempt gets to complete its tcp handshake before node ABORTS it and tries the next address (sequential abort-and-advance, not parallel racing) - any value below the origin's handshake rtt makes that origin deterministically unreachable, every address dies mid-handshake and the connect fails with an empty-message AggregateError (ETIMEDOUT) after cycling all of them - observed in production with a 10ms setting against an exchange api behind a transatlantic cloudfront pop (~45ms rtt) - 250ms matches node's own default, do not lower it below plausible wan handshake rtts - note node exempts the last address in the list from this timer (it gets the remaining connection budget), so total unreachability also requires the final address to fail on its own (e.g. an ipv6 tail address on a host without v6 egress fails instantly)
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -1374,11 +1374,12 @@ export class BaseExchange {
                     return '';
                 }
                 const parts = [];
-                if (typeof error.code === 'string') {
-                    parts.push (error.code);
+                const errorMessage = (typeof error.message === 'string') ? error.message : '';
+                if ((typeof error.code === 'string') && (errorMessage.indexOf (error.code) < 0)) {
+                    parts.push (error.code); // only when it adds information - a plain socket error's message already begins with the code, an AggregateError's message is empty
                 }
-                if ((typeof error.message === 'string') && (error.message.length > 0)) {
-                    parts.push (error.message);
+                if (errorMessage.length > 0) {
+                    parts.push (errorMessage);
                 }
                 if (Array.isArray (error.errors)) { // AggregateError - one inner error per attempted address
                     const innerErrors = error.errors.slice (0, 3).map ((inner: any) => {
