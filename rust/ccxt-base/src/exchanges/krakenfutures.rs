@@ -289,6 +289,16 @@ impl KrakenfuturesCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("instruments/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("instruments/{symbol}/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("orderbook".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -387,6 +397,26 @@ impl KrakenfuturesCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("unwindqueue".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("self-trade-strategy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("subaccounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("subaccount/{uid}/trading-enabled".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -407,6 +437,11 @@ impl KrakenfuturesCore {
     m
 }));
         m.insert("transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transfer/subaccount".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -455,6 +490,16 @@ impl KrakenfuturesCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("self-trade-strategy".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("subaccount/{uid}/trading-enabled".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -464,6 +509,11 @@ impl KrakenfuturesCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("{price_type}/{symbol}/{interval}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("analytics/liquidity-pool".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -507,6 +557,16 @@ impl KrakenfuturesCore {
     m
 }));
         m.insert("market/{symbol}/executions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("market/{symbol}/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("positions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -584,6 +644,7 @@ impl KrakenfuturesCore {
         m.insert("triggers".to_string(), Value::Str("private".to_string()));
         m.insert("accountlogcsv".to_string(), Value::Str("private".to_string()));
         m.insert("account-log".to_string(), Value::Str("private".to_string()));
+        m.insert("positions".to_string(), Value::Str("private".to_string()));
     m
 }));
     m
@@ -617,6 +678,7 @@ impl KrakenfuturesCore {
         m.insert("GET".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("{price_type}/{symbol}/{interval}".to_string(), Value::Str("v1".to_string()));
+        m.insert("analytics/liquidity-pool".to_string(), Value::Str("v1".to_string()));
     m
 }));
     m

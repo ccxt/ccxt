@@ -1,6 +1,6 @@
 [package]
 name = "ccxt-base"
-version = "4.5.75"
+version = "4.5.78"
 edition = "2021"
 description = "CCXT – CryptoCurrency eXchange Trading Library (Rust) – untyped engine (runtime, Value, REST/prediction Cores, WS infra)"
 license = "MIT"

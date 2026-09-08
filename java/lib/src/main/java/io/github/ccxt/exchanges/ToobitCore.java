@@ -3668,12 +3668,12 @@ public class ToobitCore extends ToobitApi
             put( "info", position );
             put( "id", ToobitCore.this.safeString(position, "id") );
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
-            put( "entryPrice", ToobitCore.this.safeString(position, "avgPrice") );
-            put( "markPrice", ToobitCore.this.safeString(position, "markPrice") );
-            put( "lastPrice", ToobitCore.this.safeString(position, "lastPrice") );
-            put( "notional", ToobitCore.this.safeString(position, "positionValue") );
+            put( "entryPrice", ToobitCore.this.safeNumber(position, "avgPrice") );
+            put( "markPrice", ToobitCore.this.safeNumber(position, "markPrice") );
+            put( "lastPrice", ToobitCore.this.safeNumber(position, "lastPrice") );
+            put( "notional", ToobitCore.this.safeNumber(position, "positionValue") );
             put( "collateral", null );
-            put( "unrealizedPnl", ToobitCore.this.safeString(position, "unrealizedPnL") );
+            put( "unrealizedPnl", ToobitCore.this.safeNumber(position, "unrealizedPnL") );
             put( "side", side );
             put( "contracts", ToobitCore.this.parseNumber(quantity) );
             put( "contractSize", null );
@@ -3682,7 +3682,7 @@ public class ToobitCore extends ToobitApi
             put( "hedged", null );
             put( "maintenanceMargin", null );
             put( "maintenanceMarginPercentage", null );
-            put( "initialMargin", ToobitCore.this.safeString(position, "margin") );
+            put( "initialMargin", ToobitCore.this.safeNumber(position, "margin") );
             put( "initialMarginPercentage", null );
             put( "leverage", leverage );
             put( "liquidationPrice", null );

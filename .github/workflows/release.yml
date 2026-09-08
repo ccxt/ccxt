@@ -1,5 +1,11 @@
 name: Release workflow
 
+
+env:
+  CARGO_PROFILE_DEV_DEBUG: "0"
+  CARGO_PROFILE_TEST_DEBUG: "0"
+  CARGO_BUILD_JOBS: "2"
+
 on:
   workflow_dispatch:
     inputs:
@@ -73,8 +79,38 @@ jobs:
         run: pip install build twine
       - name: export exchanges (remove later)
         run: npm run export-exchanges
-      - name: Transpile and Build TMP REMOVE
-        run: npm run force-build
+      - name: Pre-transpile
+        run: npm run pre-transpile
+      - name: Transpile Go
+        run: npm run force-transpileGO
+      - name: Build Go
+        run: npm run buildGO
+      - name: Transpile Python and PHP
+        run: npm run force-transpile-fast
+      - name: Transpile C#
+        run: npm run force-transpileCS
+      - name: Build C#
+        run: npm run buildCS
+      - name: Transpile Java
+        run: npm run force-transpileJava
+      - name: Build Java
+        run: npm run buildJava
+      - name: Install Rust toolchain
+        run: |
+          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
+            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
+          fi
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - name: Transpile Rust
+        run: npm run transpileRust
+      - name: Build Rust
+        run: npm run buildRust
+      - name: Check Python syntax
+        run: npm run check-python-syntax
+      - name: Check PHP syntax
+        run: npm run check-php-syntax
+      - name: Update badges
+        run: npm run update-badges
       - name: Base tests Rest
         run: npm run test-base-rest
       - name: Base tests Ws
@@ -152,7 +188,12 @@ jobs:
                fi
 
                git fetch --tags --depth=1
-               PREVIOUS_TAG=$(git tag --sort=-creatordate | head -n1)
+               # only ccxt version tags — the repo also carries `go/vX.Y.Z`, the per-release
+               # `ccxt-mcp-vX.Y.Z`, and the moving `ccxt-mcp-latest`, any of which can be the
+               # newest tag overall and would then be handed to --notes-start-tag, truncating
+               # the changelog to the commits after it (v4.5.78 shipped compared against
+               # ccxt-mcp-v0.1.3, losing every PR merged between it and v4.5.77)
+               PREVIOUS_TAG=$(git tag --list 'v[0-9]*.[0-9]*.[0-9]*' --sort=-creatordate | head -n1)
                echo "Previous tag: ${PREVIOUS_TAG}"
 
                # tag names are unique per release so they cannot race with master —
@@ -182,6 +223,48 @@ jobs:
 
                echo "Creating GitHub release from ${VERSION}…"
                gh release create "${VERSION}" --generate-notes --notes-start-tag "${PREVIOUS_TAG}" --verify-tag
+      - name: Publish Rust crates
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          CARGO_BUILD_JOBS: "2"
+        run: |
+          set -e
+          # The transpiled Rust output is committed by the release commit above,
+          # so cargo's git-based file listing already sees every exchange.
+          # `--allow-dirty` is kept as a safety net for a working tree left
+          # dirty after the rebase/push, which would otherwise abort the
+          # publish outright.
+          #
+          # ccxt-base first — the other three depend on it, and crates.io will
+          # reject them until its version is live in the index. `cargo publish`
+          # waits for the index by default; the retry loop covers the window
+          # where propagation is slower than that wait.
+          #
+          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
+          # (v4.5.x); crates.io versions are bare, so strip it before matching
+          # against `cargo search` output.
+          CRATE_VERSION="${NPM_VERSION#v}"
+          publish () {
+            local crate="$1"
+            for attempt in 1 2 3 4 5; do
+              if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
+                echo "published $crate"
+                return 0
+              fi
+              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
+                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
+                return 0
+              fi
+              echo "publish $crate failed (attempt $attempt), retrying in 30s…"
+              sleep 30
+            done
+            echo "could not publish $crate"
+            return 1
+          }
+          publish ccxt-base
+          publish ccxt
+          publish ccxt-pro
+          publish ccxt-prediction
       - name: Deploy Python Package
         run: python -m build --outdir python/dist
       - name: Publish to PyPI
@@ -216,54 +299,6 @@ jobs:
           ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralUsername }}
           ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.ORG_GRADLE_PROJECT_mavenCentralPassword }}
         run: npm run publishJava
-      - name: Install Rust toolchain
-        run: |
-          if ! command -v cargo >/dev/null 2>&1 && [ ! -x "$HOME/.cargo/bin/cargo" ]; then
-            curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --default-toolchain stable --profile minimal
-          fi
-          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
-      - name: Generate Rust sources
-        run: npm run transpileRust
-      - name: Publish Rust crates
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: |
-          set -e
-          # `--allow-dirty` is required, not a shortcut: the transpiled Rust
-          # output is generated at build time and deliberately not committed,
-          # and cargo lists package files from git. Without it the crates would
-          # publish missing every exchange.
-          #
-          # ccxt-base first — the other three depend on it, and crates.io will
-          # reject them until its version is live in the index. `cargo publish`
-          # waits for the index by default; the retry loop covers the window
-          # where propagation is slower than that wait.
-          #
-          # NPM_VERSION comes from `npm version` and is prefixed with a "v"
-          # (v4.5.x); crates.io versions are bare, so strip it before matching
-          # against `cargo search` output.
-          CRATE_VERSION="${NPM_VERSION#v}"
-          publish () {
-            local crate="$1"
-            for attempt in 1 2 3 4 5; do
-              if cargo publish -p "$crate" --allow-dirty --manifest-path rust/Cargo.toml; then
-                echo "published $crate"
-                return 0
-              fi
-              if cargo search "$crate" | grep -q "^$crate = \"${CRATE_VERSION}\""; then
-                echo "$crate ${CRATE_VERSION} already on crates.io, continuing"
-                return 0
-              fi
-              echo "publish $crate failed (attempt $attempt), retrying in 30s…"
-              sleep 30
-            done
-            echo "could not publish $crate"
-            return 1
-          }
-          publish ccxt-base
-          publish ccxt
-          publish ccxt-pro
-          publish ccxt-prediction
       - name: Publish Go node_modules
         env:
           VERSION: ${{ env.NPM_VERSION }}

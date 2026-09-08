@@ -122,6 +122,12 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                         put( "instruments", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "instruments/status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "instruments/{symbol}/status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "orderbook", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -180,6 +186,18 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                         put( "orders/status", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "unwindqueue", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "self-trade-strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "sendorder", new java.util.HashMap<String, Object>() {{
@@ -192,6 +210,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "cost", 1 );
                         }} );
                         put( "transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfer/subaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "batchorder", new java.util.HashMap<String, Object>() {{
@@ -220,11 +241,20 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                         put( "pnlpreferences", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "self-trade-strategy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "charts", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "{price_type}/{symbol}/{interval}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "analytics/liquidity-pool", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -250,6 +280,12 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "cost", 1 );
                         }} );
                         put( "market/{symbol}/executions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "market/{symbol}/price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -306,6 +342,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "triggers", "private" );
                             put( "accountlogcsv", "private" );
                             put( "account-log", "private" );
+                            put( "positions", "private" );
                         }} );
                     }} );
                 }} );
@@ -325,6 +362,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "charts", new java.util.HashMap<String, Object>() {{
                         put( "GET", new java.util.HashMap<String, Object>() {{
                             put( "{price_type}/{symbol}/{interval}", "v1" );
+                            put( "analytics/liquidity-pool", "v1" );
                         }} );
                     }} );
                     put( "history", new java.util.HashMap<String, Object>() {{

@@ -3832,7 +3832,7 @@ func (this *BullishCore) Sign(path any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(method, "GET")) {
 		var query string = this.Urlencode(request)
-		if IsTrue(IsGreaterThan(GetArrayLength(query), 0)) {
+		if IsTrue(IsGreaterThan(GetLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

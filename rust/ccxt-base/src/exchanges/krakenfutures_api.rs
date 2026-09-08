@@ -22,6 +22,16 @@ impl KrakenfuturesCore {
         self.call_method(Value::Str("public_get_instruments".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetInstrumentsStatus` implicit endpoint.
+    pub async fn public_get_instruments_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_instruments_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetInstrumentsSymbolStatus` implicit endpoint.
+    pub async fn public_get_instruments_symbol_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_instruments_symbol_status".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetOrderbook` implicit endpoint.
     pub async fn public_get_orderbook(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_orderbook".to_string()), optional_args).await
@@ -112,6 +122,26 @@ impl KrakenfuturesCore {
         self.call_method(Value::Str("private_get_orders_status".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetUnwindqueue` implicit endpoint.
+    pub async fn private_get_unwindqueue(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_unwindqueue".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSelfTradeStrategy` implicit endpoint.
+    pub async fn private_get_self_trade_strategy(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_self_trade_strategy".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSubaccounts` implicit endpoint.
+    pub async fn private_get_subaccounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_subaccounts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSubaccountUidTradingEnabled` implicit endpoint.
+    pub async fn private_get_subaccount_uid_trading_enabled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_subaccount_uid_trading_enabled".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostSendorder` implicit endpoint.
     pub async fn private_post_sendorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_sendorder".to_string()), optional_args).await
@@ -130,6 +160,11 @@ impl KrakenfuturesCore {
     /// Auto-generated wrapper for the `privatePostTransfer` implicit endpoint.
     pub async fn private_post_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTransferSubaccount` implicit endpoint.
+    pub async fn private_post_transfer_subaccount(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_transfer_subaccount".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBatchorder` implicit endpoint.
@@ -172,9 +207,24 @@ impl KrakenfuturesCore {
         self.call_method(Value::Str("private_put_pnlpreferences".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePutSelfTradeStrategy` implicit endpoint.
+    pub async fn private_put_self_trade_strategy(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_self_trade_strategy".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutSubaccountUidTradingEnabled` implicit endpoint.
+    pub async fn private_put_subaccount_uid_trading_enabled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_subaccount_uid_trading_enabled".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `chartsGetPriceTypeSymbolInterval` implicit endpoint.
     pub async fn charts_get_price_type_symbol_interval(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("charts_get_price_type_symbol_interval".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `chartsGetAnalyticsLiquidityPool` implicit endpoint.
+    pub async fn charts_get_analytics_liquidity_pool(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("charts_get_analytics_liquidity_pool".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `historyGetOrders` implicit endpoint.
@@ -210,6 +260,16 @@ impl KrakenfuturesCore {
     /// Auto-generated wrapper for the `historyGetMarketSymbolExecutions` implicit endpoint.
     pub async fn history_get_market_symbol_executions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("history_get_market_symbol_executions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `historyGetMarketSymbolPrice` implicit endpoint.
+    pub async fn history_get_market_symbol_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("history_get_market_symbol_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `historyGetPositions` implicit endpoint.
+    pub async fn history_get_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("history_get_positions".to_string()), optional_args).await
     }
 
 }

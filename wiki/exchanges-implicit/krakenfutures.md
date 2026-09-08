@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official krakenfutures API documentation:** [docs.kraken.com](https://docs.kraken.com/api/docs/futures-api/trading/market-data/)
 
-> 40 implicit endpoints across 4 access groups.
+> 52 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -65,6 +65,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetFeeschedules` | GET | `feeschedules` | 1 |
 | `publicGetInstruments` | GET | `instruments` | 1 |
+| `publicGetInstrumentsStatus` | GET | `instruments/status` | 1 |
+| `publicGetInstrumentsSymbolStatus` | GET | `instruments/{symbol}/status` | 1 |
 | `publicGetOrderbook` | GET | `orderbook` | 1 |
 | `publicGetTickers` | GET | `tickers` | 1 |
 | `publicGetTickersSymbol` | GET | `tickers/{symbol}` | 1 |
@@ -90,10 +92,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetAssignmentprogramCurrent` | GET | `assignmentprogram/current` | 1 |
 | `privateGetAssignmentprogramHistory` | GET | `assignmentprogram/history` | 1 |
 | `privateGetOrdersStatus` | GET | `orders/status` | 1 |
+| `privateGetUnwindqueue` | GET | `unwindqueue` | 1 |
+| `privateGetSelfTradeStrategy` | GET | `self-trade-strategy` | 1 |
+| `privateGetSubaccounts` | GET | `subaccounts` | 1 |
+| `privateGetSubaccountUidTradingEnabled` | GET | `subaccount/{uid}/trading-enabled` | 1 |
 | `privatePostSendorder` | POST | `sendorder` | 1 |
 | `privatePostEditorder` | POST | `editorder` | 1 |
 | `privatePostCancelorder` | POST | `cancelorder` | 1 |
 | `privatePostTransfer` | POST | `transfer` | 1 |
+| `privatePostTransferSubaccount` | POST | `transfer/subaccount` | 1 |
 | `privatePostBatchorder` | POST | `batchorder` | 1 |
 | `privatePostCancelallorders` | POST | `cancelallorders` | 1 |
 | `privatePostCancelallordersafter` | POST | `cancelallordersafter` | 1 |
@@ -102,6 +109,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostAssignmentprogramDelete` | POST | `assignmentprogram/delete` | 1 |
 | `privatePutLeveragepreferences` | PUT | `leveragepreferences` | 1 |
 | `privatePutPnlpreferences` | PUT | `pnlpreferences` | 1 |
+| `privatePutSelfTradeStrategy` | PUT | `self-trade-strategy` | 1 |
+| `privatePutSubaccountUidTradingEnabled` | PUT | `subaccount/{uid}/trading-enabled` | 1 |
 
 ## charts
 
@@ -110,6 +119,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | Method | HTTP | Endpoint | Cost |
 | --- | --- | --- | --- |
 | `chartsGetPriceTypeSymbolInterval` | GET | `{price_type}/{symbol}/{interval}` | 1 |
+| `chartsGetAnalyticsLiquidityPool` | GET | `analytics/liquidity-pool` | 1 |
 
 ## history
 
@@ -124,4 +134,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `historyGetAccountLog` | GET | `account-log` | 1 |
 | `historyGetMarketSymbolOrders` | GET | `market/{symbol}/orders` | 1 |
 | `historyGetMarketSymbolExecutions` | GET | `market/{symbol}/executions` | 1 |
+| `historyGetMarketSymbolPrice` | GET | `market/{symbol}/price` | 1 |
+| `historyGetPositions` | GET | `positions` | 1 |
 

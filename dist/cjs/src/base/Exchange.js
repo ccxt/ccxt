@@ -67,7 +67,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.77'; }
+    static { this.ccxtVersion = '4.5.78'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -677,12 +677,15 @@ class BaseExchange {
                     // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
                     // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
                     //
-                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
-                    // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
-                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
-                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
-                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    // note: keep the undici dependency at >= 7.29.1 - the GHSA-35p6-xmwp-9g52 mitigation
+                    // ("idle socket validation", 7.28.0+) originally deferred every write on an idle
+                    // kept-alive socket behind a setTimeout(0) tick, ~1.3ms per sequential request, which
+                    // is why this codebase once pinned 7.27.x - resolved upstream by running the
+                    // validation off a ref'd setImmediate instead (issue
+                    // https://github.com/nodejs/undici/issues/5493, fixed via
+                    // https://github.com/nodejs/undici/pull/5499 and
+                    // https://github.com/nodejs/undici/pull/5707, in the 7.x line since 7.29.1) -
+                    // profiled: sequential keep-alive p50 1.74ms on 7.29.0 vs 0.43ms on 7.29.1
                     const undiciModule = await Promise.resolve().then(function () { return /*#__PURE__*/_interopNamespace(require(/* webpackIgnore: true */ 'undici')); });
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;

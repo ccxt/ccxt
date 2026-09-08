@@ -110,6 +110,12 @@ public partial class krakenfutures : Exchange
                         { "instruments", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "instruments/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "instruments/{symbol}/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "orderbook", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -168,6 +174,18 @@ public partial class krakenfutures : Exchange
                         { "orders/status", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "unwindqueue", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "self-trade-strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccount/{uid}/trading-enabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sendorder", new Dictionary<string, object>() {
@@ -180,6 +198,9 @@ public partial class krakenfutures : Exchange
                             { "cost", 1 },
                         } },
                         { "transfer", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfer/subaccount", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "batchorder", new Dictionary<string, object>() {
@@ -208,11 +229,20 @@ public partial class krakenfutures : Exchange
                         { "pnlpreferences", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "self-trade-strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccount/{uid}/trading-enabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "charts", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "{price_type}/{symbol}/{interval}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "analytics/liquidity-pool", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -238,6 +268,12 @@ public partial class krakenfutures : Exchange
                             { "cost", 1 },
                         } },
                         { "market/{symbol}/executions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "market/{symbol}/price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "positions", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -294,6 +330,7 @@ public partial class krakenfutures : Exchange
                             { "triggers", "private" },
                             { "accountlogcsv", "private" },
                             { "account-log", "private" },
+                            { "positions", "private" },
                         } },
                     } },
                 } },
@@ -313,6 +350,7 @@ public partial class krakenfutures : Exchange
                     { "charts", new Dictionary<string, object>() {
                         { "GET", new Dictionary<string, object>() {
                             { "{price_type}/{symbol}/{interval}", "v1" },
+                            { "analytics/liquidity-pool", "v1" },
                         } },
                     } },
                     { "history", new Dictionary<string, object>() {

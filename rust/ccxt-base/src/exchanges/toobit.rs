@@ -3886,12 +3886,12 @@ impl ToobitCore {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
-        m.insert("entryPrice".to_string(), self.safe_string_k(position.clone(), "avgPrice", &[]));
-        m.insert("markPrice".to_string(), self.safe_string_k(position.clone(), "markPrice", &[]));
-        m.insert("lastPrice".to_string(), self.safe_string_k(position.clone(), "lastPrice", &[]));
-        m.insert("notional".to_string(), self.safe_string_k(position.clone(), "positionValue", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPrice", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "lastPrice", &[]));
+        m.insert("notional".to_string(), self.safe_number_k(position.clone(), "positionValue", &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.safe_string_k(position.clone(), "unrealizedPnL", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPnL", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -3900,7 +3900,7 @@ impl ToobitCore {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_string_k(position.clone(), "margin", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), leverage.clone());
         m.insert("liquidationPrice".to_string(), Value::Null);

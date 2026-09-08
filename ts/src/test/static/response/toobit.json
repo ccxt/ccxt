@@ -539,6 +539,82 @@
                 ],
                 "httpResponse": [],
                 "parsedResponse": []
+            },
+            {
+                "description": "an open long, whose numeric fields the empty case above never reaches",
+                "method": "fetchPositions",
+                "input": [
+                    [
+                        "ETH/USDT:USDT"
+                    ]
+                ],
+                "httpResponse": [
+                    {
+                        "symbol": "ETH-SWAP-USDT",
+                        "side": "LONG",
+                        "avgPrice": "0.21191",
+                        "position": "63",
+                        "available": "63",
+                        "leverage": "25",
+                        "lastPrice": "0.20932",
+                        "positionValue": "13.3503",
+                        "flp": "0.05471",
+                        "margin": "0.5262",
+                        "marginRate": "",
+                        "unrealizedPnL": "-0.1701",
+                        "profitRate": "-0.3185",
+                        "realizedPnL": "-0.008",
+                        "minMargin": "0",
+                        "maxNotionalValue": "10000000",
+                        "markPrice": "0.20921"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "symbol": "ETH-SWAP-USDT",
+                            "side": "LONG",
+                            "avgPrice": "0.21191",
+                            "position": "63",
+                            "available": "63",
+                            "leverage": "25",
+                            "lastPrice": "0.20932",
+                            "positionValue": "13.3503",
+                            "flp": "0.05471",
+                            "margin": "0.5262",
+                            "marginRate": "",
+                            "unrealizedPnL": "-0.1701",
+                            "profitRate": "-0.3185",
+                            "realizedPnL": "-0.008",
+                            "minMargin": "0",
+                            "maxNotionalValue": "10000000",
+                            "markPrice": "0.20921"
+                        },
+                        "id": null,
+                        "symbol": "ETH/USDT:USDT",
+                        "entryPrice": 0.21191,
+                        "markPrice": 0.20921,
+                        "lastPrice": 0.20932,
+                        "notional": 13.3503,
+                        "collateral": null,
+                        "unrealizedPnl": -0.1701,
+                        "side": "long",
+                        "contracts": 63,
+                        "contractSize": 0.01,
+                        "timestamp": null,
+                        "datetime": null,
+                        "hedged": null,
+                        "maintenanceMargin": null,
+                        "maintenanceMarginPercentage": null,
+                        "initialMargin": 0.5262,
+                        "initialMarginPercentage": null,
+                        "leverage": 25,
+                        "liquidationPrice": null,
+                        "marginRatio": null,
+                        "marginMode": null,
+                        "percentage": -32.32
+                    }
+                ]
             }
         ],
         "setLeverage": [

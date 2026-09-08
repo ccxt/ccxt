@@ -190,7 +190,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt"
-version = "4.5.75"
+version = "4.5.78"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -198,7 +198,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-base"
-version = "4.5.75"
+version = "4.5.78"
 dependencies = [
  "base64",
  "chrono",
@@ -230,7 +230,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-prediction"
-version = "4.5.75"
+version = "4.5.78"
 dependencies = [
  "async-trait",
  "ccxt-base",
@@ -238,7 +238,7 @@ dependencies = [
 
 [[package]]
 name = "ccxt-pro"
-version = "4.5.75"
+version = "4.5.78"
 dependencies = [
  "async-trait",
  "ccxt-base",

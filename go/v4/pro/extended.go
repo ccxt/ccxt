@@ -87,7 +87,7 @@ func (this *ExtendedCore) watchOrderBookBody(ch chan any, symbol any, optionalAr
 	var messageHash any = ccxt.Add("orderbook:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/orderbooks/"), ccxt.GetValue(market, "id"))
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
 	}
 
@@ -659,7 +659,7 @@ func (this *ExtendedCore) watchFundingRateBody(ch chan any, symbol any, optional
 	var messageHash any = ccxt.Add("fundingRate:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/funding/"), ccxt.GetValue(market, "id"))
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
 	}
 
@@ -750,7 +750,7 @@ func (this *ExtendedCore) watchMarkPriceBody(ch chan any, symbol any, optionalAr
 	var messageHash any = ccxt.Add("markPrice:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/prices/mark/"), ccxt.GetValue(market, "id"))
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
 	}
 
@@ -831,7 +831,7 @@ func (this *ExtendedCore) watchTradesBody(ch chan any, symbol any, optionalArgs 
 	var messageHash any = ccxt.Add("trades:", symbol)
 	var query string = this.Urlencode(params)
 	var url any = ccxt.Add(ccxt.Add(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), "/publicTrades/"), ccxt.GetValue(market, "id"))
-	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetArrayLength(query), 0)) {
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(query), 0)) {
 		url = ccxt.Add(url, ccxt.Add("?", query))
 	}
 

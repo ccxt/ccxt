@@ -118,6 +118,8 @@ export default class krakenfutures extends Exchange {
                     'get': {
                         'feeschedules': { 'cost': 1 },
                         'instruments': { 'cost': 1 },
+                        'instruments/status': { 'cost': 1 },
+                        'instruments/{symbol}/status': { 'cost': 1 },
                         'orderbook': { 'cost': 1 },
                         'tickers': { 'cost': 1 },
                         'tickers/{symbol}': { 'cost': 1 },
@@ -140,12 +142,17 @@ export default class krakenfutures extends Exchange {
                         'assignmentprogram/current': { 'cost': 1 },
                         'assignmentprogram/history': { 'cost': 1 },
                         'orders/status': { 'cost': 1 },
+                        'unwindqueue': { 'cost': 1 },
+                        'self-trade-strategy': { 'cost': 1 },
+                        'subaccounts': { 'cost': 1 },
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 },
                     },
                     'post': {
                         'sendorder': { 'cost': 1 },
                         'editorder': { 'cost': 1 },
                         'cancelorder': { 'cost': 1 },
                         'transfer': { 'cost': 1 },
+                        'transfer/subaccount': { 'cost': 1 },
                         'batchorder': { 'cost': 1 },
                         'cancelallorders': { 'cost': 1 },
                         'cancelallordersafter': { 'cost': 1 },
@@ -156,11 +163,14 @@ export default class krakenfutures extends Exchange {
                     'put': {
                         'leveragepreferences': { 'cost': 1 },
                         'pnlpreferences': { 'cost': 1 },
+                        'self-trade-strategy': { 'cost': 1 },
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 },
                     },
                 },
                 'charts': {
                     'get': {
                         '{price_type}/{symbol}/{interval}': { 'cost': 1 },
+                        'analytics/liquidity-pool': { 'cost': 1 },
                     },
                 },
                 'history': {
@@ -172,6 +182,8 @@ export default class krakenfutures extends Exchange {
                         'account-log': { 'cost': 1 },
                         'market/{symbol}/orders': { 'cost': 1 },
                         'market/{symbol}/executions': { 'cost': 1 },
+                        'market/{symbol}/price': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
                     },
                 },
             },
@@ -244,6 +256,7 @@ export default class krakenfutures extends Exchange {
                             'triggers': 'private',
                             'accountlogcsv': 'private',
                             'account-log': 'private',
+                            'positions': 'private',
                         },
                     },
                 },
@@ -263,6 +276,7 @@ export default class krakenfutures extends Exchange {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                            'analytics/liquidity-pool': 'v1',
                         },
                     },
                     'history': {

@@ -2956,6 +2956,25 @@ public partial class binance : ccxt.binance
         }
         object market = this.safeMarket(marketId, null, null, marketType);
         string? last = this.safeString2(message, "c", "price");
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        object baseVolume = this.safeString(message, "v");
+        string? quoteVolume = this.safeString(message, "q");
+        if (isTrue(isEqual(getValue(market, "inverse"), true)))
+        {
+            object contracts = baseVolume;
+            baseVolume = quoteVolume;
+            string? weightedAverage = this.safeString(message, "w");
+            if (isTrue(isEqual(weightedAverage, null)))
+            {
+                quoteVolume = Precise.stringMul(contracts, this.safeString(market, "contractSize"));
+            } else
+            {
+                quoteVolume = Precise.stringMul(baseVolume, weightedAverage);
+            }
+        }
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -2974,8 +2993,8 @@ public partial class binance : ccxt.binance
             { "change", this.safeString(message, "p") },
             { "percentage", this.safeString(message, "P") },
             { "average", null },
-            { "baseVolume", this.safeString(message, "v") },
-            { "quoteVolume", this.safeString(message, "q") },
+            { "baseVolume", baseVolume },
+            { "quoteVolume", quoteVolume },
             { "info", message },
         }, market);
     }

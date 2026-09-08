@@ -3181,7 +3181,28 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object last = this.safeString2(message, "c", "price");
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        Object baseVolume = this.safeString(message, "v");
+        Object quoteVolume = this.safeString(message, "q");
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
+        {
+            Object contracts = baseVolume;
+            baseVolume = quoteVolume;
+            Object weightedAverage = this.safeString(message, "w");
+            if (Helpers.isTrue(Helpers.isEqual(weightedAverage, null)))
+            {
+                quoteVolume = Precise.stringMul(contracts, this.safeString(market, "contractSize"));
+            } else
+            {
+                quoteVolume = Precise.stringMul(baseVolume, weightedAverage);
+            }
+        }
         final Object finalTimestamp = timestamp;
+        final Object finalBaseVolume = baseVolume;
+        final Object finalQuoteVolume = quoteVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -3200,8 +3221,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             put( "change", BinanceCore.this.safeString(message, "p") );
             put( "percentage", BinanceCore.this.safeString(message, "P") );
             put( "average", null );
-            put( "baseVolume", BinanceCore.this.safeString(message, "v") );
-            put( "quoteVolume", BinanceCore.this.safeString(message, "q") );
+            put( "baseVolume", finalBaseVolume );
+            put( "quoteVolume", finalQuoteVolume );
             put( "info", message );
         }}, market);
     }

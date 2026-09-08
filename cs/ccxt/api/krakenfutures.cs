@@ -25,6 +25,20 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetInstruments",parameters);
     }
 
+    /// <summary>Calls the publicGetInstrumentsStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetInstrumentsStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetInstrumentsStatus",parameters);
+    }
+
+    /// <summary>Calls the publicGetInstrumentsSymbolStatus endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetInstrumentsSymbolStatus (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetInstrumentsSymbolStatus",parameters);
+    }
+
     /// <summary>Calls the publicGetOrderbook endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetOrderbook (object parameters = null)
@@ -151,6 +165,34 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetOrdersStatus",parameters);
     }
 
+    /// <summary>Calls the privateGetUnwindqueue endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetUnwindqueue (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetUnwindqueue",parameters);
+    }
+
+    /// <summary>Calls the privateGetSelfTradeStrategy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSelfTradeStrategy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSelfTradeStrategy",parameters);
+    }
+
+    /// <summary>Calls the privateGetSubaccounts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSubaccounts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSubaccounts",parameters);
+    }
+
+    /// <summary>Calls the privateGetSubaccountUidTradingEnabled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSubaccountUidTradingEnabled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSubaccountUidTradingEnabled",parameters);
+    }
+
     /// <summary>Calls the privatePostSendorder endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostSendorder (object parameters = null)
@@ -177,6 +219,13 @@ public partial class krakenfutures : Exchange
     public async Task<Dictionary<string, object>> privatePostTransfer (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostTransfer",parameters);
+    }
+
+    /// <summary>Calls the privatePostTransferSubaccount endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTransferSubaccount (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTransferSubaccount",parameters);
     }
 
     /// <summary>Calls the privatePostBatchorder endpoint.</summary>
@@ -235,11 +284,32 @@ public partial class krakenfutures : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePutPnlpreferences",parameters);
     }
 
+    /// <summary>Calls the privatePutSelfTradeStrategy endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutSelfTradeStrategy (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutSelfTradeStrategy",parameters);
+    }
+
+    /// <summary>Calls the privatePutSubaccountUidTradingEnabled endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePutSubaccountUidTradingEnabled (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePutSubaccountUidTradingEnabled",parameters);
+    }
+
     /// <summary>Calls the chartsGetPriceTypeSymbolInterval endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> chartsGetPriceTypeSymbolInterval (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("chartsGetPriceTypeSymbolInterval",parameters);
+    }
+
+    /// <summary>Calls the chartsGetAnalyticsLiquidityPool endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> chartsGetAnalyticsLiquidityPool (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("chartsGetAnalyticsLiquidityPool",parameters);
     }
 
     /// <summary>Calls the historyGetOrders endpoint.</summary>
@@ -289,6 +359,20 @@ public partial class krakenfutures : Exchange
     public async Task<Dictionary<string, object>> historyGetMarketSymbolExecutions (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("historyGetMarketSymbolExecutions",parameters);
+    }
+
+    /// <summary>Calls the historyGetMarketSymbolPrice endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> historyGetMarketSymbolPrice (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("historyGetMarketSymbolPrice",parameters);
+    }
+
+    /// <summary>Calls the historyGetPositions endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> historyGetPositions (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("historyGetPositions",parameters);
     }
 
 }

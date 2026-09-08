@@ -3641,6 +3641,10 @@ class kucoin extends \ccxt\async\kucoin {
             if (mb_strpos($client->url, 'connectId=private') !== false) {
                 $type = 'private';
             }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if (mb_strpos($client->url, 'connectId=' . $type . 'Futures') !== false) {
+                $type .= 'Futures';
+            }
             $this->options['urls'][$type] = null;
         }
         $this->handle_errors(1, '', $client->url, '', array(), $data, $message, array(), array());

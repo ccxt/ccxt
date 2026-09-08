@@ -1328,6 +1328,15 @@ impl LbankCore {
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
+        // lbank drives liveness from its side: the server sends this
+        // application-level ping and closes the socket if it is not answered
+        // within a minute, but it does not reliably answer the RFC 6455 ping
+        // frames the base client sends from onPingInterval. an inbound ping is
+        // proof the connection is alive, so record it as the last pong -
+        // otherwise lastPong never advances past the first onPingInterval and
+        // the keepAlive * maxPingPongMisses check tears down a healthy,
+        // streaming socket every 60 seconds
+        crate::set_value(&mut client, &Value::Str("lastPong".to_string()), self.milliseconds());
         let mut pingId: Value = self.safe_string_k(message.clone(), "ping", &[]);
         let _try_result = futures::FutureExt::catch_unwind(std::panic::AssertUnwindSafe(async {
             client.send(&[Value::Map({

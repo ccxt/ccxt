@@ -4126,6 +4126,11 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 type = "private";
             }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, Helpers.add(Helpers.add("connectId=", type), "Futures")), 0)))
+            {
+                type = Helpers.add(type, "Futures");
+            }
             Helpers.addElementToObject(Helpers.GetValue(this.options, "urls"), type, null);
         }
         this.handleErrors(1, "", client.url, "", new java.util.HashMap<String, Object>() {{}}, data, message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
