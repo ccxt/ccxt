@@ -69,6 +69,8 @@ jobs:
       run: npm run test-base-rest-cpp
     - name: binance smoke test
       run: cpp/build/ccxt-smoke-binance
+    - name: typed layer smoke test
+      run: cpp/build/ccxt-typed-smoke
     - name: Static request tests (all exchanges)
       run: cpp/build/ccxt-tests all --requestTests
     - name: Static response tests (all exchanges)
