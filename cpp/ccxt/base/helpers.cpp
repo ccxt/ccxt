@@ -1,4 +1,5 @@
 #include "helpers.h"
+#include "Precise.h"
 
 #include <algorithm>
 #include <chrono>
@@ -40,7 +41,18 @@ std::string anyToString (const std::any& v) {
     if (!v.has_value ())            return "undefined";
     if (ccxt::isStr (v))            return std::any_cast<std::string> (v);
     if (ccxt::isBoolean (v))        return std::any_cast<bool> (v) ? "true" : "false";
+    // integer types print exactly (C# long semantics): the double round-trip
+    // corrupts 19-digit ids (782042010738492300 -> ...288)
+    if (v.type () == typeid (long long))          return std::to_string (std::any_cast<long long> (v));
+    if (v.type () == typeid (long))               return std::to_string (std::any_cast<long> (v));
+    if (v.type () == typeid (int))                return std::to_string (std::any_cast<int> (v));
+    if (v.type () == typeid (unsigned long long)) return std::to_string (std::any_cast<unsigned long long> (v));
+    if (v.type () == typeid (std::size_t) && typeid (std::size_t) != typeid (unsigned long long))
+        return std::to_string (std::any_cast<std::size_t> (v));
     if (ccxt::isNum (v))            return numberToJsString (ccxt::toDouble (v));
+    if (v.type () == typeid (ccxt::Precise)) {
+        return anyToString (std::any_cast<const ccxt::Precise&> (v).toString ());
+    }
     if (ccxt::isList (v))           return "[object Array]";
     if (ccxt::isDict (v))           return "[object Object]";
     return "[object]";

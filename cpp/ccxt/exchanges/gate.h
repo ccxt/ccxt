@@ -8327,15 +8327,15 @@ public:
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details
+   * https://www.gate.com/docs/developers/apiv4/en/#query-single-autoFlag-order-details
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-2
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-2
+   * https://www.gate.com/docs/developers/apiv4/en/#query-single-autoFlag-order-details-2
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-3
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#query-single-auto-order-details-3
+   * https://www.gate.com/docs/developers/apiv4/en/#query-single-autoFlag-order-details-3
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-single-order-details-4
    * @param {string} id Order id
@@ -8469,13 +8469,15 @@ public:
    * @description fetches information on multiple closed orders made by the user
    * @see https://www.gate.com/en-eu/docs/developers/apiv4/#list-orders
    * @see
-   * https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-auto-order-list
+   * https://www.gate.com/en-eu/docs/developers/apiv4/#retrieve-running-autoFlag-order-list
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list
-   * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list
+   * @see
+   * https://www.gate.com/docs/developers/apiv4/en/#query-autoFlag-order-list
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-2
-   * @see https://www.gate.com/docs/developers/apiv4/en/#query-auto-order-list-2
+   * @see
+   * https://www.gate.com/docs/developers/apiv4/en/#query-autoFlag-order-list-2
    * @see https://www.gate.com/docs/developers/apiv4/en/#list-options-orders
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#query-futures-order-list-by-time-range
@@ -8886,13 +8888,13 @@ public:
    * @description Cancels an open order
    * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-autoFlag-order
    * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-2
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-2
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-autoFlag-order-2
    * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-3
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-auto-order-3
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-single-autoFlag-order-3
    * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-single-order-4
    * @param {string} id Order id
    * @param {string} symbol Unified market symbol
@@ -9218,15 +9220,16 @@ public:
    * @description cancel all open orders
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-open-orders-in-specified-currency-pair
-   * @see https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders
+   * @see
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-autoFlag-orders
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-2
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-autoFlag-orders-2
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-2
    * @see
-   * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-auto-orders-3
+   * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-autoFlag-orders-3
    * @see
    * https://www.gate.com/docs/developers/apiv4/en/#cancel-all-orders-with-open-status-3
    * @param {string} [symbol] unified market symbol, only orders in the market

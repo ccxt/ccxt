@@ -22894,16 +22894,16 @@ public:
   /**
    * @method
    * @name binance#fetchADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * symbol
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a symbol
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/ADL-Risk
-   * @param {string} symbol unified symbol of the market to fetch the auto
+   * @param {string} symbol unified symbol of the market to fetch the autoFlag
    * deleveraging rank for
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object} an [auto de leverage structure]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object} an [autoFlag de leverage structure]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<std::any>
   fetchADLRank(std::any symbol, std::any params = ccxt::dict{}) override {
@@ -22947,8 +22947,8 @@ public:
   /**
    * @method
    * @name binance#fetchPositionsADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * list of symbols that have open positions
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a list of symbols that have open positions
    * @see
    * https://developers.binance.com/docs/derivatives/usds-margined-futures/trade/rest-api/Position-ADL-Quantile-Estimation
    * @see
@@ -22962,8 +22962,8 @@ public:
    * endpoint
    * @param {boolean} [params.portfolioMargin] set to true for the portfolio
    * margin account
-   * @returns {object[]} an array of [auto de leverage structure]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object[]} an array of [autoFlag de leverage structure]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<std::any>
   fetchPositionsADLRank(std::any symbols = std::any{},

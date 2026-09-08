@@ -47,6 +47,15 @@ public:
     // Applies describe() and then the caller's overrides, mirroring what the TS
     // constructor does above the transpile delimiter.
     void initialiseDefaults (const std::any& config) {
+        // TS constructor scalar defaults (ts/src/base/Exchange.ts:560-640) that gate
+        // behaviour in transpiled code paths. substituteCommonCurrencyCodes gates the
+        // XBT->BTC style mapping; reduceFees gates fee aggregation in safeTrade/safeOrder;
+        // quoteJsonNumbers mirrors the TS default even though the C++ parser handles
+        // precision separately.
+        this->substituteCommonCurrencyCodes = std::any (true);
+        this->reduceFees = std::any (true);
+        this->quoteJsonNumbers = std::any (true);
+        this->minFundingAddressLength = std::any (1);
         // TS seeds options from getDefaultOptions() before describe() merges over it
         // (ts/src/base/Exchange.ts:557). These are not cosmetic defaults:
         // defaultNetworkCodeReplacements lives there, and without it
@@ -117,6 +126,10 @@ public:
         if (key == "timeout")            { this->timeout = value; return; }
         if (key == "markets")            { this->markets = value; return; }
         if (key == "currencies")         { this->currencies = value; return; }
+        // the static test harness seeds a default accounts list through the
+        // constructor config; loadAccounts() must see it or private flows
+        // (htx account-id, coinbase deposit addresses) try a live prefetch
+        if (key == "accounts")           { this->accounts = value; return; }
         if (!isDict (this->options)) {
             this->options = std::any (dict {});
         }
@@ -130,6 +143,12 @@ public:
     // cannot see it. Offline this iteration: fetch() throws NotSupported, and the
     // static request tests read what sign() built out of last_request_url /
     // last_request_body instead of sending anything.
+    bool hasEndpoint (const std::string& name) override {
+        if (!isDict (this->endpointRegistry)) {
+            this->defineRestApi ();
+        }
+        return ::getValue (this->endpointRegistry, std::any (name)).has_value ();
+    }
     virtual std::shared_future<std::any> callEndpoint (std::any name, std::any params = std::any {}) {
         return std::async (std::launch::deferred, [this, name, params] () -> std::any {
             if (!isDict (this->endpointRegistry)) {

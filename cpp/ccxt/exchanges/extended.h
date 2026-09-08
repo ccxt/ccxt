@@ -4455,7 +4455,7 @@ public:
    * @name extended#cancelAllOrdersAfter
    * @description dead man's switch, cancel all orders after the given timeout
    * @see
-   * https://api.docs.extended.exchange/#mass-auto-cancel-dead-man-39-s-switch
+   * https://api.docs.extended.exchange/#mass-autoFlag-cancel-dead-man-39-s-switch
    * @param {number} timeout time in milliseconds, 0 represents cancel the timer
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint

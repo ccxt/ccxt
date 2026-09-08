@@ -1421,7 +1421,7 @@ public:
    * @param {string} [params.dex] for hip3 markets, the dex name, eg: 'xyz'
    * @param {string} [params.subAccountAddress] sub account user address
    * @param {boolean} [params.enableUnifiedMargin] enable unified margin, CCXT
-   * tries to auto-detects this value but you can override it
+   * tries to autoFlag-detects this value but you can override it
    * @returns {object} a [balance structure]{@link
    * https://docs.ccxt.com/?id=balance-structure}
    */

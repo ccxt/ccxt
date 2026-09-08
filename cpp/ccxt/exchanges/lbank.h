@@ -1823,8 +1823,8 @@ public:
       return this->safeBalance(result);
     }
     // from spotPrivatePostSupplementUserInfo
-    std::any isArray = ::isArray(data);
-    if (isTrue(isEqual(isArray, true))) {
+    std::any isArrayFlag = ::isArray(data);
+    if (isTrue(isEqual(isArrayFlag, true))) {
       for (std::any i = 0; isLessThan(i, getArrayLength(data));
            postFixIncrement(i)) {
         std::any item = ::getValue(data, i);

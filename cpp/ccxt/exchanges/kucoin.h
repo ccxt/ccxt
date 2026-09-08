@@ -17073,15 +17073,15 @@ public:
   /**
    * @method
    * @name kucoin#fetchPositionsADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * list of symbols
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a list of symbols
    * @see
    * https://www.kucoin.com/docs-new/rest/futures-trading/positions/get-position-list
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object[]} an array of [auto de leverage structures]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object[]} an array of [autoFlag de leverage structures]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<std::any>
   fetchPositionsADLRank(std::any symbols = std::any{},

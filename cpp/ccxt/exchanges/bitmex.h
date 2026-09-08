@@ -4593,14 +4593,14 @@ public:
   /**
    * @method
    * @name bitmex#fetchPositionsADLRank
-   * @description fetches the auto deleveraging rank and risk percentage for a
-   * list of symbols
+   * @description fetches the autoFlag deleveraging rank and risk percentage for
+   * a list of symbols
    * @see https://www.bitmex.com/api/explorer/#!/Position/Position_get
    * @param {string[]} [symbols] list of unified market symbols
    * @param {object} [params] extra parameters specific to the exchange API
    * endpoint
-   * @returns {object[]} an [auto de leverage structure]{@link
-   * https://docs.ccxt.com/?id=auto-de-leverage-structure}
+   * @returns {object[]} an [autoFlag de leverage structure]{@link
+   * https://docs.ccxt.com/?id=autoFlag-de-leverage-structure}
    */
   std::shared_future<std::any>
   fetchPositionsADLRank(std::any symbols = std::any{},

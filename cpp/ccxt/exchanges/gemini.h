@@ -1124,7 +1124,7 @@ public:
                      this->options, std::string("brokenPairs"), ccxt::list{});
                  std::any marketIds = ccxt::list{};
                  std::any allMarketIds = ccxt::list{};
-                 if (isTrue(isArray(marketIdsRaw))) {
+                 if (isTrue(::isArray(marketIdsRaw))) {
                    allMarketIds = marketIdsRaw;
                  }
                  for (std::any i = 0;
@@ -1237,8 +1237,8 @@ public:
     std::any linear = std::any{};
     std::any inverse = std::any{};
     std::any isString = (::isString(response));
-    std::any isArray = (::isArray(response));
-    if (isTrue(!isTrue(isString) && !isTrue(isArray))) {
+    std::any isArrayFlag = (::isArray(response));
+    if (isTrue(!isTrue(isString) && !isTrue(isArrayFlag))) {
       marketId = this->safeStringLower(response, std::string("symbol"));
       amountPrecision = this->safeNumber(
           response,
@@ -2977,7 +2977,7 @@ public:
                         //     ]
                         //
                         std::any candles = ccxt::list{};
-                        if (isTrue(isArray(response))) {
+                        if (isTrue(::isArray(response))) {
                           candles = response;
                         }
                         return this->parseOHLCVs(candles, market, timeframe,
