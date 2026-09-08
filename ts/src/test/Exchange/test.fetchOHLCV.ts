@@ -48,7 +48,7 @@ function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, s
     }
     // ensure bars amount is more than zero
     if (barsLength === 0) {
-        // zero-amount of bars should not be tolerated for major exchagnes, because it would indicate implementation issue
+        // zero-amount of bars should not be tolerated for major exchanges, because it would indicate implementation issue
         // so unless the target exchange (probably mostly lower end exchanges) is skipped, we should assert that
         if (!('compareAmountToZero' in skippedProperties)) {
             assert (barsLength > 0, 'Returned bars amount should be more then zero' + logText);
