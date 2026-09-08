@@ -23,7 +23,7 @@ concurrency:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, rust ]
     if: ${{ !startsWith(github.event.head_commit.message, 'Update changelog for') && !startsWith(github.event.head_commit.message, '[Automated changes]') && !contains(github.event.head_commit.message, 'Merge branch ''master'' of https://github.com/ccxt/ccxt') }}
     timeout-minutes: 120
     steps:
@@ -206,7 +206,7 @@ jobs:
 
   live-tests:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: [ self-hosted, linux, x64, rust ]
     steps:
       - uses: actions/checkout@v4
       - name: Install Rust toolchain
