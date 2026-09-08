@@ -1377,11 +1377,15 @@ export class BaseExchange {
                 if (typeof error.code === 'string') {
                     parts.push (error.code);
                 }
-                if (error.message) {
+                if ((typeof error.message === 'string') && (error.message.length > 0)) {
                     parts.push (error.message);
                 }
                 if (Array.isArray (error.errors)) { // AggregateError - one inner error per attempted address
-                    const innerErrors = error.errors.slice (0, 3).map ((inner: any) => ((inner.code || inner.message || 'error') + ((inner.address !== undefined) ? (' ' + inner.address + ((inner.port !== undefined) ? (':' + inner.port) : '')) : '')));
+                    const innerErrors = error.errors.slice (0, 3).map ((inner: any) => {
+                        const innerCode = (typeof inner.code === 'string') ? inner.code : ((typeof inner.message === 'string') ? inner.message : 'error');
+                        const innerAddress = (inner.address !== undefined) ? (' ' + inner.address + ((inner.port !== undefined) ? (':' + inner.port) : '')) : '';
+                        return innerCode + innerAddress;
+                    });
                     parts.push ('[' + innerErrors.join (', ') + ((error.errors.length > 3) ? ', ...' : '') + ']');
                 }
                 return parts.join (' ');
