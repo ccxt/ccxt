@@ -989,7 +989,7 @@ export class BaseExchange {
      * @ignore
      * @method
      * @name Exchange#getDispatcherOptions
-     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack is explicit: autoSelectFamily enables happy eyeballs (rfc 8305) so ipv6 and ipv4 addresses are both attempted (off by default on node 18), without forcing either family - note that node's implementation attempts addresses sequentially, aborting each attempt at autoSelectFamilyAttemptTimeout before moving to the next address, it does NOT race them in parallel
+     * @description builds keep-alive-tuned undici dispatcher options - every in-flight request gets its own socket (no pipelining, no h2 multiplexing), idle sockets are kept alive for reuse because exchanges are polled on the same origins repeatedly - dual-stack address-family selection (happy eyeballs, rfc 8305) is deferred to the platform defaults - see the inline note on why no explicit values are set here
      * @param {boolean} [isPlainAgent] true for undici.Agent options ('connect' tls shape), false for undici.ProxyAgent options ('requestTls' shape)
      * @returns {object} undici dispatcher options
      */
@@ -1000,8 +1000,15 @@ export class BaseExchange {
             'connections': 256, // per-origin socket cap, prevents fd exhaustion under bursts
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
-            'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 250, // ms a single connection attempt gets to complete its tcp handshake before node ABORTS it and tries the next address (sequential abort-and-advance, not parallel racing) - any value below the origin's handshake rtt makes that origin deterministically unreachable, every address dies mid-handshake and the connect fails with an empty-message AggregateError (ETIMEDOUT) after cycling all of them - observed in production with a 10ms setting against an exchange api behind a transatlantic cloudfront pop (~45ms rtt) - 250ms matches node's own default, do not lower it below plausible wan handshake rtts - note node exempts the last address in the list from this timer (it gets the remaining connection budget), so total unreachability also requires the final address to fail on its own (e.g. an ipv6 tail address on a host without v6 egress fails instantly)
+            // address-family selection (happy eyeballs, rfc 8305) is deliberately left to the platform:
+            // undici forwards these options only when explicitly set, so omitting them defers to
+            // net.getDefaultAutoSelectFamily() (true on every node that can load undici, engines >= 20.18.1)
+            // and net.getDefaultAutoSelectFamilyAttemptTimeout() (250ms, tunable via
+            // net.setDefaultAutoSelectFamilyAttemptTimeout() or --network-family-autoselection-attempt-timeout).
+            // node attempts addresses sequentially, aborting each attempt at the timeout and advancing
+            // (the last address is exempt and gets the remaining budget) - a hardcoded 10ms here once made
+            // every origin with a handshake rtt above 10ms deterministically unreachable (#30316), so do
+            // not reintroduce an explicit value below plausible wan handshake rtts
         };
         if (!this.shouldValidateServerSsl ()) {
             const tlsOptions = { 'rejectUnauthorized': false };
