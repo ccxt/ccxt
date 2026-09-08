@@ -51,7 +51,6 @@ class okx extends okx$1["default"] {
             },
             'options': {
                 'watchOrderBook': {
-                    'checksum': true,
                     //
                     // bbo-tbt
                     // 1. Newly added channel that sends tick-by-tick Level 1 data
