@@ -835,7 +835,7 @@ public partial class okx : ccxt.okx
         }
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchliquidationsForSymbols", market, parameters);
+        var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         string channel = "liquidation-orders";
