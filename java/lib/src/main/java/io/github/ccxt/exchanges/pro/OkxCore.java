@@ -60,7 +60,6 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }} );
             put( "options", new java.util.HashMap<String, Object>() {{
                 put( "watchOrderBook", new java.util.HashMap<String, Object>() {{
-                    put( "checksum", true );
                     put( "depth", "books" );
                 }} );
                 put( "watchBalance", "spot" );
