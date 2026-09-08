@@ -26,13 +26,13 @@ async function testFetchOHLCV (exchange: Exchange, skippedProperties: object, sy
             const ohlcvs = await exchange.fetchOHLCV (symbol, chosenTimeframeKey, sinceCurrent, limit);
             // we can't expect array to have values, because requested period might have zero bars for valid reason
             // testSharedMethods.assertNonEmtpyArray (exchange, skippedProperties, method, ohlcvs, symbol);
-            testFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
+            helperFetchOHLCVChecker (exchange, skippedProperties, symbol, ohlcvs, chosenTimeframeKey, sinceCurrent, limit);
         }
     }
     return true;
 }
 
-function testFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, symbol: string, ohlcvs: any, timeframe: Str, since: Num, limit: Num) {
+function helperFetchOHLCVChecker (exchange: Exchange, skippedProperties: object, symbol: string, ohlcvs: any, timeframe: Str, since: Num, limit: Num) {
     const method = 'fetchOHLCV';
     let logText = testSharedMethods.logTemplate (exchange, method, {});
     assert (Array.isArray (ohlcvs), exchange.id + ' ' + method + ' must return an array, returned ' + logText);
