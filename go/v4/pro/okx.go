@@ -1016,7 +1016,7 @@ func (this *OkxCore) watchLiquidationsForSymbolsBody(ch chan any, symbols any, o
 	}
 	var market any = this.GetMarketFromSymbols(symbols)
 	var typeVar any = nil
-	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchliquidationsForSymbols", market, params)
+	typeVarparamsVariable := this.HandleMarketTypeAndParams("watchLiquidationsForSymbols", market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
 	var channel string = "liquidation-orders"
