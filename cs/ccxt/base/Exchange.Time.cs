@@ -170,21 +170,7 @@ public partial class BaseExchange
         return date;
     }
 
-    public object ymd(object ts, object infix = null)
-    {
-        if (infix == null)
-        {
-            infix = "-";
-        }
-        // check this
-        if (ts == null)
-        {
-            return null;
-        }
-        var startdatetime = Convert.ToInt64(ts);
-        var date = (new DateTime(1970, 1, 1)).AddMilliseconds(startdatetime);
-        return date.ToString("yyyy" + infix + "MM" + infix + "dd");
-    }
+    public object ymd(object ts, object infix = null) => yyyymmdd(ts, infix);
 
     public Int64? parse8601(object datetime2 = null)
     {

@@ -4093,7 +4093,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_spot_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_spot_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -4285,7 +4285,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_contract_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_contract_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -4487,7 +4487,7 @@ class kucoin extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_uta_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
+    public function create_uta_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): PromiseInterface {
         return Async\async(self::do_create_uta_order(...))($symbol, $type, $side, $amount, $price, $params);
     }
 
@@ -5293,7 +5293,7 @@ class kucoin extends Exchange {
         return $this->safe_order(array( 'info' => $response ));
     }
 
-    public function cancel_uta_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_uta_order(...))($id, $symbol, $params);
     }
 
@@ -5512,7 +5512,7 @@ class kucoin extends Exchange {
         return array( $this->safe_order(array( 'info' => $data )) );
     }
 
-    public function cancel_all_uta_orders(?string $symbol = null, $params = array()) {
+    public function cancel_all_uta_orders(?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_cancel_all_uta_orders(...))($symbol, $params);
     }
 
@@ -5630,7 +5630,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
@@ -5774,7 +5774,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_contract_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_contract_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_contract_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
@@ -5892,7 +5892,7 @@ class kucoin extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_uta_orders_by_status(mixed $status, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_uta_orders_by_status(...))($status, $symbol, $since, $limit, $params);
     }
 
@@ -6157,7 +6157,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_spot_order(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_spot_order(string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_order(...))($id, $symbol, $params);
     }
 
@@ -6255,7 +6255,7 @@ class kucoin extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function fetch_contract_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_contract_order(?string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_contract_order(...))($id, $symbol, $params);
     }
 
@@ -6336,7 +6336,7 @@ class kucoin extends Exchange {
         return $this->parse_order($responseData, $market);
     }
 
-    public function fetch_uta_order(?string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_uta_order(?string $id, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_uta_order(...))($id, $symbol, $params);
     }
 
@@ -6982,7 +6982,7 @@ class kucoin extends Exchange {
         }
     }
 
-    public function fetch_my_spot_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_spot_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_spot_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -7119,7 +7119,7 @@ class kucoin extends Exchange {
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
-    public function fetch_my_contract_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_contract_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_contract_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -7208,7 +7208,7 @@ class kucoin extends Exchange {
         return $this->parse_trades($tradesList, $market, $since, $limit);
     }
 
-    public function fetch_my_uta_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_uta_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_uta_trades(...))($symbol, $since, $limit, $params);
     }
 
@@ -10277,7 +10277,7 @@ class kucoin extends Exchange {
         return $response;
     }
 
-    public function set_contract_leverage(int $leverage, ?string $symbol = null, $params = array()) {
+    public function set_contract_leverage(int $leverage, ?string $symbol = null, $params = array()): PromiseInterface {
         return Async\async(self::do_set_contract_leverage(...))($leverage, $symbol, $params);
     }
 

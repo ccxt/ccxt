@@ -325,6 +325,28 @@ function testSafeFloat() {
     assert(exchange.safeFloatN(inputDict, ['a', 'b', 'strNumber']) === parseFloat(3));
     // @ts-expect-error
     assert(exchange.safeFloatN(inputList, [3, 2, 1]) === parseFloat(2));
+    // safeFloat - negative paths (missing key, empty string, non-numeric string, undefined container)
+    assert(exchange.safeFloat(inputDict, 'nonexistent') === undefined, 'safeFloat failed for missing key');
+    assert(exchange.safeFloat(inputDict, 'nonexistent', 5) === 5, 'safeFloat failed for missing key with default');
+    assert(exchange.safeFloat(inputDict, 'emptyString') === undefined, 'safeFloat failed for empty string');
+    assert(exchange.safeFloat(inputDict, 'str') === undefined, 'safeFloat failed for non-numeric string');
+    assert(exchange.safeFloat(inputDict, 'undefined') === undefined, 'safeFloat failed for None value');
+    assert(exchange.safeFloat(undefined, 'i') === undefined, 'safeFloat failed for undefined container');
+    assert(exchange.safeFloat(undefined, 'i', 7) === 7, 'safeFloat failed for undefined container with default');
+    assert(exchange.safeFloat(inputList, 5) === undefined, 'safeFloat failed for out-of-range list index');
+    // safeFloat2 - negative paths
+    assert(exchange.safeFloat2(inputDict, 'nonexistent', 'nonexistent2') === undefined, 'safeFloat2 failed for missing keys');
+    assert(exchange.safeFloat2(inputDict, 'nonexistent', 'str') === undefined, 'safeFloat2 failed for missing then non-numeric');
+    assert(exchange.safeFloat2(inputDict, 'nonexistent', 'emptyString') === undefined, 'safeFloat2 failed for missing then empty string');
+    assert(exchange.safeFloat2(inputDict, 'nonexistent', 'nonexistent2', 9) === 9, 'safeFloat2 failed for missing keys with default');
+    assert(exchange.safeFloat2(undefined, 'i', 'f') === undefined, 'safeFloat2 failed for undefined container');
+    // safeFloatN - negative paths
+    assert(exchange.safeFloatN(inputDict, ['a', 'b', 'nonexistent']) === undefined, 'safeFloatN failed for missing keys');
+    assert(exchange.safeFloatN(inputDict, ['a', 'b', 'emptyString']) === undefined, 'safeFloatN failed for empty string');
+    assert(exchange.safeFloatN(inputDict, ['a', 'b', 'str']) === undefined, 'safeFloatN failed for non-numeric string');
+    assert(exchange.safeFloatN(inputDict, ['a', 'b', 'nonexistent'], 11) === 11, 'safeFloatN failed for missing keys with default');
+    assert(exchange.safeFloatN(undefined, ['a', 'b', 'i']) === undefined, 'safeFloatN failed for undefined container');
+    assert(exchange.safeFloatN(inputList, [5, 6]) === undefined, 'safeFloatN failed for out-of-range list indices');
 }
 function testSafeNumber() {
     const exchange = new ccxt.Exchange({

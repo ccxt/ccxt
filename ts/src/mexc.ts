@@ -2461,7 +2461,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

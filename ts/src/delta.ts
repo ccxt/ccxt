@@ -2333,7 +2333,7 @@ export default class delta extends Exchange {
         return await this.fetchOrdersWithMethod ('privateGetOrdersHistory', symbol, since, limit, params);
     }
 
-    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersWithMethod (method: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         await this.loadMarkets ();
         const request: Dict = {
             // 'product_ids': market['id'], // comma-separated

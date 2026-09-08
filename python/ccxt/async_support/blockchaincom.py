@@ -791,7 +791,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         state = 'OPEN'
         return await self.fetch_orders_by_state(state, symbol, since, limit, params)
 
-    async def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_orders_by_state(self, state: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             await self.load_markets()
         request = {
@@ -1049,7 +1049,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetWithdrawals(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 
@@ -1094,7 +1094,7 @@ class blockchaincom(Exchange, ImplicitAPI):
         response = await self.privateGetDeposits(self.extend(request, params))
         return self.parse_transactions(response, currency, since, limit)
 
-    async def fetch_deposit(self, id: str, code: Str = None, params={}):
+    async def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch information on a deposit
 

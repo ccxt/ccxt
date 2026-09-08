@@ -3853,7 +3853,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' createOrder() does not support market ' + market['type'])
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating spot orders
 
@@ -4021,7 +4021,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
 
-    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating contract orders
 
@@ -4193,7 +4193,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         return self.extend(request, params)
 
-    def create_uta_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_uta_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating uta orders
 
@@ -4879,7 +4879,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         return self.safe_order({'info': response})
 
-    def cancel_uta_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_uta_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         helper method for cancelling uta orders
 
@@ -5059,7 +5059,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return [self.safe_order({'info': data})]
 
-    def cancel_all_uta_orders(self, symbol: Str = None, params={}):
+    def cancel_all_uta_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         helper method for cancelling all uta orders
 
@@ -5160,7 +5160,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_contract_orders_by_status(status, symbol, since, limit, params)
 
-    def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch a list of spot orders
 
@@ -5286,7 +5286,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_contract_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_contract_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches a list of contract orders placed on the exchange
 
@@ -5391,7 +5391,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         helper method for fetching orders by status with uta endpoint
 
@@ -5619,7 +5619,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_contract_order(id, symbol, params)
 
-    def fetch_spot_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_spot_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch a spot order
 
@@ -5699,7 +5699,7 @@ class kucoin(Exchange, ImplicitAPI):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
-    def fetch_contract_order(self, id: Str, symbol: Str = None, params={}):
+    def fetch_contract_order(self, id: Str, symbol: Str = None, params={}) -> Order:
         """
         fetc contract order
 
@@ -5772,7 +5772,7 @@ class kucoin(Exchange, ImplicitAPI):
         responseData = self.safe_dict(response, 'data', {})
         return self.parse_order(responseData, market)
 
-    def fetch_uta_order(self, id: Str, symbol: Str = None, params={}):
+    def fetch_uta_order(self, id: Str, symbol: Str = None, params={}) -> Order:
         """
         fetch uta order
 
@@ -6368,7 +6368,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_my_contract_trades(symbol, since, limit, params)
 
-    def fetch_my_spot_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_spot_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
@@ -6488,7 +6488,7 @@ class kucoin(Exchange, ImplicitAPI):
             tradesList = self.to_array(trades)
         return self.parse_trades(tradesList, market, since, limit)
 
-    def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
@@ -6566,7 +6566,7 @@ class kucoin(Exchange, ImplicitAPI):
             tradesList = trades
         return self.parse_trades(tradesList, market, since, limit)
 
-    def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/ua/get-trade-history
@@ -9314,7 +9314,7 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.privatePostPositionUpdateUserLeverage(self.extend(request, params))
         return response
 
-    def set_contract_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_contract_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 

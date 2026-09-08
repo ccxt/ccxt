@@ -17,7 +17,7 @@
 
 use crate::exchange::Exchange;
 use crate::runtime::stringify_param;
-use crate::{ExchangeError, Result, Value};
+use crate::{ExchangeError, Value};
 use indexmap::IndexMap as HashMap;
 use std::sync::Arc;
 
@@ -499,17 +499,6 @@ fn arg_default(opt: &[Value]) -> Value {
     opt.get(0).cloned().unwrap_or(Value::Null)
 }
 
-fn strip_trailing_zeros(s: &str) -> String {
-    if !s.contains('.') {
-        return s.to_string();
-    }
-    let out = s.trim_end_matches('0').trim_end_matches('.');
-    if out.is_empty() {
-        "0".to_string()
-    } else {
-        out.to_string()
-    }
-}
 
 fn key_str(key: &Value) -> String {
     stringify_param(key)
@@ -2416,7 +2405,6 @@ impl Exchange {
     /// (keccak256 of the uncompressed secp256k1 public key, last 20 bytes).
     pub fn eth_get_address_from_private_key(&self, pk: Value, _optional_args: &[Value]) -> Value {
         use k256::ecdsa::SigningKey;
-        use k256::elliptic_curve::sec1::ToEncodedPoint;
         let pk_s = match &pk {
             Value::Str(s) => s.trim_start_matches("0x").to_string(),
             _ => return Value::Str(String::new()),

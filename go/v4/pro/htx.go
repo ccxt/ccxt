@@ -1522,7 +1522,7 @@ func (this *HtxCore) HandleOrder(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(messageHash, nil)) {
 		return
 	}
-	var genericMessageHash any = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
+	var genericMessageHash string = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
 	var lowerCaseBaseId any = this.SafeStringLower(market, "baseId")
 	genericMessageHash = ccxt.Replace(genericMessageHash, ccxt.Add(".", lowerCaseBaseId), "")
 	client.(ccxt.ClientInterface).Resolve(this.Orders, genericMessageHash)
@@ -3066,7 +3066,7 @@ func (this *HtxCore) HandleMyTrade(client any, message any, optionalArgs ...any)
 			// however it is returned with the specific order update symbol: ch = orders_cross.btc-usd
 			// since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
 			// so we must remove it
-			var genericOrderHash any = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
+			var genericOrderHash string = ccxt.Replace(messageHash, ccxt.Add(".", ccxt.GetValue(market, "lowercaseId")), "")
 			var lowerCaseBaseId any = this.SafeStringLower(market, "baseId")
 			genericOrderHash = ccxt.Replace(genericOrderHash, ccxt.Add(".", lowerCaseBaseId), "")
 			var genericTradesHash any = ccxt.Add(ccxt.Add(genericOrderHash, ":"), "trade")
@@ -3348,7 +3348,7 @@ func (this *HtxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	}
 	this.CheckRequiredCredentials()
 	var messageHash string = "auth"
-	var relativePath any = ccxt.Replace(url, ccxt.Add("wss://", hostname), "")
+	var relativePath string = ccxt.Replace(url, ccxt.Add("wss://", hostname), "")
 	var client any = this.Client(url)
 	var future any = client.(ccxt.ClientInterface).ReusableFuture(messageHash)
 	var authenticated any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)
@@ -3371,8 +3371,8 @@ func (this *HtxCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 			}
 		}
 		signatureParams = this.Keysort(signatureParams)
-		var auth any = this.Urlencode(signatureParams, true)                          // true required in go
-		var payload any = ccxt.Join([]any{"GET", hostname, relativePath, auth}, "\n") // eslint-disable-line quotes
+		var auth string = this.Urlencode(signatureParams, true)                          // true required in go
+		var payload string = ccxt.Join([]any{"GET", hostname, relativePath, auth}, "\n") // eslint-disable-line quotes
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), ccxt.Sha256, "base64")
 		var request any = nil
 		if ccxt.IsTrue(ccxt.IsEqual(typeVar, "spot")) {

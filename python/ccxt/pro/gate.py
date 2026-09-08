@@ -1584,7 +1584,7 @@ class gate(ccxt.async_support.gate):
             if typeId != 'futures' and not isInverse:
                 raise BadRequest(self.id + ' watchMyLiquidationsForSymbols() does not support listening to all symbols, you must call watchMyLiquidations() instead for each symbol you wish to watch.')
             messageHash = 'myLiquidations'
-            payload.append('not all')
+            payload.append('!all')
         else:
             symbolsLength = len(symbols)
             if symbolsLength != 1:

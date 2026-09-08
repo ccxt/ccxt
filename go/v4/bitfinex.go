@@ -866,7 +866,7 @@ func (this *BitfinexCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var labels []any = []any{"pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"}
-	var config any = Join(labels, ",")
+	var config string = Join(labels, ",")
 	var request map[string]any = map[string]any{
 		"config": config,
 	}
@@ -995,7 +995,7 @@ func (this *BitfinexCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	var labels []any = []any{"pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"}
-	var config any = Join(labels, ",")
+	var config string = Join(labels, ",")
 	var request map[string]any = map[string]any{
 		"config": config,
 	}
@@ -1123,7 +1123,7 @@ func (this *BitfinexCore) ParseCurrenciesCustom(ids any, indexed any, indexedNet
 		AppendToArray(&allowedIds, id)
 	}
 	var result map[string]any = map[string]any{}
-	var arr any = this.ToArray(allowedIds)
+	var arr []any = this.ToArray(allowedIds)
 	for i := 0; IsLessThan(i, GetArrayLength(arr)); i++ {
 		var parsed any = this.ParseCurrencyCustom(GetValue(arr, i), indexed, indexedNetworks)
 		var code any = GetValue(parsed, "code")
@@ -1242,7 +1242,7 @@ func (this *BitfinexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 
 	response := (<-this.PrivatePostAuthRWallets(query))
 	PanicOnError(response)
-	var balances any = this.ToArray(response)
+	var balances []any = this.ToArray(response)
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -1490,7 +1490,7 @@ func (this *BitfinexCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 		"nonce":     nil,
 	}
 	var priceIndex any = Ternary(IsTrue((IsEqual(GetValue(fullRequest, "precision"), "R0"))), 1, 0)
-	var orders any = this.ToArray(orderbook)
+	var orders []any = this.ToArray(orderbook)
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
 		var order any = GetValue(orders, i)
 		var price any = this.SafeNumber(order, priceIndex)
@@ -1553,7 +1553,7 @@ func (this *BitfinexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var firstValue any = this.SafeNumber(ticker, 0)
 	var isFetchTicker any = !IsEqual(firstValue, nil) // if it's Nan, then it's string (symbol)
 	var symbol any = nil
-	var minusIndex any = 0
+	var minusIndex int = 0
 	if IsTrue(isFetchTicker) {
 		minusIndex = 1
 	} else {
@@ -1890,8 +1890,8 @@ func (this *BitfinexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	//         ]
 	//     ]
 	//
-	var rawTrades any = this.ToArray(response)
-	var trades any = this.SortBy(rawTrades, 1)
+	var rawTrades []any = this.ToArray(response)
+	var trades []any = this.SortBy(rawTrades, 1)
 	var tradesList any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(trades)); i++ {
 		AppendToArray(&tradesList, map[string]any{
@@ -2939,7 +2939,7 @@ func (this *BitfinexCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs
 
 	response := (<-this.PrivatePostAuthROrderSymbolIdTrades(this.Extend(request, params)))
 	PanicOnError(response)
-	var rawTrades any = this.ToArray(response)
+	var rawTrades []any = this.ToArray(response)
 	var tradesList any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawTrades)); i++ {
 		AppendToArray(&tradesList, map[string]any{
@@ -3676,7 +3676,7 @@ func (this *BitfinexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) a
 	//         ]
 	//     ]
 	//
-	var rawPositions any = this.ToArray(response)
+	var rawPositions []any = this.ToArray(response)
 	var positionsList any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawPositions)); i++ {
 		AppendToArray(&positionsList, map[string]any{
@@ -4162,7 +4162,7 @@ func (this *BitfinexCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs 
 	//       ]
 	//   ]
 	//
-	var rawRatesData any = this.ToArray(response)
+	var rawRatesData []any = this.ToArray(response)
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawRatesData)); i++ {
 		var fr any = GetValue(rawRatesData, i)

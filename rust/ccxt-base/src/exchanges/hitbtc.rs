@@ -3295,7 +3295,7 @@ impl HitbtcCore {
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut isLimit: Value = Value::Bool(is_equal(&type_var, &Value::Str("limit".to_string())));
+        let mut isLimit: bool = is_equal(&type_var, &Value::Str("limit".to_string()));
         let mut reduceOnly: Value = self.safe_value_k(params.clone(), "reduceOnly", &[]);
         let mut timeInForce: Value = self.safe_string_k(params.clone(), "timeInForce", &[]);
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stop_price".to_string())]), &[]);

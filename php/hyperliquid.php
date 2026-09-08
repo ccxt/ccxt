@@ -2504,7 +2504,7 @@ class hyperliquid extends Exchange {
         return $orders;
     }
 
-    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()) {
+    public function cancel_twap_order(string $id, ?string $symbol = null, $params = array()): array {
         /**
          * cancels a running twap order
          *

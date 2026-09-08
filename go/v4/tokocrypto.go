@@ -1341,7 +1341,7 @@ func (this *TokocryptoCore) fetchTradesBody(ch chan any, symbol any, optionalArg
 	//         }
 	//     ]
 	//
-	var responseList any = this.ToArray(response)
+	var responseList []any = this.ToArray(response)
 
 	ch <- this.ParseTrades(responseList, market, since, limit)
 	return nil
@@ -1667,8 +1667,8 @@ func (this *TokocryptoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs
 	var market any = this.Market(symbol)
 	// binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
 	// the reality is that the time range wider than 500 candles won't work right
-	var defaultLimit any = 500
-	var maxLimit any = 1500
+	var defaultLimit int = 500
+	var maxLimit int = 1500
 	var price any = this.SafeString(params, "price")
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, []any{"price", "until"})

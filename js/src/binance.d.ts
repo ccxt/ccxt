@@ -1381,13 +1381,7 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    createGiftCode(code: string, amount: any, params?: {}): Promise<{
-        info: Dict;
-        id: Str;
-        code: Str;
-        currency: string;
-        amount: any;
-    }>;
+    createGiftCode(code: string, amount: any, params?: {}): Promise<Dict>;
     /**
      * @method
      * @name binance#redeemGiftCode

@@ -618,14 +618,14 @@ public class GeminiCore extends GeminiApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object id = this.safeString(rawCurrency, 0);
+        String id = this.safeString(rawCurrency, 0);
         Object code = this.safeCurrencyCode(id);
-        Object fiatFlag = this.safeString(rawCurrency, 7);
+        String fiatFlag = this.safeString(rawCurrency, 7);
         Object isFiat = Helpers.isTrue((!Helpers.isEqual(fiatFlag, null))) && Helpers.isTrue((!Helpers.isEqual(fiatFlag, "")));
         Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
         Object networks = new java.util.HashMap<String, Object>() {{}};
-        Object networkId = this.safeString(rawCurrency, 9);
+        String networkId = this.safeString(rawCurrency, 9);
         Object networkCode = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
@@ -1325,7 +1325,7 @@ public class GeminiCore extends GeminiApi
         Object volume = this.safeValue(ticker, "volume", new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeInteger(volume, "timestamp");
         Object symbol = null;
-        Object marketId = this.safeStringLower(ticker, "pair");
+        String marketId = (String)this.safeStringLower(ticker, "pair");
         market = this.safeMarket(marketId, market);
         Object baseId = null;
         Object quoteId = null;
@@ -1353,12 +1353,12 @@ public class GeminiCore extends GeminiApi
             baseId = this.safeStringUpper(market, "baseId");
             quoteId = this.safeStringUpper(market, "quoteId");
         }
-        Object price = this.safeString(ticker, "price");
-        Object last = this.safeString2(ticker, "last", "close", price);
-        Object percentage = this.safeString(ticker, "percentChange24h");
-        Object open = this.safeString(ticker, "open");
-        Object baseVolume = this.safeString(volume, baseId);
-        Object quoteVolume = this.safeString(volume, quoteId);
+        String price = this.safeString(ticker, "price");
+        String last = this.safeString2(ticker, "last", "close", price);
+        String percentage = this.safeString(ticker, "percentChange24h");
+        String open = this.safeString(ticker, "open");
+        String baseVolume = this.safeString(volume, baseId);
+        String quoteVolume = this.safeString(volume, quoteId);
         final Object finalSymbol = symbol;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
@@ -1463,17 +1463,17 @@ public class GeminiCore extends GeminiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(trade, "timestampms");
-        Object id = this.safeString(trade, "tid");
-        Object orderId = this.safeString(trade, "order_id");
-        Object feeCurrencyId = this.safeString(trade, "fee_currency");
+        String id = this.safeString(trade, "tid");
+        String orderId = this.safeString(trade, "order_id");
+        String feeCurrencyId = this.safeString(trade, "fee_currency");
         Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", GeminiCore.this.safeString(trade, "fee_amount") );
             put( "currency", feeCurrencyCode );
         }};
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "amount");
-        Object side = this.safeStringLower(trade, "type");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "amount");
+        String side = (String)this.safeStringLower(trade, "type");
         Object symbol = this.safeSymbol(null, market);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1554,7 +1554,7 @@ public class GeminiCore extends GeminiApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object balance = Helpers.GetValue(response, i);
-            Object currencyId = this.safeString(balance, "currency");
+            String currencyId = this.safeString(balance, "currency");
             Object code = this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -1614,8 +1614,8 @@ public class GeminiCore extends GeminiApi
             //          ]
             //     }
             //
-            Object makerBps = this.safeString(response, "api_maker_fee_bps");
-            Object takerBps = this.safeString(response, "api_taker_fee_bps");
+            String makerBps = this.safeString(response, "api_maker_fee_bps");
+            String takerBps = this.safeString(response, "api_taker_fee_bps");
             Object makerString = Precise.stringDiv(makerBps, "10000");
             Object takerString = Precise.stringDiv(takerBps, "10000");
             Object maker = this.parseNumber(makerString);
@@ -1765,9 +1765,9 @@ public class GeminiCore extends GeminiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "timestampms");
-        Object amount = this.safeString(order, "original_amount");
-        Object remaining = this.safeString(order, "remaining_amount");
-        Object filled = this.safeString(order, "executed_amount");
+        String amount = this.safeString(order, "original_amount");
+        String remaining = this.safeString(order, "remaining_amount");
+        String filled = this.safeString(order, "executed_amount");
         Object status = "closed";
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(order, "is_live"), true)))
         {
@@ -1777,8 +1777,8 @@ public class GeminiCore extends GeminiApi
         {
             status = "canceled";
         }
-        Object price = this.safeString(order, "price");
-        Object average = this.safeString(order, "avg_execution_price");
+        String price = this.safeString(order, "price");
+        String average = this.safeString(order, "avg_execution_price");
         Object type = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "exchange limit")))
         {
@@ -1791,13 +1791,13 @@ public class GeminiCore extends GeminiApi
             type = Helpers.GetValue(order, "type");
         }
         Object fee = null;
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         Object symbol = this.safeSymbol(marketId, market);
-        Object id = this.safeString(order, "order_id");
-        Object side = this.safeStringLower(order, "side");
-        Object clientOrderId = this.safeString(order, "client_order_id");
+        String id = this.safeString(order, "order_id");
+        String side = (String)this.safeStringLower(order, "side");
+        String clientOrderId = this.safeString(order, "client_order_id");
         Object optionsArray = this.safeValue(order, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object option = this.safeString(optionsArray, 0);
+        String option = this.safeString(optionsArray, 0);
         Object timeInForce = "GTC";
         Object postOnly = false;
         if (Helpers.isTrue(!Helpers.isEqual(option, null)))
@@ -2004,7 +2004,7 @@ public class GeminiCore extends GeminiApi
             }};
             type = this.safeString(parameters, "type", type);
             parameters = this.omit(parameters, "type");
-            Object triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price", "stopPrice")));
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price", "stopPrice")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stop_price", "stopPrice", "type")));
             if (Helpers.isTrue(Helpers.isEqual(type, "stopLimit")))
             {
@@ -2017,7 +2017,7 @@ public class GeminiCore extends GeminiApi
             } else
             {
                 // No options can be applied to stop-limit orders at this time.
-                Object timeInForce = this.safeString(parameters, "timeInForce");
+                String timeInForce = this.safeString(parameters, "timeInForce");
                 parameters = this.omit(parameters, "timeInForce");
                 if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
                 {
@@ -2039,7 +2039,7 @@ public class GeminiCore extends GeminiApi
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("maker-or-cancel")));
                 }
                 // allowing override for auction-only and indication-of-interest order options
-                Object options = this.safeString(parameters, "options");
+                String options = this.safeString(parameters, "options");
                 if (Helpers.isTrue(!Helpers.isEqual(options, null)))
                 {
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList(options)));
@@ -2231,7 +2231,7 @@ public class GeminiCore extends GeminiApi
             //         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
             //     }
             //
-            Object result = this.safeString(response, "result");
+            String result = this.safeString(response, "result");
             if (Helpers.isTrue(Helpers.isEqual(result, "error")))
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() failed: "), this.json(response))) ;
@@ -2243,7 +2243,7 @@ public class GeminiCore extends GeminiApi
 
     public Object nonce()
     {
-        Object nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
+        String nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
         if (Helpers.isTrue(Helpers.isEqual(nonceMethod, "milliseconds")))
         {
             return this.milliseconds();
@@ -2312,12 +2312,12 @@ public class GeminiCore extends GeminiApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transaction, "timestampms");
-        Object currencyId = this.safeString(transaction, "currency");
+        String currencyId = this.safeString(transaction, "currency");
         Object code = this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "destination");
-        Object type = this.safeStringLower(transaction, "type");
+        String address = this.safeString(transaction, "destination");
+        String type = (String)this.safeStringLower(transaction, "type");
         // if status field is available, then it's complete
-        Object statusRaw = this.safeString(transaction, "status");
+        String statusRaw = this.safeString(transaction, "status");
         Object fee = null;
         Object feeAmount = this.safeNumber(transaction, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
@@ -2372,7 +2372,7 @@ public class GeminiCore extends GeminiApi
         //      }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         Object code = this.safeCurrencyCode(null, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "currency", code );
@@ -2536,11 +2536,11 @@ public class GeminiCore extends GeminiApi
         //         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
         //     }
         //
-        Object result = this.safeString(response, "result");
+        String result = this.safeString(response, "result");
         if (Helpers.isTrue(Helpers.isEqual(result, "error")))
         {
-            Object reasonInner = this.safeString(response, "reason");
-            Object message = this.safeString(response, "message");
+            String reasonInner = this.safeString(response, "reason");
+            String message = this.safeString(response, "message");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), message);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
@@ -2574,7 +2574,7 @@ public class GeminiCore extends GeminiApi
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object response = (this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters))).join();
-            Object address = this.safeString(response, "address");
+            String address = this.safeString(response, "address");
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
                 put( "currency", code );
@@ -2613,7 +2613,7 @@ public class GeminiCore extends GeminiApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
+            String timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeframe", timeframeId );
                 put( "symbol", Helpers.GetValue(market, "id") );

@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object obj1 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj1 = new Dictionary<string, object>() {
                 { "a", 1 },
                 { "b", new List<object>() {1, 2, 3} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -34,7 +34,7 @@ public partial class BaseTest
                 } },
                 { "other1", "x" },
             };
-            object obj2 = new Dictionary<string, object>() {
+            Dictionary<string, object> obj2 = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },
                 { "c", new List<object>() {new Dictionary<string, object>() {
@@ -58,7 +58,7 @@ public partial class BaseTest
             };
             // deepExtend
             object deepExtended = exchange.deepExtend(obj1, obj2);
-            object compareTo = new Dictionary<string, object>() {
+            Dictionary<string, object> compareTo = new Dictionary<string, object>() {
                 { "a", 2 },
                 { "b", new List<object>() {3, 4} },
                 { "c", new List<object>() {new Dictionary<string, object>() {

@@ -1231,7 +1231,7 @@ impl WhitebitCore {
         if is_equal(&method, &Value::Null) {
             return;
         }
-        let mut isMargin: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&method, &Value::Str("Margin".to_string())), &Value::Int(0)));
+        let mut isMargin: bool = is_greater_than_or_equal(&get_index_of(&method, &Value::Str("Margin".to_string())), &Value::Int(0));
         let mut data: Value = self.safe_list_k(message.clone(), "params", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
@@ -1349,7 +1349,7 @@ impl WhitebitCore {
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
-            let mut hasSymbolSubscription: Value = Value::Bool(true);
+            let mut hasSymbolSubscription: bool = true;
             let mut market: Value = self.market(symbol.clone());
             let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
             let mut isSubscribed: Value = self.safe_bool(subscription.clone(), marketId.clone(), &[Value::Bool(false)]);
@@ -1357,7 +1357,7 @@ impl WhitebitCore {
                 if !is_equal(&marketId, &Value::Null) {
                     add_element_to_object(&mut subscription, &marketId, Value::Bool(true));
                 }
-                hasSymbolSubscription = Value::Bool(false);
+                hasSymbolSubscription = false;
             }
             if is_true(&hasSymbolSubscription) {
                 return self.watch(url.clone(), messageHash.clone(), &[request.clone(), method.clone(), subscription.clone()]).await;

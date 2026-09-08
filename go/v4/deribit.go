@@ -4117,7 +4117,7 @@ func (this *DeribitCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs .
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
-	var maxEntriesPerRequest any = 744 // seems exchange returns max 744 items per request
+	var maxEntriesPerRequest int = 744 // seems exchange returns max 744 items per request
 	var eachItemDuration string = "1h"
 	if IsTrue(paginate) {
 		// fix for: https://github.com/ccxt/ccxt/issues/25040

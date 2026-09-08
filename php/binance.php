@@ -5663,7 +5663,7 @@ class binance extends Exchange {
         return $this->parse_trades($responseList, $market, $since, $limit);
     }
 
-    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_spot_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * @ignore
          * edit a trade order
@@ -5901,7 +5901,7 @@ class binance extends Exchange {
         return $request;
     }
 
-    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()) {
+    public function edit_contract_order(string $id, string $symbol, string $type, string $side, ?float $amount, ?float $price = null, $params = array()): array {
         /**
          * edit a trade order
          *
@@ -10747,7 +10747,7 @@ class binance extends Exchange {
         throw new NotSupported($this->id . ' fetchTradingFees() is not supported for ' . $type . ' markets');
     }
 
-    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()) {
+    public function futures_transfer(string $code, mixed $amount, mixed $type, $params = array()): array {
         /**
          * @ignore
          * transfer between futures account
@@ -11763,7 +11763,7 @@ class binance extends Exchange {
         return $this->parse_option_position($this->safe_dict($response, 0, array()), $market);
     }
 
-    public function fetch_option_positions(?array $symbols = null, $params = array()) {
+    public function fetch_option_positions(?array $symbols = null, $params = array()): array {
         /**
          * fetch data on open options $positions
          *
@@ -11924,7 +11924,7 @@ class binance extends Exchange {
         }
     }
 
-    public function fetch_account_positions(?array $symbols = null, $params = array()) {
+    public function fetch_account_positions(?array $symbols = null, $params = array()): array {
         /**
          * @ignore
          * fetch account positions
@@ -13634,7 +13634,7 @@ class binance extends Exchange {
         );
     }
 
-    public function create_gift_code(string $code, mixed $amount, $params = array()) {
+    public function create_gift_code(string $code, mixed $amount, $params = array()): array {
         /**
          * create gift $code
          *

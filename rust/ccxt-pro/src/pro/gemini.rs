@@ -709,7 +709,7 @@ impl GeminiCore {
 }
 
     pub fn handle_order_book(&mut self, mut client: Value, mut message: Value) {
-        let mut isInitial: Value = Value::Bool(is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string()))))));
+        let mut isInitial: bool = is_true(&(Value::Bool(in_op(&message, &Value::Str("auction_events".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("trades".to_string()))))) && is_true(&(Value::Bool(in_op(&message, &Value::Str("changes".to_string())))));
         let mut changes: Value = self.safe_value_k(message.clone(), "changes", &[Value::List(vec![])]);
         let mut marketId: Value = self.safe_string_lower(message.clone(), Value::Str("symbol".to_string()), &[]);
         let mut market: Value = self.safe_market(&[marketId.clone()]);
@@ -1244,7 +1244,7 @@ impl GeminiCore {
         //         }
         //     ]
         //
-        let mut isArray: Value = Value::Bool(is_array(&message));
+        let mut isArray: bool = is_array(&message);
         if is_true(&isArray) {
             self.handle_order(client.clone(), message.clone());
             return;
@@ -1289,9 +1289,9 @@ impl GeminiCore {
                 let mut event: Value = get_value(&events, &i);
                 let mut event: Value = get_value(&events, &i);
                 let mut eventType: Value = self.safe_string_k(event.clone(), "type", &[]);
-                let mut isOrderBook: Value = Value::Bool(is_true(&(is_equal(&eventType, &Value::Str("change".to_string())))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(get_value(&event, &Value::Str("side".to_string())), Value::List(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())]))));
+                let mut isOrderBook: bool = is_true(&(is_equal(&eventType, &Value::Str("change".to_string())))) && is_true(&(Value::Bool(in_op(&event, &Value::Str("side".to_string()))))) && is_true(&self.in_array(get_value(&event, &Value::Str("side".to_string())), Value::List(vec![Value::Str("ask".to_string()), Value::Str("bid".to_string())])));
                 let mut eventReason: Value = self.safe_string_k(event.clone(), "reason", &[]);
-                let mut isBidAsk: Value = Value::Bool(is_true(&(is_equal(&eventReason, &Value::Str("top-of-book".to_string())))) || is_true(&(is_true(&isOrderBook) && is_true(&(is_equal(&eventReason, &Value::Str("initial".to_string())))) && is_equal(&eventsLength, &Value::Int(2)))));
+                let mut isBidAsk: bool = is_true(&(is_equal(&eventReason, &Value::Str("top-of-book".to_string())))) || is_true(&(is_true(&isOrderBook) && is_true(&(is_equal(&eventReason, &Value::Str("initial".to_string())))) && is_equal(&eventsLength, &Value::Int(2))));
                 if is_true(&isBidAsk) {
                     append_to_array(&mut bidaskItems, event.clone());
                 }  else if is_true(&isOrderBook) {

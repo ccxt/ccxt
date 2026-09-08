@@ -7261,7 +7261,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -8415,7 +8415,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): array {
         /**
          * fetch the historical $volatility of an option market based on an underlying asset
          *

@@ -1861,7 +1861,7 @@ class gate extends Exchange {
         return $result;
     }
 
-    public function fetch_option_underlyings() {
+    public function fetch_option_underlyings(): PromiseInterface {
         return Async\async(self::do_fetch_option_underlyings(...))();
     }
 
@@ -3570,7 +3570,7 @@ class gate extends Exchange {
         return $this->parse_ohlcvs($this->to_array($response), $market, $timeframe, $since, $limit);
     }
 
-    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_option_ohlcv(string $symbol, $timeframe = '1m', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_option_ohlcv(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -7379,7 +7379,7 @@ class gate extends Exchange {
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );
     }
 
-    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()) {
+    public function modify_margin_helper(string $symbol, mixed $amount, $params = array()): PromiseInterface {
         return Async\async(self::do_modify_margin_helper(...))($symbol, $amount, $params);
     }
 

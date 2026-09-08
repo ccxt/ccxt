@@ -125,8 +125,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object baseId = this.safeStringUpper(data, "target_currency");
-        Object quoteId = this.safeStringUpper(data, "quote_currency");
+        String baseId = (String)this.safeStringUpper(data, "target_currency");
+        String quoteId = (String)this.safeStringUpper(data, "quote_currency");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
@@ -382,8 +382,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object baseId = this.safeStringUpper(trade, "target_currency");
-        Object quoteId = this.safeStringUpper(trade, "quote_currency");
+        String baseId = (String)this.safeStringUpper(trade, "target_currency");
+        String quoteId = (String)this.safeStringUpper(trade, "quote_currency");
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);

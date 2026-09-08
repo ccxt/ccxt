@@ -872,7 +872,7 @@ export default class luno extends Exchange {
         return this.parseOrder (response);
     }
 
-    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByState (state: Str, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

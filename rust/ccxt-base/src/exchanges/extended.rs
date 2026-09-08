@@ -3769,12 +3769,12 @@ impl ExtendedCore {
         let mut triggerPriceStr: Value = self.safe_string2(params.clone(), Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), &[]);
         let mut stopLossTriggerPrice: Value = self.safe_string_k(params.clone(), "stopLossPrice", &[]);
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         if is_true(&hasStopLoss) || is_true(&hasTakeProfit) {
             add_element_to_object(&mut request, &Value::Str("tpSlType".to_string()), Value::Str("ORDER".to_string()));
             if is_true(&hasStopLoss) {
@@ -4151,7 +4151,7 @@ impl ExtendedCore {
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut hasOrderIds: Value = Value::Bool(!is_equal(&ids, &Value::Null));
+        let mut hasOrderIds: bool = !is_equal(&ids, &Value::Null);
         if is_true(&hasOrderIds) {
             let mut idsLength: Value = get_array_length(&ids);
             if is_greater_than(&idsLength, &Value::Int(0)) {
@@ -4161,7 +4161,7 @@ impl ExtendedCore {
         if is_equal(&clientOrderIds, &Value::Null) && !is_equal(&clientOrderId, &Value::Null) {
             clientOrderIds = Value::List(vec![clientOrderId.clone()]);
         }
-        let mut hasClientOrderIds: Value = Value::Bool(!is_equal(&clientOrderIds, &Value::Null));
+        let mut hasClientOrderIds: bool = !is_equal(&clientOrderIds, &Value::Null);
         if !is_equal(&clientOrderIds, &Value::Null) {
             let mut clientOrderIdsLength: Value = get_array_length(&clientOrderIds);
             if is_greater_than(&clientOrderIdsLength, &Value::Int(0)) {
@@ -4702,7 +4702,7 @@ impl ExtendedCore {
 
     pub fn get_extended_domain_hash(&self) -> Value {
         let mut domainTypeHash: Value = self.convert_to_big_int(self.extended_starknet_get_selector_from_name(Value::Str("\"StarknetDomain\"(\"name\":\"shortstring\",\"version\":\"shortstring\",\"chainId\":\"shortstring\",\"revision\":\"shortstring\")".to_string())));
-        let mut isTestnet: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string())), &Value::Str("sepolia".to_string())), &Value::Int(0)));
+        let mut isTestnet: bool = is_greater_than_or_equal(&get_index_of(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string())), &Value::Str("sepolia".to_string())), &Value::Int(0));
         let mut defaultChainId: Value = ternary(is_true(&isTestnet), Value::Str("SN_SEPOLIA".to_string()), Value::Str("SN_MAIN".to_string()));
         let mut chainId: Value = self.safe_string_k(self.options.clone(), "chainId", &[defaultChainId.clone()]);
         return self.convert_to_big_int(self.extended_starknet_compute_poseidon_hash_on_elements(Value::List(vec![domainTypeHash.clone(), self.get_extended_string_to_felt(Value::Str("Perpetuals".to_string())), self.get_extended_string_to_felt(Value::Str("v0".to_string())), self.get_extended_string_to_felt(chainId.clone()), self.convert_to_big_int(Value::Str("1".to_string()))])));
@@ -4788,7 +4788,7 @@ impl ExtendedCore {
         let mut accessibility: Value = self.safe_string(api.clone(), Value::Int(1), &[]);
         let mut endpoint: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));
         let mut query: Value = self.omit(params.clone(), self.extract_params(path.clone()), &[]);
-        let mut queryPost: Value = Value::Bool(is_equal(&path, &Value::Str("user/deadmanswitch".to_string())));
+        let mut queryPost: bool = is_equal(&path, &Value::Str("user/deadmanswitch".to_string()));
         let mut url: Value = self.implode_hostname(get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("rest".to_string())));
         if is_equal(&accessibility, &Value::Str("private".to_string())) {
             // this.checkRequiredCredentials ();

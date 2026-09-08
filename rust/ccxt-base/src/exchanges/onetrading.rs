@@ -1804,9 +1804,9 @@ impl OnetradingCore {
                 m.insert("amount".to_string(), self.amount_to_precision(symbol.clone(), amount.clone()));
             m
         });
-        let mut priceIsRequired: Value = Value::Bool(false);
+        let mut priceIsRequired: bool = false;
         if is_equal(&uppercaseType, &Value::Str("LIMIT".to_string())) || is_equal(&uppercaseType, &Value::Str("STOP".to_string())) {
-            priceIsRequired = Value::Bool(true);
+            priceIsRequired = true;
         }
         let mut triggerPrice: Value = self.safe_number_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("trigger_price".to_string()), Value::Str("stopPrice".to_string())]), &[]);
         if !is_equal(&triggerPrice, &Value::Null) {

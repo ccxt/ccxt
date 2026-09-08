@@ -1584,7 +1584,7 @@ class htx extends Exchange {
         return $allMarkets;
     }
 
-    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array()) {
+    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_by_type_and_sub_type(...))($type, $subType, $params);
     }
 
@@ -2680,7 +2680,7 @@ class htx extends Exchange {
         return Async\await($this->fetch_spot_order_trades($id, $symbol, $since, $limit, $params));
     }
 
-    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_order_trades(...))($id, $symbol, $since, $limit, $params);
     }
 
@@ -3966,7 +3966,7 @@ class htx extends Exchange {
         return $account;
     }
 
-    public function fetch_spot_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_spot_orders_by_states(...))($states, $symbol, $since, $limit, $params);
     }
 
@@ -4062,7 +4062,7 @@ class htx extends Exchange {
         return Async\await($this->fetch_spot_orders_by_states('filled', $symbol, $since, $limit, $params));
     }
 
-    public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_contract_orders(...))($symbol, $since, $limit, $params);
     }
 
@@ -6603,7 +6603,7 @@ class htx extends Exchange {
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
-    public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()) {
+    public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdraw_addresses(...))($code, $note, $networkCode, $params);
     }
 

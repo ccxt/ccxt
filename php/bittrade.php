@@ -1251,7 +1251,7 @@ class bittrade extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1356,7 +1356,7 @@ class bittrade extends Exchange {
         return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

@@ -535,17 +535,17 @@ public partial class bitvavo : Exchange
 
     public override object parseMarkets(object markets)
     {
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         object fees = this.fees;
         for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
-            object id = this.safeString(market, "market");
-            object baseId = this.safeString(market, "base");
-            object quoteId = this.safeString(market, "quote");
+            string? id = this.safeString(market, "market");
+            string? baseId = this.safeString(market, "base");
+            string? quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
-            object status = this.safeString(market, "status");
+            string? status = this.safeString(market, "status");
             ((IList<object>)result).Add(this.safeMarketStructure(new Dictionary<string, object>() {
                 { "id", id },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -686,16 +686,16 @@ public partial class bitvavo : Exchange
         //     ]
         //
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
-        object id = this.safeString(rawCurrency, "symbol");
+        string? id = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(id);
         bool isFiat = this.inArray(code, fiatCurrencies);
-        object networks = new Dictionary<string, object>() {};
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object networksArray = this.safeList(rawCurrency, "networks", new List<object>() {});
         bool deposit = isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
         bool withdrawal = isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         bool active = isTrue(deposit) && isTrue(withdrawal);
         object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
-        object precision = this.safeString(rawCurrency, "decimals", "8");
+        string? precision = this.safeString(rawCurrency, "decimals", "8");
         object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
         // btw, absolutely all of them have 1 network atm
         for (object j = 0; isLessThan(j, getArrayLength(networksArray)); postFixIncrement(ref j))
@@ -768,7 +768,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
         object response = await this.publicGetTicker24h(this.extend(request, parameters));
@@ -811,13 +811,13 @@ public partial class bitvavo : Exchange
         //         "timestamp":1590381666900
         //     }
         //
-        object marketId = this.safeString(ticker, "market");
+        string? marketId = this.safeString(ticker, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
-        object timestamp = this.safeInteger(ticker, "timestamp");
-        object last = this.safeString(ticker, "last");
-        object baseVolume = this.safeString(ticker, "volume");
-        object quoteVolume = this.safeString(ticker, "volumeQuote");
-        object open = this.safeString(ticker, "open");
+        Int64? timestamp = this.safeInteger(ticker, "timestamp");
+        string? last = this.safeString(ticker, "last");
+        string? baseVolume = this.safeString(ticker, "volume");
+        string? quoteVolume = this.safeString(ticker, "volumeQuote");
+        string? open = this.safeString(ticker, "open");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -996,31 +996,31 @@ public partial class bitvavo : Exchange
         //         "feeCurrency": "EUR"
         //     }
         //
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "amount");
-        object timestamp = this.safeInteger(trade, "timestamp");
-        object side = this.safeString(trade, "side");
-        object id = this.safeString2(trade, "id", "fillId");
-        object marketId = this.safeString(trade, "market");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "amount");
+        Int64? timestamp = this.safeInteger(trade, "timestamp");
+        string? side = this.safeString(trade, "side");
+        string? id = this.safeString2(trade, "id", "fillId");
+        string? marketId = this.safeString(trade, "market");
         object symbol = this.safeSymbol(marketId, market, "-");
         object taker = this.safeValue(trade, "taker");
-        object takerOrMaker = null;
+        string? takerOrMaker = null;
         if (isTrue(!isEqual(taker, null)))
         {
             takerOrMaker = ((bool) isTrue((isEqual(taker, true)))) ? "taker" : "maker";
         }
-        object feeCostString = this.safeString(trade, "fee");
+        string? feeCostString = this.safeString(trade, "fee");
         object fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
-            object feeCurrencyId = this.safeString(trade, "feeCurrency");
+            string? feeCurrencyId = this.safeString(trade, "feeCurrency");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCostString },
                 { "currency", feeCurrencyCode },
             };
         }
-        object orderId = this.safeString(trade, "orderId");
+        string? orderId = this.safeString(trade, "orderId");
         return this.safeTrade(new Dictionary<string, object>() {
             { "info", trade },
             { "id", id },
@@ -1080,7 +1080,7 @@ public partial class bitvavo : Exchange
         object feesValue = this.safeValue(fees, "fees");
         object maker = this.safeNumber(feesValue, "maker");
         object taker = this.safeNumber(feesValue, "taker");
-        object result = new Dictionary<string, object>() {};
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
@@ -1113,7 +1113,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
         object response = await this.privateGetAccountFees(this.extend(request, parameters));
@@ -1158,7 +1158,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -1214,7 +1214,7 @@ public partial class bitvavo : Exchange
         if (isTrue(!isEqual(since, null)))
         {
             // https://github.com/ccxt/ccxt/issues/9227
-            object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             ((IDictionary<string,object>)request)["start"] = since;
             if (isTrue(isEqual(limit, null)))
             {
@@ -1281,7 +1281,7 @@ public partial class bitvavo : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
@@ -1289,7 +1289,7 @@ public partial class bitvavo : Exchange
         for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
-            object currencyId = this.safeString(balance, "symbol");
+            string? currencyId = this.safeString(balance, "symbol");
             object code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
@@ -1399,7 +1399,7 @@ public partial class bitvavo : Exchange
         object currency = this.currency(code);
         object subaccountId = this.safeString(parameters, "subaccountId");
         parameters = this.omit(parameters, "subaccountId");
-        object direction = null;
+        string? direction = null;
         if (isTrue(isTrue((isEqual(fromAccount, "master"))) && isTrue((isEqual(toAccount, "master")))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
@@ -1425,7 +1425,7 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " transfer() requires a subaccount id (provide it as fromAccount/toAccount or params.subaccountId)")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "subaccountId", subaccountId },
             { "direction", direction },
             { "symbol", getValue(currency, "id") },
@@ -1474,7 +1474,7 @@ public partial class bitvavo : Exchange
             currency = this.currency(code);
             ((IDictionary<string,object>)request)["symbol"] = getValue(currency, "id");
         }
-        object subaccountId = this.safeString(parameters, "subaccountId");
+        string? subaccountId = this.safeString(parameters, "subaccountId");
         if (isTrue(isEqual(subaccountId, null)))
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchTransfers() requires a subaccountId parameter")) ;
@@ -1536,7 +1536,7 @@ public partial class bitvavo : Exchange
         {
             currency = this.currency(code);
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "transferId", id },
         };
         object response = await this.privateGetSubaccountsTransfersTransferId(this.extend(request, parameters));
@@ -1557,7 +1557,7 @@ public partial class bitvavo : Exchange
 
     public virtual object parseTransferStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "completed", "ok" },
             { "pending", "pending" },
             { "failed", "failed" },
@@ -1567,10 +1567,10 @@ public partial class bitvavo : Exchange
 
     public override object parseTransfer(object transfer, object currency = null)
     {
-        object currencyId = this.safeString(transfer, "symbol");
+        string? currencyId = this.safeString(transfer, "symbol");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object subaccountId = this.safeString(transfer, "subaccountId");
-        object direction = this.safeString(transfer, "direction");
+        string? subaccountId = this.safeString(transfer, "subaccountId");
+        string? direction = this.safeString(transfer, "direction");
         object fromAccount = null;
         object toAccount = null;
         if (isTrue(isEqual(direction, "masterToSub")))
@@ -1582,7 +1582,7 @@ public partial class bitvavo : Exchange
             fromAccount = subaccountId;
             toAccount = "master";
         }
-        object timestamp = this.safeInteger(transfer, "createdAt");
+        Int64? timestamp = this.safeInteger(transfer, "createdAt");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
@@ -1617,7 +1617,7 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
         };
         object response = await this.privateGetDeposit(this.extend(request, parameters));
@@ -1627,8 +1627,8 @@ public partial class bitvavo : Exchange
         //         "paymentId": "10002653"
         //     }
         //
-        object address = this.safeString(response, "address");
-        object tag = this.safeString(response, "paymentId");
+        string? address = this.safeString(response, "address");
+        string? tag = this.safeString(response, "paymentId");
         this.checkAddress(address);
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "info", response },             { "currency", code },             { "network", null },             { "address", address },             { "tag", tag },         });
     }
@@ -1645,14 +1645,14 @@ public partial class bitvavo : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
             { "side", side },
             { "orderType", type },
         };
         bool isMarketOrder = isTrue(isTrue((isEqual(type, "market"))) || isTrue((isEqual(type, "stopLoss")))) || isTrue((isEqual(type, "takeProfit")));
         bool isLimitOrder = isTrue(isTrue((isEqual(type, "limit"))) || isTrue((isEqual(type, "stopLossLimit")))) || isTrue((isEqual(type, "takeProfitLimit")));
-        object timeInForce = this.safeString(parameters, "timeInForce");
+        string? timeInForce = this.safeString(parameters, "timeInForce");
         object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         object stopLossPrice = this.safeValue(parameters, "stopLossPrice"); // trigger when price crosses from above to below this value
@@ -1663,9 +1663,9 @@ public partial class bitvavo : Exchange
             object cost = null;
             if (isTrue(!isEqual(price, null)))
             {
-                object priceString = this.numberToString(price);
-                object amountString = this.numberToString(amount);
-                object quoteAmount = Precise.stringMul(amountString, priceString);
+                string? priceString = this.numberToString(price);
+                string? amountString = this.numberToString(amount);
+                string? quoteAmount = Precise.stringMul(amountString, priceString);
                 cost = this.parseNumber(quoteAmount);
             } else
             {
@@ -1824,10 +1824,10 @@ public partial class bitvavo : Exchange
     public virtual object editOrderRequest(object id, object symbol, object type, object side, object amount = null, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = this.market(symbol);
         object amountRemaining = this.safeNumber(parameters, "amountRemaining");
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "triggerAmount"});
         parameters = this.omit(parameters, new List<object>() {"amountRemaining", "triggerPrice", "stopPrice", "triggerAmount"});
         if (isTrue(!isEqual(price, null)))
         {
@@ -1850,7 +1850,7 @@ public partial class bitvavo : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount argument, or a price argument, or non-empty params")) ;
         }
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -1905,10 +1905,10 @@ public partial class bitvavo : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -1971,7 +1971,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2029,7 +2029,7 @@ public partial class bitvavo : Exchange
         var codGroupIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
         codGroupId = ((IList<object>)codGroupIdparametersVariable)[0];
         parameters = ((IList<object>)codGroupIdparametersVariable)[1];
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "codGroupId", codGroupId },
             { "expiryAfterSeconds", ((bool) isTrue((isGreaterThan(timeout, 0)))) ? this.parseToInt(divide(timeout, 1000)) : 0 },
         };
@@ -2065,10 +2065,10 @@ public partial class bitvavo : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "market", getValue(market, "id") },
         };
-        object clientOrderId = this.safeString(parameters, "clientOrderId");
+        string? clientOrderId = this.safeString(parameters, "clientOrderId");
         if (isTrue(isEqual(clientOrderId, null)))
         {
             ((IDictionary<string,object>)request)["orderId"] = id;
@@ -2224,7 +2224,7 @@ public partial class bitvavo : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2273,7 +2273,7 @@ public partial class bitvavo : Exchange
 
     public virtual object parseOrderStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "new", "open" },
             { "canceled", "canceled" },
             { "canceledAuction", "canceled" },
@@ -2338,30 +2338,30 @@ public partial class bitvavo : Exchange
         //         "postOnly": true,
         //     }
         //
-        object id = this.safeString(order, "orderId");
-        object timestamp = this.safeInteger(order, "created");
-        object marketId = this.safeString(order, "market");
+        string? id = this.safeString(order, "orderId");
+        Int64? timestamp = this.safeInteger(order, "created");
+        string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "-");
         object symbol = getValue(market, "symbol");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
-        object side = this.safeString(order, "side");
-        object type = this.safeString(order, "orderType");
-        object price = this.safeString(order, "price");
-        object amount = this.safeString(order, "amount");
-        object remaining = this.safeString(order, "amountRemaining");
-        object filled = this.safeString(order, "filledAmount");
-        object cost = this.safeString(order, "filledAmountQuote");
+        string? side = this.safeString(order, "side");
+        string? type = this.safeString(order, "orderType");
+        string? price = this.safeString(order, "price");
+        string? amount = this.safeString(order, "amount");
+        string? remaining = this.safeString(order, "amountRemaining");
+        string? filled = this.safeString(order, "filledAmount");
+        string? cost = this.safeString(order, "filledAmountQuote");
         if (isTrue(isEqual(cost, null)))
         {
-            object amountQuote = this.safeString(order, "amountQuote");
-            object amountQuoteRemaining = this.safeString(order, "amountQuoteRemaining");
+            string? amountQuote = this.safeString(order, "amountQuote");
+            string? amountQuoteRemaining = this.safeString(order, "amountQuoteRemaining");
             cost = Precise.stringSub(amountQuote, amountQuoteRemaining);
         }
         object fee = null;
         object feeCost = this.safeNumber(order, "feePaid");
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurrencyId = this.safeString(order, "feeCurrency");
+            string? feeCurrencyId = this.safeString(order, "feeCurrency");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2369,7 +2369,7 @@ public partial class bitvavo : Exchange
             };
         }
         object rawTrades = this.safeValue(order, "fills", new List<object>() {});
-        object timeInForce = this.safeString(order, "timeInForce");
+        string? timeInForce = this.safeString(order, "timeInForce");
         object postOnly = this.safeValue(order, "postOnly");
         // https://github.com/ccxt/ccxt/issues/8489
         return this.safeOrder(new Dictionary<string, object>() {
@@ -2540,7 +2540,7 @@ public partial class bitvavo : Exchange
 
     public virtual object parseLedgerEntryType(object type)
     {
-        object types = new Dictionary<string, object>() {
+        Dictionary<string, object> types = new Dictionary<string, object>() {
             { "buy", "trade" },
             { "sell", "trade" },
             { "deposit", "transaction" },
@@ -2554,10 +2554,10 @@ public partial class bitvavo : Exchange
 
     public override object parseLedgerEntry(object item, object currency = null)
     {
-        object rawType = this.safeString(item, "type");
+        string? rawType = this.safeString(item, "type");
         object type = this.parseLedgerEntryType(rawType);
-        object currencyId = this.safeString(item, "receivedCurrency");
-        object amount = this.safeString(item, "receivedAmount");
+        string? currencyId = this.safeString(item, "receivedCurrency");
+        string? amount = this.safeString(item, "receivedAmount");
         string direction = "in";
         if (isTrue(isEqual(amount, null)))
         {
@@ -2567,12 +2567,12 @@ public partial class bitvavo : Exchange
         }
         object code = this.safeCurrencyCode(currencyId);
         currency = this.safeCurrency(currencyId, currency);
-        object timestamp = this.parse8601(this.safeString(item, "executedAt"));
+        Int64? timestamp = this.parse8601(this.safeString(item, "executedAt"));
         object fee = null;
-        object feeCost = this.safeString(item, "feesAmount");
+        string? feeCost = this.safeString(item, "feesAmount");
         if (isTrue(!isEqual(feeCost, null)))
         {
-            object feeCurrencyId = this.safeString(item, "feesCurrency");
+            string? feeCurrencyId = this.safeString(item, "feesCurrency");
             object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             fee = new Dictionary<string, object>() {
                 { "cost", feeCost },
@@ -2602,7 +2602,7 @@ public partial class bitvavo : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
             { "address", address },
@@ -2654,7 +2654,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchWithdrawalsRequest(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -2717,7 +2717,7 @@ public partial class bitvavo : Exchange
     public virtual object fetchDepositsRequest(object code = null, object since = null, object limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         object currency = null;
         if (isTrue(!isEqual(code, null)))
         {
@@ -2777,7 +2777,7 @@ public partial class bitvavo : Exchange
 
     public virtual object parseTransactionStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "awaiting_processing", "pending" },
             { "awaiting_email_confirmation", "pending" },
             { "awaiting_bitvavo_inspection", "pending" },
@@ -2827,13 +2827,13 @@ public partial class bitvavo : Exchange
         //     }
         //
         object id = null;
-        object timestamp = this.safeInteger(transaction, "timestamp");
-        object currencyId = this.safeString(transaction, "symbol");
+        Int64? timestamp = this.safeInteger(transaction, "timestamp");
+        string? currencyId = this.safeString(transaction, "symbol");
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object amount = this.safeNumber(transaction, "amount");
-        object address = this.safeString(transaction, "address");
-        object txid = this.safeString(transaction, "txId");
+        string? address = this.safeString(transaction, "address");
+        string? txid = this.safeString(transaction, "txId");
         object fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
@@ -2843,7 +2843,7 @@ public partial class bitvavo : Exchange
                 { "currency", code },
             };
         }
-        object type = null;
+        string? type = null;
         if (isTrue(isTrue((inOp(transaction, "success"))) || isTrue((inOp(transaction, "address")))))
         {
             type = "withdrawal";
@@ -2851,7 +2851,7 @@ public partial class bitvavo : Exchange
         {
             type = "deposit";
         }
-        object tag = this.safeString(transaction, "paymentId");
+        string? tag = this.safeString(transaction, "paymentId");
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", id },
@@ -2895,7 +2895,7 @@ public partial class bitvavo : Exchange
         //       "message": ""
         //   }
         //
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", fee },
             { "withdraw", new Dictionary<string, object>() {
                 { "fee", this.safeNumber(fee, "withdrawalFee") },
@@ -2909,7 +2909,7 @@ public partial class bitvavo : Exchange
         };
         object networks = this.safeValue(fee, "networks");
         object networkId = this.safeValue(networks, 0); // Bitvavo currently only supports one network per currency
-        object currencyCode = this.safeString(currency, "code");
+        string? currencyCode = this.safeString(currency, "code");
         if (isTrue(isEqual(networkId, "Mainnet")))
         {
             networkId = currencyCode;
@@ -2994,7 +2994,7 @@ public partial class bitvavo : Exchange
             string timestamp = ((object)this.milliseconds()).ToString();
             object auth = add(add(add(timestamp, method), url), payload);
             string signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256);
-            object accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
+            string? accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             headers = new Dictionary<string, object>() {
                 { "BITVAVO-ACCESS-KEY", this.apiKey },
                 { "BITVAVO-ACCESS-SIGNATURE", signature },
@@ -3026,8 +3026,8 @@ public partial class bitvavo : Exchange
         //     {"errorCode":203,"error":"symbol parameter is required."}
         //     {"errorCode":205,"error":"symbol parameter is invalid."}
         //
-        object errorCode = this.safeString(response, "errorCode");
-        object error = this.safeString(response, "error");
+        string? errorCode = this.safeString(response, "errorCode");
+        string? error = this.safeString(response, "error");
         if (isTrue(!isEqual(errorCode, null)))
         {
             object feedback = add(add(this.id, " "), body);

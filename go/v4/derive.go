@@ -1316,7 +1316,7 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var tradesArray any = this.ToArray(trades)
+	var tradesArray []any = this.ToArray(trades)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
@@ -1464,7 +1464,7 @@ func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -1541,8 +1541,8 @@ func (this *DeriveCore) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var DOMAIN_SEPARATOR any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
-	var binaryDomainSeparator any = this.Base16ToBinary(DOMAIN_SEPARATOR)
-	var prefix any = this.Base16ToBinary("1901")
+	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
+	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
 func (this *DeriveCore) SignOrder(order any, privateKey any) any {
@@ -1550,19 +1550,19 @@ func (this *DeriveCore) SignOrder(order any, privateKey any) any {
 	return this.SignHash(Slice(hashOrder, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *DeriveCore) HashMessage(message any) any {
-	var binaryMessage any = this.Encode(message)
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessage string = this.Encode(message)
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *DeriveCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *DeriveCore) SignMessage(message any, privateKey any) any {
@@ -1629,7 +1629,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var nonce int64 = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
@@ -1829,7 +1829,7 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	var nonce int64 = this.Milliseconds()
 	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	// TODO: subaccount id / trade module address
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)

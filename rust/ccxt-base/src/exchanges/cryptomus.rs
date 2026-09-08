@@ -1067,7 +1067,7 @@ impl CryptomusCore {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("client_order_id".to_string()), clientOrderId.clone());
         }
-        let mut sideBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+        let mut sideBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
         let mut amountToString: Value = self.number_to_string(amount.clone());
         let mut priceToString: Value = self.number_to_string(price.clone());
         let mut cost: Value = Value::Null;

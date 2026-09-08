@@ -784,7 +784,7 @@ func (this *CoinbaseexchangeCore) fetchMarketsBody(ch chan any, optionalArgs ...
 	//     ]
 	//
 	var result any = []any{}
-	var rawMarkets any = this.ToArray(response)
+	var rawMarkets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
 		var id any = this.SafeString(market, "id")
@@ -898,7 +898,7 @@ func (this *CoinbaseexchangeCore) fetchAccountsBody(ch chan any, optionalArgs ..
 	//         },
 	//     ]
 	//
-	var accounts any = this.ToArray(response)
+	var accounts []any = this.ToArray(response)
 
 	ch <- this.ParseAccounts(accounts, params)
 	return nil
@@ -2391,7 +2391,7 @@ func (this *CoinbaseexchangeCore) fetchLedgerBody(ch chan any, optionalArgs ...a
 
 	response := (<-this.PrivateGetAccountsIdLedger(this.Extend(request, params)))
 	PanicOnError(response)
-	var entries any = this.ToArray(response)
+	var entries []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(entries)); i++ {
 		AddElementToObject(GetValue(entries, i), "currency", code)
 	}

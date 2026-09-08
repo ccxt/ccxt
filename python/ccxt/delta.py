@@ -2257,7 +2257,7 @@ class delta(Exchange, ImplicitAPI):
         """
         return self.fetch_orders_with_method('privateGetOrdersHistory', symbol, since, limit, params)
 
-    def fetch_orders_with_method(self, method: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_with_method(self, method: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         self.load_markets()
         request = {
             # 'product_ids': market['id'],  # comma-separated

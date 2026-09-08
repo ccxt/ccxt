@@ -5496,7 +5496,7 @@ class binance(Exchange, ImplicitAPI):
             responseList = self.to_array(response)
         return self.parse_trades(responseList, market, since, limit)
 
-    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_spot_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
  @ignore
         edit a trade order
@@ -5700,7 +5700,7 @@ class binance(Exchange, ImplicitAPI):
         params = self.omit(params, ['clientOrderId', 'newClientOrderId'])
         return request
 
-    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}):
+    async def edit_contract_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num, price: Num = None, params={}) -> Order:
         """
         edit a trade order
 
@@ -10169,7 +10169,7 @@ class binance(Exchange, ImplicitAPI):
             return result
         raise NotSupported(self.id + ' fetchTradingFees() is not supported for ' + type + ' markets')
 
-    async def futures_transfer(self, code: str, amount: object, type: object, params={}):
+    async def futures_transfer(self, code: str, amount: object, type: object, params={}) -> TransferEntry:
         """
  @ignore
         transfer between futures account
@@ -11106,7 +11106,7 @@ class binance(Exchange, ImplicitAPI):
         #
         return self.parse_option_position(self.safe_dict(response, 0, {}), market)
 
-    async def fetch_option_positions(self, symbols: Strings = None, params={}):
+    async def fetch_option_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
         fetch data on open options positions
 
@@ -11255,7 +11255,7 @@ class binance(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + '.options["fetchPositions"]["method"] or params["method"] = "' + defaultMethod + '" is invalid, please choose between "account", "positionRisk" and "option"')
 
-    async def fetch_account_positions(self, symbols: Strings = None, params={}):
+    async def fetch_account_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """
  @ignore
         fetch account positions
@@ -12785,7 +12785,7 @@ class binance(Exchange, ImplicitAPI):
             'datetime': None,
         }
 
-    async def create_gift_code(self, code: str, amount: object, params={}):
+    async def create_gift_code(self, code: str, amount: object, params={}) -> dict:
         """
         create gift code
 

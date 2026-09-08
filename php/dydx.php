@@ -2261,7 +2261,7 @@ class dydx extends Exchange {
         return $this->parse_transactions($rows, $currency, $since, $limit);
     }
 
-    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_transactions_helper(?string $code = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $methodName = $this->safe_string($params, 'methodName');
         $params = $this->omit($params, 'methodName');
         $userAddress = null;

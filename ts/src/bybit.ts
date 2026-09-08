@@ -7277,7 +7277,7 @@ export default class bybit extends Exchange {
         return response;
     }
 
-    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchDerivativesOpenInterestHistory (symbol: string, timeframe = '1h', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OpenInterest[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8441,7 +8441,7 @@ export default class bybit extends Exchange {
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    async fetchVolatilityHistory (code: string, params = {}) {
+    async fetchVolatilityHistory (code: string, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

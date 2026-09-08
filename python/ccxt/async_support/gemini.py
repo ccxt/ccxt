@@ -422,7 +422,7 @@ class gemini(Exchange, ImplicitAPI):
         """
         return await self.fetch_currencies_from_web(params)
 
-    async def fetch_currencies_from_web(self, params={}):
+    async def fetch_currencies_from_web(self, params={}) -> Currencies:
         """
  @ignore
         fetches all available currencies on an exchange
@@ -531,7 +531,7 @@ class gemini(Exchange, ImplicitAPI):
             return self.array_concat(promisesResult[0], promisesResult[1])
         return await self.fetch_markets_from_api(params)
 
-    async def fetch_markets_from_web(self, params={}):
+    async def fetch_markets_from_web(self, params={}) -> list[Market]:
         data = await self.fetch_web_endpoint('fetchMarkets', 'webGetRestApi', False, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>')
         error = self.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.'
         tables = data.split('tbody>')
@@ -636,7 +636,7 @@ class gemini(Exchange, ImplicitAPI):
             return True  # below
         return self.safe_bool(statuses, status, True)
 
-    async def fetch_usdt_markets(self, params={}):
+    async def fetch_usdt_markets(self, params={}) -> list[Market]:
         # these markets can't be scrapped and fetchMarketsFrom api does an extra call
         # to load market ids which we don't need here
         if 'test' in self.urls:
@@ -653,7 +653,7 @@ class gemini(Exchange, ImplicitAPI):
             result.append(self.parse_market(rawResponse))
         return result
 
-    async def fetch_markets_from_api(self, params={}):
+    async def fetch_markets_from_api(self, params={}) -> list[Market]:
         marketIdsRaw = await self.publicGetV1Symbols(params)
         #
         #     [

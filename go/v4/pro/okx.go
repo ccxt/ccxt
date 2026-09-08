@@ -1531,7 +1531,7 @@ func (this *OkxCore) HandleOHLCV(client any, message any) {
 	var marketId any = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
-	var interval any = ccxt.Replace(channel, "candle", "")
+	var interval string = ccxt.Replace(channel, "candle", "")
 	// use a reverse lookup in a static map instead
 	var timeframe any = this.FindTimeframe(interval)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
@@ -2717,7 +2717,7 @@ func (this *OkxCore) HandleMyTrades(client any, message any) {
 }
 func (this *OkxCore) RequestId() any {
 	var ts string = ccxt.ToString(this.Milliseconds())
-	var randomNumber any = this.RandNumber(4)
+	var randomNumber int64 = this.RandNumber(4)
 	var randomPart string = ccxt.ToString(randomNumber)
 	return ccxt.Add(ts, randomPart)
 }
@@ -3124,7 +3124,7 @@ func (this *OkxCore) HandleErrorMessage(client any, message any) any {
 							// try to parse it from the stringified json inside msg
 							var msg any = this.SafeString(message, "msg")
 							if ccxt.IsTrue(ccxt.IsTrue(!ccxt.IsEqual(msg, nil)) && ccxt.IsTrue(ccxt.StartsWith(msg, "Illegal request: {"))) {
-								var stringifiedJson any = ccxt.Replace(msg, "Illegal request: ", "")
+								var stringifiedJson string = ccxt.Replace(msg, "Illegal request: ", "")
 								var parsedJson any = this.ParseJson(stringifiedJson)
 								id = this.SafeString(parsedJson, "id")
 							}
@@ -3291,7 +3291,7 @@ func (this *OkxCore) HandleUnsubscriptionOrderBook(client any, symbol any, chann
 	}
 }
 func (this *OkxCore) HandleUnsubscriptionOHLCV(client any, symbol any, channel any) {
-	var tf any = ccxt.Replace(channel, "candle", "")
+	var tf string = ccxt.Replace(channel, "candle", "")
 	var timeframe any = this.FindTimeframe(tf)
 	if ccxt.IsTrue(ccxt.IsEqual(timeframe, nil)) {
 		return

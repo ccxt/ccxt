@@ -1276,7 +1276,7 @@ impl PolymarketCore {
         let mut allowed: Value = Value::Str("abcdefghijklmnopqrstuvwxyz0123456789".to_string());
         let mut chars: Value = self.string_to_chars_array(lower.clone());
         let mut slug: Value = Value::Str("".to_string());
-        let mut pendingSep: Value = Value::Bool(false);
+        let mut pendingSep: bool = false;
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_1361: bool = true;
@@ -1288,9 +1288,9 @@ impl PolymarketCore {
                     slug = add(&slug, &Value::Str("-".to_string()));
                 }
                 slug = add(&slug, &ch);
-                pendingSep = Value::Bool(false);
+                pendingSep = false;
             }  else {
-                pendingSep = Value::Bool(true);
+                pendingSep = true;
             }
         }
         }
@@ -2345,7 +2345,7 @@ impl PolymarketCore {
         //
         //     OK
         //
-        let mut ok: Value = Value::Bool(is_true(&(is_equal(&response, &Value::Str("OK".to_string())))) || is_true(&(is_equal(&response, &Value::Str("ok".to_string())))));
+        let mut ok: bool = is_true(&(is_equal(&response, &Value::Str("OK".to_string())))) || is_true(&(is_equal(&response, &Value::Str("ok".to_string()))));
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), ternary(is_true(&ok), Value::Str("ok".to_string()), Value::Str("maintenance".to_string())));
@@ -2603,14 +2603,14 @@ impl PolymarketCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-            let mut belongs: Value = Value::Bool(is_true(&(is_equal(&self.safe_string_k(trade.clone(), "order", &[]), &id))) || is_true(&(is_equal(&self.safe_string_k(info.clone(), "taker_order_id", &[]), &id))));
+            let mut belongs: bool = is_true(&(is_equal(&self.safe_string_k(trade.clone(), "order", &[]), &id))) || is_true(&(is_equal(&self.safe_string_k(info.clone(), "taker_order_id", &[]), &id)));
             let mut makerOrders: Value = self.safe_list_k(info.clone(), "maker_orders", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
                 let mut __for_first_1384: bool = true;
                 while { if !__for_first_1384 { j = add(&j, &Value::Int(1)); } __for_first_1384 = false; is_less_than(&j, &get_array_length(&makerOrders)) } {
                 if is_equal(&self.safe_string_k(get_value(&makerOrders, &j), "order_id", &[]), &id) {
-                    belongs = Value::Bool(true);
+                    belongs = true;
                 }
             }
             }
@@ -3218,7 +3218,7 @@ impl PolymarketCore {
         let mut outcomeObj: Value = self.outcome(outcome.clone());
         let mut tokenId: Value = get_value(&outcomeObj, &Value::Str("outcomeId".to_string()));
         let mut sideStr: Value = to_upper(&side);
-        let mut isMarket: Value = Value::Bool(is_equal(&type_var, &Value::Str("market".to_string())));
+        let mut isMarket: bool = is_equal(&type_var, &Value::Str("market".to_string()));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
         let mut orderTypeStr: Value = self.safe_string_upper(params.clone(), Value::Str("orderType".to_string()), &[]);
@@ -4154,11 +4154,11 @@ impl PolymarketCore {
         let mut url: Value = add(&add(&baseUrl, &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
         // an empty params container must not become a body: in PHP an empty array is
         // indistinguishable from an empty dict, so a bare Array.isArray check would json it to "[]"
-        let mut isArrayBody: Value = Value::Bool(false);
+        let mut isArrayBody: bool = false;
         if is_true(&Value::Bool(is_array(&params))) {
             let mut paramsList: Value = params.clone();
             let mut paramsListLength: Value = get_array_length(&paramsList);
-            isArrayBody = Value::Bool(is_greater_than(&paramsListLength, &Value::Int(0)));
+            isArrayBody = is_greater_than(&paramsListLength, &Value::Int(0));
         }
         let mut query: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -4171,14 +4171,14 @@ impl PolymarketCore {
             // array-valued params must repeat the key (gamma's clob_token_ids rejects
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
-            let mut hasArrayParam: Value = Value::Bool(false);
+            let mut hasArrayParam: bool = false;
             let mut queryKeys: Value = object_keys(&query);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_1397: bool = true;
                 while { if !__for_first_1397 { i = add(&i, &Value::Int(1)); } __for_first_1397 = false; is_less_than(&i, &get_array_length(&queryKeys)) } {
                 if is_true(&Value::Bool(is_array(&get_value(&query, &get_value(&queryKeys, &i))))) {
-                    hasArrayParam = Value::Bool(true);
+                    hasArrayParam = true;
                 }
             }
             }
@@ -4211,7 +4211,7 @@ impl PolymarketCore {
             // '-' into the local var '$api' (it only skips quote/slash-adjacent matches), which
             // would corrupt the literal to 'auth/derive-$api-key' and break this check
             let mut deriveApiKeyPath: Value = add(&Value::Str("auth/derive-".to_string()), &Value::Str("api-key".to_string()));
-            let mut isL1Auth: Value = Value::Bool(is_true(&(is_equal(&path, &Value::Str("auth/api-key".to_string())))) || is_true(&(is_equal(&path, &deriveApiKeyPath))) || is_true(&(is_equal(&path, &Value::Str("auth/api-keys".to_string())))));
+            let mut isL1Auth: bool = is_true(&(is_equal(&path, &Value::Str("auth/api-key".to_string())))) || is_true(&(is_equal(&path, &deriveApiKeyPath))) || is_true(&(is_equal(&path, &Value::Str("auth/api-keys".to_string()))));
             if is_true(&isL1Auth) {
                 // L1 (private-key / EIP-712) auth used to create or derive the L2 api credentials
                 if is_equal(&self.privateKey, &Value::Null) {
@@ -4497,7 +4497,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut apiKey: Value = ternary(is_true(&(!is_equal(&self.apiKey, &Value::Null))), self.apiKey.clone(), self.safe_string_k(self.options.clone(), "l2ApiKey", &[]));
         let mut secret: Value = ternary(is_true(&(!is_equal(&self.secret, &Value::Null))), self.secret.clone(), self.safe_string_k(self.options.clone(), "l2Secret", &[]));
         let mut passphrase: Value = ternary(is_true(&(!is_equal(&self.password, &Value::Null))), self.password.clone(), self.safe_string_k(self.options.clone(), "l2Passphrase", &[]));
-        let mut hasL2: Value = Value::Bool(is_true(&(!is_equal(&apiKey, &Value::Null))) && is_true(&(!is_equal(&secret, &Value::Null))) && is_true(&(!is_equal(&passphrase, &Value::Null))));
+        let mut hasL2: bool = is_true(&(!is_equal(&apiKey, &Value::Null))) && is_true(&(!is_equal(&secret, &Value::Null))) && is_true(&(!is_equal(&passphrase, &Value::Null)));
         if is_true(&hasL2) {
             return Value::Null;
         }
@@ -4620,7 +4620,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut orderbook: Value = get_value(&self.orderbooks, &outcome);
             let mut price: Value = self.safe_number_k(change.clone(), "price", &[]);
             let mut size: Value = self.safe_number_k(change.clone(), "size", &[]);
-            let mut isBuy: Value = Value::Bool(is_equal(&self.safe_string_upper(change.clone(), Value::Str("side".to_string()), &[Value::Str("".to_string())]), &Value::Str("BUY".to_string())));
+            let mut isBuy: bool = is_equal(&self.safe_string_upper(change.clone(), Value::Str("side".to_string()), &[Value::Str("".to_string())]), &Value::Str("BUY".to_string()));
             let mut side: Value = ternary(is_true(&isBuy), get_value(&orderbook, &Value::Str("bids".to_string())), get_value(&orderbook, &Value::Str("asks".to_string())));
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
             let mut sideRef: Value = side.clone();

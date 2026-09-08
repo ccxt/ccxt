@@ -2362,7 +2362,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             }))
         return orders
 
-    async def cancel_twap_order(self, id: str, symbol: Str = None, params={}):
+    async def cancel_twap_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         cancels a running twap order
 

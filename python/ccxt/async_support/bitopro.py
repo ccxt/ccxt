@@ -1661,7 +1661,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

@@ -406,7 +406,7 @@ class gemini extends Exchange {
         return $this->fetch_currencies_from_web($params);
     }
 
-    public function fetch_currencies_from_web($params = array()) {
+    public function fetch_currencies_from_web($params = array()): array {
         /**
          * @ignore
          * fetches all available currencies on an exchange
@@ -522,7 +522,7 @@ class gemini extends Exchange {
         return $this->fetch_markets_from_api($params);
     }
 
-    public function fetch_markets_from_web($params = array()) {
+    public function fetch_markets_from_web($params = array()): array {
         $data = $this->fetch_web_endpoint('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         $error = $this->id . ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         $tables = explode('tbody>', $data);
@@ -634,7 +634,7 @@ class gemini extends Exchange {
         return $this->safe_bool($statuses, $status, true);
     }
 
-    public function fetch_usdt_markets($params = array()) {
+    public function fetch_usdt_markets($params = array()): array {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if (is_array($this->urls) && array_key_exists('test' ?? '', $this->urls)) {
@@ -654,7 +654,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function fetch_markets_from_api($params = array()) {
+    public function fetch_markets_from_api($params = array()): array {
         $marketIdsRaw = $this->publicGetV1Symbols($params);
         //
         //     array(

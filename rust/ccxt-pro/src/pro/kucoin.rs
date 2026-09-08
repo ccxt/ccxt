@@ -644,7 +644,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut refreshInterval: Value = multiply(&multiply(&multiply(&Value::Int(1000), &Value::Int(60)), &Value::Int(60)), &Value::Int(24)); // 24 hours
         refreshInterval = self.safe_integer_k(self.options.clone(), "utaTokenRefreshInterval", &[refreshInterval.clone()]);
         let mut now: Value = self.milliseconds();
-        let mut expired: Value = Value::Bool(is_greater_than_or_equal(&(subtract(&now, &lastUpdate)), &refreshInterval));
+        let mut expired: bool = is_greater_than_or_equal(&(subtract(&now, &lastUpdate)), &refreshInterval);
         let mut messageHash: Value = Value::Str("utaToken".to_string());
         let mut url: Value = get_value(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &Value::Str("ws".to_string())), &Value::Str("private".to_string()));
         let mut client: Value = self.client(&[url.clone()]);
@@ -954,7 +954,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut subscription = get_arg(optional_args, 1, Value::Null);
         let mut requestId: Value = to_string_val(&self.request_id());
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
-        let mut isContract: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true)));
+        let mut isContract: bool = is_equal(&get_value(&market, &Value::Str("contract".to_string())), &Value::Bool(true));
         let mut urlType: Value = ternary(is_true(&isContract), Value::Str("futures".to_string()), Value::Str("spot".to_string()));
         let mut tradeType: Value = to_upper(&urlType);
         let mut action: Value = Value::Str("subscribe".to_string());
@@ -1610,7 +1610,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             stored = ArrayCacheByTimestamp::new(limit.clone());
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.ohlcvs) }, &symbol), &timeframe, stored.clone());
         }
-        let mut isContractMarket: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&topic, &Value::Str("contractMarket".to_string())), &Value::Int(0)));
+        let mut isContractMarket: bool = is_greater_than_or_equal(&get_index_of(&topic, &Value::Str("contractMarket".to_string())), &Value::Int(0));
         let mut baseVolumeIndex: Value = ternary(is_true(&isContractMarket), Value::Int(6), Value::Int(5)); // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
         let mut parsed: Value = Value::List(vec![self.safe_timestamp(candles.clone(), Value::Int(0), &[]), self.safe_number(candles.clone(), Value::Int(1), &[]), self.safe_number(candles.clone(), Value::Int(3), &[]), self.safe_number(candles.clone(), Value::Int(4), &[]), self.safe_number(candles.clone(), Value::Int(2), &[]), self.safe_number(candles.clone(), baseVolumeIndex.clone(), &[])]);
         stored.append(parsed.clone());
@@ -2829,7 +2829,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         }
         let mut triggerPrice: Value = self.safe_string_k(order.clone(), "stopPrice", &[]);
         let mut triggerSuccess: Value = self.safe_bool_k(order.clone(), "triggerSuccess", &[]);
-        let mut triggerFail: Value = Value::Bool(is_true(&(!is_equal(&triggerSuccess, &Value::Bool(true)))) && is_true(&(!is_equal(&triggerSuccess, &Value::Null)))); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
+        let mut triggerFail: bool = is_true(&(!is_equal(&triggerSuccess, &Value::Bool(true)))) && is_true(&(!is_equal(&triggerSuccess, &Value::Null))); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if is_true(&(is_equal(&status, &Value::Str("triggered".to_string())))) && is_true(&triggerFail) {
             status = Value::Str("canceled".to_string());
         }
@@ -2984,7 +2984,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut symbol: Value = self.safe_string_k(parsed.clone(), "symbol", &[]);
         let mut orderId: Value = self.safe_string_k(parsed.clone(), "id", &[]);
         let mut triggerPrice: Value = self.safe_string_k(parsed.clone(), "triggerPrice", &[]);
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         if is_equal(&self.orders, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
             self.orders = ArrayCacheBySymbolById::new(limit.clone());

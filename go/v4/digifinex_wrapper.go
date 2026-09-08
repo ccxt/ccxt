@@ -67,12 +67,12 @@ func (this *Digifinex) FetchMarketsV2(params ...any) ([]MarketInterface, error) 
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Digifinex) FetchMarketsV1(params ...any) ([]map[string]any, error) {
+func (this *Digifinex) FetchMarketsV1(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarketsV1(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**

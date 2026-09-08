@@ -79,7 +79,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                 'fetchOrders': true,
                 'fetchPositions': true,
                 'fetchPremiumIndexOHLCV': false,
-                'fetchTicker': 'emulated',
+                'fetchTicker': true,
                 'fetchTickers': true,
                 'fetchTrades': true,
                 'fetchTradingFee': 'emulated',
@@ -117,8 +117,11 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'get': {
                         'feeschedules': { 'cost': 1 },
                         'instruments': { 'cost': 1 },
+                        'instruments/status': { 'cost': 1 },
+                        'instruments/{symbol}/status': { 'cost': 1 },
                         'orderbook': { 'cost': 1 },
                         'tickers': { 'cost': 1 },
+                        'tickers/{symbol}': { 'cost': 1 },
                         'history': { 'cost': 1 },
                         'historicalfundingrates': { 'cost': 1 },
                     },
@@ -138,12 +141,17 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'assignmentprogram/current': { 'cost': 1 },
                         'assignmentprogram/history': { 'cost': 1 },
                         'orders/status': { 'cost': 1 },
+                        'unwindqueue': { 'cost': 1 },
+                        'self-trade-strategy': { 'cost': 1 },
+                        'subaccounts': { 'cost': 1 },
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 },
                     },
                     'post': {
                         'sendorder': { 'cost': 1 },
                         'editorder': { 'cost': 1 },
                         'cancelorder': { 'cost': 1 },
                         'transfer': { 'cost': 1 },
+                        'transfer/subaccount': { 'cost': 1 },
                         'batchorder': { 'cost': 1 },
                         'cancelallorders': { 'cost': 1 },
                         'cancelallordersafter': { 'cost': 1 },
@@ -154,11 +162,14 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'put': {
                         'leveragepreferences': { 'cost': 1 },
                         'pnlpreferences': { 'cost': 1 },
+                        'self-trade-strategy': { 'cost': 1 },
+                        'subaccount/{uid}/trading-enabled': { 'cost': 1 },
                     },
                 },
                 'charts': {
                     'get': {
                         '{price_type}/{symbol}/{interval}': { 'cost': 1 },
+                        'analytics/liquidity-pool': { 'cost': 1 },
                     },
                 },
                 'history': {
@@ -170,6 +181,8 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'account-log': { 'cost': 1 },
                         'market/{symbol}/orders': { 'cost': 1 },
                         'market/{symbol}/executions': { 'cost': 1 },
+                        'market/{symbol}/price': { 'cost': 1 },
+                        'positions': { 'cost': 1 },
                     },
                 },
             },
@@ -224,6 +237,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'notFound': errors.BadRequest,
                     'Server Error': errors.ExchangeError,
                     'unknownError': errors.ExchangeError,
+                    'contractNotFound': errors.BadSymbol,
                 },
                 'broad': {
                     'invalidArgument': errors.BadRequest,
@@ -241,6 +255,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                             'triggers': 'private',
                             'accountlogcsv': 'private',
                             'account-log': 'private',
+                            'positions': 'private',
                         },
                     },
                 },
@@ -260,6 +275,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                     'charts': {
                         'GET': {
                             '{price_type}/{symbol}/{interval}': 'v1',
+                            'analytics/liquidity-pool': 'v1',
                         },
                     },
                     'history': {
@@ -598,6 +614,49 @@ class krakenfutures extends krakenfutures$1["default"] {
         const timestamp = this.parse8601(this.safeString(response, 'serverTime'));
         const orderBook = this.safeDict(response, 'orderBook', {});
         return this.parseOrderBook(orderBook, symbol, timestamp);
+    }
+    /**
+     * @method
+     * @name krakenfutures#fetchTicker
+     * @description fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+     * @see https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol
+     * @param {string} symbol unified symbol of the market to fetch the ticker for
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
+     */
+    async fetchTicker(symbol, params = {}) {
+        await this.loadMarkets();
+        const market = this.market(symbol);
+        const request = {
+            'symbol': market['id'],
+        };
+        const response = await this.publicGetTickersSymbol(this.extend(request, params));
+        //
+        //    {
+        //        "result": "success",
+        //        "ticker": {
+        //            "tag": "perpetual",
+        //            "pair": "XBT:USD",
+        //            "symbol": "PF_XBTUSD",
+        //            "markPrice": 77343.38154086835,
+        //            "bid": 77333,
+        //            "bidSize": 0.0776,
+        //            "ask": 77334,
+        //            "askSize": 0.4929,
+        //            "vol24h": 8309.2546,
+        //            "openInterest": 1950.596600000000000,
+        //            "open24h": 77332,
+        //            "indexPrice": 77340.22,
+        //            "last": 77334,
+        //            "lastTime": "2026-09-02T17:52:21.057577Z",
+        //            "lastSize": 0.0114,
+        //            "suspended": false
+        //        },
+        //        "serverTime": "2026-09-02T17:52:21.671Z"
+        //    }
+        //
+        const ticker = this.safeDict(response, 'ticker', {});
+        return this.parseTicker(ticker, market);
     }
     /**
      * @method

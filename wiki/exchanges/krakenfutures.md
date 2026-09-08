@@ -7,6 +7,7 @@
 
 * [fetchMarkets](#fetchmarkets)
 * [fetchOrderBook](#fetchorderbook)
+* [fetchTicker](#fetchticker)
 * [fetchTickers](#fetchtickers)
 * [fetchTradingFees](#fetchtradingfees)
 * [fetchOHLCV](#fetchohlcv)
@@ -75,6 +76,27 @@ Fetches a list of open orders in a market
 
 ```javascript
 krakenfutures.fetchOrderBook (symbol, limit?, params?)
+```
+
+
+<a name="fetchTicker" id="fetchticker"></a>
+
+### fetchTicker{docsify-ignore}
+fetches a price ticker, a statistical calculation with the information calculated over the past 24 hours for a specific market
+
+**Kind**: instance method of [<code>krakenfutures</code>](#krakenfutures)  
+**Returns**: <code>object</code> - a [ticker structure](https://docs.ccxt.com/?id=ticker-structure)
+
+**See**: https://docs.kraken.com/api-reference/market-data/get-ticker-by-symbol  
+
+| Param | Type | Required | Description |
+| --- | --- | --- | --- |
+| symbol | <code>string</code> | Yes | unified symbol of the market to fetch the ticker for |
+| params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
+
+
+```javascript
+krakenfutures.fetchTicker (symbol, params?)
 ```
 
 

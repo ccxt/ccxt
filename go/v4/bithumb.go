@@ -2489,7 +2489,7 @@ func (this *BithumbCore) ParseOrder(order any, optionalArgs ...any) any {
 	var timestamp any = nil
 	if IsTrue(!IsEqual(datetime, nil)) {
 		if IsTrue(IsGreaterThan(GetIndexOf(datetime, "+09:00"), OpNeg(1))) {
-			var normalized any = Replace(datetime, "+09:00", "Z")
+			var normalized string = Replace(datetime, "+09:00", "Z")
 			var normalizedTimestamp any = this.Parse8601(normalized)
 			if IsTrue(!IsEqual(normalizedTimestamp, nil)) {
 				timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
@@ -3223,7 +3223,7 @@ func (this *BithumbCore) ParseTransaction(transaction any, optionalArgs ...any) 
 	var datetime any = this.SafeString(transaction, "created_at")
 	var timestamp any = this.Parse8601(datetime)
 	if IsTrue(IsTrue((!IsEqual(datetime, nil))) && IsTrue((IsGreaterThan(GetIndexOf(datetime, "+09:00"), OpNeg(1))))) {
-		var normalized any = Replace(datetime, "+09:00", "Z")
+		var normalized string = Replace(datetime, "+09:00", "Z")
 		var normalizedTimestamp any = this.Parse8601(normalized)
 		if IsTrue(!IsEqual(normalizedTimestamp, nil)) {
 			timestamp = Subtract(normalizedTimestamp, Multiply(9, 3600000))
@@ -3885,9 +3885,9 @@ func (this *BithumbCore) UrlencodeWithArrayBrackets(query any) any {
 			if IsTrue(IsGreaterThan(GetLength(result), 0)) {
 				result = Add(result, "&")
 			}
-			var encodedKey any = this.EncodeURIComponent(key)
+			var encodedKey string = this.EncodeURIComponent(key)
 			var valueString any = this.SafeString(query, key)
-			var encodedValue any = this.EncodeURIComponent(valueString)
+			var encodedValue string = this.EncodeURIComponent(valueString)
 			result = Add(result, Add(Add(encodedKey, "="), encodedValue))
 		}
 	}
@@ -3942,7 +3942,7 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 				AddElementToObject(request, "query_hash", this.Hash(this.Encode(authString), sha512))
 				AddElementToObject(request, "query_hash_alg", "SHA512")
 			}
-			var token any = Jwt(request, this.Encode(this.Secret), sha256)
+			var token string = Jwt(request, this.Encode(this.Secret), sha256)
 			AddElementToObject(headers, "Authorization", Add("Bearer ", token))
 		} else {
 			body = this.Urlencode(this.Extend(map[string]any{
@@ -3954,7 +3954,7 @@ func (this *BithumbCore) Sign(path any, optionalArgs ...any) any {
 			var nonce string = ToString(this.Nonce())
 			var auth any = Add(Add(Add(Add(endpoint, "//"+"0"), body), "//"+"0"), nonce) // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha512)
-			var signature64 any = this.StringToBase64(signature)
+			var signature64 string = this.StringToBase64(signature)
 			headers = map[string]any{
 				"Accept":       "application/json",
 				"Content-Type": "application/x-www-form-urlencoded",

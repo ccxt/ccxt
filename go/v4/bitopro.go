@@ -1113,7 +1113,7 @@ func (this *BitoproCore) InsertMissingCandles(candles any, distance any, since a
 	}
 	var i any = 0
 	var candleLength int = GetArrayLength(candles)
-	var resultLength any = 0
+	var resultLength int = 0
 	for IsTrue((IsLessThan(resultLength, limit))) && IsTrue((IsLessThan(i, candleLength))) {
 		var candle any = GetValue(candles, i)
 		if IsTrue(IsEqual(GetValue(candle, 0), timestamp)) {
@@ -2350,7 +2350,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 		this.CheckRequiredCredentials()
 		if IsTrue(IsTrue(IsEqual(method, "POST")) || IsTrue(IsEqual(method, "PUT"))) {
 			body = this.Json(params)
-			var payload any = this.StringToBase64(body)
+			var payload string = this.StringToBase64(body)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)
@@ -2364,7 +2364,7 @@ func (this *BitoproCore) Sign(path any, optionalArgs ...any) any {
 				"nonce": nonce,
 			}
 			var data any = this.Json(rawData)
-			var payload any = this.StringToBase64(data)
+			var payload string = this.StringToBase64(data)
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha384)
 			AddElementToObject(headers, "X-BITOPRO-APIKEY", this.ApiKey)
 			AddElementToObject(headers, "X-BITOPRO-PAYLOAD", payload)

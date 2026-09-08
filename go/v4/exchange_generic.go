@@ -264,37 +264,6 @@ func (this *BaseExchange) DeepExtend2(objs ...any) any {
 	return outDict
 }
 
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		if reflect.TypeOf(x).Kind() == reflect.Map {
-// 			if outObj == nil || reflect.TypeOf(outObj).Kind() != reflect.Map {
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := x.(map[string]any)
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil && reflect.TypeOf(arg1).Kind() == reflect.Map && reflect.TypeOf(arg2).Kind() == reflect.Map {
-// 					outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
 func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 	var outObj any
 
@@ -358,134 +327,6 @@ func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
 
 	return outObj.(map[string]any)
 }
-
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj map[string]any
-
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-
-// 		dictX, ok := x.(map[string]any)
-// 		if !ok {
-// 			continue
-// 		}
-
-// 		if outObj == nil {
-// 			outObj = make(map[string]any)
-// 		}
-
-// 		for k, v := range dictX {
-// 			if existingVal, exists := outObj[k]; exists {
-// 				if existingMap, ok1 := existingVal.(map[string]any); ok1 {
-// 					if vMap, ok2 := v.(map[string]any); ok2 {
-// 						// Recursively merge maps
-// 						outObj[k] = this.DeepExtend(existingMap, vMap)
-// 						continue
-// 					}
-// 				}
-// 			}
-// 			// Directly assign the value if no deep merging is needed
-// 			outObj[k] = v
-// 		}
-// 	}
-
-// 	return outObj
-// }
-
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		// if xMap, ok := x.(map[string]any); ok {
-// 		if xMap, ok := x.(map[string]any); ok {
-// 			if outObj == nil {
-// 				outObj = make(map[string]any)
-// 			} else if _, ok := x.(map[string]any); !ok {
-// 				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := xMap
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil {
-// 					_, arg1IsMap := arg1.(map[string]any)
-// 					_, arg2IsMap := arg2.(map[string]any)
-// 					if arg1IsMap && arg2IsMap {
-// 						outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 					}
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
-// func (this *BaseExchange) DeepExtend(objs ...any) map[string]any {
-// 	var outObj any
-// 	for _, x := range objs {
-// 		if x == nil {
-// 			continue
-// 		}
-// 		// if xMap, ok := x.(map[string]any); ok {
-// 		if xMap, ok := x.(map[string]any); ok {
-// 			if outObj == nil {
-// 				outObj = make(map[string]any)
-// 			} else if _, ok := x.(map[string]any); !ok  {
-// 				//  || reflect.TypeOf(outObj).Kind() != reflect.Map
-// 				outObj = make(map[string]any)
-// 			}
-// 			dictX := xMap
-// 			for k, _ := range dictX {
-// 				arg1 := outObj.(map[string]any)[k]
-// 				arg2 := dictX[k]
-// 				if arg1 != nil && arg2 != nil {
-// 					_, arg1IsMap := arg1.(map[string]any)
-// 					_, arg2IsMap := arg2.(map[string]any)
-// 					if arg1IsMap && arg2IsMap {
-// 						outObj.(map[string]any)[k] = this.DeepExtend(arg1, arg2)
-// 					}
-// 				} else {
-// 					if arg2 != nil {
-// 						outObj.(map[string]any)[k] = arg2
-// 					} else {
-// 						outObj.(map[string]any)[k] = arg1
-// 					}
-// 				}
-// 			}
-// 		} else {
-// 			outObj = x
-// 		}
-// 	}
-// 	return outObj.(map[string]any)
-// }
-
-// func (this *BaseExchange) InArray(elem any, list2 any) bool {
-// 	if list2 == nil {
-// 		return false
-// 	}
-// 	if reflect.TypeOf(list2).Kind() == reflect.Slice {
-// 		list := list2.([]any)
-// 		for _, v := range list {
-// 			if v == elem {
-// 				return true
-// 			}
-// 		}
-// 	}
-// 	return false
-// }
 
 func (this *BaseExchange) InArray(elem any, list any) bool {
 	// Ensure the list is not nil and is of a slice type
@@ -666,33 +507,6 @@ func (this *BaseExchange) IndexBySafe(a any, key any) *sync.Map {
 
 	return outDict
 }
-
-// func (this *BaseExchange) IndexBy(a any, key2 any) map[string]any {
-// 	outDict := make(map[string]any)
-// 	var targetX []any
-// 	if aArr, ok := a.([]any); ok {
-// 		targetX = aArr
-// 	} else {
-// 		for _, v := range a.(map[string]any) {
-// 			targetX = append(targetX, v)
-// 		}
-// 	}
-// 	for _, elem := range targetX {
-// 		if reflect.TypeOf(elem).Kind() == reflect.Map {
-// 			elem2 := elem.(map[string]any)
-// 			if val, ok := elem2[ToString(key2)]; ok {
-// 				outDict[ToString(val)] = elem2
-// 			}
-// 		} else if reflect.TypeOf(elem).Kind() == reflect.Slice {
-// 			index := key2.(int)
-// 			elem2 := elem.([]any)
-// 			if len(elem2) > index {
-// 				outDict[elem2[index].(string)] = elem2
-// 			}
-// 		}
-// 	}
-// 	return outDict
-// }
 
 func (this *BaseExchange) GroupBy(trades any, key2 any) map[string]any {
 	key := key2.(string)

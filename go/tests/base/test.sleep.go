@@ -19,7 +19,7 @@ func testSleepBody(ch chan any) any {
 		"id": "sampleexchange",
 	}, map[string]any{}, exchange)
 	var start any = exchange.Milliseconds()
-	var sleepAmount any = 100 // milliseconds
+	var sleepAmount int = 100 // milliseconds
 
 	retRes134 := (<-exchange.Sleep(sleepAmount))
 	ccxt.PanicOnError(retRes134)
@@ -27,7 +27,7 @@ func testSleepBody(ch chan any) any {
 	var elapsed any = ccxt.Subtract(end, start)
 	// Allow a small margin of error due to execution time and timer jitter
 	// (some runtimes, e.g. .NET ccxt.Task.Delay, may return a few ms early)
-	var marginOfError any = 20
+	var marginOfError int = 20
 	var minElapsed any = ccxt.Subtract(sleepAmount, marginOfError)
 	// The ceiling is deliberately far looser than the floor. sleep () promises
 	// a MINIMUM delay in every language, never a maximum: the OS is free to
@@ -36,7 +36,7 @@ func testSleepBody(ch chan any) any {
 	// headroom on a 102ms measured sleep and failed whenever the box was under
 	// load. Keep a ceiling only to catch a sleep that is genuinely broken — a
 	// seconds/milliseconds mix-up, or one that never returns.
-	var maxOvershoot any = 2000
+	var maxOvershoot int = 2000
 	var maxElapsed any = ccxt.Add(sleepAmount, maxOvershoot)
 	var elapsedBiggerThanSleep bool = ccxt.IsGreaterThanOrEqual(elapsed, minElapsed)
 	var elapsedLessThanMax bool = ccxt.IsLessThanOrEqual(elapsed, maxElapsed)

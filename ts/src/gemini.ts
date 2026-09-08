@@ -422,7 +422,7 @@ export default class gemini extends Exchange {
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    async fetchCurrenciesFromWeb (params = {}) {
+    async fetchCurrenciesFromWeb (params = {}): Promise<Currencies> {
         const data = await this.fetchWebEndpoint ('fetchCurrencies', 'webExchangeGet', true, '="currencyData">', '</script>');
         if (data === undefined) {
             return {};
@@ -532,7 +532,7 @@ export default class gemini extends Exchange {
         return await this.fetchMarketsFromAPI (params);
     }
 
-    async fetchMarketsFromWeb (params = {}) {
+    async fetchMarketsFromWeb (params = {}): Promise<Market[]> {
         const data = await this.fetchWebEndpoint ('fetchMarkets', 'webGetRestApi', false, '<h1 id="symbols-and-minimums">Symbols and minimums</h1>');
         const error = this.id + ' fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.';
         const tables = data.split ('tbody>');
@@ -644,7 +644,7 @@ export default class gemini extends Exchange {
         return this.safeBool (statuses, status, true);
     }
 
-    async fetchUSDTMarkets (params = {}) {
+    async fetchUSDTMarkets (params = {}): Promise<Market[]> {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         if ('test' in this.urls) {
@@ -664,7 +664,7 @@ export default class gemini extends Exchange {
         return result;
     }
 
-    async fetchMarketsFromAPI (params = {}) {
+    async fetchMarketsFromAPI (params = {}): Promise<Market[]> {
         const marketIdsRaw = await this.publicGetV1Symbols (params);
         //
         //     [

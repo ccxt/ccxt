@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleexchange" },
             });
-            object sampleArray = new List<object>() {new Dictionary<string, object>() {
+            List<object> sampleArray = new List<object>() {new Dictionary<string, object>() {
             { "foo", "a" },
         }, new Dictionary<string, object>() {
             { "foo", null },
@@ -33,7 +33,7 @@ public partial class BaseTest
             { "foo", "c" },
         }};
             object currentValue = exchange.filterBy(sampleArray, "foo", "a");
-            object storedValue = new List<object>() {new Dictionary<string, object>() {
+            List<object> storedValue = new List<object>() {new Dictionary<string, object>() {
             { "foo", "a" },
         }, new Dictionary<string, object>() {
             { "foo", "a" },

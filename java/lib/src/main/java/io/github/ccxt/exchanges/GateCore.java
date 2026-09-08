@@ -1871,8 +1871,8 @@ public class GateCore extends GateApi
             base = this.safeString(marketIdBase, 0);
             expiry = Helpers.slice(((String)expiry), 2, 8); // convert 20230728 to 230728
         }
-        Object strike = this.safeString(optionParts, 2);
-        Object optionType = this.safeString(optionParts, 3);
+        String strike = this.safeString(optionParts, 2);
+        String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
         Object timestamp = this.parse8601(datetime);
         final Object finalBase = base;
@@ -2047,7 +2047,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(spotMarketsResponse)); i++)
             {
                 Object spotMarket = this.safeDict(spotMarketsResponse, i, new java.util.HashMap<String, Object>() {{}});
-                Object id = this.safeString(spotMarket, "id");
+                String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 Object market = this.deepExtend(marginMarket, spotMarket);
                 var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
@@ -2055,10 +2055,10 @@ public class GateCore extends GateApi
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                Object takerPercent = this.safeString(market, "fee");
-                Object makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
+                String takerPercent = this.safeString(market, "fee");
+                String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
-                Object tradeStatus = this.safeString(market, "trade_status");
+                String tradeStatus = this.safeString(market, "trade_status");
                 Object marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
                 Object leverage = this.safeNumber(market, "leverage");
                 Object margin = !Helpers.isEqual(leverage, null);
@@ -2291,11 +2291,11 @@ public class GateCore extends GateApi
         //        "in_delisting": false
         //    }
         //
-        Object id = this.safeString(market, "name");
+        String id = this.safeString(market, "name");
         Object parts = Helpers.split(((String)id), "_");
-        Object baseId = this.safeString(parts, 0);
-        Object quoteId = this.safeString(parts, 1);
-        Object date = this.safeString(parts, 2);
+        String baseId = this.safeString(parts, 0);
+        String quoteId = this.safeString(parts, 1);
+        String date = this.safeString(parts, 2);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object settle = this.safeCurrencyCode(settleId);
@@ -2310,20 +2310,20 @@ public class GateCore extends GateApi
         {
             symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         }
-        Object priceDeviate = this.safeString(market, "order_price_deviate");
-        Object markPrice = this.safeString(market, "mark_price");
+        String priceDeviate = this.safeString(market, "order_price_deviate");
+        String markPrice = this.safeString(market, "mark_price");
         Object minMultiplier = Precise.stringSub("1", priceDeviate);
         Object maxMultiplier = Precise.stringAdd("1", priceDeviate);
         Object minPrice = Precise.stringMul(minMultiplier, markPrice);
         Object maxPrice = Precise.stringMul(maxMultiplier, markPrice);
         Object isLinear = Helpers.isEqual(quote, settle);
-        Object contractSize = this.safeString(market, "quanto_multiplier");
+        String contractSize = this.safeString(market, "quanto_multiplier");
         // exception only for one market: https://api.gateio.ws/api/v4/futures/btc/contracts
         if (Helpers.isTrue(Helpers.isEqual(contractSize, "0")))
         {
             contractSize = "1"; // 1 USD in WEB: https://i.imgur.com/MBBUI04.png
         }
-        Object status = this.safeString(market, "status", "trading"); // or "suspend"
+        String status = this.safeString(market, "status", "trading"); // or "suspend"
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalQuote = quote;
@@ -2438,21 +2438,21 @@ public class GateCore extends GateApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(response)); j++)
                 {
                     Object market = this.safeDict(response, j, new java.util.HashMap<String, Object>() {{}});
-                    Object id = this.safeString(market, "name");
+                    String id = this.safeString(market, "name");
                     Object parts = Helpers.split(((String)underlying), "_");
-                    Object baseId = this.safeString(parts, 0);
-                    Object quoteId = this.safeString(parts, 1);
+                    String baseId = this.safeString(parts, 0);
+                    String quoteId = this.safeString(parts, 1);
                     Object base = this.safeCurrencyCode(baseId);
                     Object quote = this.safeCurrencyCode(quoteId);
                     Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                     Object expiry = this.safeTimestamp(market, "expiration_time");
-                    Object strike = this.safeString(market, "strike_price");
+                    String strike = this.safeString(market, "strike_price");
                     Object isCall = this.safeValue(market, "is_call");
                     Object optionLetter = ((Helpers.isTrue((Helpers.isEqual(isCall, true))))) ? "C" : "P";
                     Object optionType = ((Helpers.isTrue((Helpers.isEqual(isCall, true))))) ? "call" : "put";
                     symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
-                    Object priceDeviate = this.safeString(market, "order_price_deviate");
-                    Object markPrice = this.safeString(market, "mark_price");
+                    String priceDeviate = this.safeString(market, "order_price_deviate");
+                    String markPrice = this.safeString(market, "mark_price");
                     Object minMultiplier = Precise.stringSub("1", priceDeviate);
                     Object maxMultiplier = Precise.stringAdd("1", priceDeviate);
                     Object minPrice = Precise.stringMul(minMultiplier, markPrice);
@@ -2542,7 +2542,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(underlyingsResponse)); i++)
             {
                 Object underlying = this.safeDict(underlyingsResponse, i, new java.util.HashMap<String, Object>() {{}});
-                Object name = this.safeString(underlying, "name");
+                String name = this.safeString(underlying, "name");
                 if (Helpers.isTrue(!Helpers.isEqual(name, null)))
                 {
                     ((java.util.List<Object>)underlyings).add(name);
@@ -2675,7 +2675,7 @@ public class GateCore extends GateApi
          * @param {object} [params] Request params
          * @returns The marginMode and the updated request params with marginMode removed, marginMode value is the value that can be read by the "account" property specified in gates api docs
          */
-        Object defaultMarginMode = this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
+        String defaultMarginMode = (String)this.safeStringLower2(this.options, "defaultMarginMode", "marginMode", "spot"); // 'margin' is isolated margin on gate's api
         Object marginMode = this.safeStringLower2(parameters, "marginMode", "account", defaultMarginMode);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "account")));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
@@ -2785,7 +2785,7 @@ public class GateCore extends GateApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object currencyId = this.safeString(rawCurrency, "currency");
+        String currencyId = this.safeString(rawCurrency, "currency");
         Object code = this.safeCurrencyCode(currencyId);
         // check leveraged tokens (e.g. BTC3S, ETH5L)
         Object type = ((Helpers.isTrue(this.isLeveragedCurrency(currencyId)))) ? "leveraged" : "crypto";
@@ -2794,7 +2794,7 @@ public class GateCore extends GateApi
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
-            Object networkId = this.safeString(chain, "name");
+            String networkId = this.safeString(chain, "name");
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -2937,7 +2937,7 @@ public class GateCore extends GateApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object firstSymbol = this.safeString(symbols, 0);
+                String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
             }
             var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
@@ -3038,7 +3038,7 @@ public class GateCore extends GateApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(contract, "name");
+        String marketId = this.safeString(contract, "name");
         Object symbol = this.safeSymbol(marketId, market, "_", "swap");
         Object markPrice = this.safeNumber(contract, "mark_price");
         Object indexPrice = this.safeNumber(contract, "index_price");
@@ -3097,7 +3097,7 @@ public class GateCore extends GateApi
             }};
             Object response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             Object addresses = this.safeValue(response, "multichain_addresses");
-            Object currencyId = this.safeString(response, "currency");
+            String currencyId = this.safeString(response, "currency");
             code = ((String)this.safeCurrencyCode(currencyId));
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
@@ -3117,9 +3117,9 @@ public class GateCore extends GateApi
                 {
                     continue;
                 }
-                Object network = this.safeString(entry, "chain");
-                Object address = this.safeString(entry, "address");
-                Object tag = this.safeString(entry, "payment_id");
+                String network = this.safeString(entry, "chain");
+                String address = this.safeString(entry, "address");
+                String tag = this.safeString(entry, "payment_id");
                 final Object finalCode = code;
                 Helpers.addElementToObject(result, ((String)network), new java.util.HashMap<String, Object>() {{
         put( "info", entry );
@@ -3160,7 +3160,7 @@ public class GateCore extends GateApi
             }};
             Object response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             Object chains = this.safeValue(response, "multichain_addresses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object currencyId = this.safeString(response, "currency");
+            String currencyId = this.safeString(response, "currency");
             currency = this.safeCurrency(currencyId, currency);
             Object parsed = this.parseDepositAddresses(chains, null, false);
             return this.indexBy(parsed, "network");
@@ -3212,9 +3212,9 @@ public class GateCore extends GateApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         this.checkAddress(address);
-        Object code = this.safeString(currency, "code");
+        String code = this.safeString(currency, "code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", ((String)code) );
@@ -3397,7 +3397,7 @@ public class GateCore extends GateApi
             {
                 withdrawFees = new java.util.HashMap<String, Object>() {{}};
                 Object entry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
-                Object currencyId = this.safeString(entry, "currency");
+                String currencyId = this.safeString(entry, "currency");
                 Object code = this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
                 {
@@ -3516,7 +3516,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chainKeys)); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
-                Object currencyId = this.safeString(fee, "currency");
+                String currencyId = this.safeString(fee, "currency");
                 Object code = this.safeCurrencyCode(currencyId, currency);
                 Object networkCode = this.networkIdToCode(chainKey, code);
                 if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -3640,7 +3640,7 @@ public class GateCore extends GateApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(info, "time");
-        Object marketId = this.safeString(info, "text");
+        String marketId = this.safeString(info, "text");
         market = this.safeMarket(marketId, market, "_", "swap");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -3944,28 +3944,28 @@ public class GateCore extends GateApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency_pair", "contract", "name")));
+        String marketId = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency_pair", "contract", "name")));
         Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "mark_price"))))) ? "contract" : "spot";
         Object symbol = this.safeSymbol(marketId, market, "_", marketType);
-        Object last = this.safeString2(ticker, "last", "last_price");
-        Object ask = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("lowest_ask", "a", "ask1_price")));
-        Object bid = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("highest_bid", "b", "bid1_price")));
-        Object high = this.safeString(ticker, "high_24h");
-        Object low = this.safeString(ticker, "low_24h");
-        Object bidVolume = this.safeString2(ticker, "B", "bid1_size");
-        Object askVolume = this.safeString2(ticker, "A", "ask1_size");
+        String last = this.safeString2(ticker, "last", "last_price");
+        String ask = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("lowest_ask", "a", "ask1_price")));
+        String bid = this.safeStringN(ticker, new java.util.ArrayList<Object>(java.util.Arrays.asList("highest_bid", "b", "bid1_price")));
+        String high = this.safeString(ticker, "high_24h");
+        String low = this.safeString(ticker, "low_24h");
+        String bidVolume = this.safeString2(ticker, "B", "bid1_size");
+        String askVolume = this.safeString2(ticker, "A", "ask1_size");
         Object timestamp = this.safeInteger(ticker, "t");
-        Object baseVolume = this.safeString2(ticker, "base_volume", "volume_24h_base");
+        String baseVolume = this.safeString2(ticker, "base_volume", "volume_24h_base");
         if (Helpers.isTrue(Helpers.isEqual(baseVolume, "nan")))
         {
             baseVolume = "0";
         }
-        Object quoteVolume = this.safeString2(ticker, "quote_volume", "volume_24h_quote");
+        String quoteVolume = this.safeString2(ticker, "quote_volume", "volume_24h_quote");
         if (Helpers.isTrue(Helpers.isEqual(quoteVolume, "nan")))
         {
             quoteVolume = "0";
         }
-        Object percentage = this.safeString(ticker, "change_percentage");
+        String percentage = this.safeString(ticker, "change_percentage");
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -4018,7 +4018,7 @@ public class GateCore extends GateApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object first = this.safeString(symbols, 0);
+            String first = this.safeString(symbols, 0);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(first, null)))
             {
@@ -4044,7 +4044,7 @@ public class GateCore extends GateApi
             } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
-                Object marketId = this.safeString(market, "id");
+                String marketId = this.safeString(market, "id");
                 Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
@@ -4099,7 +4099,7 @@ public class GateCore extends GateApi
                 (this.loadMarkets()).join();
             }
             (this.loadUnifiedStatus()).join();
-            Object symbol = this.safeString(parameters, "symbol");
+            String symbol = this.safeString(parameters, "symbol");
             parameters = this.omit(parameters, "symbol");
             Object isUnifiedAccount = false;
             var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
@@ -4439,7 +4439,7 @@ public class GateCore extends GateApi
             {
                 return (this.fetchOptionOHLCV(symbol, timeframe, since, limit, parameters)).join();
             }
-            Object price = this.safeString(parameters, "price");
+            String price = this.safeString(parameters, "price");
             Object request = new java.util.HashMap<String, Object>() {{}};
             var requestparametersVariable = this.prepareRequest(market, null, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -5128,7 +5128,7 @@ public class GateCore extends GateApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString2(trade, "id", "trade_id");
+        String id = this.safeString2(trade, "id", "trade_id");
         Object timestamp = null;
         Object msString = this.safeString(trade, "create_time_ms");
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
@@ -5140,22 +5140,22 @@ public class GateCore extends GateApi
         {
             timestamp = this.safeTimestamp2(trade, "time", "create_time");
         }
-        Object marketId = this.safeString2(trade, "currency_pair", "contract");
+        String marketId = this.safeString2(trade, "currency_pair", "contract");
         Object marketType = ((Helpers.isTrue((Helpers.inOp(trade, "contract"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, "_", marketType);
-        Object amountString = this.safeString2(trade, "amount", "size");
-        Object priceString = this.safeString(trade, "price");
+        String amountString = this.safeString2(trade, "amount", "size");
+        String priceString = this.safeString(trade, "price");
         Object contractSide = ((Helpers.isTrue(Precise.stringLt(amountString, "0")))) ? "sell" : "buy";
         amountString = Precise.stringAbs(amountString);
-        Object side = this.safeString2(trade, "side", "type", contractSide);
-        Object orderId = this.safeString(trade, "order_id");
-        Object feeAmount = this.safeString(trade, "fee");
+        String side = this.safeString2(trade, "side", "type", contractSide);
+        String orderId = this.safeString(trade, "order_id");
+        String feeAmount = this.safeString(trade, "fee");
         Object gtFee = this.omitZero(this.safeString(trade, "gt_fee"));
         Object pointFee = this.omitZero(this.safeString(trade, "point_fee"));
         Object fees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
-            Object feeCurrencyId = this.safeString(trade, "fee_currency");
+            String feeCurrencyId = this.safeString(trade, "fee_currency");
             Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
             if (Helpers.isTrue(Helpers.isEqual(feeCurrencyCode, null)))
             {
@@ -5184,7 +5184,7 @@ final Object finalPointFee = pointFee;
                 put( "currency", "GATEPOINT" );
             }});
         }
-        Object takerOrMaker = this.safeString(trade, "role");
+        String takerOrMaker = this.safeString(trade, "role");
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalAmountString = amountString;
@@ -5478,9 +5478,9 @@ final Object finalPointFee = pointFee;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(transaction, "id");
+        String id = this.safeString(transaction, "id");
         Object type = null;
-        Object amountString = this.safeString(transaction, "amount");
+        String amountString = this.safeString(transaction, "amount");
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(id, 0), "b")))
@@ -5493,19 +5493,19 @@ final Object finalPointFee = pointFee;
                 type = this.parseTransactionType(Helpers.GetValue(id, 0));
             }
         }
-        Object feeCostString = this.safeString2(transaction, "fee", "fee_amount");
+        String feeCostString = this.safeString2(transaction, "fee", "fee_amount");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdrawal")))
         {
             amountString = Precise.stringSub(amountString, feeCostString);
         }
-        Object networkId = this.safeStringUpper(transaction, "chain");
-        Object currencyId = this.safeString(transaction, "currency");
+        String networkId = (String)this.safeStringUpper(transaction, "chain");
+        String currencyId = this.safeString(transaction, "currency");
         Object code = this.safeCurrencyCode(currencyId);
-        Object txid = this.safeString(transaction, "txid");
-        Object rawStatus = this.safeString(transaction, "status");
+        String txid = this.safeString(transaction, "txid");
+        String rawStatus = this.safeString(transaction, "status");
         Object status = this.parseTransactionStatus(rawStatus);
-        Object address = this.safeString(transaction, "address");
-        Object tag = this.safeString(transaction, "memo");
+        String address = this.safeString(transaction, "address");
+        String tag = this.safeString(transaction, "memo");
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         final Object finalId = id;
         final Object finalAmountString = amountString;
@@ -5713,10 +5713,10 @@ final Object finalPointFee = pointFee;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
-            Object marketId = this.safeString(rawOrder, "symbol");
+            String marketId = this.safeString(rawOrder, "symbol");
             ((java.util.List<Object>)orderSymbols).add(((String)marketId));
-            Object type = this.safeString(rawOrder, "type");
-            Object side = this.safeString(rawOrder, "side");
+            String type = this.safeString(rawOrder, "type");
+            String side = this.safeString(rawOrder, "side");
             Object amount = this.safeValue(rawOrder, "amount");
             Object price = this.safeValue(rawOrder, "price");
             Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
@@ -5802,7 +5802,7 @@ final Object finalPointFee = pointFee;
             throw new ExchangeError((String)Helpers.add(this.id, " createOrder() stopLossPrice and takeProfitPrice cannot both be defined")) ;
         }
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
-        Object exchangeSpecificTimeInForce = this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
+        String exchangeSpecificTimeInForce = (String)this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
         Object postOnly = null;
         var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
         postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
@@ -5814,7 +5814,7 @@ final Object finalPointFee = pointFee;
         }
         // we only omit the unified params here
         // this is because the other params will get extended into the request
-        Object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
+        String clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "reduceOnly", "timeInForce", "postOnly", "clientOrderId")));
         Object isLimitOrder = (Helpers.isEqual(type, "limit"));
         Object isMarketOrder = (Helpers.isEqual(type, "market"));
@@ -5831,8 +5831,8 @@ final Object finalPointFee = pointFee;
             {
                 if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
                 {
-                    Object defaultTif = this.safeString(this.options, "defaultTimeInForce", "IOC");
-                    Object exchangeSpecificTif = this.safeString(Helpers.GetValue(this.options, "timeInForce"), defaultTif, "ioc");
+                    String defaultTif = this.safeString(this.options, "defaultTimeInForce", "IOC");
+                    String exchangeSpecificTif = this.safeString(Helpers.GetValue(this.options, "timeInForce"), defaultTif, "ioc");
                     timeInForce = exchangeSpecificTif;
                 }
             }
@@ -6498,12 +6498,12 @@ final Object finalPointFee = pointFee;
         }
         Object put = this.safeValue2(order, "put", "initial", new java.util.HashMap<String, Object>() {{}});
         Object trigger = this.safeValue(order, "trigger", new java.util.HashMap<String, Object>() {{}});
-        Object contract = this.safeString(put, "contract");
-        Object type = this.safeString(put, "type");
+        String contract = this.safeString(put, "contract");
+        String type = this.safeString(put, "type");
         Object timeInForce = this.safeStringUpper2(put, "time_in_force", "tif");
-        Object amount = this.safeString2(put, "amount", "size");
-        Object side = this.safeString(put, "side");
-        Object price = this.safeString(put, "price");
+        String amount = this.safeString2(put, "amount", "size");
+        String side = this.safeString(put, "side");
+        String price = this.safeString(put, "price");
         contract = this.safeString(order, "contract", contract);
         type = this.safeString(order, "type", type);
         timeInForce = this.safeStringUpper2(order, "time_in_force", "tif", timeInForce);
@@ -6530,8 +6530,8 @@ final Object finalPointFee = pointFee;
             type = ((Helpers.isTrue(isMarketOrder))) ? "market" : "limit";
             side = ((Helpers.isTrue(Precise.stringGt(amount, "0")))) ? "buy" : "sell";
         }
-        Object rawStatus = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("finish_as", "status", "open")));
-        Object timestampStr = this.safeString(order, "create_time_ms");
+        String rawStatus = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("finish_as", "status", "open")));
+        String timestampStr = this.safeString(order, "create_time_ms");
         if (Helpers.isTrue(Helpers.isEqual(timestampStr, null)))
         {
             timestampStr = this.safeString2(order, "create_time", "ctime");
@@ -6548,7 +6548,7 @@ final Object finalPointFee = pointFee;
                 }
             }
         }
-        Object lastTradeTimestampStr = this.safeString(order, "update_time_ms");
+        String lastTradeTimestampStr = this.safeString(order, "update_time_ms");
         if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestampStr, null)))
         {
             lastTradeTimestampStr = this.safeString2(order, "update_time", "finish_time");
@@ -6570,10 +6570,10 @@ final Object finalPointFee = pointFee;
         {
             marketType = "spot";
         }
-        Object exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
+        String exchangeSymbol = this.safeString2(order, "currency_pair", "market", contract);
         Object symbol = this.safeSymbol(exchangeSymbol, market, "_", marketType);
         Object fees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object gtFee = this.safeString(order, "gt_fee");
+        String gtFee = this.safeString(order, "gt_fee");
         if (Helpers.isTrue(!Helpers.isEqual(gtFee, null)))
         {
 final Object finalGtFee = gtFee;
@@ -6582,7 +6582,7 @@ final Object finalGtFee = gtFee;
                 put( "cost", finalGtFee );
             }});
         }
-        Object fee = this.safeString(order, "fee");
+        String fee = this.safeString(order, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(fee, null)))
         {
 final Object finalFee = fee;
@@ -6591,7 +6591,7 @@ final Object finalFee = fee;
                 put( "cost", finalFee );
             }});
         }
-        Object rebate = this.safeString(order, "rebated_fee");
+        String rebate = this.safeString(order, "rebated_fee");
         if (Helpers.isTrue(!Helpers.isEqual(rebate, null)))
         {
 final Object finalRebate = rebate;
@@ -6605,10 +6605,10 @@ final Object finalRebate = rebate;
         Object status = this.parseOrderStatus(rawStatus);
         Object remaining = Precise.stringAbs(remainingString);
         // handle spot market buy
-        Object account = this.safeString(order, "account"); // using this instead of market type because of the conflicting ids
+        String account = this.safeString(order, "account"); // using this instead of market type because of the conflicting ids
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(account, "spot"))) || Helpers.isTrue((Helpers.isEqual(account, "unified")))))
         {
-            Object averageString = this.safeString(order, "avg_deal_price");
+            String averageString = this.safeString(order, "avg_deal_price");
             average = this.parseNumber(averageString);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
             {
@@ -6631,7 +6631,7 @@ final Object finalRebate = rebate;
         Object initial = this.safeDict(order, "initial", new java.util.HashMap<String, Object>() {{}});
         Object reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
         Object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
-        Object clientOrderId = this.safeString(order, "text");
+        String clientOrderId = this.safeString(order, "text");
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
             if (Helpers.isTrue(Helpers.inOp(order, "initial")))
@@ -6688,7 +6688,7 @@ final Object finalRebate = rebate;
         Object market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.market(symbol);
         Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "is_stop_order", "stop")), false);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("is_stop_order", "stop", "trigger")));
-        Object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
+        String clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         Object orderId = id;
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
@@ -6745,7 +6745,7 @@ final Object finalRebate = rebate;
             (this.loadUnifiedStatus()).join();
             Object market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.market(symbol);
             Object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
-            Object type = this.safeString(result, 0);
+            String type = this.safeString(result, 0);
             Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "is_stop_order", "stop")), false);
             var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
             var request = ((java.util.List<Object>) requestrequestParamsVariable).get(0);
@@ -6874,7 +6874,7 @@ final Object finalRebate = rebate;
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
-            Object type = this.safeString(res, 0);
+            String type = this.safeString(res, 0);
             Object useHistorical = false;
             var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
             useHistorical = ((java.util.List<Object>) useHistoricalparametersVariable).get(0);
@@ -6991,7 +6991,7 @@ final Object finalRebate = rebate;
             // don't omit here, omits done in prepareOrdersByStatusRequest
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
             Object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
-            Object type = this.safeString(res, 0);
+            String type = this.safeString(res, 0);
             var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
             var request = ((java.util.List<Object>) requestrequestParamsVariable).get(0);
             var requestParams = ((java.util.List<Object>) requestrequestParamsVariable).get(1);
@@ -7459,13 +7459,13 @@ final Object finalRebate = rebate;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
-                Object symbol = this.safeString(order, "symbol");
+                String symbol = this.safeString(order, "symbol");
                 Object market = this.market(symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " cancelOrdersForSymbols() supports only spot markets")) ;
                 }
-                Object id = this.safeString(order, "id");
+                String id = this.safeString(order, "id");
                 Object orderItem = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "currency_pair", Helpers.GetValue(market, "id") );
@@ -7640,7 +7640,7 @@ final Object finalRebate = rebate;
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(fromId, "margin")) || Helpers.isTrue(Helpers.isEqual(toId, "margin"))))
             {
-                Object symbol = this.safeString2(parameters, "symbol", "currency_pair");
+                String symbol = this.safeString2(parameters, "symbol", "currency_pair");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer requires params[\"symbol\"] for isolated margin transfers")) ;
@@ -7731,9 +7731,9 @@ final Object finalRebate = rebate;
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
-            Object defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
-            Object crossLeverageLimit = this.safeString(query, "cross_leverage_limit");
-            Object marginMode = this.safeString(query, "marginMode", defaultMarginMode);
+            String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
+            String crossLeverageLimit = this.safeString(query, "cross_leverage_limit");
+            String marginMode = this.safeString(query, "marginMode", defaultMarginMode);
             Object stringifiedMargin = this.numberToString(leverage);
             if (Helpers.isTrue(!Helpers.isEqual(crossLeverageLimit, null)))
             {
@@ -7868,10 +7868,10 @@ final Object finalRebate = rebate;
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object contract = this.safeString(position, "contract");
+        String contract = this.safeString(position, "contract");
         market = this.safeMarket(contract, market, "_", "contract");
-        Object size = this.safeString2(position, "size", "accum_size");
-        Object side = this.safeString(position, "side");
+        String size = this.safeString2(position, "size", "accum_size");
+        String side = this.safeString(position, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             if (Helpers.isTrue(Precise.stringGt(size, "0")))
@@ -7882,8 +7882,8 @@ final Object finalRebate = rebate;
                 side = "short";
             }
         }
-        Object notional = this.safeString(position, "value");
-        Object leverage = this.safeString(position, "leverage");
+        String notional = this.safeString(position, "value");
+        String leverage = this.safeString(position, "leverage");
         Object marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(leverage, null)))
         {
@@ -7896,7 +7896,7 @@ final Object finalRebate = rebate;
             }
         }
         // gate returns the initial margin requirement in the initial_margin field (= value / leverage + taker fee), see https://github.com/ccxt/ccxt/issues/27152
-        Object marginBalance = this.safeString(position, "margin");
+        String marginBalance = this.safeString(position, "margin");
         Object initialMarginString = this.omitZero(this.safeString(position, "initial_margin"));
         // gate returns the actual maintenance margin requirement in the maintenance_margin field (= value * (average_maintenance_rate + taker fee))
         // it is the exact liquidation threshold: the position is liquidated when margin + unrealised_pnl drops to maintenance_margin
@@ -7904,7 +7904,7 @@ final Object finalRebate = rebate;
         // the margin field is the position margin balance, which excludes the unrealized pnl,
         // the position is liquidated when margin + unrealised_pnl drops to the maintenance margin,
         // so the unified collateral (the amount that can be lost, affected by pnl) includes it
-        Object unrealisedPnl = this.safeString(position, "unrealised_pnl");
+        String unrealisedPnl = this.safeString(position, "unrealised_pnl");
         Object collateral = marginBalance;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginBalance, null))) && Helpers.isTrue((!Helpers.isEqual(unrealisedPnl, null)))))
         {
@@ -8106,7 +8106,7 @@ final Object finalRebate = rebate;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object marketId = this.safeString(market, "id");
+                    String marketId = this.safeString(market, "id");
                     Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
@@ -8394,11 +8394,11 @@ final Object finalRebate = rebate;
     public Object parseEmulatedLeverageTiers(Object info, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "name");
-        Object maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
-        Object leverageMax = this.safeString(info, "leverage_max"); // '100',
-        Object riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
-        Object riskLimitMax = this.safeString(info, "risk_limit_max"); // '16000000',
+        String marketId = this.safeString(info, "name");
+        String maintenanceMarginUnit = this.safeString(info, "maintenance_rate"); // '0.005',
+        String leverageMax = this.safeString(info, "leverage_max"); // '100',
+        String riskLimitStep = this.safeString(info, "risk_limit_step"); // '1000000',
+        String riskLimitMax = this.safeString(info, "risk_limit_max"); // '16000000',
         Object initialMarginUnit = Precise.stringDiv("1", leverageMax);
         Object maintenanceMarginRate = maintenanceMarginUnit;
         Object initialMarginRatio = initialMarginUnit;
@@ -8699,14 +8699,14 @@ final Object finalI = i;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object marginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
+        String marginMode = this.safeString2(this.options, "defaultMarginMode", "marginMode", "cross");
         Object timestamp = this.safeInteger(info, "create_time");
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
         {
             timestamp = this.safeTimestamp(info, "create_time");
         }
-        Object currencyId = this.safeString(info, "currency");
-        Object marketId = this.safeString(info, "currency_pair");
+        String currencyId = this.safeString(info, "currency");
+        String marketId = this.safeString(info, "currency_pair");
         final Object finalTimestamp = timestamp;
         return new java.util.HashMap<String, Object>() {{
             put( "id", GateCore.this.safeString(info, "id") );
@@ -8804,7 +8804,7 @@ final Object finalI = i;
     public Object parseBorrowInterest(Object info, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "currency_pair");
+        String marketId = this.safeString(info, "currency_pair");
         market = this.safeMarket(marketId, market);
         Object marginMode = ((Helpers.isTrue((!Helpers.isEqual(marketId, null))))) ? "isolated" : "cross";
         Object timestamp = this.safeInteger(info, "create_time");
@@ -9013,7 +9013,7 @@ final Object finalI = i;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object contract = this.safeString(data, "contract");
+        String contract = this.safeString(data, "contract");
         market = this.safeMarket(contract, market, "_", "contract");
         Object total = this.safeNumber(data, "margin");
         final Object finalMarket = market;
@@ -9331,7 +9331,7 @@ final Object finalI = i;
                 }
                 if (Helpers.isTrue(Helpers.isEqual(market, null)))
                 {
-                    Object underlying = this.safeString(parameters, "underlying");
+                    String underlying = this.safeString(parameters, "underlying");
                     if (Helpers.isTrue(Helpers.isEqual(underlying, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMySettlementHistory() requires a symbol argument or an underlying parameter in params")) ;
@@ -9410,7 +9410,7 @@ final Object finalI = i;
         //     }
         //
         Object timestamp = this.safeTimestamp(settlement, "time");
-        Object marketId = this.safeString(settlement, "contract");
+        String marketId = this.safeString(settlement, "contract");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
             put( "symbol", GateCore.this.safeSymbol(marketId, market) );
@@ -9652,7 +9652,7 @@ final Object finalI = i;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object direction = null;
-        Object amount = this.safeString(item, "change");
+        String amount = this.safeString(item, "change");
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
         {
             direction = "out";
@@ -9661,10 +9661,10 @@ final Object finalI = i;
         {
             direction = "in";
         }
-        Object currencyId = this.safeString(item, "currency");
+        String currencyId = this.safeString(item, "currency");
         currency = this.safeCurrency(currencyId, currency);
-        Object type = this.safeString(item, "type");
-        Object rawTimestamp = this.safeString(item, "time");
+        String type = this.safeString(item, "type");
+        String rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(((String)((String)rawTimestamp)).length(), 10)))
         {
@@ -9673,8 +9673,8 @@ final Object finalI = i;
         {
             timestamp = Helpers.multiply(Helpers.parseInt(((String)rawTimestamp)), 1000);
         }
-        Object balanceString = this.safeString(item, "balance");
-        Object changeString = this.safeString(item, "change");
+        String balanceString = this.safeString(item, "balance");
+        String changeString = this.safeString(item, "change");
         Object before = this.parseNumber(Precise.stringSub(balanceString, changeString));
         final Object finalDirection = direction;
         final Object finalCurrency = currency;
@@ -9817,7 +9817,7 @@ final Object finalI = i;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object underlying = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
-                Object name = this.safeString(underlying, "name");
+                String name = this.safeString(underlying, "name");
                 if (Helpers.isTrue(!Helpers.isEqual(name, null)))
                 {
                     ((java.util.List<Object>)underlyings).add(name);
@@ -10032,22 +10032,22 @@ final Object finalI = i;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(liquidation, "contract");
+        String marketId = this.safeString(liquidation, "contract");
         Object timestamp = this.safeTimestamp(liquidation, "time");
-        Object size = this.safeString2(liquidation, "size", "settle_size");
-        Object left = this.safeString(liquidation, "left", "0");
+        String size = this.safeString2(liquidation, "size", "settle_size");
+        String left = this.safeString(liquidation, "left", "0");
         Object contractsString = Precise.stringAbs(Precise.stringSub(size, left));
-        Object contractSizeString = this.safeString(market, "contractSize");
-        Object priceString = this.safeString2(liquidation, "liq_price", "fill_price");
+        String contractSizeString = this.safeString(market, "contractSize");
+        String priceString = this.safeString2(liquidation, "liq_price", "fill_price");
         Object baseValueString = Precise.stringMul(contractsString, contractSizeString);
-        Object quoteValueString = this.safeString(liquidation, "pnl");
+        String quoteValueString = this.safeString(liquidation, "pnl");
         if (Helpers.isTrue(Helpers.isEqual(quoteValueString, null)))
         {
             quoteValueString = Precise.stringMul(baseValueString, priceString);
         }
         // --- derive side ---
         // 1) options payload has explicit 'side': 'long' | 'short'
-        Object optPos = this.safeStringLower(liquidation, "side");
+        String optPos = (String)this.safeStringLower(liquidation, "side");
         Object side = null;
         if (Helpers.isTrue(Helpers.isEqual(optPos, "long")))
         {
@@ -10134,7 +10134,7 @@ final Object finalI = i;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object entry = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
-                Object entryMarketId = this.safeString(entry, "name");
+                String entryMarketId = this.safeString(entry, "name");
                 if (Helpers.isTrue(Helpers.isEqual(entryMarketId, marketId)))
                 {
                     return this.parseGreeks(entry, market);
@@ -10168,7 +10168,7 @@ final Object finalI = i;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(greeks, "name");
+        String marketId = this.safeString(greeks, "name");
         Object symbol = this.safeSymbol(marketId, market);
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
@@ -10325,7 +10325,7 @@ final Object finalI = i;
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(leverage, "currency_pair", "id");
+        String marketId = this.safeString2(leverage, "currency_pair", "id");
         Object leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -10522,7 +10522,7 @@ final Object finalI = i;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object market = Helpers.getArg(optionalArgs, 1, null);
-        Object marketId = this.safeString(chain, "name");
+        String marketId = this.safeString(chain, "name");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeTimestamp(chain, "create_time");
         final Object finalMarket = market;
@@ -10664,7 +10664,7 @@ final Object finalI = i;
         //    {"label": "INVALID_ARGUMENT", "detail": "invalid size"}
         //    {"user_id":10406147,"id":"id","succeeded":false,"message":"INVALID_PROTOCOL","label":"INVALID_PROTOCOL"}
         //
-        Object label = this.safeString(response, "label");
+        String label = this.safeString(response, "label");
         if (Helpers.isTrue(!Helpers.isEqual(label, null)))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

@@ -863,7 +863,7 @@ class luno(Exchange, ImplicitAPI):
         response = self.privateGetOrdersId(self.extend(request, params))
         return self.parse_order(response)
 
-    def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_orders_by_state(self, state: Str, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         if self.markets is None:
             self.load_markets()
         request = {}

@@ -377,7 +377,7 @@ func (this *BitbnsCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     ]
 	//
 	var result any = []any{}
-	var rawMarkets any = this.ToArray(response)
+	var rawMarkets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
 		var id any = this.SafeString(market, "id")
@@ -1625,7 +1625,7 @@ func (this *BitbnsCore) Sign(path any, optionalArgs ...any) any {
 			"timeStamp_nonce": nonce,
 			"body":            body,
 		}
-		var payload any = this.StringToBase64(this.Json(auth))
+		var payload string = this.StringToBase64(this.Json(auth))
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha512)
 		headers = Ternary(IsTrue((IsEqual(headers, nil))), map[string]any{}, headers)
 		AddElementToObject(headers, "X-BITBNS-PAYLOAD", payload)

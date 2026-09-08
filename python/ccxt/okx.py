@@ -1914,7 +1914,7 @@ class okx(Exchange, ImplicitAPI):
             'info': market,
         })
 
-    def fetch_markets_by_type(self, type: object, params={}):
+    def fetch_markets_by_type(self, type: object, params={}) -> list[Market]:
         request = {
             'instType': self.convert_to_instrument_type(type),
         }
@@ -5388,7 +5388,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_deposit(self, id: str, code: Str = None, params={}):
+    def fetch_deposit(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency deposit via the deposit id
 
@@ -5483,7 +5483,7 @@ class okx(Exchange, ImplicitAPI):
         data = self.safe_list(response, 'data', [])
         return self.parse_transactions(data, currency, since, limit, params)
 
-    def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

@@ -2749,7 +2749,7 @@ func (this *HtxCore) fetchMarketsByTypeAndSubTypeBody(ch chan any, typeVar any, 
 		var created any = nil
 		var createdDate any = this.SafeString(market, "create_date") // i.e 20230101
 		if IsTrue(!IsEqual(createdDate, nil)) {
-			var createdArray any = this.StringToCharsArray(createdDate)
+			var createdArray []string = this.StringToCharsArray(createdDate)
 			createdDate = Add(Add(Add(Add(Add(Add(Add(Add(Add(Add(GetValue(createdArray, 0), GetValue(createdArray, 1)), GetValue(createdArray, 2)), GetValue(createdArray, 3)), "-"), GetValue(createdArray, 4)), GetValue(createdArray, 5)), "-"), GetValue(createdArray, 6)), GetValue(createdArray, 7)), " 00:00:00")
 			created = this.Parse8601(createdDate)
 		}
@@ -2827,7 +2827,7 @@ func (this *HtxCore) TryGetSymbolFromFutureMarkets(symbolOrMarketId any) any {
 	if IsTrue(InOp(futureMarketIdsForSymbols, symbolOrMarketId)) {
 		return GetValue(futureMarketIdsForSymbols, symbolOrMarketId)
 	}
-	var futureMarkets any = this.FilterBy(this.Markets, "future", true)
+	var futureMarkets []any = this.FilterBy(this.Markets, "future", true)
 	var futuresCharsMaps map[string]any = map[string]any{
 		"this_week":    "CW",
 		"next_week":    "NW",
@@ -8991,7 +8991,7 @@ func (this *HtxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 			})
 		}
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -9392,7 +9392,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			var auth any = this.Urlencode(sortedRequest, true) // true is a go only requirement
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content []any = []any{method, this.Hostname, url, auth}
-			var payload any = Join(content, "\n") // eslint-disable-line quotes
+			var payload string = Join(content, "\n") // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,
@@ -9480,7 +9480,7 @@ func (this *HtxCore) Sign(path any, optionalArgs ...any) any {
 			var auth any = Replace(this.Urlencode(request, true), "%2c", "%2C") // in c# it manually needs to be uppercased
 			// unfortunately, PHP demands double quotes for the escaped newline symbol
 			var content2 []any = []any{method, hostname, url, auth}
-			var payload any = Join(content2, "\n") // eslint-disable-line quotes
+			var payload string = Join(content2, "\n") // eslint-disable-line quotes
 			var signature string = this.Hmac(this.Encode(payload), this.Encode(this.Secret), sha256, "base64")
 			auth = Add(auth, Add("&", this.Urlencode(map[string]any{
 				"Signature": signature,

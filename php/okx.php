@@ -1915,7 +1915,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): array {
         $request = array(
             'instType' => $this->convert_to_instrument_type($type),
         );
@@ -5669,7 +5669,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency $deposit via the $deposit $id
          *
@@ -5773,7 +5773,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency $withdrawal via the $withdrawal $id
          *

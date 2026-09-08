@@ -160,7 +160,7 @@ func (this *Htx) FetchMarkets(params ...any) ([]MarketInterface, error) {
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
-func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]map[string]any, error) {
+func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, options ...FetchMarketsByTypeAndSubTypeOptions) ([]MarketInterface, error) {
 
 	opts := FetchMarketsByTypeAndSubTypeOptionsStruct{}
 
@@ -173,7 +173,7 @@ func (this *Htx) FetchMarketsByTypeAndSubType(typeVar string, subType string, op
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**
@@ -1204,7 +1204,7 @@ func (this *Htx) FetchDepositAddress(code string, options ...FetchDepositAddress
 	}
 	return NewDepositAddress(res), nil
 }
-func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]map[string]any, error) {
+func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAddressesOptions) ([]DepositAddress, error) {
 
 	opts := FetchWithdrawAddressesOptionsStruct{}
 
@@ -1221,7 +1221,7 @@ func (this *Htx) FetchWithdrawAddresses(code string, options ...FetchWithdrawAdd
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewDepositAddressArray(res), nil
 }
 
 /**

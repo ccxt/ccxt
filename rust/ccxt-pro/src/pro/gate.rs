@@ -860,8 +860,8 @@ impl GateCore {
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
         let mut url: Value = self.get_url_by_market(market.clone());
-        let mut isEuUrl: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0)));
-        let mut isNonEuSpot: Value = Value::Bool(is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && !is_true(&isEuUrl));
+        let mut isEuUrl: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0));
+        let mut isNonEuSpot: bool = is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && !is_true(&isEuUrl);
         let mut intervalDefault: Value = ternary(is_true(&isNonEuSpot), Value::Str("50".to_string()), Value::Str("100ms".to_string()));
         let mut intervalqueryVariable = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("interval".to_string()), &[intervalDefault.clone()]);
         let mut interval: Value = get_value(&intervalqueryVariable, &Value::Int(0));
@@ -924,8 +924,8 @@ impl GateCore {
         let mut url: Value = self.get_url_by_market(market.clone());
         symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut marketId: Value = get_value(&market, &Value::Str("id".to_string()));
-        let mut isEuUrl: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0)));
-        let mut isNonEuSpot: Value = Value::Bool(is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && !is_true(&isEuUrl));
+        let mut isEuUrl: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("gateeu".to_string())), &Value::Int(0));
+        let mut isNonEuSpot: bool = is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && !is_true(&isEuUrl);
         let mut intervalDefault: Value = ternary(is_true(&isNonEuSpot), Value::Str("50".to_string()), Value::Str("100ms".to_string()));
         let mut interval: Value = intervalDefault.clone();
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("watchOrderBook".to_string()), Value::Str("interval".to_string()), &[interval.clone()]); interval = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -1095,7 +1095,7 @@ impl GateCore {
         }
         let mut channelParts: Value = split(&channel, &Value::Str(".".to_string()));
         let mut rawMarketType: Value = self.safe_string(channelParts.clone(), Value::Int(0), &[]);
-        let mut isSpot: Value = Value::Bool(is_equal(&rawMarketType, &Value::Str("spot".to_string())));
+        let mut isSpot: bool = is_equal(&rawMarketType, &Value::Str("spot".to_string()));
         let mut marketType: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
         let mut delta: Value = self.safe_value_k(message.clone(), "result", &[]);
         let mut deltaStart: Value = self.safe_integer_k(delta.clone(), "U", &[]);
@@ -1345,7 +1345,7 @@ impl GateCore {
         if is_equal(&callerMethodName, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" requires a callerMethodName argument".to_string()))));
         }
-        let mut isWatchTickers: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&callerMethodName, &Value::Str("watchTicker".to_string())), &Value::Int(0)));
+        let mut isWatchTickers: bool = is_greater_than_or_equal(&get_index_of(&callerMethodName, &Value::Str("watchTicker".to_string())), &Value::Int(0));
         let mut prefix: Value = ternary(is_true(&isWatchTickers), Value::Str("ticker".to_string()), Value::Str("bidask".to_string()));
         let mut messageHashes: Value = Value::List(vec![]);
         {
@@ -1388,7 +1388,7 @@ impl GateCore {
             })]);
             results = Value::List(vec![rawTicker.clone()]);
         }
-        let mut isTicker: Value = Value::Bool(is_equal(&objectName, &Value::Str("ticker".to_string()))); // whether ticker or bid-ask
+        let mut isTicker: bool = is_equal(&objectName, &Value::Str("ticker".to_string())); // whether ticker or bid-ask
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_335: bool = true;
@@ -2326,7 +2326,7 @@ impl GateCore {
         //
         let mut orders: Value = self.safe_value_k(message.clone(), "result", &[Value::List(vec![])]);
         let mut channel: Value = self.safe_string_k(message.clone(), "channel", &[Value::Str("".to_string())]);
-        let mut isTrigger: Value = Value::Bool(is_true(&(is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("autoorders".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("priceorders".to_string())), &Value::Int(0)))));
+        let mut isTrigger: bool = is_true(&(is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("autoorders".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&channel, &Value::Str("priceorders".to_string())), &Value::Int(0))));
         let mut hashPrefix: Value = ternary(is_true(&isTrigger), Value::Str("triggerOrders".to_string()), Value::Str("orders".to_string()));
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[Value::Int(1000)]);
         if is_equal(&self.orders, &Value::Null) {

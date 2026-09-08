@@ -1764,7 +1764,7 @@ export default class bitopro extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (code === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchWithdrawal() requires the code argument');
         }

@@ -930,7 +930,7 @@ export default class bybit extends Exchange {
      * @param {int} [params.period] the period in days to fetch the volatility for: 7,14,21,30,60,90,180,270
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    fetchVolatilityHistory(code: string, params?: {}): Promise<List>;
+    fetchVolatilityHistory(code: string, params?: {}): Promise<Dict[]>;
     parseVolatilityHistory(volatility: any): List;
     /**
      * @method

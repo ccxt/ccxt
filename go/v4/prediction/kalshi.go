@@ -504,7 +504,7 @@ func (this *KalshiCore) fetchOutcomeBody(ch chan any, outcomeSymbol any) any {
 		// transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
 		// the python transpiler — this form emits strlen()/len() correctly in both
 		var symbolLength any = this.ParseToInt(ccxt.GetLength(outcomeSymbol))
-		var suffix any = ccxt.Slice(outcomeSymbol, ccxt.Subtract(symbolLength, 3), nil)
+		var suffix string = ccxt.Slice(outcomeSymbol, ccxt.Subtract(symbolLength, 3), nil)
 		var isNo bool = (ccxt.IsEqual(suffix, "-NO"))
 		var baseTicker any = ccxt.Ternary(ccxt.IsTrue(isNo), ccxt.Slice(outcomeSymbol, 0, ccxt.Subtract(symbolLength, 3)), outcomeSymbol)
 		var response any = nil
@@ -637,7 +637,7 @@ func (this *KalshiCore) fetchOutcomesBody(ch chan any, outcomeSymbols any) any {
 		}
 		// parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
 		var symbolLength any = this.ParseToInt(ccxt.GetLength(outcomeSymbol))
-		var suffix any = ccxt.Slice(outcomeSymbol, ccxt.Subtract(symbolLength, 3), nil)
+		var suffix string = ccxt.Slice(outcomeSymbol, ccxt.Subtract(symbolLength, 3), nil)
 		var baseTicker any = ccxt.Ternary(ccxt.IsTrue((ccxt.IsEqual(suffix, "-NO"))), ccxt.Slice(outcomeSymbol, 0, ccxt.Subtract(symbolLength, 3)), outcomeSymbol)
 		if !ccxt.IsTrue((ccxt.InOp(seen, baseTicker))) {
 			ccxt.AddElementToObject(seen, baseTicker, true)
@@ -1494,7 +1494,7 @@ func (this *KalshiCore) fetchOHLCVBody(ch chan any, outcome any, optionalArgs ..
 		// reject an unsupported timeframe locally instead of silently returning 1-minute candles.
 		// hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
 		var tfKeys []string = ccxt.ObjectKeys(this.Timeframes)
-		var supported any = ccxt.Join(tfKeys, ", ")
+		var supported string = ccxt.Join(tfKeys, ", ")
 		panic(ccxt.BadRequest(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(this.Id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")))
 	}
 	var request map[string]any = map[string]any{
@@ -1971,7 +1971,7 @@ func (this *KalshiCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var outcomesLength any = 0
+	var outcomesLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 		outcomesLength = ccxt.GetArrayLength(outcomes)
 	}
@@ -3356,7 +3356,7 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 	var implodedPath any = this.ImplodeParams(path, params)
 	var url any = ccxt.Add(ccxt.Add(baseUrl, "/"), implodedPath)
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var querystring any = this.Urlencode(query)
+	var querystring string = this.Urlencode(query)
 	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(method, "GET")) && ccxt.IsTrue((!ccxt.IsEqual(querystring, "")))) {
 		url = ccxt.Add(url, ccxt.Add("?", querystring))
 	}
@@ -3372,13 +3372,13 @@ func (this *KalshiCore) Sign(path any, optionalArgs ...any) any {
 		// INCLUDING the /trade-api/v2 prefix and any path params substituted in, but NOT
 		// the query string (e.g. /trade-api/v2/portfolio/orders/{order_id})
 		var tradeApiIndex int = ccxt.GetIndexOf(baseUrl, "/trade-api")
-		var versionPrefix any = ccxt.Slice(baseUrl, tradeApiIndex, nil)
+		var versionPrefix string = ccxt.Slice(baseUrl, tradeApiIndex, nil)
 		var pathForSigning any = ccxt.Add(ccxt.Add(versionPrefix, "/"), implodedPath)
 		var payload any = ccxt.Add(ccxt.Add(timestamp, method), pathForSigning)
 		// RSA-PSS SHA-256 signature with the private key PEM
 		var keyParts []string = ccxt.Split(this.PrivateKey, "\\n")
-		var cleanPrivateKey any = ccxt.Join(keyParts, "\n")
-		var signature any = ccxt.Rsa(payload, cleanPrivateKey, ccxt.Sha256, "pss")
+		var cleanPrivateKey string = ccxt.Join(keyParts, "\n")
+		var signature string = ccxt.Rsa(payload, cleanPrivateKey, ccxt.Sha256, "pss")
 		headers = this.Extend(headers, map[string]any{
 			"KALSHI-ACCESS-KEY":       this.ApiKey,
 			"KALSHI-ACCESS-SIGNATURE": signature,

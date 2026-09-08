@@ -5796,7 +5796,7 @@ export default class bitget extends Exchange {
         return this.extend (request, params);
     }
 
-    async createUtaOrders (orders: OrderRequest[], params = {}) {
+    async createUtaOrders (orders: OrderRequest[], params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -6358,7 +6358,7 @@ export default class bitget extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}) {
+    async cancelUtaOrders (ids: any, symbol: Str = undefined, params = {}): Promise<Order[]> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' cancelOrders() requires a symbol argument');
         }
@@ -7576,7 +7576,7 @@ export default class bitget extends Exchange {
         return this.parseOrders (orders, market, since, limit);
     }
 
-    async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchUtaCanceledAndClosedOrders (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

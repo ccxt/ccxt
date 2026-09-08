@@ -890,9 +890,9 @@ impl CoinbaseexchangeCore {
         // }
         let mut parsed: Value = self.parent.parse_trade(trade.clone(), &[]);
         let mut feeRate: Value = Value::Null;
-        let mut isMaker: Value = Value::Bool(false);
+        let mut isMaker: bool = false;
         if is_true(&Value::Bool(in_op(&trade, &Value::Str("maker_fee_rate".to_string())))) {
-            isMaker = Value::Bool(true);
+            isMaker = true;
             add_element_to_object(&mut parsed, &Value::Str("takerOrMaker".to_string()), Value::Str("maker".to_string()));
             feeRate = self.safe_string_k(trade.clone(), "maker_fee_rate", &[]);
         }  else {
@@ -1437,7 +1437,7 @@ if let Err(_try_err) = _try_result { let error: Value = panic_to_value(_try_err)
             m
         });
         let mut length: Value = subtract(&get_array_length(&get_value(&client, &Value::Str("url".to_string()))), &Value::Int(0));
-        let mut authenticated: Value = Value::Bool(is_equal(&get_value(&get_value(&client, &Value::Str("url".to_string())), &subtract(&length, &Value::Int(1))), &Value::Str("?".to_string())));
+        let mut authenticated: bool = is_equal(&get_value(&get_value(&client, &Value::Str("url".to_string())), &subtract(&length, &Value::Int(1))), &Value::Str("?".to_string()));
         let mut method: Value = self.safe_value(methods.clone(), type_var.clone(), &[]);
         if is_equal(&method, &Value::Null) {
             if is_equal(&type_var, &Value::Str("match".to_string())) {

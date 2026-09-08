@@ -2549,8 +2549,8 @@ impl ToobitCore {
         }
         let mut stopLoss: Value = self.safe_dict_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_dict_k(params.clone(), "takeProfit", &[]);
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut triggerPriceTypes: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("mark".to_string(), Value::Str("MARK_PRICE".to_string()));
@@ -3886,12 +3886,12 @@ impl ToobitCore {
         m.insert("info".to_string(), position.clone());
         m.insert("id".to_string(), self.safe_string_k(position.clone(), "id", &[]));
         m.insert("symbol".to_string(), get_value(&market, &Value::Str("symbol".to_string())));
-        m.insert("entryPrice".to_string(), self.safe_string_k(position.clone(), "avgPrice", &[]));
-        m.insert("markPrice".to_string(), self.safe_string_k(position.clone(), "markPrice", &[]));
-        m.insert("lastPrice".to_string(), self.safe_string_k(position.clone(), "lastPrice", &[]));
-        m.insert("notional".to_string(), self.safe_string_k(position.clone(), "positionValue", &[]));
+        m.insert("entryPrice".to_string(), self.safe_number_k(position.clone(), "avgPrice", &[]));
+        m.insert("markPrice".to_string(), self.safe_number_k(position.clone(), "markPrice", &[]));
+        m.insert("lastPrice".to_string(), self.safe_number_k(position.clone(), "lastPrice", &[]));
+        m.insert("notional".to_string(), self.safe_number_k(position.clone(), "positionValue", &[]));
         m.insert("collateral".to_string(), Value::Null);
-        m.insert("unrealizedPnl".to_string(), self.safe_string_k(position.clone(), "unrealizedPnL", &[]));
+        m.insert("unrealizedPnl".to_string(), self.safe_number_k(position.clone(), "unrealizedPnL", &[]));
         m.insert("side".to_string(), side.clone());
         m.insert("contracts".to_string(), self.parse_number(quantity.clone(), &[]));
         m.insert("contractSize".to_string(), Value::Null);
@@ -3900,7 +3900,7 @@ impl ToobitCore {
         m.insert("hedged".to_string(), Value::Null);
         m.insert("maintenanceMargin".to_string(), Value::Null);
         m.insert("maintenanceMarginPercentage".to_string(), Value::Null);
-        m.insert("initialMargin".to_string(), self.safe_string_k(position.clone(), "margin", &[]));
+        m.insert("initialMargin".to_string(), self.safe_number_k(position.clone(), "margin", &[]));
         m.insert("initialMarginPercentage".to_string(), Value::Null);
         m.insert("leverage".to_string(), leverage.clone());
         m.insert("liquidationPrice".to_string(), Value::Null);
@@ -3923,8 +3923,8 @@ impl ToobitCore {
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
         let mut url: Value = add(&add(&get_value(&get_value(&self.urls, &Value::Str("api".to_string())), &api), &Value::Str("/".to_string())), &self.implode_params(path.clone(), params.clone()));
-        let mut isPost: Value = Value::Bool(is_equal(&method, &Value::Str("POST".to_string())));
-        let mut isDelete: Value = Value::Bool(is_equal(&method, &Value::Str("DELETE".to_string())));
+        let mut isPost: bool = is_equal(&method, &Value::Str("POST".to_string()));
+        let mut isDelete: bool = is_equal(&method, &Value::Str("DELETE".to_string()));
         let mut extraQuery: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
             m

@@ -793,7 +793,7 @@ pub trait ExchangeBase:
 
     fn url_encoder_for_proxy_url(&self, mut targetUrl: Value) -> Value {
         // to be overriden
-        let mut includesQuery: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&targetUrl, &Value::Str("?".to_string())), &Value::Int(0)));
+        let mut includesQuery: bool = is_greater_than_or_equal(&get_index_of(&targetUrl, &Value::Str("?".to_string())), &Value::Int(0));
         let mut finalUrl: Value = ternary(is_true(&includesQuery), self.encode_uri_component(targetUrl.clone()), targetUrl.clone());
         return finalUrl;
 
@@ -897,8 +897,8 @@ pub trait ExchangeBase:
 }
 
     fn check_conflicting_proxies(&self, mut proxyAgentSet: Value, mut proxyUrlSet: Value) {
-        let mut proxyAgentIsSet: Value = Value::Bool(is_true(&(!is_equal(&proxyAgentSet, &Value::Null))) && is_true(&(!is_equal(&proxyAgentSet, &Value::Null))) && is_true(&(!is_equal(&proxyAgentSet, &Value::Str("".to_string())))));
-        let mut proxyUrlIsSet: Value = Value::Bool(is_true(&(!is_equal(&proxyUrlSet, &Value::Null))) && is_true(&(!is_equal(&proxyUrlSet, &Value::Null))) && is_true(&(!is_equal(&proxyUrlSet, &Value::Str("".to_string())))));
+        let mut proxyAgentIsSet: bool = is_true(&(!is_equal(&proxyAgentSet, &Value::Null))) && is_true(&(!is_equal(&proxyAgentSet, &Value::Null))) && is_true(&(!is_equal(&proxyAgentSet, &Value::Str("".to_string()))));
+        let mut proxyUrlIsSet: bool = is_true(&(!is_equal(&proxyUrlSet, &Value::Null))) && is_true(&(!is_equal(&proxyUrlSet, &Value::Null))) && is_true(&(!is_equal(&proxyUrlSet, &Value::Str("".to_string()))));
         if is_true(&proxyAgentIsSet) && is_true(&proxyUrlIsSet) {
             panic!("{}", crate::exchange_errors::invalid_proxy_settings(add(&self.id, &Value::Str(" you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy".to_string()))));
         }
@@ -946,12 +946,12 @@ pub trait ExchangeBase:
         if is_true(&self.value_is_defined(limit.clone())) {
             let mut arrayLength: Value = get_array_length(&array);
             if is_greater_than(&arrayLength, &Value::Int(0)) {
-                let mut ascending: Value = Value::Bool(true);
+                let mut ascending: bool = true;
                 if is_true(&(Value::Bool(in_op(&get_value(&array, &Value::Int(0)), &key)))) {
                     let mut first: Value = get_value(&get_value(&array, &Value::Int(0)), &key);
                     let mut last: Value = get_value(&get_value(&array, &subtract(&arrayLength, &Value::Int(1))), &key);
                     if !is_equal(&first, &Value::Null) && !is_equal(&last, &Value::Null) {
-                        ascending = Value::Bool(is_less_than_or_equal(&first, &last)); // true if array is sorted in ascending order based on 'timestamp'
+                        ascending = is_less_than_or_equal(&first, &last); // true if array is sorted in ascending order based on 'timestamp'
                     }
                 }
                 if is_true(&fromStart) {
@@ -2074,7 +2074,7 @@ pub trait ExchangeBase:
         if is_greater_than(&self.rateLimit, &Value::Int(0)) {
             refillRate = divide(&Value::Int(1), &self.rateLimit);
         }
-        let mut useLeaky: Value = Value::Bool(is_true(&(is_equal(&self.rollingWindowSize, &Value::Int(0)))) || is_true(&(is_equal(&self.rateLimiterAlgorithm, &Value::Str("leakyBucket".to_string())))));
+        let mut useLeaky: bool = is_true(&(is_equal(&self.rollingWindowSize, &Value::Int(0)))) || is_true(&(is_equal(&self.rateLimiterAlgorithm, &Value::Str("leakyBucket".to_string()))));
         let mut algorithm: Value = ternary(is_true(&useLeaky), Value::Str("leakyBucket".to_string()), Value::Str("rollingWindow".to_string()));
         let mut defaultBucket: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -2956,18 +2956,18 @@ pub trait ExchangeBase:
         let mut symbol: Value = self.safe_string_k(order.clone(), "symbol", &[]);
         let mut side: Value = self.safe_string_k(order.clone(), "side", &[]);
         let mut status: Value = self.safe_string_k(order.clone(), "status", &[]);
-        let mut parseFilled: Value = Value::Bool(is_equal(&filled, &Value::Null));
-        let mut parseCost: Value = Value::Bool(is_equal(&cost, &Value::Null));
-        let mut parseLastTradeTimeTimestamp: Value = Value::Bool(is_equal(&lastTradeTimeTimestamp, &Value::Null));
+        let mut parseFilled: bool = is_equal(&filled, &Value::Null);
+        let mut parseCost: bool = is_equal(&cost, &Value::Null);
+        let mut parseLastTradeTimeTimestamp: bool = is_equal(&lastTradeTimeTimestamp, &Value::Null);
         let mut fee: Value = self.safe_value_k(order.clone(), "fee", &[]);
-        let mut parseFee: Value = Value::Bool(is_equal(&fee, &Value::Null));
-        let mut parseFees: Value = Value::Bool(is_equal(&self.safe_value_k(order.clone(), "fees", &[]), &Value::Null));
-        let mut parseSymbol: Value = Value::Bool(is_equal(&symbol, &Value::Null));
-        let mut parseSide: Value = Value::Bool(is_equal(&side, &Value::Null));
-        let mut shouldParseFees: Value = Value::Bool(is_true(&parseFee) || is_true(&parseFees));
+        let mut parseFee: bool = is_equal(&fee, &Value::Null);
+        let mut parseFees: bool = is_equal(&self.safe_value_k(order.clone(), "fees", &[]), &Value::Null);
+        let mut parseSymbol: bool = is_equal(&symbol, &Value::Null);
+        let mut parseSide: bool = is_equal(&side, &Value::Null);
+        let mut shouldParseFees: bool = is_true(&parseFee) || is_true(&parseFees);
         let mut fees: Value = self.safe_list_k(order.clone(), "fees", &[Value::List(vec![])]);
         let mut trades: Value = Value::List(vec![]);
-        let mut isTriggerOrSLTpOrder: Value = Value::Bool(is_true(&(!is_equal(&self.safe_string_k(order.clone(), "triggerPrice", &[]), &Value::Null) || is_true(&(!is_equal(&self.safe_string_k(order.clone(), "stopLossPrice", &[]), &Value::Null))))) || is_true(&(!is_equal(&self.safe_string_k(order.clone(), "takeProfitPrice", &[]), &Value::Null))));
+        let mut isTriggerOrSLTpOrder: bool = is_true(&(!is_equal(&self.safe_string_k(order.clone(), "triggerPrice", &[]), &Value::Null) || is_true(&(!is_equal(&self.safe_string_k(order.clone(), "stopLossPrice", &[]), &Value::Null))))) || is_true(&(!is_equal(&self.safe_string_k(order.clone(), "takeProfitPrice", &[]), &Value::Null)));
         if is_true(&parseFilled) || is_true(&parseCost) || is_true(&shouldParseFees) {
             let mut rawTrades: Value = self.safe_value_k(order.clone(), "trades", &[trades.clone()]);
             // const oldNumber = this.number;
@@ -2976,7 +2976,7 @@ pub trait ExchangeBase:
             // (this as any).number = String;
             let mut firstTrade: Value = self.safe_value(rawTrades.clone(), Value::Int(0), &[]);
             // parse trades if they haven't already been parsed
-            let mut tradesAreParsed: Value = Value::Bool(is_true(&(!is_equal(&firstTrade, &Value::Null))) && is_true(&(Value::Bool(in_op(&firstTrade, &Value::Str("info".to_string()))))) && is_true(&(Value::Bool(in_op(&firstTrade, &Value::Str("id".to_string()))))));
+            let mut tradesAreParsed: bool = is_true(&(!is_equal(&firstTrade, &Value::Null))) && is_true(&(Value::Bool(in_op(&firstTrade, &Value::Str("info".to_string()))))) && is_true(&(Value::Bool(in_op(&firstTrade, &Value::Str("id".to_string())))));
             if !is_true(&tradesAreParsed) {
                 trades = self.parse_trades(rawTrades.clone(), &[market.clone()]);
             }  else {
@@ -2984,7 +2984,7 @@ pub trait ExchangeBase:
             }
             // this.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             let mut tradesLength: Value = Value::Int(0);
-            let mut isArray: Value = Value::Bool(is_array(&trades));
+            let mut isArray: bool = is_array(&trades);
             if is_true(&isArray) {
                 tradesLength = get_array_length(&trades);
             }
@@ -3144,7 +3144,7 @@ pub trait ExchangeBase:
         //
         // linear
         // cost = filled * contract size * price
-        let mut costPriceExists: Value = Value::Bool(is_true(&(!is_equal(&average, &Value::Null))) || is_true(&(!is_equal(&price, &Value::Null))));
+        let mut costPriceExists: bool = is_true(&(!is_equal(&average, &Value::Null))) || is_true(&(!is_equal(&price, &Value::Null)));
         if is_true(&parseCost) && is_true(&(!is_equal(&filled, &Value::Null))) && is_true(&costPriceExists) {
             let mut multiplyPrice: Value = Value::Null;
             if is_equal(&average, &Value::Null) {
@@ -3162,7 +3162,7 @@ pub trait ExchangeBase:
         }
         // support for market orders
         let mut orderType: Value = self.safe_value_k(order.clone(), "type", &[]);
-        let mut emptyPrice: Value = Value::Bool(is_true(&(is_equal(&price, &Value::Null))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".to_string()))));
+        let mut emptyPrice: bool = is_true(&(is_equal(&price, &Value::Null))) || is_true(&crate::precise::Precise::stringEquals(&price, &Value::Str("0".to_string())));
         if is_true(&emptyPrice) && is_true(&(is_equal(&orderType, &Value::Str("market".to_string())))) {
             price = average.clone();
         }
@@ -3476,10 +3476,10 @@ pub trait ExchangeBase:
     fn parsed_fee_and_fees(&self, mut container: Value) -> Value {
         let mut fee: Value = self.safe_dict_k(container.clone(), "fee", &[]);
         let mut fees: Value = self.safe_list_k(container.clone(), "fees", &[]);
-        let mut feeDefined: Value = Value::Bool(!is_equal(&fee, &Value::Null));
-        let mut feesDefined: Value = Value::Bool(!is_equal(&fees, &Value::Null));
+        let mut feeDefined: bool = !is_equal(&fee, &Value::Null);
+        let mut feesDefined: bool = !is_equal(&fees, &Value::Null);
         // parsing only if at least one of them is defined
-        let mut shouldParseFees: Value = Value::Bool(is_true(&feeDefined) || is_true(&feesDefined));
+        let mut shouldParseFees: bool = is_true(&feeDefined) || is_true(&feesDefined);
         if is_true(&shouldParseFees) {
             if is_true(&feeDefined) {
                 fee = self.parse_fee_numeric(fee.clone());
@@ -4077,14 +4077,14 @@ pub trait ExchangeBase:
             let mut maxRetries: Value = self.safe_value_k(options.clone(), "webApiRetries", &[Value::Int(10)]);
             let mut response: Value = Value::Null;
             let mut retry: Value = Value::Int(0);
-            let mut shouldBreak: Value = Value::Bool(false);
+            let mut shouldBreak: bool = false;
             while is_less_than(&retry, &maxRetries) {
                 {
                     response = self.call_method(endpointMethod.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                         m
                     })]).await;
-                    shouldBreak = Value::Bool(true);
+                    shouldBreak = true;
                     break;
                 }
                 if is_true(&shouldBreak) {
@@ -4694,7 +4694,7 @@ pub trait ExchangeBase:
         if !is_equal(&symbols, &Value::Null) {
             symbolsLength = get_array_length(&symbols);
         }
-        let mut noSymbols: Value = Value::Bool(is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&(is_equal(&symbolsLength, &Value::Int(0)))));
+        let mut noSymbols: bool = is_true(&(is_equal(&symbols, &Value::Null))) || is_true(&(is_equal(&symbolsLength, &Value::Int(0))));
         if is_true(&Value::Bool(is_array(&response))) {
             {
                                 let mut i: Value = Value::Int(0);
@@ -5295,7 +5295,7 @@ pub trait ExchangeBase:
         let mut retryDelay: Value = Value::Int(0);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), path.clone(), Value::Str("maxRetriesOnFailureDelay".to_string()), &[retryDelay.clone()]); retryDelay = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut fetchData: Value = Value::Null;
-        let mut fetchDataCacheEnabled: Value = Value::Bool(is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0)));
+        let mut fetchDataCacheEnabled: bool = is_greater_than(&self.fetchHistoryCacheSize, &Value::Int(0));
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_130: bool = true;
@@ -5445,7 +5445,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             if is_true(&(is_equal(&skipZeroPrices, &Value::Bool(true)))) && !is_true(&(is_greater_than(&price, &Value::Int(0)))) && !is_true(&(is_less_than(&price, &Value::Int(0)))) {
                 continue;
             }
-            let mut isFirstCandle: Value = Value::Bool(is_equal(&candle, &negate(&Value::Int(1))));
+            let mut isFirstCandle: bool = is_equal(&candle, &negate(&Value::Int(1)));
             if is_true(&isFirstCandle) || is_greater_than_or_equal(&openingTime, &self.sum(&[get_value(&get_value(&ohlcvs, &candle), &i_timestamp), ms.clone()])) {
                 // moved to a new timeframe -> create a new candle from opening trade
                 append_to_array(&mut ohlcvs, Value::List(vec![openingTime.clone(), price.clone(), price.clone(), price.clone(), price.clone(), get_value(&trade, &Value::Str("amount".to_string())), Value::Int(1)]));
@@ -5667,7 +5667,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut key: Value = get_value(&keys, &i);
             let mut key: Value = get_value(&keys, &i);
             let mut credentialValue: Value = self.prop(&key);
-            let mut credentialMissing: Value = Value::Bool(is_true(&(is_equal(&credentialValue, &Value::Null))) || is_true(&(is_equal(&credentialValue, &Value::Null))) || is_true(&(is_equal(&credentialValue, &Value::Bool(false)))) || is_true(&(is_equal(&credentialValue, &Value::Str("".to_string())))));
+            let mut credentialMissing: bool = is_true(&(is_equal(&credentialValue, &Value::Null))) || is_true(&(is_equal(&credentialValue, &Value::Null))) || is_true(&(is_equal(&credentialValue, &Value::Bool(false)))) || is_true(&(is_equal(&credentialValue, &Value::Str("".to_string()))));
             if is_true(&(is_equal(&get_value(&self.requiredCredentials, &key), &Value::Bool(true)))) && is_true(&credentialMissing) {
                 if is_true(&error) {
                     panic!("{}", crate::exchange_errors::authentication_error(add(&add(&add(&self.id, &Value::Str(" requires \"".to_string())), &key), &Value::Str("\" credential".to_string()))));
@@ -6827,7 +6827,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             while { if !__for_first_137 { i = add(&i, &Value::Int(1)); } __for_first_137 = false; is_less_than(&i, &get_array_length(&leverageSuffixes)) } {
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
             let mut leverageSuffix: Value = get_value(&leverageSuffixes, &i);
-            let mut endsWithSuffix: Value = Value::Bool(ends_with(&currencyCode, &leverageSuffix));
+            let mut endsWithSuffix: bool = ends_with(&currencyCode, &leverageSuffix);
             if is_true(&endsWithSuffix) {
                 if !is_true(&checkBaseCoin) {
                     return Value::Bool(true);
@@ -7493,7 +7493,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          * @returns {[string, object]} the trigger-direction value and omited params
          */
         let mut triggerDirection: Value = self.safe_string_k(params.clone(), "triggerDirection", &[]);
-        let mut exchangeSpecificDefined: Value = Value::Bool(is_true(&(!is_equal(&exchangeSpecificKey, &Value::Null))) && is_true(&(Value::Bool(in_op(&params, &exchangeSpecificKey)))));
+        let mut exchangeSpecificDefined: bool = is_true(&(!is_equal(&exchangeSpecificKey, &Value::Null))) && is_true(&(Value::Bool(in_op(&params, &exchangeSpecificKey))));
         if !is_equal(&triggerDirection, &Value::Null) {
             params = self.omit(params.clone(), Value::Str("triggerDirection".to_string()), &[]);
         }
@@ -7546,8 +7546,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.safe_bool2(params.clone(), Value::Str("postOnly".to_string()), Value::Str("post_only".to_string()), &[Value::Bool(false)]);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-        let mut ioc: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("IOC".to_string())));
-        let mut fok: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("FOK".to_string())));
+        let mut ioc: bool = is_equal(&timeInForce, &Value::Str("IOC".to_string()));
+        let mut fok: bool = is_equal(&timeInForce, &Value::Str("FOK".to_string()));
         let mut timeInForcePostOnly: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("PO".to_string())));
         if !is_equal(&postOnly, &Value::Bool(true)) {
             postOnly = timeInForcePostOnly.clone();
@@ -7585,8 +7585,8 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
          */
         let mut timeInForce: Value = self.safe_string_upper(params.clone(), Value::Str("timeInForce".to_string()), &[]);
         let mut postOnly: Value = self.safe_bool_k(params.clone(), "postOnly", &[Value::Bool(false)]);
-        let mut ioc: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("IOC".to_string())));
-        let mut fok: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("FOK".to_string())));
+        let mut ioc: bool = is_equal(&timeInForce, &Value::Str("IOC".to_string()));
+        let mut fok: bool = is_equal(&timeInForce, &Value::Str("FOK".to_string()));
         let mut po: Value = Value::Bool(is_equal(&timeInForce, &Value::Str("PO".to_string())));
         if !is_equal(&postOnly, &Value::Bool(true)) {
             postOnly = po.clone();
@@ -7977,7 +7977,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
             let mut m = indexmap::IndexMap::new();
             m
         });
-        let mut isArray: Value = Value::Bool(is_array(&response));
+        let mut isArray: bool = is_array(&response);
         let mut responseKeys: Value = response.clone();
         if !is_true(&isArray) {
             responseKeys = object_keys(&response);

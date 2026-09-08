@@ -502,7 +502,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut privateAccess: Value = Value::Bool(is_equal(&access, &Value::Str("private".to_string())));
+        let mut privateAccess: bool = is_equal(&access, &Value::Str("private".to_string()));
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(methodName.clone(), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isContract: Value = Value::Bool(!is_equal(&type_var, &Value::Str("spot".to_string())));
@@ -574,7 +574,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
-        let mut privateAccess: Value = Value::Bool(is_equal(&access, &Value::Str("private".to_string())));
+        let mut privateAccess: bool = is_equal(&access, &Value::Str("private".to_string()));
         let mut type_var: Value = Value::Null;
         { let __destr_tmp = self.handle_market_type_and_params(methodName.clone(), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut isContract: Value = Value::Bool(!is_equal(&type_var, &Value::Str("spot".to_string())));
@@ -1350,7 +1350,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
         let mut marketId: Value = self.safe_string_k(data.clone(), "s", &[]);
         if !is_equal(&marketId, &Value::Null) {
             let mut cv: Value = self.safe_string_k(data.clone(), "cv", &[]);
-            let mut isSpot: Value = Value::Bool(!is_equal(&cv, &Value::Null));
+            let mut isSpot: bool = !is_equal(&cv, &Value::Null);
             let mut ticker: Value = self.parse_ticker(data.clone(), &[]);
             let mut symbol: Value = get_value(&ticker, &Value::Str("symbol".to_string()));
             if !is_equal(&symbol, &Value::Null) {

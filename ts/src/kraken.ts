@@ -1378,7 +1378,7 @@ export default class kraken extends Exchange {
         return this.parseLedger (items, currency, since, limit);
     }
 
-    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}) {
+    async fetchLedgerEntriesByIds (ids: any, code: Str = undefined, params = {}): Promise<LedgerEntry[]> {
         // https://www.kraken.com/features/api#query-ledgers
         if (this.markets === undefined) {
             await this.loadMarkets ();

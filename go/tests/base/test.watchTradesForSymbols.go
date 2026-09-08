@@ -16,7 +16,7 @@ func testWatchTradesForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, ski
 	var method string = "watchTradesForSymbols"
 	var now any = exchange.Milliseconds()
 	var ends any = Add(now, 15000)
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var idle bool = false
 	var returnedSymbols any = []any{}
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {

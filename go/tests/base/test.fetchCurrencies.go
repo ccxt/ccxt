@@ -26,7 +26,7 @@ func testFetchCurrenciesBody(ch chan any, exchange ccxt.ICoreExchange, skippedPr
 	var fetchCurrencies any = exchange.SafeDict(featuresSpot, "fetchCurrencies", map[string]any{})
 	var isFetchCurrenciesPrivate any = exchange.SafeValue(fetchCurrencies, "private", false)
 	if IsTrue(!IsEqual(isFetchCurrenciesPrivate, true)) {
-		var values any = ObjectValues(currencies)
+		var values []any = ObjectValues(currencies)
 		AssertNonEmtpyArray(exchange, skippedProperties, method, values)
 		var currenciesLength int = GetArrayLength(values)
 		// ensure exchange returns enough length of currencies

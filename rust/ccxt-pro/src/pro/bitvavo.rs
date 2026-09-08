@@ -2643,7 +2643,7 @@ impl BitvavoCore {
         let mut action: Value = self.safe_string_k(message.clone(), "action", &[]);
         let mut buildMessage: Value = self.build_message_hash(action.clone(), &[message.clone()]);
         let mut messageHash: Value = self.safe_string_k(message.clone(), "requestId", &[buildMessage.clone()]);
-        let mut rejected: Value = Value::Bool(false);
+        let mut rejected: bool = false;
         let _try_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.handle_errors(code.clone(), error.clone(), get_value(&client, &Value::Str("url".to_string())), Value::Str("".to_string()), Value::Map({
                 let mut m = indexmap::IndexMap::new();
@@ -2657,7 +2657,7 @@ impl BitvavoCore {
             }));
          #[allow(unreachable_code)] { Value::Null }}));
 if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
-            rejected = Value::Bool(true);
+            rejected = true;
             client.reject(&[e.clone(), messageHash.clone()]);
         }
         if !is_true(&rejected) {

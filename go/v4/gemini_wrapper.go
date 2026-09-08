@@ -72,26 +72,26 @@ func (this *Gemini) FetchMarkets(params ...any) ([]MarketInterface, error) {
 	}
 	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]map[string]any, error) {
+func (this *Gemini) FetchMarketsFromWeb(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarketsFromWeb(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gemini) FetchUSDTMarkets(params ...any) ([]map[string]any, error) {
+func (this *Gemini) FetchUSDTMarkets(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchUSDTMarkets(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
-func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]map[string]any, error) {
+func (this *Gemini) FetchMarketsFromAPI(params ...any) ([]MarketInterface, error) {
 	res := <-this.Core.FetchMarketsFromAPI(params...)
 	if IsError(res) {
 		return nil, CreateReturnError(res)
 	}
-	return NewMapArray(res), nil
+	return NewMarketInterfaceArray(res), nil
 }
 
 /**

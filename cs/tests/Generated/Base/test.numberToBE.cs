@@ -15,8 +15,8 @@ public partial class BaseTest
             // @SKIP_START_GO
             // 1234567890 (decimal) = 0x499602D2 (hex)
             // BE: 00 00 00 00 49 96 02 D2
-            object num1 = 1234567890;
-            object padding1 = 8;
+            int num1 = 1234567890;
+            int padding1 = 8;
             object result1 = exchange.numberToBE(num1, padding1);
             Assert(exchange.isBinaryMessage(result1));
             Assert(isEqual(exchange.binaryLength(result1), padding1));

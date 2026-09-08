@@ -3635,7 +3635,7 @@ impl BybitCore {
         let mut market = get_arg(optional_args, 1, Value::Null);
         let mut delimiter = get_arg(optional_args, 2, Value::Null);
         let mut marketType = get_arg(optional_args, 3, Value::Null);
-        let mut isOption: Value = Value::Bool(is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(is_greater_than(&get_index_of(&marketId, &Value::Str("-C".to_string())), &negate(&Value::Int(1))))) || is_true(&(is_greater_than(&get_index_of(&marketId, &Value::Str("-P".to_string())), &negate(&Value::Int(1))))))));
+        let mut isOption: bool = is_true(&(!is_equal(&marketId, &Value::Null))) && is_true(&(is_true(&(is_greater_than(&get_index_of(&marketId, &Value::Str("-C".to_string())), &negate(&Value::Int(1))))) || is_true(&(is_greater_than(&get_index_of(&marketId, &Value::Str("-P".to_string())), &negate(&Value::Int(1)))))));
         if is_true(&isOption) && is_true(&(is_true(&(is_equal(&self.markets_by_id, &Value::Null))) || !is_true(&(Value::Bool(in_op(&self.markets_by_id, &marketId)))))) {
             return self.create_expired_option_market(marketId.clone());
         }
@@ -3665,7 +3665,7 @@ impl BybitCore {
         // some markets like options might not have the precision available
         // and we shouldn't crash in those cases
         let mut market: Value = self.market(symbol.clone());
-        let mut emptyPrecisionAmount: Value = Value::Bool(is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string())), &Value::Null));
+        let mut emptyPrecisionAmount: bool = is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("amount".to_string())), &Value::Null);
         let mut amountString: Value = self.number_to_string(amount.clone());
         if !is_true(&emptyPrecisionAmount) && is_true(&(!is_equal(&amountString, &Value::Str("0".to_string())))) {
             return self.amount_to_precision(symbol.clone(), amount.clone());
@@ -3680,7 +3680,7 @@ impl BybitCore {
             return price;
         }
         let mut market: Value = self.market(symbol.clone());
-        let mut emptyPrecisionPrice: Value = Value::Bool(is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &Value::Null));
+        let mut emptyPrecisionPrice: bool = is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &Value::Null);
         if !is_true(&emptyPrecisionPrice) {
             return self.price_to_precision(symbol.clone(), price.clone());
         }
@@ -3691,7 +3691,7 @@ impl BybitCore {
 
     pub fn get_cost(&self, mut symbol: Value, mut cost: Value) -> Value {
         let mut market: Value = self.market(symbol.clone());
-        let mut emptyPrecisionPrice: Value = Value::Bool(is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &Value::Null));
+        let mut emptyPrecisionPrice: bool = is_equal(&get_value(&get_value(&market, &Value::Str("precision".to_string())), &Value::Str("price".to_string())), &Value::Null);
         if !is_true(&emptyPrecisionPrice) {
             return self.cost_to_precision(symbol.clone(), cost.clone());
         }
@@ -4304,10 +4304,10 @@ impl BybitCore {
             let mut linear: Value = Value::Bool(is_equal(&category, &Value::Str("linear".to_string())));
             let mut inverse: Value = Value::Bool(is_equal(&category, &Value::Str("inverse".to_string())));
             let mut contractType: Value = self.safe_string_k(market.clone(), "contractType", &[]);
-            let mut inverseFutures: Value = Value::Bool(is_equal(&contractType, &Value::Str("InverseFutures".to_string())));
-            let mut linearFutures: Value = Value::Bool(is_equal(&contractType, &Value::Str("LinearFutures".to_string())));
-            let mut linearPerpetual: Value = Value::Bool(is_equal(&contractType, &Value::Str("LinearPerpetual".to_string())));
-            let mut inversePerpetual: Value = Value::Bool(is_equal(&contractType, &Value::Str("InversePerpetual".to_string())));
+            let mut inverseFutures: bool = is_equal(&contractType, &Value::Str("InverseFutures".to_string()));
+            let mut linearFutures: bool = is_equal(&contractType, &Value::Str("LinearFutures".to_string()));
+            let mut linearPerpetual: bool = is_equal(&contractType, &Value::Str("LinearPerpetual".to_string()));
+            let mut inversePerpetual: bool = is_equal(&contractType, &Value::Str("InversePerpetual".to_string()));
             let mut id: Value = self.safe_string_k(market.clone(), "symbol", &[]);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseCoin", &[]);
             let mut quoteId: Value = self.safe_string_k(market.clone(), "quoteCoin", &[]);
@@ -4701,7 +4701,7 @@ impl BybitCore {
         //         "change24h": "86"
         //     }
         //
-        let mut isSpot: Value = Value::Bool(is_equal(&self.safe_string_k(ticker.clone(), "openInterestValue", &[]), &Value::Null));
+        let mut isSpot: bool = is_equal(&self.safe_string_k(ticker.clone(), "openInterestValue", &[]), &Value::Null);
         let mut timestamp: Value = self.safe_integer_k(ticker.clone(), "time", &[]);
         let mut marketId: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         let mut type_var: Value = ternary(is_true(&isSpot), Value::Str("spot".to_string()), Value::Str("contract".to_string()));
@@ -4867,7 +4867,7 @@ impl BybitCore {
                 let mut symbol: Value = get_value(&symbols, &i);
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
                 // infer the market type from the type provided and not from the conflicting id (BTCUSDT might be swap or spot)
-                let mut isExchangeSpecificSymbol: Value = Value::Bool(is_equal(&get_index_of(&symbol, &Value::Str("/".to_string())), &negate(&Value::Int(1))));
+                let mut isExchangeSpecificSymbol: bool = is_equal(&get_index_of(&symbol, &Value::Str("/".to_string())), &negate(&Value::Int(1)));
                 if is_true(&isExchangeSpecificSymbol) {
                     market = self.safe_market(&[symbol.clone(), Value::Null, Value::Null, defaultType.clone()]);
                 }  else {
@@ -6033,7 +6033,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut type_var: Value = Value::Null;
         // don't use getBybitType here
         { let __destr_tmp = self.handle_market_type_and_params(Value::Str("fetchBalance".to_string()), &[Value::Null, params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
@@ -6043,10 +6043,10 @@ impl BybitCore {
             type_var = subType.clone();
         }
         let mut lowercaseRawType: Value = ternary(is_true(&(!is_equal(&type_var, &Value::Null))), to_lower(&type_var), Value::Null);
-        let mut isSpot: Value = Value::Bool(is_equal(&type_var, &Value::Str("spot".to_string())));
-        let mut isLinear: Value = Value::Bool(is_equal(&type_var, &Value::Str("linear".to_string())));
-        let mut isInverse: Value = Value::Bool(is_equal(&type_var, &Value::Str("inverse".to_string())));
-        let mut isFunding: Value = Value::Bool(is_true(&(is_equal(&lowercaseRawType, &Value::Str("fund".to_string())))) || is_true(&(is_equal(&lowercaseRawType, &Value::Str("funding".to_string())))));
+        let mut isSpot: bool = is_equal(&type_var, &Value::Str("spot".to_string()));
+        let mut isLinear: bool = is_equal(&type_var, &Value::Str("linear".to_string()));
+        let mut isInverse: bool = is_equal(&type_var, &Value::Str("inverse".to_string()));
+        let mut isFunding: bool = is_true(&(is_equal(&lowercaseRawType, &Value::Str("fund".to_string())))) || is_true(&(is_equal(&lowercaseRawType, &Value::Str("funding".to_string()))));
         if is_true(&isUnifiedAccount) {
             let mut unifiedMarginStatus: Value = self.safe_integer_k(self.options.clone(), "unifiedMarginStatus", &[Value::Int(6)]);
             if is_less_than(&unifiedMarginStatus, &Value::Int(5)) {
@@ -6314,7 +6314,7 @@ impl BybitCore {
         let mut takeProfitPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "takeProfit", &[]));
         let mut stopLossPrice: Value = self.omit_zero(self.safe_string_k(order.clone(), "stopLoss", &[]));
         let mut triggerDirection: Value = self.safe_string_k(order.clone(), "triggerDirection", &[]);
-        let mut isAscending: Value = Value::Bool(is_equal(&triggerDirection, &Value::Str("1".to_string())));
+        let mut isAscending: bool = is_equal(&triggerDirection, &Value::Str("1".to_string()));
         let mut isStopOrderType2: Value = Value::Bool(is_true(&(!is_equal(&triggerPrice, &Value::Null))) && is_true(&reduceOnly));
         if is_true(&(is_equal(&stopLossPrice, &Value::Null))) && is_true(&(is_equal(&isStopOrderType2, &Value::Bool(true)))) {
             // check if order is stop order type 2 - stopLossPrice
@@ -6489,9 +6489,9 @@ impl BybitCore {
         let mut market: Value = self.market(symbol.clone());
         let mut parts: Value = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedAccount: Value = get_value(&parts, &Value::Int(1));
-        let mut isTrailingOrder: Value = Value::Bool(!is_equal(&self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trailingStop".to_string()), &[]), &Value::Null));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "stopLossPrice", &[]), &Value::Null));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&self.safe_string_k(params.clone(), "takeProfitPrice", &[]), &Value::Null));
+        let mut isTrailingOrder: bool = !is_equal(&self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trailingStop".to_string()), &[]), &Value::Null);
+        let mut isStopLossOrder: bool = !is_equal(&self.safe_string_k(params.clone(), "stopLossPrice", &[]), &Value::Null);
+        let mut isTakeProfitOrder: bool = !is_equal(&self.safe_string_k(params.clone(), "takeProfitPrice", &[]), &Value::Null);
         let mut orderRequest: Value = self.create_order_request(symbol.clone(), type_var.clone(), side.clone(), amount.clone(), &[price.clone(), params.clone(), enableUnifiedAccount.clone()]);
         let mut switchToOco: Value = Value::Bool(is_true(&(is_true(&isStopLossOrder) && is_true(&isTakeProfitOrder))) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)])));
         let mut defaultMethod: Value = Value::Null;
@@ -6559,15 +6559,15 @@ impl BybitCore {
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
         let mut trailingTriggerPrice: Value = self.safe_string2(params.clone(), Value::Str("trailingTriggerPrice".to_string()), Value::Str("activePrice".to_string()), &[self.number_to_string(price.clone())]);
         let mut trailingAmount: Value = self.safe_string2(params.clone(), Value::Str("trailingAmount".to_string()), Value::Str("trailingStop".to_string()), &[]);
-        let mut isTrailingOrder: Value = Value::Bool(!is_equal(&trailingAmount, &Value::Null));
-        let mut isTriggerOrder: Value = Value::Bool(!is_equal(&triggerPrice, &Value::Null));
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut isTrailingOrder: bool = !is_equal(&trailingAmount, &Value::Null);
+        let mut isTriggerOrder: bool = !is_equal(&triggerPrice, &Value::Null);
+        let mut isStopLossOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         let mut isMarket: Value = Value::Bool(is_equal(&lowerCaseType, &Value::Str("market".to_string())));
-        let mut isLimit: Value = Value::Bool(is_equal(&lowerCaseType, &Value::Str("limit".to_string())));
-        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
+        let mut isLimit: bool = is_equal(&lowerCaseType, &Value::Str("limit".to_string()));
+        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
         let mut switchToOco: Value = Value::Bool(is_true(&(is_true(&isStopLossOrder) && is_true(&isTakeProfitOrder))) || is_true(&self.safe_bool_k(params.clone(), "tradingStopEndpoint", &[Value::Bool(false)])));
         let mut defaultMethod: Value = Value::Null;
         if is_true(&isTrailingOrder) || is_true(&(is_equal(&switchToOco, &Value::Bool(true)))) {
@@ -6577,7 +6577,7 @@ impl BybitCore {
         }
         let mut method: Value = Value::Null;
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("createOrder".to_string()), Value::Str("method".to_string()), &[defaultMethod.clone()]); method = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
-        let mut endpointIsTradingStop: Value = Value::Bool(is_equal(&method, &Value::Str("privatePostV5PositionTradingStop".to_string())));
+        let mut endpointIsTradingStop: bool = is_equal(&method, &Value::Str("privatePostV5PositionTradingStop".to_string()));
         if is_true(&(is_equal(&price, &Value::Null))) && is_true(&(is_equal(&lowerCaseType, &Value::Str("limit".to_string())))) && !is_true(&endpointIsTradingStop) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder requires a price argument for limit orders".to_string()))));
         }
@@ -6680,8 +6680,8 @@ impl BybitCore {
         let mut cost: Value = self.safe_string_k(params.clone(), "cost", &[]);
         params = self.omit(params.clone(), Value::Str("cost".to_string()), &[]);
         // if the cost is inferable, let's keep the old logic and ignore marketUnit, to minimize the impact of the changes
-        let mut isMarketBuyAndCostInferable: Value = Value::Bool(is_true(&(is_equal(&lowerCaseType, &Value::Str("market".to_string())))) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(!is_equal(&price, &Value::Null))) || is_true(&(!is_equal(&cost, &Value::Null))))));
-        let mut isMarketOrder: Value = Value::Bool(is_equal(&lowerCaseType, &Value::Str("market".to_string())));
+        let mut isMarketBuyAndCostInferable: bool = is_true(&(is_equal(&lowerCaseType, &Value::Str("market".to_string())))) && is_true(&(is_equal(&side, &Value::Str("buy".to_string())))) && is_true(&(is_true(&(!is_equal(&price, &Value::Null))) || is_true(&(!is_equal(&cost, &Value::Null)))));
+        let mut isMarketOrder: bool = is_equal(&lowerCaseType, &Value::Str("market".to_string()));
         if is_true(&(is_equal(&get_value(&market, &Value::Str("spot".to_string())), &Value::Bool(true)))) && is_true(&isMarketOrder) && is_true(&isUTA) && !is_true(&isMarketBuyAndCostInferable) {
             // UTA account can specify the cost of the order on both sides
             if is_true(&(!is_equal(&cost, &Value::Null))) || is_true(&(!is_equal(&price, &Value::Null))) {
@@ -6741,7 +6741,7 @@ impl BybitCore {
                 if is_equal(&triggerDirection, &Value::Null) {
                     panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" stop/trigger orders require a triggerDirection parameter, either \"ascending\" or \"descending\" to determine the direction of the trigger.".to_string()))));
                 }
-                let mut isAsending: Value = Value::Bool(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("1".to_string())))));
+                let mut isAsending: bool = is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("above".to_string())))) || is_true(&(is_equal(&triggerDirection, &Value::Str("1".to_string()))));
                 add_element_to_object(&mut request, &Value::Str("triggerDirection".to_string()), ternary(is_true(&isAsending), Value::Int(1), Value::Int(2)));
             }
             add_element_to_object(&mut request, &Value::Str("triggerPrice".to_string()), self.get_price(symbol.clone(), triggerPrice.clone()));
@@ -6932,10 +6932,10 @@ impl BybitCore {
         let mut takeProfitTriggerPrice: Value = self.safe_string_k(params.clone(), "takeProfitPrice", &[]);
         let mut stopLoss: Value = self.safe_value_k(params.clone(), "stopLoss", &[]);
         let mut takeProfit: Value = self.safe_value_k(params.clone(), "takeProfit", &[]);
-        let mut isStopLossOrder: Value = Value::Bool(!is_equal(&stopLossTriggerPrice, &Value::Null));
-        let mut isTakeProfitOrder: Value = Value::Bool(!is_equal(&takeProfitTriggerPrice, &Value::Null));
-        let mut hasStopLoss: Value = Value::Bool(!is_equal(&stopLoss, &Value::Null));
-        let mut hasTakeProfit: Value = Value::Bool(!is_equal(&takeProfit, &Value::Null));
+        let mut isStopLossOrder: bool = !is_equal(&stopLossTriggerPrice, &Value::Null);
+        let mut isTakeProfitOrder: bool = !is_equal(&takeProfitTriggerPrice, &Value::Null);
+        let mut hasStopLoss: bool = !is_equal(&stopLoss, &Value::Null);
+        let mut hasTakeProfit: bool = !is_equal(&takeProfit, &Value::Null);
         if is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder) {
             triggerPrice = ternary(is_true(&isStopLossOrder), stopLossTriggerPrice.clone(), takeProfitTriggerPrice.clone());
         }
@@ -7494,7 +7494,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut market: Value = Value::Null;
         let mut request: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -7639,7 +7639,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         if !is_true(&isUnifiedAccount) {
             return self.fetch_order_classic(id.clone(), &[symbol.clone(), params.clone()]).await;
         }
@@ -9566,7 +9566,7 @@ impl BybitCore {
         //    }
         //
         let mut closedSize: Value = self.safe_string_k(position.clone(), "closedSize", &[]);
-        let mut isHistory: Value = Value::Bool(!is_equal(&closedSize, &Value::Null));
+        let mut isHistory: bool = !is_equal(&closedSize, &Value::Null);
         let mut contract: Value = self.safe_string_k(position.clone(), "symbol", &[]);
         market = self.safe_market(&[contract.clone(), market.clone(), Value::Null, Value::Str("contract".to_string())]);
         let mut size: Value = crate::precise::Precise::stringAbs(&self.safe_string2(position.clone(), Value::Str("size".to_string()), Value::Str("qty".to_string()), &[]));
@@ -9745,7 +9745,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut market: Value = Value::Null;
         let mut response: Value = Value::Null;
         if is_true(&isUnifiedAccount) {
@@ -9770,7 +9770,7 @@ impl BybitCore {
                 panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" setMarginMode() requires a symbol parameter for non unified account".to_string()))));
             }
             market = self.market(symbol.clone());
-            let mut isUsdcSettled: Value = Value::Bool(is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDC".to_string())));
+            let mut isUsdcSettled: bool = is_equal(&get_value(&market, &Value::Str("settle".to_string())), &Value::Str("USDC".to_string()));
             if is_true(&isUsdcSettled) {
                 if is_equal(&marginMode, &Value::Str("cross".to_string())) {
                     marginMode = Value::Str("REGULAR_MARGIN".to_string());
@@ -9929,7 +9929,7 @@ impl BybitCore {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), self.safe_string_k(market.clone(), "id", &[]));
         }
         if !is_equal(&symbol, &Value::Null) {
-            let mut isLinear: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "linear", &[]), &Value::Bool(true)));
+            let mut isLinear: bool = is_equal(&self.safe_bool_k(market.clone(), "linear", &[]), &Value::Bool(true));
             add_element_to_object(&mut request, &Value::Str("category".to_string()), ternary(is_true(&isLinear), Value::Str("linear".to_string()), Value::Str("inverse".to_string())));
         }  else {
             let mut type_var: Value = Value::Null;
@@ -10160,8 +10160,8 @@ impl BybitCore {
         let mut timestamp: Value = self.safe_integer_k(interest.clone(), "timestamp", &[]);
         let mut openInterest: Value = self.safe_number2(interest.clone(), Value::Str("open_interest".to_string()), Value::Str("openInterest".to_string()), &[]);
         // the openInterest is in the base asset for linear and quote asset for inverse
-        let mut isLinear: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "linear", &[]), &Value::Bool(true)));
-        let mut isInverse: Value = Value::Bool(is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true)));
+        let mut isLinear: bool = is_equal(&self.safe_bool_k(market.clone(), "linear", &[]), &Value::Bool(true));
+        let mut isInverse: bool = is_equal(&self.safe_bool_k(market.clone(), "inverse", &[]), &Value::Bool(true));
         let mut amount: Value = ternary(is_true(&isLinear), openInterest.clone(), Value::Null);
         let mut value: Value = ternary(is_true(&isInverse), openInterest.clone(), Value::Null);
         return self.safe_open_interest(Value::Map({
@@ -12502,7 +12502,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut accountTypeDefault: Value = ternary(is_true(&isUnifiedAccount), Value::Str("eb_convert_uta".to_string()), Value::Str("eb_convert_spot".to_string()));
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertCurrencies".to_string()), Value::Str("accountType".to_string()), &[accountTypeDefault.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
@@ -12563,7 +12563,7 @@ impl BybitCore {
             let mut id: Value = self.safe_string_k(entry.clone(), "coin", &[]);
             let mut disableFrom: Value = self.safe_bool_k(entry.clone(), "disableFrom", &[]);
             let mut disableTo: Value = self.safe_bool_k(entry.clone(), "disableTo", &[]);
-            let mut inactive: Value = Value::Bool(is_true(&(is_equal(&disableFrom, &Value::Bool(true)))) || is_true(&(is_equal(&disableTo, &Value::Bool(true)))));
+            let mut inactive: bool = is_true(&(is_equal(&disableFrom, &Value::Bool(true)))) || is_true(&(is_equal(&disableTo, &Value::Bool(true))));
             let mut code: Value = self.safe_currency_code(id.clone(), &[]);
             if !is_equal(&code, &Value::Null) {
                 add_element_to_object(&mut result, &code, Value::Map({
@@ -12637,7 +12637,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut accountTypeDefault: Value = ternary(is_true(&isUnifiedAccount), Value::Str("eb_convert_uta".to_string()), Value::Str("eb_convert_spot".to_string()));
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertQuote".to_string()), Value::Str("accountType".to_string()), &[accountTypeDefault.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
@@ -12757,7 +12757,7 @@ impl BybitCore {
         let mut enableUnifiedMarginenableUnifiedAccountVariable = self.is_unified_enabled(&[]).await;
         let mut enableUnifiedMargin: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(0));
         let mut enableUnifiedAccount: Value = get_value(&enableUnifiedMarginenableUnifiedAccountVariable, &Value::Int(1));
-        let mut isUnifiedAccount: Value = Value::Bool(is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true)))));
+        let mut isUnifiedAccount: bool = is_true(&(is_equal(&enableUnifiedMargin, &Value::Bool(true)))) || is_true(&(is_equal(&enableUnifiedAccount, &Value::Bool(true))));
         let mut accountTypeDefault: Value = ternary(is_true(&isUnifiedAccount), Value::Str("eb_convert_uta".to_string()), Value::Str("eb_convert_spot".to_string()));
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchConvertTrade".to_string()), Value::Str("accountType".to_string()), &[accountTypeDefault.clone()]); accountType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut request: Value = Value::Map({
@@ -13296,10 +13296,10 @@ impl BybitCore {
             }
         }  else if is_equal(&api, &Value::Str("private".to_string())) {
             self.check_required_credentials(&[]);
-            let mut isOpenapi: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("openapi".to_string())), &Value::Int(0)));
-            let mut isV3UnifiedMargin: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("unified/v3".to_string())), &Value::Int(0)));
-            let mut isV3Contract: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("contract/v3".to_string())), &Value::Int(0)));
-            let mut isV5UnifiedAccount: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("v5".to_string())), &Value::Int(0)));
+            let mut isOpenapi: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("openapi".to_string())), &Value::Int(0));
+            let mut isV3UnifiedMargin: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("unified/v3".to_string())), &Value::Int(0));
+            let mut isV3Contract: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("contract/v3".to_string())), &Value::Int(0));
+            let mut isV5UnifiedAccount: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("v5".to_string())), &Value::Int(0));
             let mut timestamp: Value = to_string_val(&self.nonce());
             if is_true(&isOpenapi) {
                 if is_greater_than(&get_array_length(&object_keys(&params)), &Value::Int(0)) {
@@ -13370,7 +13370,7 @@ impl BybitCore {
                     signature = self.hmac(self.encode(auth.clone()), self.encode(self.secret.clone()), Value::Str("sha256".to_string()), &[]);
                 }
                 if is_equal(&method, &Value::Str("POST".to_string())) {
-                    let mut isSpot: Value = Value::Bool(is_greater_than_or_equal(&get_index_of(&url, &Value::Str("spot".to_string())), &Value::Int(0)));
+                    let mut isSpot: bool = is_greater_than_or_equal(&get_index_of(&url, &Value::Str("spot".to_string())), &Value::Int(0));
                     let mut extendedQuery: Value = self.extend(query.clone(), &[Value::Map({
                         let mut m = indexmap::IndexMap::new();
                             m.insert("sign".to_string(), signature.clone());

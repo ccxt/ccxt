@@ -705,8 +705,8 @@ public class PacificaCore extends PacificaApi
             }
             try
             {
-                Object builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
-                Object maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
+                String builder = this.safeString(this.options, "builderCode", "CCXT"); // case sensitive
+                String maxFeeRate = this.safeString(this.options, "feeRate", "0.01");
                 (this.approveBuilderCode(builder, maxFeeRate)).join();
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } catch(Exception e)
@@ -832,9 +832,9 @@ public class PacificaCore extends PacificaApi
         //       "instrument_type": "spot",
         //       "base_asset": "SOL"
         //     },
-        Object id = this.safeString(market, "symbol");
-        Object baseId = this.safeString(market, "base_asset", id);
-        Object instrumentType = this.safeString(market, "instrument_type");
+        String id = this.safeString(market, "symbol");
+        String baseId = this.safeString(market, "base_asset", id);
+        String instrumentType = this.safeString(market, "instrument_type");
         Object isSpot = (Helpers.isEqual(instrumentType, "spot"));
         Object isSwap = !Helpers.isTrue(isSpot);
         Object quoteId = "USDC";
@@ -1409,7 +1409,7 @@ public class PacificaCore extends PacificaApi
         //       }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(info, "symbol");
+        String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object funding = this.safeNumber(info, "funding");
@@ -1485,7 +1485,7 @@ public class PacificaCore extends PacificaApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, defaultMaxLimit)).join();
             }
-            Object tf = this.safeString(this.timeframes, timeframe, timeframe);
+            String tf = this.safeString(this.timeframes, timeframe, timeframe);
             final Object finalSince = since;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1738,13 +1738,13 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object eventType = this.safeString(trade, "event_type");
+        String eventType = this.safeString(trade, "event_type");
         Object timestamp = this.safeInteger(trade, "created_at");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString(trade, "amount");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString(trade, "amount");
         Object symbol = this.safeSymbol(null, market);
-        Object id = this.safeString(trade, "history_id");
-        Object side = this.safeString(trade, "side");
+        String id = this.safeString(trade, "history_id");
+        String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "open_long")))
         {
             side = "buy";
@@ -1758,8 +1758,8 @@ public class PacificaCore extends PacificaApi
         {
             side = "buy";
         }
-        Object fee = this.safeString(trade, "fee");
-        Object orderId = this.safeString(trade, "order_id");
+        String fee = this.safeString(trade, "fee");
+        String orderId = this.safeString(trade, "order_id");
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(eventType, null)))
         {
@@ -1865,7 +1865,7 @@ public class PacificaCore extends PacificaApi
                 status = "open";
             }
             Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orderId = this.safeString(order, "order_id");
+            String orderId = this.safeString(order, "order_id");
             final Object finalStatus = status;
             final Object finalResponse = response;
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1923,10 +1923,10 @@ public class PacificaCore extends PacificaApi
         Object operationType = null;
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         Object orderType = ((String)type).toUpperCase();
-        Object triggerPrice = this.safeString(parameters, "triggerPrice");
-        Object stopLossPrice = this.safeString(parameters, "stopLossPrice");
-        Object takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Object tifRaw = this.safeStringUpper(parameters, "timeInForce");
+        String triggerPrice = this.safeString(parameters, "triggerPrice");
+        String stopLossPrice = this.safeString(parameters, "stopLossPrice");
+        String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
+        String tifRaw = (String)this.safeStringUpper(parameters, "timeInForce");
         Object isMarket = Helpers.isEqual(orderType, "MARKET");
         Object isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Object isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
@@ -1937,7 +1937,7 @@ public class PacificaCore extends PacificaApi
             operationType = "create_market_order";
             Helpers.addElementToObject(sigPayload, "reduce_only", reduceOnly);
             Object defaultSlippage = this.handleOption("createOrder", "defaultSlippage", "0.5");
-            Object slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
+            String slippage = this.safeString2(parameters, "slippage", "slippage_percent", defaultSlippage);
             Helpers.addElementToObject(sigPayload, "slippage_percent", slippage);
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(isTakeProfitOrder) || Helpers.isTrue(isStopLossOrder))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
         {
@@ -1946,7 +1946,7 @@ public class PacificaCore extends PacificaApi
         {
             operationType = "create_stop_order";
             Helpers.addElementToObject(sigPayload, "reduce_only", reduceOnly);
-            Object stopClientOrderId = this.safeString(parameters, "clientOrderId");
+            String stopClientOrderId = this.safeString(parameters, "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             final Object finalAmount = amount;
             final Object finalTriggerPrice = triggerPrice;
@@ -2007,7 +2007,7 @@ public class PacificaCore extends PacificaApi
         {
             Helpers.addElementToObject(sigPayload, "amount", this.amountToPrecision(symbol, amount));
         }
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             Helpers.addElementToObject(sigPayload, "client_order_id", clientOrderId);
@@ -2074,13 +2074,13 @@ public class PacificaCore extends PacificaApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object order = Helpers.GetValue(orders, i);
-            Object symbol = this.safeString(order, "symbol");
-            Object side = this.safeString(order, "side");
-            Object price = this.safeString(order, "price");
-            Object type = this.safeString(order, "type", "limit");
+            String symbol = this.safeString(order, "symbol");
+            String side = this.safeString(order, "side");
+            String price = this.safeString(order, "price");
+            String type = this.safeString(order, "type", "limit");
             Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(orderParams, "timestamp", timestamp);
-            Object amount = this.safeString(order, "amount");
+            String amount = this.safeString(order, "amount");
             Object amountNumber = this.parseNumber(amount);
             Object priceNumber = this.parseNumber(price);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
@@ -2143,7 +2143,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
-                Object error = this.safeString(order, "error");
+                String error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
@@ -2153,7 +2153,7 @@ public class PacificaCore extends PacificaApi
                 {
                     status = "open";
                 }
-                Object orderId = this.safeString(order, "order_id");
+                String orderId = this.safeString(order, "order_id");
     final Object finalStatus = status;
                             ((java.util.List<Object>)ordersToReturn).add(this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", order );
@@ -2222,7 +2222,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
-                Object error = this.safeString(order, "error");
+                String error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
@@ -2417,7 +2417,7 @@ public class PacificaCore extends PacificaApi
         {
             operationType = "cancel_order";
         }
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         Object sigPayload = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
         }};
@@ -2473,7 +2473,7 @@ public class PacificaCore extends PacificaApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orderId = this.safeString(data, "order_id");
+            String orderId = this.safeString(data, "order_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "info", response );
@@ -2499,7 +2499,7 @@ public class PacificaCore extends PacificaApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price")) ;
         }
         Object operationType = "edit_order";
-        Object clientOrderId = this.safeString(parameters, "clientOrderId");
+        String clientOrderId = this.safeString(parameters, "clientOrderId");
         Object priceNormalized = this.priceToPrecision(symbol, price);
         Object amountNormalized = this.amountToPrecision(symbol, amount);
         Object sigPayload = new java.util.HashMap<String, Object>() {{
@@ -2657,7 +2657,7 @@ public class PacificaCore extends PacificaApi
             {
                 Object info = Helpers.GetValue(data, i);
                 Object ticker = this.parseTicker(info);
-                Object symbol = this.safeString(ticker, "symbol");
+                String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
                     Helpers.addElementToObject(result, symbol, ticker);
@@ -2685,7 +2685,7 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
+        String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(ticker, "timestamp");
@@ -2961,7 +2961,7 @@ public class PacificaCore extends PacificaApi
     public Object addPaginationCursorToResult(Object response)
     {
         Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object paginationCursor = this.safeString(response, "next_cursor");
+        String paginationCursor = this.safeString(response, "next_cursor");
         Object hasMore = this.safeBool(response, "has_more", false);
         Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(hasMore, true)))
@@ -3208,18 +3208,18 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(order, "symbol", "s");
+        String marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger2(order, "created_at", "ct");
-        Object status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
-        Object side = this.safeString(order, "side", "d");
+        String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
+        String side = this.safeString(order, "side", "d");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
         }
-        Object totalAmount = this.safeString2(order, "initial_amount", "a");
-        Object filledAmount = this.safeString2(order, "filled_amount", "f");
+        String totalAmount = this.safeString2(order, "initial_amount", "a");
+        String filledAmount = this.safeString2(order, "filled_amount", "f");
         Object remaining = Precise.stringSub(totalAmount, filledAmount);
         final Object finalSide = side;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -3348,13 +3348,13 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "symbol");
+        String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object margin = this.safeString(position, "margin");
+        String margin = this.safeString(position, "margin");
         Object marginMode = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(margin, null)) && Helpers.isTrue(!Helpers.isEqual(margin, "0")))))) ? "isolated" : "cross";
         Object isIsolated = (Helpers.isEqual(marginMode, "isolated"));
-        Object side = this.safeString(position, "side");
+        String side = this.safeString(position, "side");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "long" : "short";
@@ -3678,7 +3678,7 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(interest, "symbol");
+        String marketId = this.safeString(interest, "symbol");
         Object symbol = null;
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
@@ -3686,8 +3686,8 @@ public class PacificaCore extends PacificaApi
             symbol = Helpers.GetValue(market, "symbol");
         }
         Object interestValue = null;
-        Object markPrice = this.safeString(interest, "mark");
-        Object openInterest = this.safeString(interest, "open_interest");
+        String markPrice = this.safeString(interest, "mark");
+        String openInterest = this.safeString(interest, "open_interest");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(openInterest, null))) && Helpers.isTrue((!Helpers.isEqual(markPrice, null)))))
         {
             interestValue = Precise.stringMul(openInterest, markPrice);
@@ -3789,9 +3789,9 @@ public class PacificaCore extends PacificaApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(item, "created_at");
-        Object type = this.safeString(item, "event_type");
-        Object amount = this.safeString(item, "amount");
-        Object balance = this.safeString(item, "balance");
+        String type = this.safeString(item, "event_type");
+        String amount = this.safeString(item, "amount");
+        String balance = this.safeString(item, "balance");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
             put( "id", null );
@@ -3924,12 +3924,12 @@ public class PacificaCore extends PacificaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(income, "history_id");
+        String id = this.safeString(income, "history_id");
         Object timestamp = this.safeInteger(income, "created_at");
-        Object marketId = this.safeString(income, "symbol");
+        String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object amount = this.safeString(income, "amount");
+        String amount = this.safeString(income, "amount");
         Object code = this.safeCurrencyCode("USDC");
         Object rate = this.safeNumber(income, "rate");
         return new java.util.HashMap<String, Object>() {{
@@ -4248,7 +4248,7 @@ public class PacificaCore extends PacificaApi
         //     {"success":false,"data":null,"error":"Internal server error","code":500}
         //
         Object inCode = this.safeInteger(response, "code"); // actually if all ok -> code = undefined or code = 200
-        Object message = this.safeString(response, "error");
+        String message = this.safeString(response, "error");
         Object error = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(inCode, null)) || Helpers.isTrue(Helpers.isEqual(inCode, 200))))
         {
@@ -4313,7 +4313,7 @@ public class PacificaCore extends PacificaApi
     public Object calculateRateLimiterCost(Object api, Object method, Object path, Object parameters, Object... optionalArgs)
     {
         Object config = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object cost = this.safeString(config, "cost", "1");
+        String cost = this.safeString(config, "cost", "1");
         Object costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (Helpers.isTrue(Helpers.isGreaterThan(costNumber, 1)))

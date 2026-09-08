@@ -92,7 +92,7 @@ export default class htx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<List>;
+    fetchMarketsByTypeAndSubType(type: Str, subType: Str, params?: {}): Promise<Market[]>;
     tryGetSymbolFromFutureMarkets(symbolOrMarketId: string): any;
     parseTicker(ticker: Dict, market?: Market): Ticker;
     /**
@@ -578,7 +578,7 @@ export default class htx extends Exchange {
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
     fetchDepositAddress(code: string, params?: {}): Promise<DepositAddress>;
-    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<List>;
+    fetchWithdrawAddresses(code: string, note?: Str, networkCode?: Str, params?: {}): Promise<DepositAddress[]>;
     /**
      * @method
      * @name htx#fetchDeposits

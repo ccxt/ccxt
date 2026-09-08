@@ -1755,7 +1755,7 @@ func (this *BitmexCore) HandleOHLCV(client any, message any) {
 	//     }
 	//
 	var table any = this.SafeString(message, "table")
-	var interval any = ccxt.Replace(table, "tradeBin", "")
+	var interval string = ccxt.Replace(table, "tradeBin", "")
 	var timeframe any = this.FindTimeframe(interval)
 	var duration any = this.ParseTimeframe(timeframe)
 	var candles any = this.SafeValue(message, "data", []any{})

@@ -2437,7 +2437,7 @@ class mexc extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()) {
+    public function create_spot_order(mixed $market, string $type, mixed $side, mixed $amount, ?float $price = null, ?string $marginMode = null, $params = array()): array {
         /**
          * @ignore
          * create a trade $order

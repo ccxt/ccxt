@@ -97,21 +97,6 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public dict omitN(object aa, List<object> keys)
-    {
-        var a = (dict)aa;
-        var outDict = new dict();
-        var aKeys = new List<string>(a.Keys);
-        foreach (string key in aKeys)
-        {
-            if (!keys.Contains(key))
-            {
-                outDict.Add(key, a[key]);
-            }
-        }
-        return outDict;
-    }
-
     public object omit(dict a, string key)
     {
         var keys = new List<object>();

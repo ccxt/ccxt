@@ -1009,7 +1009,7 @@ class bingx(Exchange, ImplicitAPI):
         markets = self.safe_list(response, 'data', [])
         return self.parse_markets(markets)
 
-    async def fetch_inverse_swap_markets(self, params: object):
+    async def fetch_inverse_swap_markets(self, params: object) -> list[Market]:
         response = await self.cswapV1PublicGetMarketContracts(params)
         #
         #     {
@@ -1550,7 +1550,7 @@ class bingx(Exchange, ImplicitAPI):
         https://bingx-api.github.io/docs-v3/#/en/Coin-M%20Futures/Market%20Data/Query%20Depth%20Data
 
         :param str symbol: unified symbol of the market to fetch the order book for
-        :param int [limit]: the maximum amount of order book entries to return
+        :param int [limit]: the maximum amount of order book entries to return(max 1000)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
@@ -1560,11 +1560,14 @@ class bingx(Exchange, ImplicitAPI):
         request = {
             'symbol': market['id'],
         }
-        if limit is not None:
-            request['limit'] = limit
         response: dict
         marketType = None
         marketType, params = self.handle_market_type_and_params('fetchOrderBook', market, params)
+        if limit is not None:
+            if marketType == 'spot':
+                request['limit'] = min(limit, 1000)  # api maximum 1000
+            else:
+                request['limit'] = self.find_nearest_ceiling([5, 10, 20, 50, 100, 500, 1000], limit)
         if marketType == 'spot':
             response = await self.spotV1PublicGetMarketDepth(self.extend(request, params))
         else:

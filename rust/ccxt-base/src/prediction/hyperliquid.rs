@@ -529,7 +529,7 @@ impl HyperliquidCore {
                         return base;
                     }
                 }
-                let mut isFallbackLike: Value = Value::Bool(is_true(&(is_equal(&rawDescription, &Value::Str("other".to_string())))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("fallback".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("other".to_string())), &Value::Int(0)))));
+                let mut isFallbackLike: bool = is_true(&(is_equal(&rawDescription, &Value::Str("other".to_string())))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("fallback".to_string())), &Value::Int(0)))) || is_true(&(is_greater_than_or_equal(&get_index_of(&nameLower, &Value::Str("other".to_string())), &Value::Int(0))));
                 if is_true(&(!is_equal(&questionUnderlying, &Value::Null) && !is_equal(&questionUnderlying, &Value::Str("".to_string())))) && is_true(&isFallbackLike) {
                     let mut base: Value = add(&to_upper(&questionUnderlying), &Value::Str("_OTHER".to_string()));
                     if is_true(&(!is_equal(&expiryDate, &Value::Null))) && is_true(&(!is_equal(&expiryDate, &Value::Str("".to_string())))) {
@@ -1663,13 +1663,13 @@ impl HyperliquidCore {
         let mut digitChars: Value = Value::Str("0123456789".to_string());
         let mut inputChars: Value = self.string_to_chars_array(outcomeInput.clone());
         let mut inputCharsLength: Value = get_array_length(&inputChars);
-        let mut isNumericInput: Value = Value::Bool(is_greater_than(&inputCharsLength, &Value::Int(0)));
+        let mut isNumericInput: bool = is_greater_than(&inputCharsLength, &Value::Int(0));
         {
                         let mut di: Value = Value::Int(0);
             let mut __for_first_1194: bool = true;
             while { if !__for_first_1194 { di = add(&di, &Value::Int(1)); } __for_first_1194 = false; is_less_than(&di, &get_array_length(&inputChars)) } {
             if is_less_than(&get_index_of(&digitChars, &get_value(&inputChars, &di)), &Value::Int(0)) {
-                isNumericInput = Value::Bool(false);
+                isNumericInput = false;
                 break;
             }
         }
@@ -1753,7 +1753,7 @@ impl HyperliquidCore {
 })]);
         let mut nonce: Value = self.milliseconds();
         let mut isBuy: Value = Value::Bool(is_equal(&to_upper(&side), &Value::Str("BUY".to_string())));
-        let mut isMarket: Value = Value::Bool(is_equal(&to_upper(&type_var), &Value::Str("MARKET".to_string())));
+        let mut isMarket: bool = is_equal(&to_upper(&type_var), &Value::Str("MARKET".to_string()));
         let mut assetId: Value = self.safe_integer_k(outcomeInfo.clone(), "assetId", &[]);
         let mut clientOrderId: Value = self.safe_string2(params.clone(), Value::Str("clientOrderId".to_string()), Value::Str("client_id".to_string()), &[]);
         let mut reduceOnly: Value = self.safe_bool_k(params.clone(), "reduceOnly", &[Value::Bool(false)]);
@@ -2036,7 +2036,7 @@ impl HyperliquidCore {
             if !is_equal(&error, &Value::Null) {
                 panic!("{}", crate::exchange_errors::order_not_found(add(&add(&add(&add(&self.id, &Value::Str(" cancelOrders() failed for ".to_string())), &self.safe_string(requestIds.clone(), i.clone(), &[self.safe_string(requestIds.clone(), Value::Int(0), &[])])), &Value::Str(": ".to_string())), &error)));
             }
-            let mut success: Value = Value::Bool(is_true(&(is_equal(&status, &Value::Str("success".to_string())))) || is_true(&(is_equal(&self.safe_string_k(status.clone(), "status", &[]), &Value::Str("success".to_string())))));
+            let mut success: bool = is_true(&(is_equal(&status, &Value::Str("success".to_string())))) || is_true(&(is_equal(&self.safe_string_k(status.clone(), "status", &[]), &Value::Str("success".to_string()))));
             if !is_true(&success) {
                 panic!("{}", crate::exchange_errors::exchange_error(add(&add(&self.id, &Value::Str(" cancelOrders() received an unexpected status: ".to_string())), &self.json(status.clone()))));
             }
@@ -2233,7 +2233,7 @@ impl HyperliquidCore {
             params = self.omit(params.clone(), Value::Str("clientOrderId".to_string()), &[]);
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), clientOrderId.clone());
         }  else {
-            let mut isCloid: Value = Value::Bool(is_greater_than_or_equal(&get_array_length(&id), &Value::Int(34)));
+            let mut isCloid: bool = is_greater_than_or_equal(&get_array_length(&id), &Value::Int(34));
             add_element_to_object(&mut request, &Value::Str("oid".to_string()), ternary(is_true(&isCloid), id.clone(), self.parse_to_numeric(id.clone())));
         }
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
@@ -2308,7 +2308,7 @@ impl HyperliquidCore {
         let mut tifRaw: Value = self.safe_string_k(entry.clone(), "tif", &[]);
         let mut tif: Value = self.parse_time_in_force(tifRaw.clone());
         let mut postOnly: Value = Value::Bool(is_equal(&tif, &Value::Str("PO".to_string())));
-        let mut isTrigger: Value = Value::Bool(is_equal(&self.safe_bool_k(entry.clone(), "isTrigger", &[]), &Value::Bool(true)));
+        let mut isTrigger: bool = is_equal(&self.safe_bool_k(entry.clone(), "isTrigger", &[]), &Value::Bool(true));
         let mut triggerPrice: Value = ternary(is_true(&isTrigger), self.safe_number_k(entry.clone(), "triggerPx", &[]), Value::Null);
         return self.safe_prediction_order(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2559,7 +2559,7 @@ impl HyperliquidCore {
         if is_true(&(!is_equal(&price, &Value::Null))) && is_true(&(!is_equal(&amount, &Value::Null))) {
             cost = self.parse_number(crate::precise::Precise::stringMul(&price, &amount), &[]);
         }
-        let mut crossed: Value = Value::Bool(is_equal(&self.safe_bool_k(trade.clone(), "crossed", &[]), &Value::Bool(true)));
+        let mut crossed: bool = is_equal(&self.safe_bool_k(trade.clone(), "crossed", &[]), &Value::Bool(true));
         let mut takerOrMaker: Value = ternary(is_true(&crossed), Value::Str("taker".to_string()), Value::Str("maker".to_string()));
         return self.safe_prediction_trade(Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -2648,14 +2648,14 @@ impl HyperliquidCore {
                 // the parentSymbol joins words with underscores (BTC_ABOVE_...), so match the haystack word-by-word
                 // and require every word of a query to appear, letting "BTC above" match BTC_ABOVE
                 let mut haystack: Value = add(&add(&description, &Value::Str(" ".to_string())), &symLower);
-                let mut matches: Value = Value::Bool(false);
+                let mut matches: bool = false;
                 {
                                         let mut qi: Value = Value::Int(0);
                     let mut __for_first_1203: bool = true;
                     while { if !__for_first_1203 { qi = add(&qi, &Value::Int(1)); } __for_first_1203 = false; is_less_than(&qi, &get_array_length(&lowerQueries)) } {
                     let mut words: Value = split(&get_value(&lowerQueries, &qi), &Value::Str(" ".to_string()));
                     let mut wordsLength: Value = get_array_length(&words);
-                    let mut allWords: Value = Value::Bool(true);
+                    let mut allWords: bool = true;
                     {
                                                 let mut wi: Value = Value::Int(0);
                         let mut __for_first_1202: bool = true;
@@ -2664,13 +2664,13 @@ impl HyperliquidCore {
                         let mut word: Value = get_value(&words, &wi);
                         // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                         if is_true(&(!is_equal(&word, &Value::Str("".to_string())))) && is_true(&(is_less_than(&get_index_of(&haystack, &word), &Value::Int(0)))) {
-                            allWords = Value::Bool(false);
+                            allWords = false;
                             break;
                         }
                     }
                     }
                     if is_true(&allWords) {
-                        matches = Value::Bool(true);
+                        matches = true;
                         break;
                     }
                 }

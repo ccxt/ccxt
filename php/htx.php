@@ -1545,7 +1545,7 @@ class htx extends Exchange {
         return $allMarkets;
     }
 
-    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array()) {
+    public function fetch_markets_by_type_and_sub_type(?string $type, ?string $subType, $params = array()): array {
         /**
          * @ignore
          * retrieves data on all $markets of a certain $type and/or subtype
@@ -2617,7 +2617,7 @@ class htx extends Exchange {
         return $this->fetch_spot_order_trades($id, $symbol, $since, $limit, $params);
     }
 
-    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_order_trades(string $id, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * @ignore
          * fetch all the trades made from a single order
@@ -3867,7 +3867,7 @@ class htx extends Exchange {
         return $account;
     }
 
-    public function fetch_spot_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_spot_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         $method = $this->safe_string($this->options, 'fetchOrdersByStatesMethod', 'spot_private_get_v1_order_orders'); // spot_private_get_v1_order_history
         if ($method === 'spot_private_get_v1_order_orders') {
             if ($symbol === null) {
@@ -3951,7 +3951,7 @@ class htx extends Exchange {
         return $this->fetch_spot_orders_by_states('filled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_contract_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchContractOrders() requires a $symbol argument');
         }
@@ -6424,7 +6424,7 @@ class htx extends Exchange {
         return $this->safe_value($indexedAddresses, $selectedNetworkCode);
     }
 
-    public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()) {
+    public function fetch_withdraw_addresses(string $code, ?string $note = null, ?string $networkCode = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

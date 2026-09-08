@@ -421,7 +421,7 @@ func (this *IndodaxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	//     ]
 	//
 	var result any = []any{}
-	var rawMarkets any = this.ToArray(response)
+	var rawMarkets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
 		var id any = this.SafeString(market, "id")
@@ -757,7 +757,7 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
 		var key any = GetValue(keys, i)
 		var rawTicker any = GetValue(tickers, key)
-		var marketId any = Replace(key, "_", "")
+		var marketId string = Replace(key, "_", "")
 		var market any = this.SafeMarket(marketId)
 		var parsed any = this.ParseTicker(rawTicker, market)
 		AddElementToObject(parsedTickers, marketId, parsed)

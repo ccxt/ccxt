@@ -3025,7 +3025,7 @@ class deribit extends Exchange {
         return $this->parse_positions($result, $symbols);
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_volatility_history(...))($code, $params);
     }
 

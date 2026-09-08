@@ -205,6 +205,58 @@ func (this *Paradex) FetchTicker(symbol string, options ...FetchTickerOptions) (
 
 /**
  * @method
+ * @name paradex#fetchFundingRates
+ * @description fetches the current funding rate for multiple markets
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string[]} [symbols] unified market symbols
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Paradex) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
+
+	opts := FetchFundingRatesOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var symbols *[]string = opts.Symbols
+
+	var params *map[string]any = opts.Params
+	res := <-this.Core.FetchFundingRates(symbols, params)
+	if IsError(res) {
+		return FundingRates{}, CreateReturnError(res)
+	}
+	return NewFundingRates(res), nil
+}
+
+/**
+ * @method
+ * @name paradex#fetchFundingRate
+ * @description fetches the current funding rate
+ * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+ * @param {string} symbol unified market symbol
+ * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+ */
+func (this *Paradex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
+
+	opts := FetchFundingRateOptionsStruct{}
+
+	for _, opt := range options {
+		opt(&opts)
+	}
+
+	var params *map[string]any = opts.Params
+	res := <-this.Core.FetchFundingRate(symbol, params)
+	if IsError(res) {
+		return FundingRate{}, CreateReturnError(res)
+	}
+	return NewFundingRate(res), nil
+}
+
+/**
+ * @method
  * @name paradex#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
@@ -1209,12 +1261,6 @@ func (this *Paradex) FetchFundingInterval(symbol string, options ...FetchFunding
 }
 func (this *Paradex) FetchFundingIntervals(options ...FetchFundingIntervalsOptions) (FundingRates, error) {
 	return this.exchangeTyped.FetchFundingIntervals(options...)
-}
-func (this *Paradex) FetchFundingRate(symbol string, options ...FetchFundingRateOptions) (FundingRate, error) {
-	return this.exchangeTyped.FetchFundingRate(symbol, options...)
-}
-func (this *Paradex) FetchFundingRates(options ...FetchFundingRatesOptions) (FundingRates, error) {
-	return this.exchangeTyped.FetchFundingRates(options...)
 }
 func (this *Paradex) FetchIndexOHLCV(symbol string, options ...FetchIndexOHLCVOptions) ([]OHLCV, error) {
 	return this.exchangeTyped.FetchIndexOHLCV(symbol, options...)

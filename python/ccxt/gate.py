@@ -1803,7 +1803,7 @@ class gate(Exchange, ImplicitAPI):
                 })
         return result
 
-    def fetch_option_underlyings(self):
+    def fetch_option_underlyings(self) -> list[Str]:
         underlyingsResponse = self.publicOptionsGetUnderlyings()
         #
         #    [
@@ -3333,7 +3333,7 @@ class gate(Exchange, ImplicitAPI):
             response = self.publicSpotGetCandlesticks(self.extend(request, params))
         return self.parse_ohlcvs(self.to_array(response), market, timeframe, since, limit)
 
-    def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}):
+    def fetch_option_ohlcv(self, symbol: str, timeframe='1m', since: Int = None, limit: Int = None, params={}) -> list[list]:
         # separated option logic because the from, to and limit parameters weren't functioning
         if self.markets is None:
             self.load_markets()
@@ -6734,7 +6734,7 @@ class gate(Exchange, ImplicitAPI):
             }
         return {'url': url, 'method': method, 'body': body, 'headers': headers}
 
-    def modify_margin_helper(self, symbol: str, amount: object, params={}):
+    def modify_margin_helper(self, symbol: str, amount: object, params={}) -> MarginModification:
         if self.markets is None:
             self.load_markets()
         market = self.market(symbol)

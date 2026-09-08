@@ -1574,7 +1574,7 @@ impl BitbankCore {
             // 'nonce': legacy strictly-increasing nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
             let mut authMethod: Value = self.safe_string_k(self.options.clone(), "authMethod", &[Value::Str("timeWindow".to_string())]);
-            let mut isTimeWindow: Value = Value::Bool(is_equal(&authMethod, &Value::Str("timeWindow".to_string())));
+            let mut isTimeWindow: bool = is_equal(&authMethod, &Value::Str("timeWindow".to_string()));
             let mut requestTime: Value = to_string_val(&self.milliseconds());
             let mut timeWindow: Value = self.safe_string_k(self.options.clone(), "timeWindow", &[Value::Str("5000".to_string())]);
             let mut nonce: Value = to_string_val(&self.nonce());

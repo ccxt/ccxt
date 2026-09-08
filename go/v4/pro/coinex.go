@@ -287,7 +287,7 @@ func (this *CoinexCore) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes2658)
 	var url any = ccxt.GetValue(ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws"), typeVar)
 	// coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
-	var activeCurrencies any = this.FilterBy(this.Currencies_by_id, "active", true)
+	var activeCurrencies []any = this.FilterBy(this.Currencies_by_id, "active", true)
 	var activeCurrenciesById map[string]any = this.IndexBy(activeCurrencies, "id")
 	var currencies any = ccxt.ObjectKeys(activeCurrenciesById)
 	if ccxt.IsTrue(ccxt.IsEqual(currencies, nil)) {
@@ -963,7 +963,7 @@ func (this *CoinexCore) watchOrderBookForSymbolsBody(ch chan any, symbols any, o
 	typeVarparamsVariable := this.HandleMarketTypeAndParams(callerMethodName, market, params)
 	typeVar = ccxt.GetValue(typeVarparamsVariable, 0)
 	params = ccxt.GetValue(typeVarparamsVariable, 1)
-	var marketList any = ccxt.ObjectValues(watchOrderBookSubscriptions)
+	var marketList []any = ccxt.ObjectValues(watchOrderBookSubscriptions)
 	var subscribe map[string]any = map[string]any{
 		"method": "depth.subscribe",
 		"params": map[string]any{

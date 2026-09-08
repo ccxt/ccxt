@@ -1944,7 +1944,7 @@ class okx extends Exchange {
         ));
     }
 
-    public function fetch_markets_by_type(mixed $type, $params = array()) {
+    public function fetch_markets_by_type(mixed $type, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_markets_by_type(...))($type, $params);
     }
 
@@ -5826,7 +5826,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_deposit(...))($id, $code, $params);
     }
 
@@ -5938,7 +5938,7 @@ class okx extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit, $params);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_withdrawal(...))($id, $code, $params);
     }
 

@@ -925,7 +925,7 @@ impl LatokenCore {
         let mut tag: Value = self.safe_string_k(currency.clone(), "tag", &[]);
         let mut code: Value = self.safe_currency_code(tag.clone(), &[]);
         let mut currencyType: Value = self.safe_string_k(currency.clone(), "type", &[]);
-        let mut isCrypto: Value = Value::Bool(is_equal(&currencyType, &Value::Str("CURRENCY_TYPE_CRYPTO".to_string())) || is_equal(&currencyType, &Value::Str("CURRENCY_TYPE_IEO".to_string())));
+        let mut isCrypto: bool = is_equal(&currencyType, &Value::Str("CURRENCY_TYPE_CRYPTO".to_string())) || is_equal(&currencyType, &Value::Str("CURRENCY_TYPE_IEO".to_string()));
         return self.safe_currency_structure(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("id".to_string(), id.clone());
@@ -1303,8 +1303,8 @@ impl LatokenCore {
                 side = Value::Str("sell".to_string());
             }
         }
-        let mut isBuy: Value = Value::Bool(is_equal(&side, &Value::Str("buy".to_string())));
-        let mut isMaker: Value = Value::Bool(is_true(&(is_equal(&makerBuyer, &Value::Bool(true)))) && is_true(&isBuy));
+        let mut isBuy: bool = is_equal(&side, &Value::Str("buy".to_string()));
+        let mut isMaker: bool = is_true(&(is_equal(&makerBuyer, &Value::Bool(true)))) && is_true(&isBuy);
         let mut takerOrMaker: Value = ternary(is_true(&isMaker), Value::Str("maker".to_string()), Value::Str("taker".to_string()));
         let mut baseId: Value = self.safe_string_k(trade.clone(), "baseCurrency", &[]);
         let mut quoteId: Value = self.safe_string_k(trade.clone(), "quoteCurrency", &[]);

@@ -844,14 +844,14 @@ func (this *HyperliquidCore) CalculatePricePrecision(price any, amountPrecision 
 	var priceSplitted []string = Split(priceStr, ".")
 	if IsTrue(Precise.StringEq(priceStr, "0")) {
 		// Significant digits is always 5 in this case
-		var significantDigits any = 5
+		var significantDigits int = 5
 		// Integer digits is always 0 in this case (0 doesn't count)
-		var integerDigits any = 0
+		var integerDigits int = 0
 		// Calculate the price precision
 		pricePrecision = mathMin(Subtract(maxDecimals, amountPrecision), Subtract(significantDigits, integerDigits))
 	} else if IsTrue(IsTrue(Precise.StringGt(priceStr, "0")) && IsTrue(Precise.StringLt(priceStr, "1"))) {
 		// Significant digits, always 5 in this case
-		var significantDigits any = 5
+		var significantDigits int = 5
 		// Get the part after the decimal separator
 		var decimalPart any = this.SafeString(priceSplitted, 1, "")
 		// Count the number of leading zeros in the decimal part
@@ -1853,7 +1853,7 @@ func (this *HyperliquidCore) HashMessage(message any) any {
 	return Add("0x", this.Hash(message, keccak, "hex"))
 }
 func (this *HyperliquidCore) SignHash(hash any, privateKey any) any {
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	return map[string]any{
 		"r": Add("0x", GetValue(signature, "r")),
 		"s": Add("0x", GetValue(signature, "s")),
@@ -1876,7 +1876,7 @@ func (this *HyperliquidCore) ActionHash(action any, vaultAddress any, nonce any,
 	expiresAfter := GetArg(optionalArgs, 0, nil)
 	_ = expiresAfter
 	var dataBinary any = this.Packb(action)
-	var dataHex any = this.BinaryToBase16(dataBinary)
+	var dataHex string = this.BinaryToBase16(dataBinary)
 	var data any = dataHex
 	data = Add(data, Add("00000", this.IntToBase16(nonce)))
 	if IsTrue(IsEqual(vaultAddress, nil)) {
@@ -1922,7 +1922,7 @@ func (this *HyperliquidCore) SignL1Action(action any, nonce any, optionalArgs ..
 	//     'message': phantomAgent,
 	// };
 	var zeroAddress any = this.SafeString(this.Options, "zeroAddress")
-	var chainId any = 1337 // check this out
+	var chainId int = 1337 // check this out
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "Exchange",
@@ -1944,7 +1944,7 @@ func (this *HyperliquidCore) SignL1Action(action any, nonce any, optionalArgs ..
 }
 func (this *HyperliquidCore) SignUserSignedAction(messageTypes any, message any) any {
 	var zeroAddress any = this.SafeString(this.Options, "zeroAddress")
-	var chainId any = 421614 // check this out
+	var chainId int = 421614 // check this out
 	var domain map[string]any = map[string]any{
 		"chainId":           chainId,
 		"name":              "HyperliquidSignTransaction",
@@ -3756,7 +3756,7 @@ func (this *HyperliquidCore) fetchFundingRateHistoryBody(ch chan any, optionalAr
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(result, "timestamp")
+	var sorted []any = this.SortBy(result, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -4083,7 +4083,7 @@ func (this *HyperliquidCore) fetchOrdersBody(ch chan any, optionalArgs ...any) a
 			}
 		}
 	}
-	var deduplicated any = ObjectValues(deduplicatedByOid)
+	var deduplicated []any = ObjectValues(deduplicatedByOid)
 
 	ch <- this.ParseOrders(deduplicated, market, since, limit)
 	return nil

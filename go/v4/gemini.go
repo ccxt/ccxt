@@ -759,17 +759,17 @@ func (this *GeminiCore) fetchMarketsFromWebBody(ch chan any, optionalArgs ...any
 		//         '<td>0.01 USD', // quote currency price increment
 		//         '</tr>'
 		//     ]
-		var marketId any = Replace(GetValue(cells, 0), "<td>", "")
+		var marketId string = Replace(GetValue(cells, 0), "<td>", "")
 		marketId = Replace(marketId, "*", "")
 		// const base = this.safeCurrencyCode (baseId);
-		var minAmountString any = Replace(GetValue(cells, 1), "<td>", "")
+		var minAmountString string = Replace(GetValue(cells, 1), "<td>", "")
 		var minAmountParts []string = Split(minAmountString, " ")
 		var minAmount any = this.SafeNumber(minAmountParts, 0)
-		var amountPrecisionString any = Replace(GetValue(cells, 2), "<td>", "")
+		var amountPrecisionString string = Replace(GetValue(cells, 2), "<td>", "")
 		var amountPrecisionParts []string = Split(amountPrecisionString, " ")
 		var idLength any = Subtract(GetArrayLength(marketId), 0)
 		var startingIndex any = Subtract(idLength, 3)
-		var pricePrecisionString any = Replace(GetValue(cells, 3), "<td>", "")
+		var pricePrecisionString string = Replace(GetValue(cells, 3), "<td>", "")
 		var pricePrecisionParts []string = Split(pricePrecisionString, " ")
 		var quoteId any = this.SafeStringLower(pricePrecisionParts, 1, Slice(marketId, startingIndex, idLength))
 		var baseId any = this.SafeStringLower(amountPrecisionParts, 1, Replace(marketId, quoteId, ""))
@@ -1016,7 +1016,7 @@ func (this *GeminiCore) ParseMarket(response any) any {
 		}
 		var marketIdUpper string = ToUpper(marketId)
 		var isPerp bool = (IsGreaterThanOrEqual(GetIndexOf(marketIdUpper, "PERP"), 0))
-		var marketIdWithoutPerp any = Replace(marketIdUpper, "PERP", "")
+		var marketIdWithoutPerp string = Replace(marketIdUpper, "PERP", "")
 		var conflictingMarkets any = this.SafeDict(this.Options, "conflictingMarkets", map[string]any{})
 		var lowerCaseId string = ToLower(marketIdWithoutPerp)
 		if IsTrue(InOp(conflictingMarkets, lowerCaseId)) {
