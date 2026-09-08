@@ -1591,9 +1591,11 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "getCcxtVersion") return this->getCcxtVersion ();
     if (name == "fetch") return this->fetch (a0, a1, a2, a3);
     // implicit API endpoints (e.g. accountV1PrivateGetAccountApiRestrictions): the
-    // static request fixtures call them directly; route through callEndpoint
+    // static request fixtures call them directly; route through callEndpoint. The
+    // endpoint default is an empty params dict, mirroring TS's `params = {}`.
     if (this->hasEndpoint (name)) {
-        return std::any (this->callEndpoint (std::any (std::string (name)), a0));
+        const std::any endpointParams = a0.has_value () ? a0 : std::any (dict {});
+        return std::any (this->callEndpoint (std::any (std::string (name)), endpointParams));
     }
     // No dynamic handler at all -- the only way here is a cached DispatchMiss that the
     // helper registry also does not cover.

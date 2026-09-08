@@ -2674,7 +2674,7 @@ public:
                                          "transfer from Funding accounts: ")),
                          msg)));
                    }
-                   throw error;
+                   throw;
                  }
                  //
                  // {

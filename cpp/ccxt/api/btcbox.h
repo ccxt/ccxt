@@ -17,57 +17,57 @@ public:
     explicit btcboxApi (std::any config) : Exchange (config) {}
 
     // Calls the publicGetDepth endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> publicGetDepth (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> publicGetDepth (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetDepth"), parameters);
     }
 
     // Calls the publicGetOrders endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> publicGetOrders (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> publicGetOrders (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetOrders"), parameters);
     }
 
     // Calls the publicGetTicker endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> publicGetTicker (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> publicGetTicker (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTicker"), parameters);
     }
 
     // Calls the publicGetTickers endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> publicGetTickers (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> publicGetTickers (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("publicGetTickers"), parameters);
     }
 
     // Calls the privatePostBalance endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostBalance (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostBalance (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostBalance"), parameters);
     }
 
     // Calls the privatePostTradeAdd endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostTradeAdd (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostTradeAdd (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTradeAdd"), parameters);
     }
 
     // Calls the privatePostTradeCancel endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostTradeCancel (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostTradeCancel (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTradeCancel"), parameters);
     }
 
     // Calls the privatePostTradeList endpoint. Returns a JSON array.
-    virtual std::shared_future<std::any> privatePostTradeList (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostTradeList (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTradeList"), parameters);
     }
 
     // Calls the privatePostTradeView endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostTradeView (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostTradeView (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostTradeView"), parameters);
     }
 
     // Calls the privatePostWallet endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> privatePostWallet (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> privatePostWallet (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("privatePostWallet"), parameters);
     }
 
     // Calls the webApiGetAjaxCoinCoinInfo endpoint. Returns a JSON object.
-    virtual std::shared_future<std::any> webApiGetAjaxCoinCoinInfo (std::any parameters = std::any {}) {
+    virtual std::shared_future<std::any> webApiGetAjaxCoinCoinInfo (std::any parameters = ccxt::dict {}) {
         return this->callEndpoint (std::string ("webApiGetAjaxCoinCoinInfo"), parameters);
     }
 
