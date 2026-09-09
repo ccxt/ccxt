@@ -779,7 +779,7 @@ class revolutx extends Exchange {
             $request['end_date'] = $this->milliseconds();
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1900);
         }
         $cursor = $this->safe_string($params, 'cursor');
         if ($cursor !== null) {
