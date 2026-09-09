@@ -2,6 +2,7 @@
 
 import independentreserveRest from '../independentreserve.js';
 import { NotSupported, ChecksumError } from '../base/errors.js';
+import { ROUND, DECIMAL_PLACES, PAD_WITH_ZERO } from '../base/functions/number.js';
 import { ArrayCache } from '../base/ws/Cache.js';
 import type { Int, OrderBook, Trade, Dict , Market } from '../base/types.js';
 import Client from '../base/ws/Client.js';
@@ -247,7 +248,12 @@ export default class independentreserve extends independentreserveRest {
     }
 
     valueToChecksum (value: any) {
-        let result = value.toFixed (8);
+        // toFixed returns a zero-padded *string* in js, but the transpiled
+        // helper returns a *number* in go/c#/java, which silently drops the
+        // trailing zeros and corrupts the checksum payload. decimalToPrecision
+        // with PAD_WITH_ZERO is string-typed in every language and emits the
+        // exact same digits as value.toFixed (8).
+        let result: any = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = result.replace ('.', '');
         // remove leading zeros
         result = this.parseNumber (result);
