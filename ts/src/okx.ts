@@ -2141,7 +2141,7 @@ export default class okx extends Exchange {
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
-     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, max 400 entries
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2160,6 +2160,11 @@ export default class okx extends Exchange {
             limit = 5000;
         }
         limit = (limit === undefined) ? 100 : limit;
+        if (rpi && (limit > 400)) {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            limit = 400;
+        }
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }

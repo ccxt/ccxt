@@ -1549,6 +1549,43 @@
                     "BTC/USDT:USDT",
                     5
                 ]
+            },
+            {
+                "description": "rpi orderbook at the 400 limit boundary",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    400,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "rpi orderbook clamps a limit above 400",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    500,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "rpi orderbook clamps the books-full default of 5000",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=400",
+                "input": [
+                    "BTC/USDT",
+                    null,
+                    {
+                        "rpi": true,
+                        "method": "publicGetMarketBooksFull"
+                    }
+                ]
             }
         ],
         "fetchDeposits": [
