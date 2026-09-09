@@ -4038,8 +4038,10 @@ class okx extends Exchange {
         $statuses = array(
             'canceled' => 'canceled',
             'order_failed' => 'canceled',
+            'mmp_canceled' => 'canceled',
             'live' => 'open',
             'partially_filled' => 'open',
+            'partially_effective' => 'open',
             'filled' => 'closed',
             'effective' => 'closed',
         );
@@ -4300,7 +4302,7 @@ class okx extends Exchange {
         $takeProfitPrice = $this->safe_number_2($order, 'tpTriggerPx', 'tpOrdPx');
         $reduceOnlyRaw = $this->safe_string($order, 'reduceOnly');
         $reduceOnly = false;
-        if ($reduceOnly !== null) {
+        if ($reduceOnlyRaw !== null) {
             $reduceOnly = ($reduceOnlyRaw === 'true');
         }
         return $this->safe_order(array(

@@ -5392,8 +5392,10 @@ public class OkxCore extends OkxApi
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "canceled", "canceled" );
             put( "order_failed", "canceled" );
+            put( "mmp_canceled", "canceled" );
             put( "live", "open" );
             put( "partially_filled", "open" );
+            put( "partially_effective", "open" );
             put( "filled", "closed" );
             put( "effective", "closed" );
         }};
@@ -5665,7 +5667,7 @@ public class OkxCore extends OkxApi
         Object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
         String reduceOnlyRaw = this.safeString(order, "reduceOnly");
         Object reduceOnly = false;
-        if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
+        if (Helpers.isTrue(!Helpers.isEqual(reduceOnlyRaw, null)))
         {
             reduceOnly = (Helpers.isEqual(reduceOnlyRaw, "true"));
         }
