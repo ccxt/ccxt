@@ -1,0 +1,635 @@
+{
+	"exchange": "predictfun",
+	"asyncOnly": true,
+	"skipKeys": [
+		"timestamp",
+		"datetime"
+	],
+	"outputType": "json",
+	"apiKey": "test-api-key",
+	"walletAddress": "0xabababababababababababababababababababab",
+	"privateKey": "0x0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+	"options": {
+		"jwtToken": "jwt",
+		"jwtTokenExpiresAt": 9999999999999
+	},
+	"methods": {
+		"fetchTrades": [
+			{
+				"description": "fetchTrades flattens a settlement into the leg of the requested outcome",
+				"method": "fetchTrades",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": [
+						{
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-06T11:45:23.000Z",
+							"priceExecuted": "500000000000000000",
+							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "100000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+								"outcome": {
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
+								},
+								"price": "520000000000000000",
+								"quoteType": "Bid",
+								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+							},
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+									"outcome": {
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
+									},
+									"price": "880000000000000000",
+									"quoteType": "Bid",
+									"signer": "0xabababababababababababababababababababab"
+								}
+							],
+							"market": {
+								"id": 1878469
+							}
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": "01a07689-955a-7070-86af-a100b7b7350c",
+						"order": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+						"timestamp": 1788695123000,
+						"datetime": "2026-09-06T11:45:23.000Z",
+						"type": "market",
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.5,
+						"amount": 10,
+						"cost": 5,
+						"fee": {
+							"currency": null,
+							"cost": 0.1
+						},
+						"realizedPnl": null,
+						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+						"label": "YES",
+						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+						"info": {
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-06T11:45:23.000Z",
+							"priceExecuted": "500000000000000000",
+							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "100000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+								"outcome": {
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
+								},
+								"price": "520000000000000000",
+								"quoteType": "Bid",
+								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+							},
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+									"outcome": {
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
+									},
+									"price": "880000000000000000",
+									"quoteType": "Bid",
+									"signer": "0xabababababababababababababababababababab"
+								}
+							],
+							"market": {
+								"id": 1878469
+							}
+						}
+					}
+				]
+			}
+		],
+		"fetchMyTrades": [
+			{
+				"description": "fetchMyTrades reports the leg the wallet signed, here the maker side",
+				"method": "fetchMyTrades",
+				"input": [
+					null,
+					null,
+					null
+				],
+				"httpResponse": {
+					"success": true,
+					"data": [
+						{
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-06T11:45:23.000Z",
+							"priceExecuted": "500000000000000000",
+							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "100000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+								"outcome": {
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
+								},
+								"price": "520000000000000000",
+								"quoteType": "Bid",
+								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+							},
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+									"outcome": {
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
+									},
+									"price": "880000000000000000",
+									"quoteType": "Bid",
+									"signer": "0xabababababababababababababababababababab"
+								}
+							],
+							"market": {
+								"id": 1878469
+							}
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": "01a07689-955a-7070-86af-a100b7b7350c",
+						"order": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+						"timestamp": 1788695123000,
+						"datetime": "2026-09-06T11:45:23.000Z",
+						"type": "limit",
+						"side": "buy",
+						"takerOrMaker": "maker",
+						"price": 0.88,
+						"amount": 1,
+						"cost": 0.88,
+						"fee": {
+							"currency": null,
+							"cost": 0
+						},
+						"realizedPnl": null,
+						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
+						"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+						"label": "NO",
+						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+						"info": {
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-06T11:45:23.000Z",
+							"priceExecuted": "500000000000000000",
+							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
+							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "100000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
+								"outcome": {
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
+								},
+								"price": "520000000000000000",
+								"quoteType": "Bid",
+								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
+							},
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
+									"outcome": {
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
+									},
+									"price": "880000000000000000",
+									"quoteType": "Bid",
+									"signer": "0xabababababababababababababababababababab"
+								}
+							],
+							"market": {
+								"id": 1878469
+							}
+						}
+					}
+				]
+			}
+		],
+		"fetchOrder": [
+			{
+				"description": "fetchOrder by hash",
+				"method": "fetchOrder",
+				"input": [
+					"0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"order": {
+							"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+							"salt": "1",
+							"maker": "0xabababababababababababababababababababab",
+							"signer": "0xabababababababababababababababababababab",
+							"taker": "0x0000000000000000000000000000000000000000",
+							"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+							"makerAmount": "4000000000000000000",
+							"takerAmount": "10000000000000000000",
+							"expiration": "1789017900",
+							"nonce": "0",
+							"feeRateBps": "200",
+							"side": "Bid",
+							"signatureType": 0
+						},
+						"status": "OPEN",
+						"strategy": "LIMIT",
+						"createdAt": "2026-09-06T11:45:23.000Z",
+						"filledAmount": "2000000000000000000"
+					}
+				},
+				"parsedResponse": {
+					"id": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
+					"status": "open",
+					"type": "limit",
+					"timeInForce": null,
+					"side": "buy",
+					"price": 0.4,
+					"average": null,
+					"amount": 10,
+					"filled": null,
+					"remaining": null,
+					"cost": null,
+					"fee": null,
+					"reduceOnly": null,
+					"postOnly": null,
+					"trades": [],
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+					"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+					"label": "YES",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+					"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+					"info": {
+						"order": {
+							"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+							"salt": "1",
+							"maker": "0xabababababababababababababababababababab",
+							"signer": "0xabababababababababababababababababababab",
+							"taker": "0x0000000000000000000000000000000000000000",
+							"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+							"makerAmount": "4000000000000000000",
+							"takerAmount": "10000000000000000000",
+							"expiration": "1789017900",
+							"nonce": "0",
+							"feeRateBps": "200",
+							"side": "Bid",
+							"signatureType": 0
+						},
+						"status": "OPEN",
+						"strategy": "LIMIT",
+						"createdAt": "2026-09-06T11:45:23.000Z",
+						"filledAmount": "2000000000000000000"
+					}
+				}
+			}
+		],
+		"fetchOpenOrders": [
+			{
+				"description": "fetchOpenOrders backfills remaining from amount and filled",
+				"method": "fetchOpenOrders",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": [
+						{
+							"order": {
+								"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+								"salt": "1",
+								"maker": "0xabababababababababababababababababababab",
+								"signer": "0xabababababababababababababababababababab",
+								"taker": "0x0000000000000000000000000000000000000000",
+								"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"makerAmount": "4000000000000000000",
+								"takerAmount": "10000000000000000000",
+								"expiration": "1789017900",
+								"nonce": "0",
+								"feeRateBps": "200",
+								"side": "Bid",
+								"signatureType": 0
+							},
+							"status": "OPEN",
+							"strategy": "LIMIT",
+							"createdAt": "2026-09-06T11:45:23.000Z",
+							"filledAmount": "2000000000000000000"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+						"clientOrderId": null,
+						"timestamp": null,
+						"datetime": null,
+						"lastTradeTimestamp": null,
+						"lastUpdateTimestamp": null,
+						"status": "open",
+						"type": "limit",
+						"timeInForce": null,
+						"side": "buy",
+						"price": 0.4,
+						"average": null,
+						"amount": 10,
+						"filled": null,
+						"remaining": null,
+						"cost": null,
+						"fee": null,
+						"reduceOnly": null,
+						"postOnly": null,
+						"trades": [],
+						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+						"label": "YES",
+						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+						"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+						"info": {
+							"order": {
+								"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+								"salt": "1",
+								"maker": "0xabababababababababababababababababababab",
+								"signer": "0xabababababababababababababababababababab",
+								"taker": "0x0000000000000000000000000000000000000000",
+								"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"makerAmount": "4000000000000000000",
+								"takerAmount": "10000000000000000000",
+								"expiration": "1789017900",
+								"nonce": "0",
+								"feeRateBps": "200",
+								"side": "Bid",
+								"signatureType": 0
+							},
+							"status": "OPEN",
+							"strategy": "LIMIT",
+							"createdAt": "2026-09-06T11:45:23.000Z",
+							"filledAmount": "2000000000000000000"
+						}
+					}
+				]
+			}
+		],
+		"fetchPositions": [
+			{
+				"description": "fetchPositions for an unresolved market",
+				"method": "fetchPositions",
+				"input": [],
+				"httpResponse": {
+					"success": true,
+					"data": [
+						{
+							"market": {
+								"id": 1878469,
+								"status": "REGISTERED"
+							},
+							"outcome": {
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							"quantity": "10000000000000000000",
+							"averagePrice": "400000000000000000",
+							"realizedPnl": "0",
+							"value": "4500000000000000000"
+						}
+					]
+				},
+				"parsedResponse": [
+					{
+						"id": null,
+						"timestamp": null,
+						"datetime": null,
+						"contracts": null,
+						"contractSize": 1,
+						"side": "long",
+						"notional": null,
+						"unrealizedPnl": null,
+						"realizedPnl": null,
+						"collateral": null,
+						"entryPrice": null,
+						"markPrice": null,
+						"lastPrice": null,
+						"percentage": null,
+						"resolved": false,
+						"won": null,
+						"settleFraction": null,
+						"payout": null,
+						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+						"label": "YES",
+						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+						"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+						"info": {
+							"market": {
+								"id": 1878469,
+								"status": "REGISTERED"
+							},
+							"outcome": {
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							"quantity": "10000000000000000000",
+							"averagePrice": "400000000000000000",
+							"realizedPnl": "0",
+							"value": "4500000000000000000"
+						}
+					}
+				]
+			}
+		],
+		"fetchOrderBook": [
+			{
+				"description": "fetchOrderBook for the yes outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"asks": [
+							[
+								0.41,
+								80
+							],
+							[
+								0.42,
+								300
+							]
+						],
+						"bids": [
+							[
+								0.4,
+								100
+							],
+							[
+								0.39,
+								250
+							]
+						],
+						"lastOrderSettled": null,
+						"marketId": 1878469,
+						"updateTimestampMs": 1787770521244
+					}
+				},
+				"parsedResponse": {
+					"bids": [
+						[
+							0.4,
+							100
+						],
+						[
+							0.39,
+							250
+						]
+					],
+					"asks": [
+						[
+							0.41,
+							80
+						],
+						[
+							0.42,
+							300
+						]
+					],
+					"timestamp": 1787770521244,
+					"datetime": "2026-08-26T18:55:21.244Z",
+					"nonce": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+					"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
+				}
+			},
+			{
+				"description": "fetchOrderBook mirrors the book for the no outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"asks": [
+							[
+								0.41,
+								80
+							],
+							[
+								0.42,
+								300
+							]
+						],
+						"bids": [
+							[
+								0.4,
+								100
+							],
+							[
+								0.39,
+								250
+							]
+						],
+						"lastOrderSettled": null,
+						"marketId": 1878469,
+						"updateTimestampMs": 1787770521244
+					}
+				},
+				"parsedResponse": {
+					"bids": [
+						[
+							0.59,
+							80
+						],
+						[
+							0.58,
+							300
+						]
+					],
+					"asks": [
+						[
+							0.6,
+							100
+						],
+						[
+							0.61,
+							250
+						]
+					],
+					"timestamp": 1787770521244,
+					"datetime": "2026-08-26T18:55:21.244Z",
+					"nonce": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
+					"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
+				}
+			}
+		]
+	}
+}
