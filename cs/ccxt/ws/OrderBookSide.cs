@@ -164,7 +164,10 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         var rows = new List<object>();
         foreach (var row in source)
         {
-            rows.Add((row is IList<object> cells) ? new List<object>(cells) : row);
+            // rebuild each row the way THIS class's storeArray builds one, which
+            // is what the replay being replaced did: normal sides hold
+            // List<object>, counted sides hold SlimConcurrentList<object>
+            rows.Add(cloneRow(row));
         }
         var prices = new List<decimal>();
         foreach (var price in source._index)
@@ -173,6 +176,14 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         }
         this.AddRange(rows);
         this._index.AddRange(prices);
+    }
+
+    // OrderBookSide/NormalOrderBookSide.storeArray insert plain List<object>
+    // rows (the ctor replay hands storeArray a `new List<object>(delta)`), so a
+    // structural clone must too, whatever the source row's own type was.
+    protected virtual object cloneRow(object row)
+    {
+        return (row is IList<object> cells) ? new List<object>(cells) : row;
     }
 
     public void storeArray(object delta2)
@@ -370,6 +381,24 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
         {
             this.cloneSortedFrom(source);
         }
+    }
+
+    // counted rows are inserted by storeArray as SlimConcurrentList<object>
+    // (see below), so the structural clone must produce the same CLR type or a
+    // copied counted book's rows silently change type versus the replay
+    protected override object cloneRow(object row)
+    {
+        var cells = row as IList<object>;
+        if (cells == null)
+        {
+            return row;
+        }
+        var clone = new SlimConcurrentList<object>();
+        foreach (var cell in cells)
+        {
+            clone.Add(cell);
+        }
+        return clone;
     }
 
     public IOrderBookSide Copy()
