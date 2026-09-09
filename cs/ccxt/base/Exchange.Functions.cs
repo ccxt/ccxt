@@ -133,7 +133,13 @@ public partial class BaseExchange
 
         if (a is IList<object>)
         {
-            // return ((IList<object>)a).ToList();
+            // a live WS cache is mutated by the receive thread while callers index the
+            // result; SlimConcurrentList.ToArray snapshots under a single read lock,
+            // whereas Count + CopyTo (what Enumerable.ToList uses) locks them separately
+            if (a is ccxt.pro.SlimConcurrentList<object> concurrentList)
+            {
+                return concurrentList.ToArray();
+            }
             return ((IList<object>)a);
         }
 
