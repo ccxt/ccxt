@@ -8732,6 +8732,13 @@ order ids to be unique will reject the second one. The id the venue reports back
 step of the report as `clientOrderId`. The in-process guard does not survive a restart; if your
 plans must never re-execute across restarts, key idempotency at the venue yourself.
 
+Two further limits of that guard are worth knowing before you rely on it. Which venues actually
+honour a client order id — and with what length and charset — is not mapped in CCXT, so passing one
+through `orderParams` is not a portable idempotency key. And the guard's check-then-write is not
+atomic: two `execute` calls for the same plan issued concurrently on one instance can both pass the
+check before either records the plan. Serialise `execute` yourself if that race is reachable in
+your process.
+
 ### Watching a run, and stopping it — `onStep`
 
 `execute` used to be opaque from call to return. `options.onStep` is called after each step
