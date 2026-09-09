@@ -334,7 +334,7 @@
                 "method": "fetchFundingRateHistory",
                 "input": [
                     "BTC/USDC:USDC",
-                    null,
+                    1786269600000,
                     3
                 ],
                 "httpResponse": {
