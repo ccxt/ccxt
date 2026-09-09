@@ -4046,8 +4046,10 @@ export default class okx extends Exchange {
         const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
+            'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         };
@@ -4308,7 +4310,7 @@ export default class okx extends Exchange {
         const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
         let reduceOnly = false;
-        if (reduceOnly !== undefined) {
+        if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder ({
