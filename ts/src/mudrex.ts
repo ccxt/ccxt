@@ -1300,7 +1300,10 @@ export default class mudrex extends Exchange {
                 const entry = data[i];
                 allRows.push (entry);
                 if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
-                    transactionsCount = this.sum (transactionsCount, 1);
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
+                        transactionsCount = this.sum (transactionsCount, 1);
+                    }
                 }
             }
             paging = false;
@@ -1310,8 +1313,9 @@ export default class mudrex extends Exchange {
                 paging = true;
             }
         }
-        // a REBATE row is a partial refund of its fill's TRANSACTION fee, matched by symbol, time and notional - collect them to report the net fee
-        const rebates: Dict = {};
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        const rebateKeys = [];
+        const rebateAmounts = [];
         const transactions = [];
         const transactionKeys = [];
         for (let i = 0; i < allRows.length; i++) {
@@ -1322,13 +1326,21 @@ export default class mudrex extends Exchange {
                 transactions.push (entry);
                 transactionKeys.push (pairKey);
             } else if (feeType === 'REBATE') {
-                const previous = this.safeString (rebates, pairKey, '0');
-                rebates[pairKey] = Precise.stringAdd (previous, this.safeString (entry, 'fee_amount', '0'));
+                rebateKeys.push (pairKey);
+                rebateAmounts.push (this.safeString (entry, 'fee_amount', '0'));
             }
         }
         const rows = [];
         for (let i = 0; i < transactions.length; i++) {
-            const rebate = this.safeString (rebates, transactionKeys[i]);
+            let rebate: Str = undefined;
+            for (let j = 0; j < rebateKeys.length; j++) {
+                if (rebateKeys[j] === transactionKeys[i]) {
+                    rebate = rebateAmounts[j];
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    rebateKeys[j] = undefined;
+                    break;
+                }
+            }
             if (rebate === undefined) {
                 rows.push (transactions[i]);
             } else {
