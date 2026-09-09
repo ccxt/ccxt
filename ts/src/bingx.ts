@@ -1910,7 +1910,7 @@ export default class bingx extends Exchange {
         }
         let subType: Str = undefined;
         [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
-        const isInverse = (market !== undefined) ? market['inverse'] : (subType === 'inverse');
+        const isInverse = (market !== undefined) ? (market['inverse'] === true) : (subType === 'inverse');
         if (isInverse) {
             throw new NotSupported (this.id + ' fetchFundingHistory() is not supported for inverse swap markets');
         }
