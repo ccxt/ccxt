@@ -231,7 +231,7 @@ export default class independentreserve extends independentreserveRest {
                     payload = payload + this.valueToChecksum (storedAsks[i][0]) + this.valueToChecksum (storedAsks[i][1]);
                 }
             }
-            const calculatedChecksum = this.crc32 (payload, true);
+            const calculatedChecksum = this.crc32 (payload, false);
             const responseChecksum = this.safeInteger (orderBook, 'Crc32');
             if (calculatedChecksum !== responseChecksum) {
                 const error = new ChecksumError (this.id + ' ' + this.orderbookChecksumMessage (symbol));
