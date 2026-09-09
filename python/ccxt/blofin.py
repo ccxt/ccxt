@@ -422,7 +422,7 @@ class blofin(Exchange, ImplicitAPI):
                     '102055': InvalidOrder,  # stop loss trigger price should be lower than the best ask price
                     '102064': BadRequest,  # Buy price is not within the price limit(Minimum: 310.40; Maximum:1,629.40)
                     '102065': BadRequest,  # Sell price is not within the price limit
-                    '102068': BadRequest,  # Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068': BadRequest,  # Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013': ExchangeError,  # Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account': InsufficientFunds,  # Insufficient USDT margin in account
                 },
@@ -935,7 +935,7 @@ class blofin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1173,7 +1173,7 @@ class blofin(Exchange, ImplicitAPI):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            # blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
             'percentage': None,
@@ -2305,7 +2305,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverages', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverages() requires a marginMode parameter that must be either cross or isolated')
         symbols = self.market_symbols(symbols)
@@ -2355,7 +2355,7 @@ class blofin(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'marginMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -2430,7 +2430,7 @@ class blofin(Exchange, ImplicitAPI):
         https://blofin.com/docs#close-positions
 
         :param str symbol: Unified CCXT market symbol
-        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param str [side]: 'buy' or 'sell', leave as None in net mode
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross

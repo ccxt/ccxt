@@ -149,7 +149,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         if existingSubscription is None:
             raise BadRequest(self.id + ' no subscription for ' + messageHash)
         subId = self.safe_integer(existingSubscription, 'id')
-        request = self.create_public_request(market, subId, topicID, suffix, True)  # unsubscribe message uses the same id original subscribe message
+        request = self.create_public_request(market, subId, topicID, suffix, True)  # unsubscribe message uses the same id as the original subscribe message
         unsubHash = 'unsubscribe::' + messageHash
         subscription = self.extend(subscription, {
             'subHash': messageHash,
@@ -529,7 +529,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -553,7 +553,7 @@ class deepcoin(ccxt.async_support.deepcoin):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str [timeframe]: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

@@ -359,7 +359,7 @@ class coinbase(ccxt.async_support.coinbase):
         #                        "low_52_w": "15460",
         #                        "high_52_w": "48240",
         #                        "price_percent_chg_24_h": "-4.15775596190603"
-        # new 2024-04-12
+        # new as of 2024-04-12
         #                        "best_bid":"21835.29",
         #                        "best_bid_quantity": "0.02000000",
         #                        "best_ask":"23011.18",
@@ -389,7 +389,7 @@ class coinbase(ccxt.async_support.coinbase):
         #                        "low_52_w": "0.04908",
         #                        "high_52_w": "0.1801",
         #                        "price_percent_chg_24_h": "0.50177456859626"
-        # new 2024-04-12
+        # new as of 2024-04-12
         #                        "best_bid":"0.07989",
         #                        "best_bid_quantity": "500.0",
         #                        "best_ask":"0.08308",
@@ -464,7 +464,7 @@ class coinbase(ccxt.async_support.coinbase):
         #         "low_52_w": "0.04908",
         #         "high_52_w": "0.1801",
         #         "price_percent_chg_24_h": "0.50177456859626"
-        # new 2024-04-12
+        # new as of 2024-04-12
         #         "best_bid":"0.07989",
         #         "best_bid_quantity": "500.0",
         #         "best_ask":"0.08308",
@@ -863,7 +863,7 @@ class coinbase(ccxt.async_support.coinbase):
             event = events[i]
             updates = self.safe_list(event, 'updates', [])
             marketId = self.safe_string(event, 'product_id')
-            # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, are aliases
+            # sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             market = self.safe_market(marketId)
             symbol = market['symbol']
             messageHash = 'level2::' + symbol

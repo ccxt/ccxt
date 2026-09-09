@@ -569,10 +569,10 @@ class poloniex(Exchange, ImplicitAPI):
                     '25010': PermissionDenied,  # Unauthorized to cancel order
                     '25011': InvalidOrder,  # Failed to cancel due to invalid paramters
                     '25012': ExchangeError,  # Failed to cancel
-                    '25013': OrderNotFound,  # Failed to cancel were not found
-                    '25014': OrderNotFound,  # Failed to cancel were not found
-                    '25015': OrderNotFound,  # Failed to cancel orders exist
-                    '25016': ExchangeError,  # Failed to cancel to release funds
+                    '25013': OrderNotFound,  # Failed to cancel as orders were not found
+                    '25014': OrderNotFound,  # Failed to cancel as smartorders were not found
+                    '25015': OrderNotFound,  # Failed to cancel as no orders exist
+                    '25016': ExchangeError,  # Failed to cancel as unable to release funds
                     '25017': ExchangeError,  # No orders were canceled
                     '25018': BadRequest,  # Invalid accountType
                     '25019': BadSymbol,  # Invalid symbol
@@ -693,7 +693,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
         paginate = False
@@ -809,7 +809,7 @@ class poloniex(Exchange, ImplicitAPI):
         return self.parse_markets(markets)
 
     def fetch_swap_markets(self, params: object = {}) -> list[Market]:
-        # do similar per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        # do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         response = self.swapPublicGetV3MarketAllInstruments(params)
         #
         #    {
@@ -2003,7 +2003,7 @@ class poloniex(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param float [params.triggerPrice]: the price at which a trigger order is triggered at
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.clientOrderId]: a unique identifier for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """

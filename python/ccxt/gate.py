@@ -3282,7 +3282,7 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         if self.markets is None:
             self.load_markets()
@@ -4162,10 +4162,10 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.auto_borrow]: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
         :param str [params.settle]: *contract only* Unified Currency Code for settle currency
         :param bool [params.reduceOnly]: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool [params.close]: *contract only* Set to close the position, with size set to 0
+        :param bool [params.close]: *contract only* Set as True to close the position, with size set to 0
         :param bool [params.auto_size]: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param bool [params.unifiedAccount]: set to True for creating an order in the unified account
         :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict|None: `An order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -4380,7 +4380,7 @@ class gate(Exchange, ImplicitAPI):
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': False,  # True to close the position, with size set to 0
-                    # 'reduce_only': False,  # St to be reduce-only order
+                    # 'reduce_only': False,  # St as True to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
@@ -4961,7 +4961,7 @@ class gate(Exchange, ImplicitAPI):
             average = self.parse_number(averageString)
             if (type == 'market') and (side == 'buy'):
                 remaining = Precise.string_div(remainingString, averageString)
-                price = None  # arrives
+                price = None  # arrives as 0
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
         timestamp = None
@@ -6829,7 +6829,7 @@ class gate(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30
         :param dict [params]: exchange specific parameters
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

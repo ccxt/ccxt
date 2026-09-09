@@ -1363,7 +1363,7 @@ class weex(Exchange, ImplicitAPI):
 
         :param str symbol: unified symbol of the market to fetch the mark price for
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.priceType]: "MARK"(default) or "INDEX", with "INDEX" the price is returned indexPrice of the ticker
+        :param str [params.priceType]: "MARK"(default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the ticker
         :returns dict: a `ticker structure <https://docs.ccxt.com/?id=ticker-structure>`
         """
         if self.markets is None:
@@ -1486,7 +1486,7 @@ class weex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(default 100, max 300)
         :param dict [params]: extra parameters specific to the exchange API endpoint
  Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in params
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1508,7 +1508,7 @@ class weex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1538,7 +1538,7 @@ class weex(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: whether to automatically paginate requests until the required number of candles is returned
         :param boolean [params.historical]: whether to fetch historical klines(default is False). If False, will fetch last price klines
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2165,16 +2165,16 @@ class weex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client order id
         :param dict [params.takeProfit]: *takeProfit object in params* containing the triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
+        :param float [params.takeProfit.triggerPrice]: The price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
         :param str [params.takeProfit.triggerPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
         :param float [params.takeProfit.price]: not supported, the attached take profit always executes at market price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
+        :param float [params.stopLoss.triggerPrice]: The price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
         :param str [params.stopLoss.triggerPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
         :param float [params.stopLoss.price]: not supported, the attached stop loss always executes at market price
-        :param float [params.stopLossPrice]: price to trigger a standalone stop-loss order on an open position, the price argument is used execution price for limit orders
+        :param float [params.stopLossPrice]: price to trigger a standalone stop-loss order on an open position, the price argument is used as its execution price for limit orders
         :param str [params.stopLossPriceType]: The type of the trigger price for the stop loss order, either 'last' or 'mark'(default is 'last')
-        :param float [params.takeProfitPrice]: price to trigger a standalone take-profit order on an open position, the price argument is used execution price for limit orders
+        :param float [params.takeProfitPrice]: price to trigger a standalone take-profit order on an open position, the price argument is used as its execution price for limit orders
         :param str [params.takeProfitPriceType]: The type of the trigger price for the take profit order, either 'last' or 'mark'(default is 'last')
         :param float [params.triggerPrice]: the price at which a trigger(entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
         :param bool [params.reduceOnly]: A mark to reduce the position size only. Set to False by default. Need to set the position size when reduceOnly is True.
@@ -2972,7 +2972,7 @@ class weex(Exchange, ImplicitAPI):
         rawType = self.safe_string_upper_2(order, 'type', 'orderType')
         isReduceOnly = self.safe_bool(order, 'reduceOnly')
         # entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to False, their trigger price is not a stop loss / take profit price
-        # a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        # a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         isEntryTrigger = not self.safe_bool(order, 'reduceOnly', True)
         takeProfitPrice = None
         stopLossPrice = None

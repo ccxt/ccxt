@@ -912,7 +912,7 @@ class bithumb(Exchange, ImplicitAPI):
         nonZeroOpen = self.omit_zero(open)
         if (marketId is not None) and (nonZeroOpen is not None) and (close is not None):
             computedChange = Precise.string_sub(close, open)
-            # Some v2 payloads return signed_change_price while open/last imply a non-zero move.
+            # Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if (change is not None) and Precise.string_eq(change, '0') and not Precise.string_eq(computedChange, '0'):
                 change = computedChange
                 percentage = None
@@ -1262,7 +1262,7 @@ class bithumb(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.generation]: if you want to use the API generation 1 or 2, default is 2
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1766,7 +1766,7 @@ class bithumb(Exchange, ImplicitAPI):
 
     async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
         """
-        create a trade order that is executed TWAP order over a specified duration.
+        create a trade order that is executed as a TWAP order over a specified duration.
 
         https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
 

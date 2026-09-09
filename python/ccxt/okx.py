@@ -833,7 +833,7 @@ class okx(Exchange, ImplicitAPI):
                     '51095': InvalidOrder,  # To place TP limit orders at self endpoint, you must place an SL order at the same time.
                     '51096': InvalidOrder,  # cxlOnClosePos needs to be True to place a TP limit order
                     '51098': InvalidOrder,  # You can't add a new TP order to an SL order placed with a TP limit order.
-                    '51099': InvalidOrder,  # You can't place TP limit orders lead trader.
+                    '51099': InvalidOrder,  # You can't place TP limit orders as a lead trader.
                     '51100': InvalidOrder,  # Trading amount does not meet the min tradable amount
                     '51101': InvalidOrder,  # Entered amount exceeds the max pending order amount(Cont) per transaction
                     '51102': InvalidOrder,  # Entered amount exceeds the max pending count
@@ -874,7 +874,7 @@ class okx(Exchange, ImplicitAPI):
                     '51139': InvalidOrder,  # Reduce-only feature is unavailable for the spot transactions by simple account
                     '51155': RestrictedLocation,  # {"code":"1","data":[{"clOrdId":"e847xxx","ordId":"","sCode":"51155","sMsg":"You can't trade self pair or borrow self crypto due to local compliance restrictions. ","tag":"e847xxx","ts":"1753979177157"}],"inTime":"1753979177157408","msg":"All operations failed","outTime":"1753979177157874"}
                     '51156': BadRequest,  # You're leading trades in long/short mode and can't use self API endpoint to close positions
-                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction existing positions and open orders.
+                    '51159': BadRequest,  # You're leading trades in buy/sell mode. If you want to place orders using self API endpoint, the orders must be in the same direction as your existing positions and open orders.
                     '51162': InvalidOrder,  # You have {instrument} open orders. Cancel these orders and try again
                     '51163': InvalidOrder,  # You hold {instrument} positions. Close these positions and try again
                     '51166': InvalidOrder,  # Currently, we don't support leading trades with self instrument
@@ -924,26 +924,26 @@ class okx(Exchange, ImplicitAPI):
                     '51328': InvalidOrder,  # closeFraction is only available for reduceOnly orders
                     '51329': InvalidOrder,  # closeFraction is only available in NET mode
                     '51330': InvalidOrder,  # closeFraction is only available for stop market orders
-                    '51400': OrderNotFound,  # Cancellation failed order does not exist
-                    '51401': OrderNotFound,  # Cancellation failed order is already canceled
-                    '51402': OrderNotFound,  # Cancellation failed order is already completed
-                    '51403': InvalidOrder,  # Cancellation failed order type does not support cancellation
+                    '51400': OrderNotFound,  # Cancellation failed as the order does not exist
+                    '51401': OrderNotFound,  # Cancellation failed as the order is already canceled
+                    '51402': OrderNotFound,  # Cancellation failed as the order is already completed
+                    '51403': InvalidOrder,  # Cancellation failed as the order type does not support cancellation
                     '51404': InvalidOrder,  # Order cancellation unavailable during the second phase of call auction
-                    '51405': ExchangeError,  # Cancellation failed do not have any pending orders
+                    '51405': ExchangeError,  # Cancellation failed as you do not have any pending orders
                     '51406': ExchangeError,  # Canceled - order count exceeds the limit {0}
                     '51407': BadRequest,  # Either order ID or client order ID is required
                     '51408': ExchangeError,  # Pair ID or name does not match the order info
                     '51409': ExchangeError,  # Either pair ID or pair name ID is required
-                    '51410': CancelPending,  # Cancellation failed order is already under cancelling status
+                    '51410': CancelPending,  # Cancellation failed as the order is already under cancelling status
                     '51500': ExchangeError,  # Either order price or amount is required
                     '51501': ExchangeError,  # Maximum {0} orders can be modified
                     '51502': InsufficientFunds,  # Order modification failed for insufficient margin or balance
-                    '51503': ExchangeError,  # Order modification failed order does not exist
+                    '51503': ExchangeError,  # Order modification failed as the order does not exist
                     '51506': ExchangeError,  # Order modification unavailable for the order type
                     '51508': ExchangeError,  # Orders are not allowed to be modified during the call auction
-                    '51509': ExchangeError,  # Modification failed order has been canceled
-                    '51510': ExchangeError,  # Modification failed order has been completed
-                    '51511': ExchangeError,  # Modification failed order price did not meet the requirement for Post Only
+                    '51509': ExchangeError,  # Modification failed as the order has been canceled
+                    '51510': ExchangeError,  # Modification failed as the order has been completed
+                    '51511': ExchangeError,  # Modification failed as the order price did not meet the requirement for Post Only
                     '51600': ExchangeError,  # Status not found
                     '51601': ExchangeError,  # Order status and order ID cannot exist at the same time
                     '51602': ExchangeError,  # Either order status or order ID is required
@@ -975,7 +975,7 @@ class okx(Exchange, ImplicitAPI):
                     '54011': InvalidOrder,  # 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
                     '54072': ExchangeError,  # This contract is currently view-only and not tradable.
                     '54073': BadRequest,  # Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
-                    '54074': ExchangeError,  # Your settings failed have positions, bot or open orders for USD contracts.
+                    '54074': ExchangeError,  # Your settings failed as you have positions, bot or open orders for USD contracts.
                     '54094': InvalidOrder,  # Order rejected. The cool-off period is active for the current instId.
                     # Trading bot Error Code from 55100 to 55999
                     '55100': InvalidOrder,  # Take profit % should be within the range of {parameter1}-{parameter2}
@@ -1006,7 +1006,7 @@ class okx(Exchange, ImplicitAPI):
                     '58108': ExchangeError,  # Please enable the account for option contract
                     '58109': ExchangeError,  # Please enable the account for swap contract
                     '58110': ExchangeError,  # The contract triggers risk control, and the platform has suspended the fund transfer function of it. Please wait patiently
-                    '58111': ExchangeError,  # Funds transfer unavailable perpetual contract is charging the funding fee. Please try again later
+                    '58111': ExchangeError,  # Funds transfer unavailable as the perpetual contract is charging the funding fee. Please try again later
                     '58112': ExchangeError,  # Your fund transfer failed. Please try again later
                     '58114': ExchangeError,  # Transfer amount must be more than 0
                     '58115': ExchangeError,  # Sub-account does not exist
@@ -1039,8 +1039,8 @@ class okx(Exchange, ImplicitAPI):
                     '58300': ExchangeError,  # Deposit-address count exceeds the limit
                     '58350': InsufficientFunds,  # Insufficient balance
                     # Account error codes 59000-59999
-                    '59000': ExchangeError,  # Your settings failed have positions or open orders
-                    '59001': ExchangeError,  # Switching unavailable have borrowings
+                    '59000': ExchangeError,  # Your settings failed as you have positions or open orders
+                    '59001': ExchangeError,  # Switching unavailable as you have borrowings
                     '59100': ExchangeError,  # You have open positions. Please cancel all open positions before changing the leverage
                     '59101': ExchangeError,  # You have pending orders with isolated positions. Please cancel all the pending orders and adjust the leverage
                     '59102': ExchangeError,  # Leverage exceeds the maximum leverage. Please adjust the leverage
@@ -1082,10 +1082,10 @@ class okx(Exchange, ImplicitAPI):
                     '59518': ExchangeError,  # You can’t create a sub-account using the API; please use the app or web.
                     '59519': ExchangeError,  # You can’t use self function/feature while it's frozen, due to: {freezereason}
                     '59642': BadRequest,  # Lead and copy traders can only use margin-free or single-currency margin account modes
-                    '59643': ExchangeError,  # Couldn’t switch account modes’re currently copying spot trades
-                    '59683': ExchangeError,  # Set self crypto collateral crypto before selecting it settlement currency.
+                    '59643': ExchangeError,  # Couldn’t switch account modes as you’re currently copying spot trades
+                    '59683': ExchangeError,  # Set self crypto as your collateral crypto before selecting it as your settlement currency.
                     '59684': BadRequest,  # Borrowing isn’t supported for self currency.
-                    '59686': BadRequest,  # This crypto can’t be set settlement currency.
+                    '59686': BadRequest,  # This crypto can’t be set as a settlement currency.
                     # WebSocket error Codes from 60000-63999
                     '60001': AuthenticationError,  # "OK_ACCESS_KEY" can not be empty
                     '60002': AuthenticationError,  # "OK_ACCESS_SIGN" can not be empty
@@ -1101,7 +1101,7 @@ class okx(Exchange, ImplicitAPI):
                     '60012': BadRequest,  # Illegal request
                     '60013': BadRequest,  # Invalid args
                     '60014': RateLimitExceeded,  # Requests too frequent
-                    '60015': NetworkError,  # Connection closed was no data transmission in the last 30 seconds
+                    '60015': NetworkError,  # Connection closed as there was no data transmission in the last 30 seconds
                     '60016': ExchangeNotAvailable,  # Buffer is full, cannot write data
                     '60017': BadRequest,  # Invalid url path
                     '60018': BadRequest,  # The {0} {1} {2} {3} {4} does not exist
@@ -1570,8 +1570,8 @@ class okx(Exchange, ImplicitAPI):
             # a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             # e.g. the market id BTC-USD-220325-194000-P(5 parts) or the unified symbol
             # BTC/USD:USD-260611-54000-C(4 parts). Requiring more than 3 dash-separated parts avoids
-            # misclassifying ordinary ids that merely contain "-C"/"-P"(such SPOT id like
-            # "PERFTESTA-PERFTESTB") options, which would crash createExpiredOptionMarket
+            # misclassifying ordinary ids that merely contain "-C"/"-P"(such as a SPOT id like
+            # "PERFTESTA-PERFTESTB") as expired options, which would crash createExpiredOptionMarket
             # on the missing expiry.
             isOption = (partsLength > 3) and (marketId.endswith('-C') or marketId.endswith('-P'))
         if isOption and (marketId is not None) and ((self.markets_by_id is None) or not (marketId in self.markets_by_id)):
@@ -2615,7 +2615,7 @@ class okx(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.type]: "Candles" or "HistoryCandles", default is "Candles" for recent candles, "HistoryCandles" for older candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2831,7 +2831,7 @@ class okx(Exchange, ImplicitAPI):
         return {
             'info': fee,
             'symbol': self.safe_symbol(None, market),
-            # OKX returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            # OKX returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'maker', 'makerU'))),
             'taker': self.parse_number(Precise.string_neg(self.safe_string_2(fee, 'taker', 'takerU'))),
             'percentage': None,
@@ -3118,7 +3118,7 @@ class okx(Exchange, ImplicitAPI):
         trigger = (triggerPrice is not None) or (type == 'trigger')
         isReduceOnly = (self.safe_bool(params, 'reduceOnly', False) is True) or (closeFraction is not None)
         defaultMarginMode = self.safe_string_2(self.options, 'defaultMarginMode', 'marginMode', 'cross')
-        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so be extended into the request
+        marginMode = self.safe_string_2(params, 'marginMode', 'tdMode')  # cross or isolated, tdMode not omitted so as to be extended into the request
         margin = False
         if (marginMode is not None) and (marginMode != 'cash'):
             margin = True
@@ -3284,7 +3284,7 @@ class okx(Exchange, ImplicitAPI):
             request['ordType'] = 'conditional'
             twoWayCondition = ((takeProfitPrice is not None) and (stopLossPrice is not None))
             # if TP and SL are sent together
-            # 'conditional' only stop-loss order will be applied
+            # as ordType 'conditional' only stop-loss order will be applied
             # tpOrdKind is 'condition' which is the default
             if twoWayCondition:
                 request['ordType'] = 'oco'
@@ -3723,7 +3723,7 @@ class okx(Exchange, ImplicitAPI):
         #
         ordersData = self.safe_list(response, 'data', [])
         # the request-only keys must not be merged onto every parsed order: a clientOrderId[]
-        # request would otherwise come back list under the unified string field
+        # request would otherwise come back as a list under the unified string field
         orderParams = self.omit(params, ['clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method'])
         return self.parse_orders(ordersData, market, None, None, orderParams)
 
@@ -5695,7 +5695,7 @@ class okx(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' fetchLeverage() requires a marginMode parameter that must be either cross or isolated')
         market = self.market(symbol)
@@ -6733,7 +6733,7 @@ class okx(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('setLeverage', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         if (marginMode != 'cross') and (marginMode != 'isolated'):
             raise BadRequest(self.id + ' setLeverage() requires a marginMode parameter that must be either cross or isolated')
         request = {
@@ -7236,7 +7236,7 @@ class okx(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchMarketLeverageTiers', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'tdMode', 'cross')  # cross as default marginMode
         request = {
             'instType': type,
             'tdMode': marginMode,
@@ -7329,7 +7329,7 @@ class okx(Exchange, ImplicitAPI):
         marginMode = None
         marginMode, params = self.handle_margin_mode_and_params('fetchBorrowInterest', params)
         if marginMode is None:
-            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross marginMode
+            marginMode = self.safe_string(params, 'mgnMode', 'cross')  # cross as default marginMode
         request = {
             'mgnMode': marginMode,
         }
@@ -7596,10 +7596,10 @@ class okx(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT currency code or unified symbol
         :param str timeframe: "5m", "1h", or "1d" for option only "1d" or "8h"
-        :param int [since]: The time in ms of the earliest record to retrieve unix timestamp
+        :param int [since]: The time in ms of the earliest record to retrieve as a unix timestamp
         :param int [limit]: Not used by okx, but parsed internally by CCXT
         :param dict [params]: Exchange specific parameters
-        :param int [params.until]: The time in ms of the latest record to retrieve unix timestamp
+        :param int [params.until]: The time in ms of the latest record to retrieve as a unix timestamp
         :returns: An array of `open interest structures <https://docs.ccxt.com/?id=open-interest-structure>`
         """
         options = self.safe_dict(self.options, 'fetchOpenInterestHistory', {})
@@ -8154,7 +8154,7 @@ class okx(Exchange, ImplicitAPI):
         https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-close-positions
 
         :param str symbol: Unified CCXT market symbol
-        :param str [side]: 'buy' or 'sell', leave in net mode
+        :param str [side]: 'buy' or 'sell', leave as None in net mode
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique identifier for the order
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross

@@ -1440,7 +1440,7 @@ class xt(Exchange, ImplicitAPI):
         :param dict params: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -4768,7 +4768,7 @@ class xt(Exchange, ImplicitAPI):
         else:
             response = self.privateLinearGetFutureUserV1UserStepRate(params)
         #
-        # same response
+        # same response as fetchTradingFee
         #
         fee = self.safe_dict(response, 'result', {})
         result = {}

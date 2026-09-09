@@ -233,9 +233,9 @@ class aster(Exchange, ImplicitAPI):
                         'v1/klines': {'cost': 1},
                         'v3/klines': {'cost': 1},  # dynamic [1,100) ->1,  [100, 500)->2, [500, 1000]->5, [1000 -> 10
                         'v1/indexPriceKlines': {'cost': 1},
-                        'v3/indexPriceKlines': {'cost': 1},  # same
+                        'v3/indexPriceKlines': {'cost': 1},  # same as klines
                         'v1/markPriceKlines': {'cost': 1},
-                        'v3/markPriceKlines': {'cost': 1},  # same
+                        'v3/markPriceKlines': {'cost': 1},  # same as klines
                         'v1/premiumIndex': {'cost': 1},
                         'v3/premiumIndex': {'cost': 1},
                         'v1/fundingRate': {'cost': 1},
@@ -1149,7 +1149,7 @@ class aster(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: the latest time in ms to fetch orders for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -3438,7 +3438,7 @@ class aster(Exchange, ImplicitAPI):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # to notionalValue
+        # as oppose to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -3661,7 +3661,7 @@ class aster(Exchange, ImplicitAPI):
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # to notionalValue
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)

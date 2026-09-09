@@ -949,7 +949,7 @@ class backpack(Exchange, ImplicitAPI):
         :param int [since]: timestamp in seconds of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch(default 100)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

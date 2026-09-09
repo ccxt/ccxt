@@ -310,7 +310,7 @@ class lighter(Exchange, ImplicitAPI):
                     '21730': InvalidOrder,  # order status is not pending
                     '21731': InvalidOrder,  # order can not be triggered
                     '21732': InvalidOrder,  # reduce only increases position
-                    '21733': InvalidOrder,  # order price flagged accidental price
+                    '21733': InvalidOrder,  # order price flagged as an accidental price
                     '21734': InvalidOrder,  # limit order price is too far from the mark price
                     '21735': InvalidOrder,  # SL/TP order price is too far from the trigger price
                     '21736': InvalidOrder,  # invalid order trigger status
@@ -1523,7 +1523,7 @@ class lighter(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')

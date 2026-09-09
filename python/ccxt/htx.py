@@ -788,7 +788,7 @@ class htx(Exchange, ImplicitAPI):
                     '1066': BadSymbol,  # {"status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147}
                     '1067': InvalidOrder,  # {"status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413}
                     '1094': InvalidOrder,  # {"status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243}
-                    '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718}
+                    '1220': AccountNotEnabled,  # {"status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718}
                     '1303': BadRequest,  # {"code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true}
                     '1461': InvalidOrder,  # {"status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits(5000USDT). Please modify.","ts":1652554651234}
                     '4007': BadRequest,  # {"code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651"}'
@@ -1324,7 +1324,7 @@ class htx(Exchange, ImplicitAPI):
             #             "linear_swap_heartbeat": 1,
             #             "linear_swap_estimated_recovery_time": null
             #         },
-            #         "ts": 1557714418033  # stale on the exchange side, do not trust update time
+            #         "ts": 1557714418033  # stale on the exchange side, do not trust as an update time
             #     }
             #
             data = self.safe_dict(response, 'data', {})
@@ -2868,7 +2868,7 @@ class htx(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :param str [params.useHistoricalEndpointForSpot]: True/false - whether use the historical candles endpoint for spot markets or default klines endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3185,7 +3185,7 @@ class htx(Exchange, ImplicitAPI):
         })
 
     def network_id_to_code(self, networkId: Str = None, currencyCode: Str = None):
-        # here network-id is provided pair of currency & chain(i.e. trc20usdt)
+        # here network-id is provided as a pair of currency & chain(i.e. trc20usdt)
         keys = list(self.options['networkNamesByChainIds'].keys())
         keysLength = len(keys)
         if keysLength == 0:
@@ -4783,7 +4783,7 @@ class htx(Exchange, ImplicitAPI):
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
-        :param float [params.cost]: the quote quantity that can be used alternative for the amount for market buy orders
+        :param float [params.cost]: the quote quantity that can be used as an alternative for the amount for market buy orders
         :returns dict: request to be sent to the exchange
         """
         if type is None:
@@ -5067,7 +5067,7 @@ class htx(Exchange, ImplicitAPI):
         :param bool [params.postOnly]: *contract only* True or False
         :param int [params.leverRate]: *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
         :param str [params.timeInForce]: supports 'IOC' and 'FOK'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param float [params.trailingPercent]: *contract only* the percent to trail away from the current market price
         :param float [params.trailingTriggerPrice]: *contract only* the price to trigger a trailing order, default uses the price argument
         :param bool [params.hedged]: *contract only* True for hedged mode, False for one way mode, default is False
@@ -9080,7 +9080,7 @@ class htx(Exchange, ImplicitAPI):
         https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      # Coin-M futures
 
         :param str symbol: unified CCXT market symbol
-        :param str side: 'buy' or 'sell', the side of the closing order, opposite side side
+        :param str side: 'buy' or 'sell', the side of the closing order, opposite side as position side
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
         :param dict [params.marginMode]: 'cross' or 'isolated', required for linear markets

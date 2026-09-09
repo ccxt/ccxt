@@ -817,7 +817,7 @@ class bydfi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()

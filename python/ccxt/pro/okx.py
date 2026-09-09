@@ -958,7 +958,7 @@ class okx(ccxt.async_support.okx):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -979,7 +979,7 @@ class okx(ccxt.async_support.okx):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
@@ -993,7 +993,7 @@ class okx(ccxt.async_support.okx):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -1034,7 +1034,7 @@ class okx(ccxt.async_support.okx):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -1103,7 +1103,7 @@ class okx(ccxt.async_support.okx):
             stored.append(parsed)
             messageHash = channel + ':' + market['id']
             client.resolve(stored, messageHash)
-            # for multiOHLCV we need special object, to other "multi"
+            # for multiOHLCV we need special object, as opposed to other "multi"
             # methods, because OHLCV response item does not contain symbol
             # or timeframe, thus otherwise it would be unrecognizable
             messageHashForMulti = 'multi:' + channel + ':' + symbol
@@ -1480,7 +1480,7 @@ class okx(ccxt.async_support.okx):
                     },
                 ],
             }
-            # Only add params['access'] to prevent sending custom parameters, such.
+            # Only add params['access'] to prevent sending custom parameters, such as extraParams.
             if 'access' in params:
                 request['access'] = params['access']
             self.watch(url, messageHash, request, messageHash)

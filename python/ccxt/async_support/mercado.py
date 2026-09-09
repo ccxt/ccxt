@@ -835,7 +835,7 @@ class mercado(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -845,7 +845,7 @@ class mercado(Exchange, ImplicitAPI):
             'symbol': market['base'] + '-' + market['quote'],  # exceptional endpoint, that needs custom symbol syntax
         }
         if limit is None:
-            limit = 100  # set some default limit,'s required if user doesn't provide it
+            limit = 100  # set some default limit, as it's required if user doesn't provide it
         if since is not None:
             request['from'] = self.parse_to_int(since / 1000)
             request['to'] = self.sum(request['from'], limit * self.parse_timeframe(timeframe))

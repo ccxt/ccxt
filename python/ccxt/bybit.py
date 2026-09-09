@@ -763,7 +763,7 @@ class bybit(Exchange, ImplicitAPI):
                     '110045': InsufficientFunds,  # Insufficient wallet balance
                     '110046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '110047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '110048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '110048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '110049': BadRequest,  # Tick notes can only be numbers
                     '110050': BadRequest,  # Coin is not in the range of selected
                     '110051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -808,7 +808,7 @@ class bybit(Exchange, ImplicitAPI):
                     '131208': ExchangeError,  # Forbid transfer
                     '131209': BadRequest,  # Get subMember relation error
                     '131210': BadRequest,  # Amount accuracy error
-                    '131211': BadRequest,  # fromAccountType can't be the same
+                    '131211': BadRequest,  # fromAccountType can't be the same as toAccountType
                     '131212': InsufficientFunds,  # Insufficient balance
                     '131213': BadRequest,  # TransferLTV check error
                     '131214': BadRequest,  # TransferId exist
@@ -880,7 +880,7 @@ class bybit(Exchange, ImplicitAPI):
                     '140045': InsufficientFunds,  # Insufficient wallet balance
                     '140046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '140047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '140048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '140048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '140049': BadRequest,  # Tick notes can only be numbers
                     '140050': InvalidOrder,  # Coin is not in the range of selected
                     '140051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -1074,8 +1074,8 @@ class bybit(Exchange, ImplicitAPI):
                     '30008': InvalidOrder,  # invalid order_type
                     '30009': ExchangeError,  # no position found
                     '30010': InsufficientFunds,  # insufficient wallet balance
-                    '30011': PermissionDenied,  # operation not allowed is undergoing liquidation
-                    '30012': PermissionDenied,  # operation not allowed is undergoing ADL
+                    '30011': PermissionDenied,  # operation not allowed as position is undergoing liquidation
+                    '30012': PermissionDenied,  # operation not allowed as position is undergoing ADL
                     '30013': PermissionDenied,  # position is in liq or adl status
                     '30014': InvalidOrder,  # invalid closing order, qty should not greater than size
                     '30015': InvalidOrder,  # invalid closing order, side should be opposite
@@ -1103,9 +1103,9 @@ class bybit(Exchange, ImplicitAPI):
                     '30037': InvalidOrder,  # order already cancelled
                     '30041': ExchangeError,  # no position found
                     '30042': InsufficientFunds,  # insufficient wallet balance
-                    '30043': InvalidOrder,  # operation not allowed is undergoing liquidation
-                    '30044': InvalidOrder,  # operation not allowed is undergoing AD
-                    '30045': InvalidOrder,  # operation not allowed is not normal status
+                    '30043': InvalidOrder,  # operation not allowed as position is undergoing liquidation
+                    '30044': InvalidOrder,  # operation not allowed as position is undergoing AD
+                    '30045': InvalidOrder,  # operation not allowed as position is not normal status
                     '30049': InsufficientFunds,  # insufficient available balance
                     '30050': ExchangeError,  # any adjustments made will trigger immediate liquidation
                     '30051': ExchangeError,  # due to risk limit, cannot adjust leverage
@@ -1134,7 +1134,7 @@ class bybit(Exchange, ImplicitAPI):
                     'Request timeout': RequestTimeout,  # {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError,  # {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
-                    # the below two issues are caused: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
+                    # the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
                     'openapi sign params error!': AuthenticationError,  # {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
@@ -2696,7 +2696,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
@@ -4111,7 +4111,7 @@ class bybit(Exchange, ImplicitAPI):
         endpointIsTradingStop = method == 'privatePostV5PositionTradingStop'
         if (price is None) and (lowerCaseType == 'limit') and not endpointIsTradingStop:
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        # workaround, bcz for some langs we have to allow 0.0(bcz of type)
+        # workaround, bcz for some langs we have to allow 0.0 as input(bcz of type)
         if not Precise.string_gt(self.number_to_string(amount), '0'):
             amount = None
         amountString = self.get_amount(symbol, amount) if (amount is not None) else None
@@ -4162,7 +4162,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
-            timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
+            timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same as exchange specific param
             postOnly = None
             postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
             if postOnly is True:

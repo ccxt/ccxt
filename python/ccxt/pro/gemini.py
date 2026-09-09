@@ -185,7 +185,7 @@ class gemini(ccxt.async_support.gemini):
         #             ["buy", '22252.37', "0.02"],
         #             ["buy", '22251.61', "0.04"],
         #             ["buy", '22251.60', "0.04"],
-        #             # some asks
+        #             # some asks as well
         #         ],
         #         "trades": [
         #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},
@@ -265,7 +265,7 @@ class gemini(ccxt.async_support.gemini):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -570,7 +570,7 @@ class gemini(ccxt.async_support.gemini):
         #             ["buy", '22252.37', "0.02"],
         #             ["buy", '22251.61', "0.04"],
         #             ["buy", '22251.60', "0.04"],
-        #             # some asks
+        #             # some asks as well
         #         ],
         #         "trades": [
         #             {type: 'trade', symbol: 'BTCUSD', event_id: 122258166738, timestamp: 1655330221424, price: '22269.14', quantity: "0.00004473", side: "buy"},

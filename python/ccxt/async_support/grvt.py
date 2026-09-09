@@ -1107,7 +1107,7 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         maxLimit = 1000
         if self.markets is None:
@@ -1710,7 +1710,7 @@ class grvt(Exchange, ImplicitAPI):
             fundingAccountId = None
             fundingAccountId, params = self.handle_option_and_params(params, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
-                raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" main funding account id)')
+                raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" as a main funding account id)')
             fromAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
             toAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
         request = {
@@ -3132,7 +3132,7 @@ class grvt(Exchange, ImplicitAPI):
             headers = {
                 'Content-Type': 'application/json',
             }
-            # an empty params dict must serialize empty json object, not an empty json array,
+            # an empty params dict must serialize as an empty json object, not an empty json array,
             # php json_encode would produce [] here which the venue rejects with the same 1003 error
             paramsKeys = list(params.keys())
             paramsKeysLength = len(paramsKeys)

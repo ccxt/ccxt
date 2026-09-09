@@ -76,7 +76,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1044,7 +1044,7 @@ class whitebit(ccxt.async_support.whitebit):
 
     def handle_subscription_status(self, client: Client, message: object, id: object):
         # not every method stores its subscription
-        # object so we can't do indeById here
+        # as an object so we can't do indeById here
         subs = client.subscriptions
         values = list(subs.values())
         for i in range(0, len(values)):

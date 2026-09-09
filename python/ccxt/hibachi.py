@@ -1176,7 +1176,7 @@ class hibachi(Exchange, ImplicitAPI):
         # Converting them to internal representation:
         # - Quantity: Internal = External * (10^6)
         # - maxFees: Internal = External * (10^6)
-        # We only have USDT currency time
+        # We only have USDT as our currency as self time
         USDTAssetId = 1
         USDTFactor = '1000000'
         amountStr = self.number_to_string(amount)
@@ -1574,7 +1574,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()

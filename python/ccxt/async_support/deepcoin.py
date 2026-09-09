@@ -576,7 +576,7 @@ class deepcoin(Exchange, ImplicitAPI):
             if (market is not None) and (market['swap'] is True):
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
-                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
         return result
 
     async def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -635,7 +635,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
