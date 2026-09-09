@@ -1,6 +1,9 @@
 {
     "exchange": "coinbaseinternational",
-    "skipKeys": [],
+    "skipKeys": [
+        "start_timestamp",
+        "end_timestamp"
+    ],
     "outputType": "json",
     "methods": {
         "fetchOHLCV": [
@@ -43,7 +46,7 @@
             {
                 "description": "inverse swap fetchOHLCV",
                 "method": "fetchOHLCV",
-                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-FS-25JUN27_PERP&resolution=1&start_timestamp=1788856956802&end_timestamp=1788857076802",
+                "url": "https://drb.coinbase.com/api/v2/public/get_tradingview_chart_data?instrument_name=BTC-PERPETUAL&resolution=1&start_timestamp=1788856956802&end_timestamp=1788857076802",
                 "input": [
                     "BTC/USD:BTC",
                     "1m",
