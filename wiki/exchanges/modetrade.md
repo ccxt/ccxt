@@ -359,8 +359,11 @@ create a trade order
 | params.takeProfit.triggerPrice | <code>float</code> | No | take profit trigger price |
 | params.stopLoss | <code>object</code> | No | *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only) |
 | params.stopLoss.triggerPrice | <code>float</code> | No | stop loss trigger price |
-| params.algoType | <code>float</code> | No | 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL' |
-| params.cost | <code>float</code> | No | *spot market buy only* the quote quantity that can be used as an alternative for the amount |
+| params.algoType | <code>string</code> | No | 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL' |
+| params.reduceOnly | <code>bool</code> | No | true or false whether the order is reduce-only |
+| params.postOnly | <code>bool</code> | No | true or false whether the order is post-only |
+| params.timeInForce | <code>string</code> | No | 'IOC', 'FOK' or 'PO' |
+| params.childOrders | <code>Array&lt;object&gt;</code> | No | *algo order only* a list of child orders passed through to the exchange |
 | params.clientOrderId | <code>string</code> | No | a unique id for the order |
 
 
