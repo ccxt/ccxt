@@ -538,6 +538,8 @@ class Transpiler {
             [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
             // PEP8 E225: collapse "name (" → "name(" for calls, but not inside string
             // literals (thrown messages keep prose parentheticals like "parameter (…").
+            // Spans are precomputed once per body with # / // / /* */ skipped — see
+            // computeQuotedStringSpans / isInsideQuotedString.
             [ /([^:+=\/\*\s-'"]+) \(/g, (matched: string, id: string, offset: number, whole: string) => this.isInsideQuotedString (whole, offset) ? matched : (id + '(') ],
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
@@ -907,41 +909,99 @@ class Transpiler {
     }
 
 
-    // True when `offset` sits inside a single-, double-, or triple-quoted string.
-    // Used by the Python E225 rule so prose parentheticals in thrown messages keep
-    // their space before "(" while real calls outside quotes still collapse.
-    isInsideQuotedString (text: string, offset: number) {
+    // E225 quote-span cache: one scan per method body (regexAll feeds bodies one at a time).
+    _e225SpansText: string | undefined = undefined
+    _e225Spans: Array<[number, number]> | undefined = undefined
+
+    // Precompute [start, end) spans of string literals while skipping line comments
+    // (# and //) and /* */ so apostrophes in comments (caller's / doesn't) cannot desync
+    // quote parity. E225 runs after //(→#) rewrite, so # must be recognized. Computed
+    // once per body; membership checks in the E225 replace callback are then O(spans).
+    computeQuotedStringSpans (text: string): Array<[number, number]> {
+        const spans: Array<[number, number]> = []
         let i = 0
-        while (i < offset) {
+        const n = text.length
+        while (i < n) {
             const ch = text[i]
+            // line comments: JS // (if still present) and Python # (// already
+            // rewrote to # earlier in getPythonRegexes). Apostrophes here must not count.
+            if (ch === '#' || (ch === '/' && text[i + 1] === '/')) {
+                if (ch === '/') {
+                    i += 2
+                } else {
+                    i += 1
+                }
+                while (i < n && text[i] !== '\n') {
+                    i += 1
+                }
+                continue
+            }
+            // block comment
+            if (ch === '/' && text[i + 1] === '*') {
+                i += 2
+                while (i < n && !(text[i] === '*' && text[i + 1] === '/')) {
+                    i += 1
+                }
+                if (i < n) {
+                    i += 2
+                }
+                continue
+            }
             if (ch === "'" || ch === '"') {
                 const quote = ch
+                const start = i
                 const triple = text.startsWith (quote + quote + quote, i)
                 if (triple) {
                     i += 3
-                    while (i < text.length) {
+                    while (i < n) {
                         if (text.startsWith (quote + quote + quote, i)) {
-                            if (offset < i + 3) return true
                             i += 3
                             break
                         }
                         i += 1
                     }
+                    spans.push ([ start, i ])
                     continue
                 }
                 i += 1
-                while (i < text.length) {
+                while (i < n) {
                     if (text[i] === '\\') { i += 2; continue }
                     if (text[i] === quote) {
-                        if (offset < i + 1) return true
                         i += 1
                         break
                     }
                     i += 1
                 }
+                spans.push ([ start, i ])
                 continue
             }
             i += 1
+        }
+        return spans
+    }
+
+    quotedStringSpansFor (text: string): Array<[number, number]> {
+        if (this._e225SpansText !== text) {
+            this._e225SpansText = text
+            this._e225Spans = this.computeQuotedStringSpans (text)
+        }
+        return this._e225Spans as Array<[number, number]>
+    }
+
+    // True when `offset` sits inside a single-, double-, or triple-quoted string.
+    // Used by the Python E225 rule so prose parentheticals in thrown messages keep
+    // their space before "(" while real calls outside quotes still collapse.
+    isInsideQuotedString (text: string, offset: number) {
+        const spans = this.quotedStringSpansFor (text)
+        for (let s = 0; s < spans.length; s++) {
+            const start = spans[s][0]
+            const end = spans[s][1]
+            if (offset < start) {
+                return false
+            }
+            if (offset >= start && offset < end) {
+                return true
+            }
         }
         return false
     }
