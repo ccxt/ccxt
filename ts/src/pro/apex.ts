@@ -1014,7 +1014,7 @@ export default class apex extends apexRest {
             return;
         }
         const ret_msg = this.safeString (message, 'ret_msg');
-        const pong = this.safeValue (message, 'pong');
+        const pong = this.safeInteger (message, 'pong');
         if (ret_msg === 'pong' || pong !== undefined) {
             this.handlePong (client, message);
             return;
