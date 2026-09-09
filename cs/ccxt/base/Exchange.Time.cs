@@ -182,14 +182,9 @@ public partial class BaseExchange
         Int64 timestamp;
         try
         {
-            // DateTimeOffset carries the offset the string declares, so an explicit zone is
-            // honoured instead of being resolved against the host clock; AssumeUniversal reads
-            // a zoneless string as UTC and AdjustToUniversal normalises both cases to UTC.
-            // DateTime.Parse + RoundtripKind used to return Kind=Local for a real offset and
-            // the epoch subtraction then skewed the result by the machine's own offset, so
-            // "1986-04-26T01:23:47.559-04:00" only produced 514877027559 on a UTC host. The
-            // "+0" split that worked around the same skew for "2023-05-08T17:04:43+0000" is
-            // no longer needed - and it silently discarded non-zero offsets like "+0800".
+            // DateTimeOffset honours the offset the string declares instead of resolving it
+            // against the host clock; AssumeUniversal reads a zoneless string as UTC and
+            // AdjustToUniversal normalises both cases to UTC.
             timestamp = System.DateTimeOffset.Parse(datetime, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal).ToUnixTimeMilliseconds();
         }
         catch (Exception e)

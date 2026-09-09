@@ -248,11 +248,9 @@ export default class independentreserve extends independentreserveRest {
     }
 
     valueToChecksum (value: any) {
-        // toFixed returns a zero-padded *string* in js, but the transpiled
-        // helper returns a *number* in go/c#/java, which silently drops the
-        // trailing zeros and corrupts the checksum payload. decimalToPrecision
-        // with PAD_WITH_ZERO is string-typed in every language and emits the
-        // exact same digits as value.toFixed (8).
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
         let result: any = this.decimalToPrecision (value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = result.replace ('.', '');
         // remove leading zeros

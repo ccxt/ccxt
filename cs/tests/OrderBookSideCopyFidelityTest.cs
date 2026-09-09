@@ -1,27 +1,8 @@
 namespace Tests;
 
-// native cs test: a structurally-cloned side must be a faithful copy, not just
-// a same-looking one.
-//
-// #30050 replaced the storeArray replay in the side copy constructors with a
-// structural clone of the two parallel lists (rows + _index). _index holds
-// -price for bids and +price for asks, so the copied index is only meaningful
-// together with the side flag, and the clone ctors of the intermediate base
-// classes (NormalOrderBookSide/CountedOrderBookSide, which
-// NormalOrderBookSide.CopyUnlocked and CountedOrderBookSide.CopyUnlocked
-// construct through) default that flag to false.
-//
-// Copying a bid side through one of those therefore used to produce an object
-// carrying a NEGATIVE index while flagged as an ask. Such a side is not merely
-// re-sorted, it is internally inconsistent: the next storeArray computes a
-// POSITIVE index_price, bisects it against all-negative keys, gets Count back,
-// and appends the level at the wrong end of the book. Nothing throws, the
-// lengths still agree, and the book silently stops being sorted -- exactly the
-// class of corruption that only shows up downstream as a crossed book.
-//
-// So the assertions below deliberately do NOT stop at "same rows in the same
-// order". They check the copy is still a working bid book by pushing a delta
-// through it and requiring it to land in the correct slot.
+// native cs test: a structurally-cloned side must be a faithful copy. _index
+// holds -price for bids and +price for asks, so a copy whose side flag and
+// index sign disagree silently appends new levels at the wrong end of the book.
 
 public partial class BaseTest
 {
@@ -90,9 +71,8 @@ public partial class BaseTest
             "a counted delta at 100 must land between 100.5 and 99.25 on a copied bid side");
 
         // --- counted rows must keep their CLR type --------------------------
-        // CountedOrderBookSide.storeArray inserts SlimConcurrentList<object>
-        // rows; the structural clone must produce the same type or a copied
-        // counted book's rows silently change type for every consumer
+        // storeArray inserts SlimConcurrentList<object> rows, so the structural
+        // clone must produce the same type or consumers see a different one
         var counted = new ccxt.pro.CountedAsks(countedRows);
         var countedCopy = counted.Copy();
         for (var i = 0; i < countedCopy.Count; i++)

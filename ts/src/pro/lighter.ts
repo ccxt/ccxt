@@ -1347,9 +1347,8 @@ export default class lighter extends lighterRest {
                 this.throwExactlyMatchedException (this.exceptions['exact'], code, feedback);
                 this.throwBroadlyMatchedException (this.exceptions['broad'], errorMessage, feedback);
                 // the rest handler ends with the same unconditional throw. without it an
-                // error whose code is not in the map raises nothing, falls through the
-                // type/channel routing below, and is dropped -- leaving the request that
-                // caused it awaiting a response that never comes
+                // unmapped code raises nothing and is dropped by the routing below,
+                // leaving the request that caused it awaiting a response that never comes
                 throw new ExchangeError (feedback);
             }
         } catch (e) {

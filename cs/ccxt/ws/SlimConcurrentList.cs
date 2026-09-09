@@ -396,10 +396,8 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
         }
     }
 
-    /// <summary>
-    /// Appends a range of items under a single write lock. Adding them one by
-    /// one costs one lock acquisition each, which dominates bulk copies.
-    /// </summary>
+    /// <summary>Appends a range of items under a single write lock; adding them
+    /// one by one costs one lock acquisition each, dominating bulk copies.</summary>
     /// <param name="items">the items to append; enumerated before the lock is taken</param>
     public void AddRange(IEnumerable<T> items)
     {
