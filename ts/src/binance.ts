@@ -4709,41 +4709,38 @@ export default class binance extends Exchange {
         return this.parseTicker (response, market);
     }
 
+    checkNoStockSymbols (symbols: Strings, methodName: string) {
+        if (symbols === undefined) {
+            return;
+        }
+        for (let i = 0; i < symbols.length; i++) {
+            const symbolMarket = this.market (symbols[i]);
+            const stock = this.safeBool (symbolMarket, 'stock', false);
+            if (stock === true) {
+                throw new NotSupported (this.id + ' ' + methodName + '() does not support tokenized stock symbols (' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead');
+            }
+        }
+    }
+
     /**
      * @method
      * @name binance#fetchBidsAsks
      * @description fetches the bid and ask price and volume for multiple markets
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#symbol-order-book-ticker   // spot
-     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/Symbol-Order-Book-Ticker // future
      * @see https://developers.binance.com/docs/derivatives/options-trading/market-data/24hr-Ticker-Price-Change-Statistics      // option
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
-    override async fetchBidsAsks (symbols: Strings = undefined, params = {}): Promise<Tickers> {
+    override async fetchBidsAsks (symbols: Strings = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const spotSymbols: string[] = [];
-        const stockSymbols: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const symbolMarket = this.market (symbol);
-                const stock = this.safeBool (symbolMarket, 'stock', false);
-                if (stock) {
-                    stockSymbols.push (symbol);
-                } else {
-                    spotSymbols.push (symbol);
-                }
-            }
-        }
-        const spotRequestSymbols = (symbols === undefined) ? symbols : spotSymbols;
-        const spotSymbolsLength = spotSymbols.length;
+        this.checkNoStockSymbols (symbols, 'fetchBidsAsks');
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchBidsAsks', market, params);
@@ -4757,22 +4754,11 @@ export default class binance extends Exchange {
         } else if (this.isInverse (type, subType)) {
             response = await this.dapiPublicGetTickerBookTicker (params);
         } else if (type === 'spot') {
-            let result: Tickers = {};
-            if ((symbols === undefined) || (spotSymbolsLength > 0)) {
-                const request: Dict = {};
-                if (symbols !== undefined) {
-                    request['symbols'] = this.json (this.marketIds (spotSymbols));
-                }
-                response = await this.publicGetTickerBookTicker (this.extend (request, params));
-                result = this.parseTickers (response, spotRequestSymbols);
+            const request: Dict = {};
+            if (symbols !== undefined) {
+                request['symbols'] = this.json (this.marketIds (symbols));
             }
-            // Binance's equity quote endpoint accepts one stock symbol per request
-            for (let i = 0; i < stockSymbols.length; i++) {
-                const symbol = stockSymbols[i];
-                const ticker = await this.fetchTicker (symbol, params);
-                result[symbol] = ticker;
-            }
-            return result;
+            response = await this.publicGetTickerBookTicker (this.extend (request, params));
         } else {
             throw new NotSupported (this.id + ' fetchBidsAsks() does not support ' + type + ' markets yet');
         }
@@ -4889,7 +4875,6 @@ export default class binance extends Exchange {
      * @name binance#fetchTickers
      * @description fetches price tickers for multiple markets, statistical information calculated over the past 24 hours for each market
      * @see https://developers.binance.com/docs/binance-spot-api-docs/rest-api/market-data-endpoints#24hr-ticker-price-change-statistics    // spot
-     * @see https://developers.binance.com/en/docs/catalog/advanced-trading-stocks-trading/api/rest-api/market-data#latest-quote             // stock
      * @see https://developers.binance.com/docs/derivatives/usds-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // swap
      * @see https://developers.binance.com/docs/derivatives/coin-margined-futures/market-data/rest-api/24hr-Ticker-Price-Change-Statistics  // future
      * @see https://developers.binance.com/docs/derivatives/option/market-data/24hr-Ticker-Price-Change-Statistics                          // option
@@ -4897,29 +4882,14 @@ export default class binance extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     override async fetchTickers (symbols: Strings = undefined, params = {}): Promise<Tickers> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
         symbols = this.marketSymbols (symbols, undefined, true, true, true);
-        const spotSymbols: string[] = [];
-        const stockSymbols: string[] = [];
-        if (symbols !== undefined) {
-            for (let i = 0; i < symbols.length; i++) {
-                const symbol = symbols[i];
-                const symbolMarket = this.market (symbol);
-                const stock = this.safeBool (symbolMarket, 'stock', false);
-                if (stock) {
-                    stockSymbols.push (symbol);
-                } else {
-                    spotSymbols.push (symbol);
-                }
-            }
-        }
-        const spotRequestSymbols = (symbols === undefined) ? symbols : spotSymbols;
-        const spotSymbolsLength = spotSymbols.length;
+        this.checkNoStockSymbols (symbols, 'fetchTickers');
         const market = this.getMarketFromSymbols (symbols);
         let type: Str = undefined;
         [ type, params ] = this.handleMarketTypeAndParams ('fetchTickers', market, params);
@@ -4933,34 +4903,21 @@ export default class binance extends Exchange {
         } else if (type === 'spot') {
             const rolling = this.safeBool (params, 'rolling', false);
             params = this.omit (params, 'rolling');
-            let result: Tickers = {};
             if (rolling) {
-                if ((symbols === undefined) || (spotSymbolsLength > 0)) {
-                    const request: Dict = {};
-                    if (symbols !== undefined) {
-                        request['symbols'] = this.json (this.marketIds (spotSymbols));
-                    }
-                    response = await this.publicGetTicker (this.extend (request, params));
-                    // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
-                    result = this.parseTickersForRolling (response, spotRequestSymbols);
-                }
+                symbols = this.marketSymbols (symbols);
+                const request: Dict = {
+                    'symbols': this.json (this.marketIds (symbols)),
+                };
+                response = await this.publicGetTicker (this.extend (request, params));
+                // parseTicker is not able to handle marketType for spot-rolling ticker fields, so we need custom parsing
+                return this.parseTickersForRolling (response, symbols);
             } else {
-                if ((symbols === undefined) || (spotSymbolsLength > 0)) {
-                    const request: Dict = {};
-                    if (symbols !== undefined) {
-                        request['symbols'] = this.json (this.marketIds (spotSymbols));
-                    }
-                    response = await this.publicGetTicker24hr (this.extend (request, params));
-                    result = this.parseTickers (response, spotRequestSymbols);
+                const request: Dict = {};
+                if (symbols !== undefined) {
+                    request['symbols'] = this.json (this.marketIds (symbols));
                 }
+                response = await this.publicGetTicker24hr (this.extend (request, params));
             }
-            // Binance's equity quote endpoint accepts one stock symbol per request
-            for (let i = 0; i < stockSymbols.length; i++) {
-                const symbol = stockSymbols[i];
-                const ticker = await this.fetchTicker (symbol, params);
-                result[symbol] = ticker;
-            }
-            return result;
         } else if (type === 'option') {
             response = await this.eapiPublicGetTicker (params);
         } else {
