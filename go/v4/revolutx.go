@@ -932,7 +932,7 @@ func (this *RevolutxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		AddElementToObject(request, "end_date", this.Milliseconds())
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "limit", limit)
+		AddElementToObject(request, "limit", mathMin(limit, 1900))
 	}
 	var cursor any = this.SafeString(params, "cursor")
 	if IsTrue(!IsEqual(cursor, nil)) {
