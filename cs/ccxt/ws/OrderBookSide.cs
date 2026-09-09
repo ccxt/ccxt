@@ -147,6 +147,45 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
         // }
     }
 
+    // Copy() source is already sorted and already has _index. Snapshot
+    // constructors still take IList rows and replay storeArray.
+    protected void cloneSortedFrom(OrderBookSide source)
+    {
+        // _index stores -price for bids and +price for asks, so the sign of the
+        // copied index is only meaningful together with the side flag. Adopt the
+        // source's side FIRST: the clone ctors of the intermediate base classes
+        // default `side` to false, and copying a bid side through one of them
+        // would otherwise leave side=false next to a negative _index — an object
+        // that is not merely re-sorted (which is what the replay produced) but
+        // internally inconsistent, so the next storeArray bisects a +price
+        // against negative keys, appends at the wrong end and breaks the sorted
+        // invariant the whole side relies on.
+        this.side = source.side;
+        var rows = new List<object>();
+        foreach (var row in source)
+        {
+            // rebuild each row the way THIS class's storeArray builds one, which
+            // is what the replay being replaced did: normal sides hold
+            // List<object>, counted sides hold SlimConcurrentList<object>
+            rows.Add(cloneRow(row));
+        }
+        var prices = new List<decimal>();
+        foreach (var price in source._index)
+        {
+            prices.Add(price);
+        }
+        this.AddRange(rows);
+        this._index.AddRange(prices);
+    }
+
+    // OrderBookSide/NormalOrderBookSide.storeArray insert plain List<object>
+    // rows (the ctor replay hands storeArray a `new List<object>(delta)`), so a
+    // structural clone must too, whatever the source row's own type was.
+    protected virtual object cloneRow(object row)
+    {
+        return (row is IList<object> cells) ? new List<object>(cells) : row;
+    }
+
     public void storeArray(object delta2)
     {
         lock (this)
@@ -286,7 +325,6 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-
             var deltas = (IList<object>)deltas2;
             var copiedDeltas = new List<object>(deltas);
             for (var i = 0; i < copiedDeltas.Count; i++)
@@ -294,6 +332,14 @@ public class NormalOrderBookSide : OrderBookSide, IOrderBookSide
                 var delta = copiedDeltas[i] as IList<object>;
                 this.storeArray(new List<object>(delta)); // do we need to copy here??
             }
+        }
+    }
+
+    public NormalOrderBookSide(NormalOrderBookSide source, object depth = null, bool side = false) : base(source, depth, side)
+    {
+        lock (this)
+        {
+            this.cloneSortedFrom(source);
         }
     }
 
@@ -321,13 +367,38 @@ public class CountedOrderBookSide : OrderBookSide, IOrderBookSide
 
         lock (this)
         {
-
             var deltas = (IList<object>)deltas2;
             for (var i = 0; i < deltas.Count; i++)
             {
                 this.storeArray(deltas[i]); // do we need to copy here??
             }
         }
+    }
+
+    public CountedOrderBookSide(CountedOrderBookSide source, object depth = null, bool side = false) : base(source, depth, side)
+    {
+        lock (this)
+        {
+            this.cloneSortedFrom(source);
+        }
+    }
+
+    // counted rows are inserted by storeArray as SlimConcurrentList<object>
+    // (see below), so the structural clone must produce the same CLR type or a
+    // copied counted book's rows silently change type versus the replay
+    protected override object cloneRow(object row)
+    {
+        var cells = row as IList<object>;
+        if (cells == null)
+        {
+            return row;
+        }
+        var clone = new SlimConcurrentList<object>();
+        foreach (var cell in cells)
+        {
+            clone.Add(cell);
+        }
+        return clone;
     }
 
     public IOrderBookSide Copy()
@@ -655,6 +726,11 @@ public class Asks : NormalOrderBookSide, IAsks
         this.side = false;
     }
 
+    public Asks(Asks source) : base(source)
+    {
+        this.side = false;
+    }
+
     public IAsks Copy()
     {
         lock (this)
@@ -666,7 +742,7 @@ public class Asks : NormalOrderBookSide, IAsks
     // see OrderBookSide.CopyUnlocked
     internal new IAsks CopyUnlocked()
     {
-        var copy = new Asks(this.ToList());
+        var copy = new Asks(this);
         return copy;
     }
 }
@@ -674,6 +750,11 @@ public class Asks : NormalOrderBookSide, IAsks
 public class Bids : NormalOrderBookSide, IBids
 {
     public Bids(object deltas2, object depth = null) : base(deltas2, depth, true)
+    {
+        this.side = true;
+    }
+
+    public Bids(Bids source) : base(source, null, true)
     {
         this.side = true;
     }
@@ -702,6 +783,11 @@ public class CountedAsks : CountedOrderBookSide, IAsks
         // super.side = false;
     }
 
+    public CountedAsks(CountedAsks source) : base(source)
+    {
+        this.side = false;
+    }
+
     public IAsks Copy()
     {
         lock (this)
@@ -721,6 +807,11 @@ public class CountedAsks : CountedOrderBookSide, IAsks
 public class CountedBids : CountedOrderBookSide, IBids
 {
     public CountedBids(object deltas2, object depth = null) : base(deltas2, depth, true)
+    {
+        this.side = true;
+    }
+
+    public CountedBids(CountedBids source) : base(source, null, true)
     {
         this.side = true;
     }
