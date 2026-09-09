@@ -1461,6 +1461,7 @@ export default class predictfun extends Exchange {
             const takerSigner = this.safeStringLower (taker, 'signer');
             if (takerSigner === wallet) {
                 const takerParty = this.extend (taker, {
+                    'role': 'taker',
                     'takerOrMaker': 'taker',
                     'type': 'market',
                 });
@@ -1473,6 +1474,7 @@ export default class predictfun extends Exchange {
                 const makerSigner = this.safeStringLower (maker, 'signer');
                 if (makerSigner === wallet) {
                     const makerParty = this.extend (maker, {
+                        'role': 'maker',
                         'takerOrMaker': 'maker',
                         'type': 'limit',
                     });
@@ -1553,8 +1555,12 @@ export default class predictfun extends Exchange {
             const outcomeIndexSet = this.safeInteger (info, 'indexSet');
             let partyToParse = this.safeDict (entry, 'taker', {});
             if (takerIndexSet === outcomeIndexSet) {
+                // a public print carries no takerOrMaker: the unified fetchTrades contract allows
+                // only 'taker' or nothing there, and the leg that matches the requested outcome is
+                // genuinely the maker one whenever the taker crossed into the opposite outcome.
+                // the role is kept for pricing and surfaces as the type of the order behind the leg
                 const takerParty: Dict = {
-                    'takerOrMaker': 'taker',
+                    'role': 'taker',
                     'type': 'market',
                 };
                 partyToParse = this.extend (partyToParse, takerParty);
@@ -1563,7 +1569,7 @@ export default class predictfun extends Exchange {
                 const makers = this.safeList (entry, 'makers', []);
                 const makersLength = makers.length;
                 const makerParty: Dict = {
-                    'takerOrMaker': 'maker',
+                    'role': 'maker',
                     'type': 'limit',
                 };
                 for (let j = 0; j < makersLength; j++) {
@@ -1597,12 +1603,12 @@ export default class predictfun extends Exchange {
         const partyOutcome = this.safeDict (party, 'outcome', {});
         const tokenId = this.safeString (partyOutcome, 'onChainId');
         const outcomeObj = this.safeOutcome (tokenId, market);
-        const takerOrMaker = this.safeString (party, 'takerOrMaker');
+        const role = this.safeString (party, 'role');
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
         // actually paid, and the difference is the price improvement the book gave it
         let priceStr = this.safeString (party, 'price');
-        if (takerOrMaker === 'taker') {
+        if (role === 'taker') {
             priceStr = this.safeString (trade, 'priceExecuted', priceStr);
         }
         priceStr = Precise.stringDiv (priceStr, '1000000000000000000');
@@ -1640,7 +1646,7 @@ export default class predictfun extends Exchange {
             'market': this.safeString (outcomeObj, 'market'),
             'type': this.safeString (party, 'type'),
             'side': side,
-            'takerOrMaker': takerOrMaker,
+            'takerOrMaker': this.safeString (party, 'takerOrMaker'),
             'price': this.parseNumber (priceStr),
             'amount': this.parseNumber (amountStr),
             'cost': undefined,
