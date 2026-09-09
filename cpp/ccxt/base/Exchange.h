@@ -48,6 +48,24 @@ public:
     // Applies describe() and then the caller's overrides, mirroring what the TS
     // constructor does above the transpile delimiter.
     void initialiseDefaults (const std::any& config) {
+        // TS constructor scalar defaults (ts/src/base/Exchange.ts:560-640) that gate
+        // behaviour in transpiled code paths. substituteCommonCurrencyCodes gates the
+        // XBT->BTC style mapping; reduceFees gates fee aggregation in safeTrade/safeOrder;
+        // quoteJsonNumbers mirrors the TS default even though the C++ parser handles
+        // precision separately.
+        this->substituteCommonCurrencyCodes = std::any (true);
+        this->reduceFees = std::any (true);
+        this->quoteJsonNumbers = std::any (true);
+        this->minFundingAddressLength = std::any (1);
+        // ws accumulator caches seed to empty dicts (TS constructor, Exchange.ts:578-589):
+        // watch handlers setValue into them directly, and a set into an empty std::any
+        // is a silent no-op, which dropped every ticker/trade/ohlcv/book update
+        this->balance = std::any (ccxt::dict {});
+        this->bidsasks = std::any (ccxt::dict {});
+        this->orderbooks = std::any (ccxt::dict {});
+        this->tickers = std::any (ccxt::dict {});
+        this->trades = std::any (ccxt::dict {});
+        this->ohlcvs = std::any (ccxt::dict {});
         // TS seeds options from getDefaultOptions() before describe() merges over it
         // (ts/src/base/Exchange.ts:557). These are not cosmetic defaults:
         // defaultNetworkCodeReplacements lives there, and without it
@@ -71,6 +89,15 @@ public:
         // and every network id comes back unmapped ('LIGHTNING' instead of
         // 'BTCLIGHTNING').
         this->afterConstruct ();
+        // ws tier: options.newUpdates gates watch resolution (TS Exchange.ts:631).
+        // Pro describe() blocks can set it; the default is true.
+        this->newUpdates = std::any (true);
+        if (isDict (this->options)) {
+            const auto& opts = std::any_cast<dict> (this->options);
+            if (opts.has (std::string ("newUpdates"))) {
+                this->newUpdates = opts.get (std::string ("newUpdates"));
+            }
+        }
     }
 
     // describe() returns a flat map of settings; route the ones that are real members
@@ -118,6 +145,10 @@ public:
         if (key == "timeout")            { this->timeout = value; return; }
         if (key == "markets")            { this->markets = value; return; }
         if (key == "currencies")         { this->currencies = value; return; }
+        // the static test harness seeds a default accounts list through the
+        // constructor config; loadAccounts() must see it or private flows
+        // (htx account-id, coinbase deposit addresses) try a live prefetch
+        if (key == "accounts")           { this->accounts = value; return; }
         if (!isDict (this->options)) {
             this->options = std::any (dict {});
         }
@@ -131,6 +162,12 @@ public:
     // cannot see it. Offline this iteration: fetch() throws NotSupported, and the
     // static request tests read what sign() built out of last_request_url /
     // last_request_body instead of sending anything.
+    bool hasEndpoint (const std::string& name) override {
+        if (!isDict (this->endpointRegistry)) {
+            this->defineRestApi ();
+        }
+        return ::getValue (this->endpointRegistry, std::any (name)).has_value ();
+    }
     virtual std::shared_future<std::any> callEndpoint (std::any name, std::any params = std::any {}) {
         return std::async (std::launch::deferred, [this, name, params] () -> std::any {
             if (!isDict (this->endpointRegistry)) {

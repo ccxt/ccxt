@@ -1,6 +1,7 @@
 #include "helpers.h"
 #include "Precise.h"
 #include "ws/Cache.h"
+#include "ws/Client.h"
 #include "ws/OrderBook.h"
 
 #include <algorithm>
@@ -117,6 +118,17 @@ std::any getValue (const std::any& target, const std::any& key) {
     if (!target.has_value ()) {
         return std::any {};
     }
+    // ws client: url, subscriptions, futures, rejections, mockSentMessages
+    if (target.type () == typeid (ccxt::ws::Client)) {
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (target);
+        const std::string name = anyToString (key);
+        if (name == "url")          return std::any (client.url ());
+        if (name == "subscriptions") return std::any (client.subscriptionsView ());
+        if (name == "futures")      return std::any (client.futuresView ());
+        if (name == "rejections")   return std::any (client.rejectionsView ());
+        if (name == "mockSentMessages") return std::any (client.sentMessagesView ());
+        return std::any {};
+    }
     // ws layer values: books expose bids/asks/timestamp/... ; caches and sides
     // behave like arrays (numeric keys)
     if (target.type () == typeid (ccxt::ws::WsOrderBook)) {
@@ -195,6 +207,14 @@ std::any getValue (const std::any& target, const std::any& key) {
 void setValue (const std::any& target, const std::any& key, const std::any& value) {
     if (ccxt::isDict (target)) {
         std::any_cast<dict> (target).set (anyToString (key), value);
+        return;
+    }
+    if (target.type () == typeid (ccxt::ws::WsOrderBook)) {
+        ccxt::ws::WsOrderBook book = std::any_cast<ccxt::ws::WsOrderBook> (target);
+        const std::string name = anyToString (key);
+        if (name == "timestamp") { book.setTimestamp (value); return; }
+        if (name == "nonce")     { book.setNonce (value); return; }
+        if (name == "symbol")    { book.setSymbol (value); return; }
         return;
     }
     if (ccxt::isList (target)) {
@@ -851,6 +871,16 @@ void assertTrue (const std::any& condition, const std::any& message) {
 // ---------------------------------------------------------------------------
 
 std::any jsonStringify (const std::any& v) {
+    // ws values serialize as their plain shapes (caches -> lists, books -> dicts),
+    // matching the JS shape the fixtures assert against
+    if (v.type () == typeid (ccxt::ws::WsOrderBook) ||
+        v.type () == typeid (ccxt::ws::OrderBookSide) ||
+        v.type () == typeid (ccxt::ws::ArrayCache) ||
+        v.type () == typeid (ccxt::ws::ArrayCacheByTimestamp) ||
+        v.type () == typeid (ccxt::ws::ArrayCacheBySymbolById) ||
+        v.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
+        return jsonStringify (wsToPlain (v));
+    }
     // Dictionaries serialise in insertion order: ccxt signs request bodies verbatim.
     if (ccxt::isDict (v)) {
         std::string out = "{";
@@ -1004,6 +1034,68 @@ std::any wsClear (const std::any& cache) {
         return std::any {};
     });
     return cache;
+}
+
+std::any wsReset (const std::any& book) {
+    // no-arg reset: rebuild the book from its stored snapshot (JS book.reset())
+    if (book.type () == typeid (ccxt::ws::WsOrderBook)) {
+        std::any_cast<ccxt::ws::WsOrderBook> (book).reset ();
+    }
+    return book;
+}
+
+// -- ws client helpers (generated pro code calls client.resolve(...) etc on a
+//    std::any-held Client handle) -------------------------------------------------
+
+std::any wsClientResolve (const std::any& client, const std::any& result, const std::any& messageHash) {
+    ccxt::ws::Client::of (client).resolve (result, anyToString (messageHash));
+    return result;
+}
+
+std::any wsClientReject (const std::any& client, const std::any& reason, const std::any& messageHash) {
+    ccxt::ws::Client::of (client).reject (reason, anyToString (messageHash));
+    return reason;
+}
+
+std::any wsClientFuture (const std::any& client, const std::any& messageHash) {
+    return std::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
+}
+
+std::any wsClientSend (const std::any& client, const std::any& message) {
+    ccxt::ws::Client::of (client).send (message);
+    return std::any {};
+}
+
+std::any wsClientReset (const std::any& client, const std::any& error) {
+    // JS client.reset rejects every pending future with the error
+    ccxt::ws::Client::of (client).reject (error);
+    return error;
+}
+
+std::any wsClientReusableFuture (const std::any& client, const std::any& messageHash) {
+    return std::any (ccxt::ws::Client::of (client).future (anyToString (messageHash)));
+}
+
+std::any makeExchangeError (const std::any& errorClass, const std::any& message) {
+    // pro venues materialise the stored error CLASS NAME into an error OBJECT
+    // (assigned and passed to client.reject). Build it by throwing through the
+    // Errors.h registry and catching the concrete exception instance.
+    try {
+        ccxt::throwByName (anyToString (errorClass), anyToString (message));
+    } catch (const ccxt::BaseError& e) {
+        return std::any (std::make_shared<ccxt::BaseError> (e));
+    }
+    return std::any {};
+}
+
+std::any wsFutureResolve (const std::any& future, const std::any& value) {
+    std::any_cast<ccxt::ws::Future> (future).resolve (value);
+    return value;
+}
+
+std::any wsFutureReject (const std::any& future, const std::any& error) {
+    std::any_cast<ccxt::ws::Future> (future).reject (ccxt::ws::Client::reasonToException (error));
+    return error;
 }
 
 std::any wsToPlain (const std::any& v) {

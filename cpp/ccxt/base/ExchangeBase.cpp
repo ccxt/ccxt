@@ -1,6 +1,7 @@
 #include "ExchangeBase.h"
 #include "Starknet.h"
 #include "ws/Cache.h"
+#include "ws/Client.h"
 #include "ws/OrderBook.h"
 
 #include <curl/curl.h>
@@ -179,6 +180,11 @@ std::any awaitValue (const std::any& value) {
     if (value.type () == typeid (std::shared_future<std::any>)) {
         return std::any_cast<std::shared_future<std::any>> (value).get ();
     }
+    // ws futures: watch() returns a ws::Future handle; awaiting blocks until the
+    // matching message resolves/rejects it (possibly from another thread)
+    if (value.type () == typeid (ccxt::ws::Future)) {
+        return std::any_cast<ccxt::ws::Future> (value).get ();
+    }
     return value;
 }
 
@@ -191,6 +197,51 @@ std::any promiseAll (const std::any& futures) {
         out.push (awaitValue (item));
     }
     return std::any (out);
+}
+
+// The static ws tests pair an injector future with a watcher future and rely on
+// them running CONCURRENTLY (the injector polls for the watcher's pending future
+// before injecting each frame). The normal promiseAll awaits in list order, which
+// The static ws tests pair an injector future with a watcher future and rely on
+// them running CONCURRENTLY (the injector polls for the watcher's pending future
+// while the watcher blocks on it). Sequential awaiting deadlocks, so this variant
+// runs every future on its own thread and joins; it is applied only to the ws
+// harness call sites (see transpileTestMainClass) to keep the proven-sequential
+// REST sweep untouched.
+std::any promiseAllConcurrent (const std::any& futures) {
+    if (!isList (futures)) {
+        return futures;
+    }
+    const list items = std::any_cast<list> (futures);
+    const std::size_t n = items.size ();
+    std::vector<std::any> results (n);
+    std::vector<std::thread> threads;
+    std::exception_ptr firstError;
+    std::mutex errMutex;
+    threads.reserve (n);
+    for (std::size_t i = 0; i < n; i++) {
+        threads.emplace_back ([&, i] () {
+            try {
+                results[i] = awaitValue (items.get (static_cast<long> (i)));
+            } catch (...) {
+                std::lock_guard<std::mutex> lock (errMutex);
+                if (!static_cast<bool> (firstError)) {
+                    firstError = std::current_exception ();
+                }
+            }
+        });
+    }
+    for (auto& t : threads) {
+        t.join ();
+    }
+    if (std::getenv ("CCXT_WS_URL_TRACE")) {
+        std::fprintf (stderr, "[promiseAllConcurrent] all joined, firstError=%d\n",
+                      static_cast<int> (static_cast<bool> (firstError)));
+    }
+    if (static_cast<bool> (firstError)) {
+        std::rethrow_exception (firstError);
+    }
+    return std::any (ccxt::list (std::vector<std::any> (results)));
 }
 
 // ---------------------------------------------------------------------------
@@ -555,6 +606,15 @@ std::any ExchangeBase::omitZero (std::any value) {
 std::any ExchangeBase::toArray (std::any value) {
     if (isList (value)) {
         return value;
+    }
+    // ws caches are arrays, not dicts: filterBySinceLimit slices their rows
+    // (wsToPlain maps cache -> rows, book -> dict, and passes other values through)
+    if (value.type () == typeid (ccxt::ws::ArrayCache) ||
+        value.type () == typeid (ccxt::ws::ArrayCacheByTimestamp) ||
+        value.type () == typeid (ccxt::ws::ArrayCacheBySymbolById) ||
+        value.type () == typeid (ccxt::ws::ArrayCacheByOutcomeById) ||
+        value.type () == typeid (ccxt::ws::ArrayCacheBySymbolBySide)) {
+        return wsToPlain (value);
     }
     return getObjectValues (value);
 }
@@ -1262,8 +1322,205 @@ std::any ExchangeBase::storeArray (std::any target, std::any value) {
     }
     return target;
 }
-std::any ExchangeBase::resolve (std::any value, std::any) { return value; }
-std::any ExchangeBase::reject (std::any value, std::any) { return value; }
+std::any ExchangeBase::resolve (std::any value, std::any messageHash) {
+    // generated pro code resolves through the client it got from handleMessage;
+    // the hash identifies the future. Try every registered client: only the one
+    // that holds the hash will settle anything, the others no-op (JS client.resolve).
+    if (this->clients.has_value () && ccxt::isDict (this->clients)) {
+        const std::string hash = messageHash.has_value () ? str (messageHash) : std::string {};
+        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+            if (kv.second.type () == typeid (ccxt::ws::Client)) {
+                std::any_cast<ccxt::ws::Client> (kv.second).resolve (value, hash);
+            }
+        }
+    }
+    return value;
+}
+
+std::any ExchangeBase::reject (std::any value, std::any messageHash) {
+    if (this->clients.has_value () && ccxt::isDict (this->clients)) {
+        const std::string hash = messageHash.has_value () ? str (messageHash) : std::string {};
+        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+            if (kv.second.type () == typeid (ccxt::ws::Client)) {
+                std::any_cast<ccxt::ws::Client> (kv.second).reject (value, hash);
+            }
+        }
+    }
+    return value;
+}
+
+// ---------------------------------------------------------------------------
+// ws plumbing — hand-written mirror of ts/src/base/Exchange.ts above the
+// transpile marker (client/watch/watchMultiple/spawn/delay/ping/handlers/close)
+// ---------------------------------------------------------------------------
+
+std::any ExchangeBase::client (std::any url) {
+    if (!url.has_value ()) {
+        throw ccxt::ArgumentsRequired (str (this->id) + " client() requires a url argument");
+    }
+    const std::string urlStr = str (url);
+    if (std::getenv ("CCXT_WS_URL_TRACE")) {
+        std::fprintf (stderr, "[ws-client] %s client url=%s\n", str (this->id).c_str (), urlStr.c_str ());
+    }
+    if (!this->clients.has_value ()) {
+        this->clients = std::any (ccxt::dict {});
+    }
+    ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+    if (!clients.has (urlStr)) {
+        // the static tests never dial: connect is resolved by the mock transport
+        // (setupWsMockTransport); a real transport plugs in here later
+        clients.set (urlStr, std::any (ccxt::ws::Client (urlStr)));
+    }
+    return clients.get (urlStr);
+}
+
+std::any ExchangeBase::watch (std::any url, std::any messageHash, std::any message,
+                              std::any subscribeHash, std::any subscription) {
+    if (!url.has_value ()) {
+        throw ccxt::ArgumentsRequired (str (this->id) + " watch() requires a url argument");
+    }
+    if (!messageHash.has_value ()) {
+        throw ccxt::ArgumentsRequired (str (this->id) + " watch() requires a messageHash argument");
+    }
+    const std::string hash = str (messageHash);
+    ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    if (!subscribeHash.has_value () && client.hasFuture (hash)) {
+        return std::any (client.future (hash));
+    }
+    ccxt::ws::Future future = client.future (hash);
+    bool newSubscription = false;
+    if (subscribeHash.has_value ()) {
+        if (!client.isSubscribed (str (subscribeHash))) {
+            client.setSubscription (str (subscribeHash),
+                                    subscription.has_value () ? subscription : std::any (true));
+            newSubscription = true;
+        }
+    }
+    // the subscribe frame is sent only for a NEW subscription (TS Exchange.ts:
+    // `if (clientSubscription === undefined)`); re-entrant watch calls for an
+    // existing subscription must not resend
+    if (message.has_value () && newSubscription) {
+        client.send (message);
+    }
+    return std::any (future);
+}
+
+std::any ExchangeBase::watchMultiple (std::any url, std::any messageHashes, std::any message,
+                                      std::any subscribeHashes, std::any subscription) {
+    if (!url.has_value ()) {
+        throw ccxt::ArgumentsRequired (str (this->id) + " watchMultiple() requires a url argument");
+    }
+    ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    // missing-subscription bookkeeping before the race so re-entrant calls don't resend
+    std::vector<std::string> missing;
+    if (subscribeHashes.has_value () && ccxt::isList (subscribeHashes)) {
+        for (const auto& h : std::any_cast<ccxt::list> (subscribeHashes).items ()) {
+            if (!client.isSubscribed (str (h))) {
+                missing.push_back (str (h));
+            }
+        }
+        for (const auto& h : missing) {
+            client.setSubscription (h, subscription.has_value () ? subscription : std::any (true));
+        }
+    }
+    std::vector<ccxt::ws::Future> futures;
+    for (const auto& h : std::any_cast<ccxt::list> (messageHashes).items ()) {
+        futures.push_back (client.future (str (h)));
+    }
+    if (message.has_value () && !missing.empty ()) {
+        client.send (message);
+    }
+    return std::any (ccxt::ws::race (futures));
+}
+
+std::shared_future<std::any> ExchangeBase::spawn (std::any methodName, std::any args) {
+    // fire-and-forget dispatch by method name (generated pro code passes the
+    // method as a stringified reference)
+    return std::async (std::launch::async, [this, methodName, args] () -> std::any {
+        try {
+            return this->callDynamically (str (methodName), args);
+        } catch (...) {
+            return std::any {};
+        }
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::delay (std::any timeout, std::any methodName, std::any args) {
+    const int64_t ms = timeout.has_value () ? static_cast<int64_t> (toDouble (timeout)) : 0;
+    return std::async (std::launch::async, [this, ms, methodName, args] () -> std::any {
+        std::this_thread::sleep_for (std::chrono::milliseconds (ms));
+        try {
+            return this->callDynamically (str (methodName), args);
+        } catch (...) {
+            return std::any {};
+        }
+    }).share ();
+}
+
+std::any ExchangeBase::ping (std::any) {
+    return std::any {};
+}
+
+// ws base emulations — TS Exchange.ts declares these above the transpile marker,
+// so the C++ base owns them (see declarations in ExchangeBase.h). Bodies mirror
+// the TS ones: resolve current state immediately.
+std::shared_future<std::any> ExchangeBase::fetchMarketsWs (std::any) {
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        if (!this->markets.has_value () || !ccxt::isDict (this->markets)) {
+            return std::any (ccxt::list {});
+        }
+        ccxt::list out;
+        for (const auto& kv : std::any_cast<ccxt::dict> (this->markets).entries ()) {
+            out.push (kv.second);
+        }
+        return std::any (out);
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::fetchCurrenciesWs (std::any) {
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        return this->currencies.has_value () ? this->currencies : std::any (ccxt::dict {});
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::fetchBalanceWs (std::any) {
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        return this->balance.has_value () ? this->balance : std::any (ccxt::dict {});
+    }).share ();
+}
+
+std::shared_future<std::any> ExchangeBase::fetchTradingFeesWs (std::any) {
+    return std::async (std::launch::deferred, [this] () -> std::any {
+        return this->fees.has_value () ? this->fees : std::any (ccxt::dict {});
+    }).share ();
+}
+
+void ExchangeBase::handleMessage (std::any, std::any) {
+    // stub to override in pro exchanges
+}
+
+void ExchangeBase::onConnected (std::any, std::any) {
+}
+
+void ExchangeBase::onError (std::any, std::any) {
+}
+
+void ExchangeBase::onClose (std::any, std::any) {
+}
+
+std::shared_future<std::any> ExchangeBase::close (std::any) {
+    // reject every pending future with ExchangeClosedByUser and drop the clients
+    if (this->clients.has_value () && ccxt::isDict (this->clients)) {
+        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+            if (kv.second.type () == typeid (ccxt::ws::Client)) {
+                std::any_cast<ccxt::ws::Client> (kv.second).reject (
+                    std::any (std::string (str (this->id) + " closedByUser")));
+            }
+        }
+        this->clients = std::any (ccxt::dict {});
+    }
+    return std::async (std::launch::deferred, [] () -> std::any { return std::any {}; }).share ();
+}
 
 std::shared_future<std::any> ExchangeBase::throttle (std::any) {
     return std::async (std::launch::deferred, [] () -> std::any { return std::any {}; }).share ();
@@ -2974,6 +3231,11 @@ std::any ExchangeBase::callDynamically (ExchangeBase* self, std::any name, std::
 // Merges price levels that share a price, used by parseOrderBook and test.aggregate.
 std::any ExchangeBase::aggregate (std::any bidasks) {
     dict grouped;
+    // ws orderbook sides are array-like: aggregate their rows (parseWsBidAsk and
+    // friends hand sides in directly, as JS OrderBookSide extends Array)
+    if (bidasks.type () == typeid (ccxt::ws::OrderBookSide)) {
+        bidasks = std::any (std::any_cast<const ccxt::ws::OrderBookSide&> (bidasks).rows ());
+    }
     if (isList (bidasks)) {
         for (const auto& entry : std::any_cast<list> (bidasks).items ()) {
             const std::any price = getValue (entry, std::any (0));
