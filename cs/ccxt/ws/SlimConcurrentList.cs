@@ -397,24 +397,6 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
     }
 
     /// <summary>
-    /// Performs a bisect-left binary search over the list, taking the read lock
-    /// ONCE for the whole probe sequence instead of one acquire/release pair per
-    /// <see cref="Count"/> / indexer access.
-    /// </summary>
-    /// <param name="value">The value to locate the left insertion point for.</param>
-    /// <param name="comparer">Comparer to use; <c>null</c> means <see cref="Comparer{T}.Default"/>.</param>
-    /// <returns>
-    /// The lowest index at which <paramref name="value"/> could be inserted while
-    /// keeping the list sorted - identical to walking the list through
-    /// <see cref="IList{T}"/> with the same comparisons.
-    /// </returns>
-    /// <remarks>
-    /// Additive helper, no existing behaviour is changed. It only touches the
-    /// backing list directly, so it never re-enters the (NoRecursion)
-    /// <see cref="ReaderWriterLockSlim"/> and cannot throw
-    /// <see cref="LockRecursionException"/> on its own account.
-    /// </remarks>
-    /// <summary>
     /// Appends a range of items under a single write lock. Adding them one by
     /// one costs one lock acquisition each, which dominates bulk copies.
     /// </summary>
@@ -443,6 +425,24 @@ public class SlimConcurrentList<T> : IList<T>, ICollection<T>, IReadOnlyList<T>,
         }
     }
 
+    /// <summary>
+    /// Performs a bisect-left binary search over the list, taking the read lock
+    /// ONCE for the whole probe sequence instead of one acquire/release pair per
+    /// <see cref="Count"/> / indexer access.
+    /// </summary>
+    /// <param name="value">The value to locate the left insertion point for.</param>
+    /// <param name="comparer">Comparer to use; <c>null</c> means <see cref="Comparer{T}.Default"/>.</param>
+    /// <returns>
+    /// The lowest index at which <paramref name="value"/> could be inserted while
+    /// keeping the list sorted - identical to walking the list through
+    /// <see cref="IList{T}"/> with the same comparisons.
+    /// </returns>
+    /// <remarks>
+    /// Additive helper, no existing behaviour is changed. It only touches the
+    /// backing list directly, so it never re-enters the (NoRecursion)
+    /// <see cref="ReaderWriterLockSlim"/> and cannot throw
+    /// <see cref="LockRecursionException"/> on its own account.
+    /// </remarks>
     public int BisectLeft(T value, IComparer<T> comparer = null)
     {
         try
