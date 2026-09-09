@@ -206,7 +206,11 @@ export default class independentreserve extends independentreserveRest {
         if (event === 'OrderBookSnapshot') {
             const snapshot = this.parseOrderBook (orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume');
             orderbook.reset (snapshot);
-            subscription['receivedSnapshot'] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = this.extend (subscription, {
+                'receivedSnapshot': true,
+            });
         } else {
             const asks = this.safeList (orderBook, 'Offers', []);
             const bids = this.safeList (orderBook, 'Bids', []);
