@@ -1265,9 +1265,10 @@ export default class mudrex extends Exchange {
      * @see https://docs.trade.mudrex.com/docs/fees
      * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
      * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
-     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied or the history ends
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1278,6 +1279,8 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
         let pageSize = 0;
         if (limit !== undefined) {
             // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
@@ -1285,6 +1288,7 @@ export default class mudrex extends Exchange {
         }
         const allRows = [];
         let transactionsCount = 0;
+        let calls = 0;
         let offset = 0;
         let paging = true;
         while (paging === true) {
@@ -1306,8 +1310,10 @@ export default class mudrex extends Exchange {
                     }
                 }
             }
+            calls = this.sum (calls, 1);
             paging = false;
-            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit)) {
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit) && (calls < maxCalls)) {
                 // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
                 offset = this.sum (offset, pageSize);
                 paging = true;
