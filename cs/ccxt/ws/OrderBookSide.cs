@@ -151,6 +151,16 @@ public class OrderBookSide : SlimConcurrentList<object>, IOrderBookSide
     // constructors still take IList rows and replay storeArray.
     protected void cloneSortedFrom(OrderBookSide source)
     {
+        // _index stores -price for bids and +price for asks, so the sign of the
+        // copied index is only meaningful together with the side flag. Adopt the
+        // source's side FIRST: the clone ctors of the intermediate base classes
+        // default `side` to false, and copying a bid side through one of them
+        // would otherwise leave side=false next to a negative _index — an object
+        // that is not merely re-sorted (which is what the replay produced) but
+        // internally inconsistent, so the next storeArray bisects a +price
+        // against negative keys, appends at the wrong end and breaks the sorted
+        // invariant the whole side relies on.
+        this.side = source.side;
         var rows = new List<object>();
         foreach (var row in source)
         {
