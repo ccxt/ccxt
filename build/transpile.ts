@@ -536,7 +536,9 @@ class Transpiler {
             [ /console\.log\s/g, 'print' ],
             [ /process\.exit\s+/g, 'sys.exit' ],
             [ /(while \(.*\)) {/, '$1\:' ], // While loops replace bracket with :
-            [ /([^:+=\/\*\s-]+) \(/g, '$1(' ], // PEP8 E225 remove whitespaces before left ( round bracket
+            // PEP8 E225: collapse "name (" → "name(" for calls, but not inside string
+            // literals (thrown messages keep prose parentheticals like "parameter (…").
+            [ /([^:+=\/\*\s-'"]+) \(/g, (matched: string, id: string, offset: number, whole: string) => this.isInsideQuotedString (whole, offset) ? matched : (id + '(') ],
             [ /\sand\(/g, ' and (' ],
             [ /\sor\(/g, ' or (' ],
             [ /\snot\(/g, ' not (' ],
@@ -904,6 +906,46 @@ class Transpiler {
         ].join ("\n");
     }
 
+
+    // True when `offset` sits inside a single-, double-, or triple-quoted string.
+    // Used by the Python E225 rule so prose parentheticals in thrown messages keep
+    // their space before "(" while real calls outside quotes still collapse.
+    isInsideQuotedString (text: string, offset: number) {
+        let i = 0
+        while (i < offset) {
+            const ch = text[i]
+            if (ch === "'" || ch === '"') {
+                const quote = ch
+                const triple = text.startsWith (quote + quote + quote, i)
+                if (triple) {
+                    i += 3
+                    while (i < text.length) {
+                        if (text.startsWith (quote + quote + quote, i)) {
+                            if (offset < i + 3) return true
+                            i += 3
+                            break
+                        }
+                        i += 1
+                    }
+                    continue
+                }
+                i += 1
+                while (i < text.length) {
+                    if (text[i] === '\\') { i += 2; continue }
+                    if (text[i] === quote) {
+                        if (offset < i + 1) return true
+                        i += 1
+                        break
+                    }
+                    i += 1
+                }
+                continue
+            }
+            i += 1
+        }
+        return false
+    }
+
     // ------------------------------------------------------------------------
     // a helper to apply an array of regexes and substitutions to text
     // accepts an array like [ [ regex, substitution ], ... ]
@@ -914,13 +956,10 @@ class Transpiler {
             let replaceStringOrCallback = array[i][1]
             const flags = (typeof regex === 'string') ? 'g' : undefined
             regex = new RegExp (regex, flags)
-            if (typeof array[i][1] !== 'function') {
-                text = text.replace (regex, replaceStringOrCallback)
-            } else {
-                text = text.replace (regex, function (matched: any) {
-                    return replaceStringOrCallback (matched)
-                })
-            }
+            // Pass string replacements and callbacks through to String.replace.
+            // Callbacks receive the full (match, ...groups, offset, input) signature so
+            // rules can inspect surrounding text (e.g. skip matches inside quotes).
+            text = text.replace (regex, replaceStringOrCallback)
         }
         return text
     }
