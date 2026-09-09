@@ -2082,7 +2082,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2174,7 +2174,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2199,7 +2199,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
