@@ -925,7 +925,7 @@ export default class predictfun extends Exchange {
         if (rawMarketsLength === 0) {
             active = (status === 'REGISTERED') || (status === 'OPEN');
         }
-        let resolved = undefined;
+        let resolved: Bool = undefined;
         if (status !== undefined) {
             resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
@@ -947,6 +947,64 @@ export default class predictfun extends Exchange {
             'resolved': resolved,
             'info': rawTopic,
         };
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#stripPriceFormatting
+     * @description drops the formatting the venue puts in a price but not in its slug - the currency sign, and a comma that sits between two digits
+     * @param {string} [text] the raw title or outcome label
+     * @returns {string} the same text with '$' removed and thousands separators closed up
+     */
+    stripPriceFormatting (text: Str): Str {
+        if (text === undefined) {
+            return undefined;
+        }
+        const digits = '0123456789';
+        const chars = this.stringToCharsArray (text);
+        const charsLength = chars.length;
+        let stripped = '';
+        for (let i = 0; i < charsLength; i++) {
+            const ch = chars[i];
+            let keep = true;
+            if (ch === '$') {
+                keep = false;
+            } else if (ch === ',') {
+                // only a comma between two digits is a thousands separator: "1,500" has to close
+                // up to "1500" to match the venue's comma-free slug. a comma anywhere else is
+                // ordinary punctuation and stays, so it still separates words
+                const prevIsDigit = (i > 0) && (digits.indexOf (chars[i - 1]) >= 0);
+                const nextIsDigit = ((i + 1) < charsLength) && (digits.indexOf (chars[i + 1]) >= 0);
+                keep = !(prevIsDigit && nextIsDigit);
+            }
+            if (keep) {
+                stripped = stripped + ch;
+            }
+        }
+        return stripped;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#titleForMarketSymbol
+     * @description decides what of a market title belongs in the unified symbol, given how many markets its topic holds
+     * @param {string} [topicSlug] the slug of the enclosing topic
+     * @param {string} [title] the market title
+     * @param {int} [marketCount] how many markets the topic carries
+     * @returns {string} the title to append, or the slug itself when the topic holds a single market
+     */
+    titleForMarketSymbol (topicSlug: Str, title: Str, marketCount: Int = undefined): Str {
+        // a topic holding one market needs nothing to tell its markets apart, and the title there
+        // only restates the slug in another spelling - the venue writes the same window as
+        // btc-updown-5m-1789017900 and as "Bitcoin Up or Down - September 10, 1:25AM-1:30AM ET".
+        // returning the slug makes slugToMarketSymbol collapse the two halves into one part.
+        // inside a multi-market topic the title is what keeps the handles apart, so it stays
+        if ((marketCount === 1) && (topicSlug !== undefined)) {
+            return topicSlug;
+        }
+        return this.stripPriceFormatting (title);
     }
 
     /**
@@ -1050,7 +1108,10 @@ export default class predictfun extends Exchange {
         // lets every outcome-addressed structure (order, ticker, trade, position) report an event
         const eventHandle = (topicSlug !== undefined) ? this.shortenSlug (topicSlug) : undefined;
         const title = this.safeString (rawMarket, 'title', marketId);
-        const marketSymbol = this.slugToMarketSymbol (topicSlug, title);
+        const topicMarkets = this.safeList (rawTopic, 'markets', []);
+        const marketCount = topicMarkets.length;
+        const symbolTitle = this.titleForMarketSymbol (topicSlug, title, marketCount);
+        const marketSymbol = this.slugToMarketSymbol (topicSlug, symbolTitle);
         const tradingStatus = this.safeString (rawMarket, 'tradingStatus');
         const status = this.safeString (rawMarket, 'status');
         let active = (tradingStatus === 'OPEN');
@@ -1069,11 +1130,14 @@ export default class predictfun extends Exchange {
         };
         const rawOutcomes = this.safeList (rawMarket, 'outcomes', []) as any[];
         const outcomes: any[] = [];
-        let resolvedOutcomeRaw = undefined;
+        let resolvedOutcomeRaw: Str = undefined;
         const rawOutcomesLength = rawOutcomes.length;
         for (let oi = 0; oi < rawOutcomesLength; oi++) {
             const rawOutcome = rawOutcomes[oi];
-            const label = this.safeStringUpper (rawOutcome, 'name');
+            // a label can carry a formatted price ("$1,800+"), and it goes into the outcome
+            // handle verbatim - strip the same formatting the title gets
+            const rawLabel = this.safeStringUpper (rawOutcome, 'name');
+            const label = this.stripPriceFormatting (rawLabel);
             const tokenId = this.safeString (rawOutcome, 'onChainId');
             const outcomeHandle = marketSymbol + ':' + label;
             let winner: Bool = undefined;
@@ -1107,7 +1171,7 @@ export default class predictfun extends Exchange {
             });
         }
         const resolvedOutcome = resolvedOutcomeRaw;
-        const collateral = 'USDT'; // todo check
+        const collateral = 'USDT';
         const marketType = (rawOutcomesLength > 2) ? 'categorical' : 'binary';
         const createdDatetime = this.safeString (rawMarket, 'createdAt');
         return {
@@ -1302,12 +1366,21 @@ export default class predictfun extends Exchange {
         const rawOutcomes = this.safeList (ticker, 'outcomes', []);
         const rawOutcomesLength = rawOutcomes.length;
         let rawOutcome: Dict = {};
+        let outcomeFound = false;
         for (let i = 0; i < rawOutcomesLength; i++) {
             const candidate = rawOutcomes[i];
             if (this.safeInteger (candidate, 'indexSet') === indexSet) {
                 rawOutcome = candidate;
+                outcomeFound = true;
                 break;
             }
+        }
+        if (!outcomeFound) {
+            // an unmatched indexSet would otherwise return a ticker whose every quote is
+            // undefined next to a fresh timestamp, which reads as an empty book rather than as a
+            // market that never carried this outcome
+            const requested = this.safeOutcomeSymbol (undefined, market);
+            throw new BadSymbol (this.id + ' fetchTicker() did not find ' + requested + ' among the outcomes of its market');
         }
         // the venue quotes each outcome on its own side of the book, so no complement is needed
         const bestBid = this.safeDict (rawOutcome, 'bestBid', {});
