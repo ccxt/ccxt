@@ -3246,7 +3246,7 @@ virtual std::shared_future<std::any> testWsStatically(std::any exchange,
                        this->watchAndAssertSequence(exchange, url, method,
                                                     input, skipKeys,
                                                     expectedResults)};
-                   awaitValue(promiseAll(promises));
+                   awaitValue(promiseAllConcurrent(promises));
                    this->assertWsSentMessages(exchange, url, data);
                  } else {
                    // 'parsedResponse' asserts the final state after every frame
@@ -3254,9 +3254,15 @@ virtual std::shared_future<std::any> testWsStatically(std::any exchange,
                    // updating after the first resolution, so serialize only at
                    // the end
                    std::any promises = ccxt::list{
-                       callExchangeMethodDynamically(exchange, method, input),
+                       std::async(std::launch::deferred,
+                                  [=]() -> std::any {
+                                    return callExchangeMethodDynamically(
+                                        exchange, method, input);
+                                  })
+                           .share(),
                        this->injectWsMessages(exchange, url, messages)};
-                   std::any results = awaitValue(promiseAll(promises));
+                   std::any results =
+                       awaitValue(promiseAllConcurrent(promises));
                    std::any unifiedResult =
                        jsonParse(jsonStringify(::getValue(results, 0)));
                    this->assertStaticResponseOutput(
