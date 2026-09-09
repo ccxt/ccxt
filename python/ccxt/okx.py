@@ -3843,8 +3843,10 @@ class okx(Exchange, ImplicitAPI):
         statuses = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
+            'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         }
@@ -4098,7 +4100,7 @@ class okx(Exchange, ImplicitAPI):
         takeProfitPrice = self.safe_number_2(order, 'tpTriggerPx', 'tpOrdPx')
         reduceOnlyRaw = self.safe_string(order, 'reduceOnly')
         reduceOnly = False
-        if reduceOnly is not None:
+        if reduceOnlyRaw is not None:
             reduceOnly = (reduceOnlyRaw == 'true')
         return self.safe_order({
             'info': order,
