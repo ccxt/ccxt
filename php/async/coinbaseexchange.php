@@ -1288,7 +1288,7 @@ class coinbaseexchange extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1826,8 +1826,8 @@ class coinbaseexchange extends Exchange {
     public function parse_ledger_entry_type(mixed $type) {
         $types = array(
             'transfer' => 'transfer', // Funds moved between portfolios
-            'match' => 'trade',       // Funds moved result of a trade
-            'fee' => 'fee',           // Fee result of a trade
+            'match' => 'trade',       // Funds moved as a result of a trade
+            'fee' => 'fee',           // Fee as a result of a trade
             'rebate' => 'rebate',     // Fee rebate
             'conversion' => 'trade',  // Funds converted between fiat currency and a stablecoin
         );

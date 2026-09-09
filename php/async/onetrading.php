@@ -1113,7 +1113,7 @@ class onetrading extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1703,7 +1703,7 @@ class onetrading extends Exchange {
             // 'from' => $this->iso8601($since),
             // 'to' => $this->iso8601($this->milliseconds()), // max range is 30 days
             // 'instrument_code' => $market['id'],
-            // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            // 'with_cancelled_and_rejected' => false, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
             // 'with_just_filled_inactive' => false, // orders which have been filled and are no longer open, use of "with_cancelled_and_rejected" extends "with_just_filled_inactive" and in case both are specified the latter is ignored
             // 'with_just_orders' => false, // do not return any trades corresponding to the orders, it may be significantly faster and should be used if user is not interesting in trade information
             // 'max_page_size' => 100,
@@ -1827,7 +1827,7 @@ class onetrading extends Exchange {
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         $request = array(
-            'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
+            'with_cancelled_and_rejected' => true, // default is false, orders which have been cancelled by the user before being filled or rejected by the system as invalid, additionally, all inactive filled orders which would return with "with_just_filled_inactive"
         );
         return Async\await($this->fetch_open_orders($symbol, $since, $limit, $this->extend($request, $params)));
     }

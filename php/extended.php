@@ -292,7 +292,7 @@ class extended extends Exchange {
                     '1135' => '\\ccxt\\InvalidOrder', // Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
                     '1136' => '\\ccxt\\InvalidOrder', // Reduce-only order size exceeds open position size.
                     '1137' => '\\ccxt\\InvalidOrder', // Position is missing for a reduce-only order.
-                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side reduce-only order.
+                    '1138' => '\\ccxt\\InvalidOrder', // Position is the same side as a reduce-only order.
                     '1139' => '\\ccxt\\InvalidOrder', // Market order must have time in force IOC.
                     '1140' => '\\ccxt\\InsufficientFunds', // New order cost exceeds available balance.
                     '1141' => '\\ccxt\\InvalidOrder', // Invalid price value.
@@ -1214,7 +1214,7 @@ class extended extends Exchange {
          * @param {string} [$params->candleType] candle type => 'trades' (default), 'mark-prices', or 'index-prices'
          * @param {string} [$params->price] *ignored if $params->candleType is set* 'mark' or 'index' for mark $price and index $price candles
          * @param {int} [$params->until] end timestamp in ms for the requested period
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $market = $this->market($symbol);
@@ -1384,7 +1384,7 @@ class extended extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $timeframe '1h' or '1d'
-         * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] the maximum amount of open interest structures to retrieve
          * @param {array} [$params] exchange specific parameters
          * @param {int} [$params->until] timestamp in ms of the latest open interest record to fetch
@@ -2808,7 +2808,7 @@ class extended extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, required for all order types
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->clientOrderId] client order id, sent exchange order id
+         * @param {string} [$params->clientOrderId] client order id, sent as the exchange order id
          * @param {string} [$params->cancelId] previous external order id to replace
          * @param {string} [$params->timeInForce] 'GTT' or 'IOC'
          * @param {boolean} [$params->postOnly] true if the order should only make liquidity

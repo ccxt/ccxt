@@ -263,7 +263,7 @@ class hollaex extends Exchange {
                     'Invalid token' => '\\ccxt\\AuthenticationError',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds',
-                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
+                    'Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
                 ),
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest',
@@ -969,7 +969,7 @@ class hollaex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1420,7 +1420,7 @@ class hollaex extends Exchange {
             'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
             // 'stop' => floatval($this->price_to_precision($symbol, stopPrice)),
-            // 'meta' => array(), // other options such
+            // 'meta' => array(), // other options such as post_only
         );
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
@@ -2212,7 +2212,7 @@ class hollaex extends Exchange {
             //
             // different errors return the same $code eg
             //
-            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order." )
+            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." )
             //
             //  array( "message":"Error 1001 - POST ONLY order can not be of type market" )
             //

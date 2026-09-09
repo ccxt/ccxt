@@ -170,7 +170,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
         }
         $subId = $this->safe_integer($existingSubscription, 'id');
-        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id original subscribe message
+        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id as the original subscribe message
         $unsubHash = 'unsubscribe::' . $messageHash;
         $subscription = $this->extend($subscription, array(
             'subHash' => $messageHash,
@@ -606,7 +606,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -637,7 +637,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} [$timeframe] the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

@@ -1264,7 +1264,7 @@ class toobit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API $endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1809,7 +1809,7 @@ class toobit extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */
         if ($this->markets === null) {
@@ -2142,7 +2142,7 @@ class toobit extends Exchange {
         } else {
             $response = Async\await($this->privateDeleteApiV1FuturesOrder($this->extend($request, $params)));
         }
-        // $response same `createOrder`
+        // $response same as in `createOrder`
         $status = $this->parse_order_status($this->safe_string($response, 'status'));
         if ($status !== 'open') {
             throw new OrderNotFound($this->id . ' order ' . $id . ' can not be canceled, ' . $this->json($response));

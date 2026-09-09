@@ -409,7 +409,7 @@ class blofin extends Exchange {
                     '102055' => '\\ccxt\\InvalidOrder',  // stop loss trigger price should be lower than the best ask price
                     '102064' => '\\ccxt\\BadRequest',  // Buy price is not within the price limit (Minimum => 310.40; Maximum:1,629.40)
                     '102065' => '\\ccxt\\BadRequest',  // Sell price is not within the price limit
-                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed order has been filled, triggered, canceled or does not exist
+                    '102068' => '\\ccxt\\BadRequest',  // Cancel failed as the order has been filled, triggered, canceled or does not exist
                     '103013' => '\\ccxt\\ExchangeError',  // Internal error; unable to process your request. Please try again.
                     'Order failed. Insufficient USDT margin in account' => '\\ccxt\\InsufficientFunds',  // Insufficient USDT margin in account
                 ),
@@ -946,7 +946,7 @@ class blofin extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1208,7 +1208,7 @@ class blofin extends Exchange {
         return array(
             'info' => $fee,
             'symbol' => $this->safe_symbol(null, $market),
-            // blofin returns the fees values opposed to other exchanges, so the sign needs to be flipped
+            // blofin returns the fees as negative values opposed to other exchanges, so the sign needs to be flipped
             'maker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'maker', 'makerU'))),
             'taker' => $this->parse_number(Precise::string_neg($this->safe_string_2($fee, 'taker', 'takerU'))),
             'percentage' => null,
@@ -2451,7 +2451,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverages', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverages() requires a $marginMode parameter that must be either cross or isolated');
@@ -2507,7 +2507,7 @@ class blofin extends Exchange {
         $marginMode = null;
         list($marginMode, $params) = $this->handle_margin_mode_and_params('fetchLeverage', $params);
         if ($marginMode === null) {
-            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross $marginMode
+            $marginMode = $this->safe_string($params, 'marginMode', 'cross'); // cross as default $marginMode
         }
         if (($marginMode !== 'cross') && ($marginMode !== 'isolated')) {
             throw new BadRequest($this->id . ' fetchLeverage() requires a $marginMode parameter that must be either cross or isolated');
@@ -2591,7 +2591,7 @@ class blofin extends Exchange {
          * @see https://blofin.com/docs#close-positions
          *
          * @param {string} $symbol Unified CCXT $market $symbol
-         * @param {string} [$side] 'buy' or 'sell', leave in net mode
+         * @param {string} [$side] 'buy' or 'sell', leave as null in net mode
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated', default is 'cross;

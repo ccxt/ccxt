@@ -531,7 +531,7 @@ class bitget extends \ccxt\async\bitget {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1026,7 +1026,7 @@ class bitget extends \ccxt\async\bitget {
     public function handle_delta(mixed $bookside, mixed $delta) {
         $bidAsk = $this->parse_order_book_bid_ask($delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
-        // this simplifies the code for generating checksums do not need to do any complex number transformations
+        // this simplifies the code for generating checksums as we do not need to do any complex number transformations
         $bidAsk[] = $delta;
         $bookside->storeArray($bidAsk);
     }
@@ -1888,7 +1888,7 @@ class bitget extends \ccxt\async\bitget {
         //         enterPointSource => 'API'
         //                   #### trigger $order has these additional fields => ####
         //         "triggerPrice" => "35100",
-        //         "price" => "35100", // this is same $price
+        //         "price" => "35100", // this is same as trigger $price
         //         "executePrice" => "35123", // this is limit $price
         //         "triggerType" => "fill_price",
         //         "planType" => "amount",
@@ -1944,7 +1944,7 @@ class bitget extends \ccxt\async\bitget {
         //         tradeScope => 'T',
         //                   #### trigger $order has these additional fields:
         //         "triggerPrice" => "0.800000000",
-        //         "price" => "0.800000000",  // <-- this is same $price, actual limit-$price is not present in initial response
+        //         "price" => "0.800000000",  // <-- this is same as trigger $price, actual limit-$price is not present in initial response
         //         "triggerType" => "mark_price",
         //         "triggerTime" => "1715082796679",
         //         "planType" => "pl",

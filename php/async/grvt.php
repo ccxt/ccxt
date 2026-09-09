@@ -1180,7 +1180,7 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $maxLimit = 1000;
         if ($this->markets === null) {
@@ -1854,7 +1854,7 @@ class grvt extends Exchange {
             $fundingAccountId = null;
             list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
             if ($tradingAccountId === null || $fundingAccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" main funding account id)');
+                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
             $fromAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
             $toAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
@@ -3418,7 +3418,7 @@ class grvt extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
             );
-            // an empty $params dict must serialize empty json object, not an empty json array,
+            // an empty $params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce array() here which the venue rejects with the same 1003 error
             $paramsKeys = is_array($params) ? array_keys($params) : array();
             $paramsKeysLength = count($paramsKeys);

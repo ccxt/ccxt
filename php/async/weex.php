@@ -1424,7 +1424,7 @@ class weex extends Exchange {
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the mark price for
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned indexPrice of the $ticker
+         * @param {string} [$params->priceType] "MARK" (default) or "INDEX", with "INDEX" the price is returned as the indexPrice of the $ticker
          * @return {array} a ~@link https://docs.ccxt.com/?id=$ticker-structure $ticker structure~
          */
         if ($this->markets === null) {
@@ -1569,7 +1569,7 @@ class weex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 100, max 300)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * Check fetchSpotOHLCV() and fetchContractOHLCV() for more details on the extra parameters that can be used in $params
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1598,7 +1598,7 @@ class weex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1634,7 +1634,7 @@ class weex extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] whether to automatically $paginate requests $until the required number of candles is returned
          * @param {boolean} [$params->historical] whether to fetch $historical klines (default is false). If false, will fetch last price klines
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2366,16 +2366,16 @@ class weex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client order id
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the $triggerPrice at which the attached take profit order will be triggered and the triggerPriceType
-         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported alias
+         * @param {float} [$params->takeProfit.triggerPrice] The $price at which the take profit order will be triggered, takeProfit.stopPrice is supported as an alias
          * @param {string} [$params->takeProfit.triggerPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->takeProfit.price] not supported, the attached take profit always executes at $market $price
          * @param {array} [$params->stopLoss] *stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered and the triggerPriceType
-         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported alias
+         * @param {float} [$params->stopLoss.triggerPrice] The $price at which the stop loss order will be triggered, stopLoss.stopPrice is supported as an alias
          * @param {string} [$params->stopLoss.triggerPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->stopLoss.price] not supported, the attached stop loss always executes at $market $price
-         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->stopLossPrice] $price to trigger a standalone stop-loss order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->stopLossPriceType] The $type of the trigger $price for the stop loss order, either 'last' or 'mark' (default is 'last')
-         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used execution $price for limit orders
+         * @param {float} [$params->takeProfitPrice] $price to trigger a standalone take-profit order on an open position, the $price argument is used as its execution $price for limit orders
          * @param {string} [$params->takeProfitPriceType] The $type of the trigger $price for the take profit order, either 'last' or 'mark' (default is 'last')
          * @param {float} [$params->triggerPrice] the $price at which a trigger (entry conditional) order is triggered, cannot be used together with stopLossPrice or takeProfitPrice
          * @param {bool} [$params->reduceOnly] A mark to reduce the position size only. Set to false by default. Need to set the position size when reduceOnly is true.
@@ -3313,7 +3313,7 @@ class weex extends Exchange {
         $rawType = $this->safe_string_upper_2($order, 'type', 'orderType');
         $isReduceOnly = $this->safe_bool($order, 'reduceOnly');
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
-        // a missing reduceOnly counts-only to keep the legacy mapping for responses that omit the field
+        // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         $isEntryTrigger = !$this->safe_bool($order, 'reduceOnly', true);
         $takeProfitPrice = null;
         $stopLossPrice = null;

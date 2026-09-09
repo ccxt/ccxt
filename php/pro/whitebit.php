@@ -82,7 +82,7 @@ class whitebit extends \ccxt\async\whitebit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1198,7 +1198,7 @@ class whitebit extends \ccxt\async\whitebit {
 
     public function handle_subscription_status(Client $client, mixed $message, mixed $id) {
         // not every $method stores its $subscription
-        // object so we can't do indeById here
+        // as an object so we can't do indeById here
         $subs = $client->subscriptions;
         $values = is_array($subs) ? array_values($subs) : array();
         for ($i = 0; $i < count($values); $i++) {

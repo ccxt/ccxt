@@ -740,7 +740,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -762,7 +762,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -803,7 +803,7 @@ class bybit extends \ccxt\async\bybit {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV $data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -845,7 +845,7 @@ class bybit extends \ccxt\async\bybit {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         return Async\await($this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params));
@@ -1566,7 +1566,7 @@ class bybit extends \ccxt\async\bybit {
         $trades = $this->myTrades;
         $symbols = array();
         // the option was renamed from filterExecTypes to $execType to mirror
-        // the exchange's own field name, the old key is still read
+        // the exchange's own field name, the old key is still read as a
         // fallback for backward compatibility
         // see https://github.com/ccxt/ccxt/issues/17244
         // and https://github.com/ccxt/ccxt/issues/28181
@@ -1576,7 +1576,7 @@ class bybit extends \ccxt\async\bybit {
         }
         $execTypes = null;
         if (gettype($execTypeOption) === 'string') {
-            // a single execution type is accepted plain string
+            // a single execution type is accepted as a plain string as well
             $execTypes = array( $execTypeOption );
         } else {
             $execTypes = $execTypeOption;
@@ -1681,7 +1681,7 @@ class bybit extends \ccxt\async\bybit {
     }
 
     private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
-        // one ws channel gives $positions for all types, for snapshot must load all $positions
+        // as only one ws channel gives $positions for all types, for snapshot must load all $positions
         $fetchFunctions = array(
             $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'linear' )),
             $this->fetch_positions(null, array( 'type' => 'swap', 'subType' => 'inverse' )),

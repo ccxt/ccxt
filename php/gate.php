@@ -3395,7 +3395,7 @@ class gate extends Exchange {
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units ?? '', quote currency))
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume (is_array(quote currency) && array_key_exists(units ?? '', quote currency))
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4345,10 +4345,10 @@ class gate extends Exchange {
          * @param {bool} [$params->auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
          * @param {string} [$params->settle] *contract only* Unified Currency Code for settle currency
          * @param {bool} [$params->reduceOnly] *contract only* Indicates if this order is to reduce the size of a position
-         * @param {bool} [$params->close] *contract only* Set to close the position, with size set to 0
+         * @param {bool} [$params->close] *contract only* Set as true to close the position, with size set to 0
          * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
          * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {bool} [$params->unifiedAccount] set to true for creating an order in the unified account
          * @param {string} [$params->clientOrderId] the clientOrderId of the order
          * @return {array|null} ~@link https://docs.ccxt.com/?id=order-structure An order structure~
@@ -4588,7 +4588,7 @@ class gate extends Exchange {
                     'size' => $amount, // int64, positive = bid, negative = ask
                     // 'iceberg' => 0, // int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     // 'close' => false, // true to close the position, with size set to 0
-                    // 'reduce_only' => false, // St to be reduce-only order
+                    // 'reduce_only' => false, // St as true to be reduce-only order
                     // 'tif' => 'gtc', // gtc, ioc, poc PendingOrCancelled == $postOnly order
                     // 'text' => $clientOrderId, // 't-abcdef1234567890',
                     // 'auto_size' => '', // close_long, close_short, note size also needs to be set to 0
@@ -5227,7 +5227,7 @@ class gate extends Exchange {
             $average = $this->parse_number($averageString);
             if (($type === 'market') && ($side === 'buy')) {
                 $remaining = Precise::string_div($remainingString, $averageString);
-                $price = null; // arrives
+                $price = null; // arrives as 0
                 $cost = $amount;
                 $amount = Precise::string_div($amount, $averageString);
             }
@@ -7242,7 +7242,7 @@ class gate extends Exchange {
          *
          * @param {string} $symbol Unified CCXT $market $symbol
          * @param {string} $timeframe "5m", "15m", "30m", "1h", "4h", "1d"
-         * @param {int} [$since] the time(ms) of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time(ms) of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] default 30
          * @param {array} [$params] exchange specific parameters
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)

@@ -514,7 +514,7 @@ class apex extends \ccxt\async\apex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $params['callerMethodName'] = 'watchOHLCV';
         $result = Async\await($this->watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $since, $limit, $params));
@@ -535,7 +535,7 @@ class apex extends \ccxt\async\apex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} A list of candles ordered, open, high, low, close, volume
+         * @return {array} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -856,7 +856,7 @@ class apex extends \ccxt\async\apex {
     }
 
     private function do_load_positions_snapshot(Client $client, mixed $messageHash) {
-        // one ws channel gives $positions for all types, for snapshot must load all $positions
+        // as only one ws channel gives $positions for all types, for snapshot must load all $positions
         $fetchFunctions = array(
             $this->fetch_positions(),
         );
@@ -1034,7 +1034,7 @@ class apex extends \ccxt\async\apex {
                 $ret_msg = $this->safe_string($message, 'ret_msg');
                 $request = $this->safe_value($message, 'request', array());
                 $op = $this->safe_string($request, 'op');
-                // Benign re-subscribe notice (same shape 90008 /
+                // Benign re-subscribe notice (same shape as bitmart 90008 /
                 // krakenfutures "Already subscribed") => the original subscription
                 // is still active and delivering data on this socket. Without
                 // this short-circuit the catch-clause's `$client->reject($error,

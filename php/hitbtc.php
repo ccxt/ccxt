@@ -973,7 +973,7 @@ class hitbtc extends Exchange {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -1452,7 +1452,7 @@ class hitbtc extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        // we use clientOrderId order $id with this exchange intentionally
+        // we use clientOrderId as the order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
@@ -1850,7 +1850,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2093,7 +2093,7 @@ class hitbtc extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'order_id' => $id, // exchange assigned order $id to the client order $id
+            'order_id' => $id, // exchange assigned order $id as oppose to the client order $id
         );
         $marketType = null;
         $marginMode = null;
@@ -2587,7 +2587,7 @@ class hitbtc extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'client_order_id');
-        // we use clientOrderId $order $id with this exchange intentionally
+        // we use clientOrderId as the $order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $side = $this->safe_string($order, 'side');
@@ -2790,7 +2790,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();

@@ -264,7 +264,7 @@ class binance extends \ccxt\async\binance {
 
     public function get_ws_url(mixed $type, mixed $category) {
         if (($type === 'option') || ($type === 'optionMarket') || ($type === 'optionPrivate')) {
-            // eOptions urls are stored public/market/private paths, no $category rewrite needed,
+            // eOptions urls are stored as full public/market/private paths, no $category rewrite needed,
             // see https://github.com/ccxt/ccxt/pull/27982 and https://github.com/ccxt/ccxt/issues/26333
             return $this->urls['api']['ws'][$type];
         }
@@ -1708,7 +1708,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1747,7 +1747,7 @@ class binance extends \ccxt\async\binance {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->stock] set to true to use stocks $market streams
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1854,7 +1854,7 @@ class binance extends \ccxt\async\binance {
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified $symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that $timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1937,7 +1937,7 @@ class binance extends \ccxt\async\binance {
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {array} [$params->timezone] if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2082,7 +2082,7 @@ class binance extends \ccxt\async\binance {
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} $params->timeZone default=0 (UTC)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2232,7 +2232,7 @@ class binance extends \ccxt\async\binance {
          * @return {array} a ~@link https://docs.ccxt.com/?id=ticker-structure ticker structure~
          */
         $channelName = null;
-        // for now watchmarkPrice uses the same messageHash
+        // for now watchmarkPrice uses the same messageHash as watchTicker
         // so it's impossible to watch both at the same time
         // refactor this to use different messageHashes
         list($channelName, $params) = $this->handle_option_and_params($params, 'watchMarkPrices', 'name', 'markPrice');
@@ -2864,7 +2864,7 @@ class binance extends \ccxt\async\binance {
             $ticker = $rawTickers[$i];
             $event = $this->safe_string($ticker, 'e');
             if ($isBidAsk) {
-                $event = 'bookTicker'; // in `handleMessage`, bookTicker doesn't have identifier, so manually set here
+                $event = 'bookTicker'; // as noted in `handleMessage`, bookTicker doesn't have identifier, so manually set here
             }
             $channelName = $this->safe_string($this->options['tickerChannelsMap'], $event, $event);
             if ($channelName === null) {
@@ -4566,7 +4566,7 @@ class binance extends \ccxt\async\binance {
         list($marginMode, $params) = $this->handle_margin_mode_and_params('watchOrders', $params);
         $urlType = $type;
         if (($type === 'margin') || (($type === 'spot') && ($marginMode !== null))) {
-            $urlType = 'spot'; // spot-margin shares the same stream spot
+            $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchOrders', 'papi', 'portfolioMargin', false);
@@ -5174,7 +5174,7 @@ class binance extends \ccxt\async\binance {
         // spot and margin have no positions - whatever still RESOLVES to spot
         // or margin after the helper falls through to the derivatives stream
         // matching the $subType-> requests a defaultSubType already rewrote
-        // arrive here or delivery and pass untouched, which lands on
+        // arrive here as future or delivery and pass untouched, which lands on
         // the same stream the old raw-$type ordering produced in every case
         if ($type === 'spot' || $type === 'margin') {
             $type = ($subType === 'inverse') ? 'delivery' : 'future';
@@ -5634,7 +5634,7 @@ class binance extends \ccxt\async\binance {
         Async\await($this->authenticate($this->extend(array( 'type' => $type, 'subType' => $subType ), $params)));
         $urlType = $type; // we don't change $type because the listening key is different
         if ($type === 'margin') {
-            $urlType = 'spot'; // spot-margin shares the same stream spot
+            $urlType = 'spot'; // spot-margin shares the same stream as regular spot
         }
         $isPortfolioMargin = null;
         list($isPortfolioMargin, $params) = $this->handle_option_and_params_2($params, 'watchMyTrades', 'papi', 'portfolioMargin', false);
@@ -5885,7 +5885,7 @@ class binance extends \ccxt\async\binance {
             $this->handle_errors($codeValue, $msg, $client->url, '', array(), $this->json($error), $error, array(), array());
         } catch (Exception $e) {
             $rejected = true;
-            // private endpoint uses $id
+            // private endpoint uses $id as messageHash
             $client->reject($e, $id);
             // public endpoint stores messageHash in subscriptions
             $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();

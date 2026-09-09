@@ -760,7 +760,7 @@ class alpaca extends Exchange {
          * @param {int} [$params->paginationCalls] the maximum number of requests while following next_page_token, default 10 — when the cap is reached the result is silently truncated to the pages already fetched, so raise it for long ranges, 10 requests cover roughly 30 days of 1h candles
          * @param {string} [$params->loc] crypto location, default => us
          * @param {string} [$params->method] $method, default => marketPublicGetV1beta3CryptoLocBars
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

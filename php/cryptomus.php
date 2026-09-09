@@ -412,7 +412,7 @@ class cryptomus extends Exchange {
 
     public function parse_currency(array $rawCurrency): array {
         // currency here is array of $networks
-        $id = null; // all entries have same $id, were grouped by
+        $id = null; // all entries have same $id, as they were grouped by
         $code = null;
         $networks = array();
         for ($i = 0; $i < count($rawCurrency); $i++) {
@@ -711,7 +711,7 @@ class cryptomus extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders (only for limit orders)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique identifier for the order (optional)
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */

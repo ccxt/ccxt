@@ -1248,9 +1248,9 @@ class bitget extends Exchange {
                     '36103' => '\\ccxt\\AccountSuspended', // Account is suspended due to ongoing liquidation.
                     '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
                     '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
-                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, is suspended.
+                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, as account is suspended.
                     '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, of the account is less than zero.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
                     '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
                     '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
                     '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
@@ -1358,7 +1358,7 @@ class bitget extends Exchange {
                     '40502' => '\\ccxt\\ExchangeError', // If it is a copy user, you must pass the copy to whom
                     '40503' => '\\ccxt\\ExchangeError', // With the single type
                     '40504' => '\\ccxt\\ExchangeError', // Platform code must pass
-                    '40505' => '\\ccxt\\ExchangeError', // Not the same type
+                    '40505' => '\\ccxt\\ExchangeError', // Not the same as single type
                     '40506' => '\\ccxt\\AuthenticationError', // Platform signature error
                     '40507' => '\\ccxt\\AuthenticationError', // Api signature error
                     '40508' => '\\ccxt\\ExchangeError', // KOL is not authorized
@@ -1487,7 +1487,7 @@ class bitget extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchMarkets' => array(
-                    'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints
+                    'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints as swap
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
@@ -2594,7 +2594,7 @@ class bitget extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $entry = $rawCurrency;
-        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
         $code = $this->safe_currency_code($id);
         $chains = $this->safe_list($entry, 'chains', array());
         $networks = array();
@@ -3247,7 +3247,7 @@ class bitget extends Exchange {
         if ($txid === null) {
             $dest = $this->safe_string($transaction, 'dest');
             if ($dest === 'on_chain') {
-                $txid = $this->safe_string($transaction, 'recordId'); // uta on-chain rows expose the tx hash
+                $txid = $this->safe_string($transaction, 'recordId'); // uta on-chain rows expose the tx hash as recordId
             }
         }
         $feeCostString = $this->safe_string($transaction, 'fee');
@@ -4515,7 +4515,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price $candles) or "index" (to fetch index price $candles)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -5341,7 +5341,7 @@ class bitget extends Exchange {
         $orderType = $this->safe_string($order, 'orderType');
         $isBuyMarket = ($side === 'buy') && ($orderType === 'market');
         if (($market['spot'] === true) && $isBuyMarket) {
-            // in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
+            // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             $size = $this->safe_string($order, 'baseVolume');
         }
         return $this->safe_order(array(
@@ -5425,7 +5425,7 @@ class bitget extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used execution $price for contract stop-loss / take-profit orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used as the execution $price for contract stop-loss / take-profit orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *spot only* how much you want to trade in units of the quote currency, for $market buy orders only
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
@@ -5446,7 +5446,7 @@ class bitget extends Exchange {
          * @param {string} [$params->trailingPercent] *swap and future only* the percent to trail away from the current $market $price, rate can not be greater than 10
          * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
          * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
-         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as null in hedge_mode, can adjust the mode using the setPositionMode() method
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false

@@ -1172,7 +1172,7 @@ class bingx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1538,7 +1538,7 @@ class bingx extends Exchange {
         $amount = $this->safe_string_n($trade, array( 'qty', 'amount', 'q' ));
         if (($market !== null) && ($market['swap'] === true) && (is_array($trade) && array_key_exists('volume' ?? '', $trade))) {
             if ($market['linear'] === true) {
-                // private linear swap trades report 'amount' notional (quote) value, not the base $amount;
+                // private linear swap trades report 'amount' as the notional (quote) value, not the base $amount;
                 // 'volume' is the exchange's own base-currency fill quantity (bingx linear $contractSize is always 1),
                 // use it directly instead of 'notional / price', which picks up rounding noise from the notional field
                 $amount = $this->safe_string($trade, 'volume');
@@ -3328,7 +3328,7 @@ class bingx extends Exchange {
          * @param {float} [$params->triggerPrice] triggerPrice at which the attached take profit / stop loss order will be triggered
          * @param {float} [$params->stopLossPrice] stop loss trigger $price
          * @param {float} [$params->takeProfitPrice] take profit trigger $price
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount
          * @param {float} [$params->trailingAmount] *swap only* the quote $amount to trail away from the current $market $price
          * @param {float} [$params->trailingPercent] *swap only* the percent to trail away from the current $market $price
          * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the triggerPrice at which the attached take profit order will be triggered
@@ -3444,10 +3444,10 @@ class bingx extends Exchange {
         } else {
             $result = $data;
         }
-        // when the $response arrives already-parsed dict, the attached SL/TP members are still stringified json
+        // when the $response arrives as an already-parsed dict, the attached SL/TP members are still stringified json
         $stopLossDict = $this->safe_dict($result, 'stopLoss');
         $stopLoss = $this->safe_string($result, 'stopLoss');
-        // for py fix, the SL is already parsed (instead of stringified,'s provided)
+        // for py fix, the SL is already parsed (instead of stringified, as it's provided)
         // so we need trick to check if it's non-parsed string yet
         if (($stopLossDict === null) && ($stopLoss !== null) && (mb_strpos($stopLoss, '{') === 0)) {
             $result['stopLoss'] = $this->parse_json($stopLoss);

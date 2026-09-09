@@ -1447,7 +1447,7 @@ class xt extends Exchange {
          * @param {array} $params extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -5024,7 +5024,7 @@ class xt extends Exchange {
             $response = $this->privateLinearGetFutureUserV1UserStepRate($params);
         }
         //
-        // same $response
+        // same $response as fetchTradingFee
         //
         $fee = $this->safe_dict($response, 'result', array());
         $result = array();

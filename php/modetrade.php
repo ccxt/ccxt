@@ -310,12 +310,12 @@ class modetrade extends Exchange {
                             'GTD' => false,
                         ),
                         'hedged' => false,
-                        'trailing' => true,
-                        'leverage' => true, // todo implement
+                        'trailing' => false,
+                        'leverage' => false,
                         'marketBuyByCost' => false,
                         'marketBuyRequiresPrice' => false,
                         'selfTradePrevention' => false,
-                        'iceberg' => true, // todo implement
+                        'iceberg' => false,
                     ),
                     'createOrders' => array(
                         'max' => 10,
@@ -340,7 +340,15 @@ class modetrade extends Exchange {
                         'trailing' => false,
                         'symbolRequired' => false,
                     ),
-                    'fetchOrders' => null,
+                    'fetchOrders' => array(
+                        'marginMode' => false,
+                        'limit' => 500,
+                        'daysBack' => null,
+                        'untilDays' => 100000,
+                        'trigger' => true,
+                        'trailing' => false,
+                        'symbolRequired' => false,
+                    ),
                     'fetchClosedOrders' => array(
                         'marginMode' => false,
                         'limit' => 500,
@@ -355,9 +363,7 @@ class modetrade extends Exchange {
                         'limit' => 1000,
                     ),
                 ),
-                'spot' => array(
-                    'extends' => 'default',
-                ),
+                'spot' => null,
                 'forDerivatives' => array(
                     'extends' => 'default',
                     'createOrder' => array(
@@ -1280,7 +1286,7 @@ class modetrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1606,8 +1612,11 @@ class modetrade extends Exchange {
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {string} [$params->algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+         * @param {bool} [$params->reduceOnly] true or false whether the $order is reduce-only
+         * @param {bool} [$params->postOnly] true or false whether the $order is post-only
+         * @param {string} [$params->timeInForce] 'IOC', 'FOK' or 'PO'
+         * @param {array[]} [$params->childOrders] *algo $order only* a list of child orders passed through to the exchange
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
