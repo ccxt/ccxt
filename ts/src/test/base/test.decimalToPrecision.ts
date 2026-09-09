@@ -180,8 +180,16 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('0.000273398', ROUND, 1e-7, TICK_SIZE) === '0.0002734');
 
     assert (exchange.decimalToPrecision ('0.00005714', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
-    // this line causes problems in JS, fix with Precise
-    // assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+    assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+
+    // A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+    // decimalToPrecision accepts back, and it is what reaches an order body.
+    assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00000001');
+    assert (exchange.decimalToPrecision ('0.000000123', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00000012');
+    assert (exchange.decimalToPrecision ('0.0000009', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000009');
+    assert (exchange.decimalToPrecision ('0.0000005', TRUNCATE, 0.0000001, TICK_SIZE) === '0.0000005');
+    assert (exchange.decimalToPrecision ('0.00000001', TRUNCATE, 0.00000001, TICK_SIZE, PAD_WITH_ZERO) === '0.00000001');
+
 
     assert (exchange.decimalToPrecision ('0.01', ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
     assert (exchange.decimalToPrecision ('0.01', TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
