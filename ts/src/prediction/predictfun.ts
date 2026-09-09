@@ -915,7 +915,6 @@ export default class predictfun extends Exchange {
                 anyActive = true;
             }
         }
-        const topicId = this.safeString (rawTopic, 'id');
         const slug = this.safeString (rawTopic, 'slug');
         const title = this.safeString (rawTopic, 'title');
         const endDate = this.safeString (rawTopic, 'endsAt');
@@ -930,7 +929,11 @@ export default class predictfun extends Exchange {
             resolved = (status === 'RESOLVED') || (status === 'SETTLED');
         }
         return {
-            'id': topicId,
+            // the venue addresses a category by its slug - GET /v1/categories/{slug} - and
+            // fetchEvents () already reads params.eventId as one. publishing the numeric category
+            // id here instead would break the base contract that an event can be refetched by its
+            // own id; the numeric id stays reachable under info
+            'id': slug,
             'slug': slug,
             'event': (slug !== undefined) ? this.shortenSlug (slug) : undefined,
             'title': title,
