@@ -4698,6 +4698,19 @@ class binance extends Exchange {
         return $this->parse_ticker($response, $market);
     }
 
+    public function check_no_stock_symbols(?array $symbols, string $methodName) {
+        if ($symbols === null) {
+            return;
+        }
+        for ($i = 0; $i < count($symbols); $i++) {
+            $symbolMarket = $this->market($symbols[$i]);
+            $stock = $this->safe_bool($symbolMarket, 'stock', false);
+            if ($stock === true) {
+                throw new NotSupported($this->id . ' ' . $methodName . '() does not support tokenized $stock $symbols (' . $symbols[$i] . '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead');
+            }
+        }
+    }
+
     public function fetch_bids_asks(?array $symbols = null, $params = array()) {
         /**
          * fetches the bid and ask price and volume for multiple markets
@@ -4710,12 +4723,13 @@ class binance extends Exchange {
          * @param {string[]|null} $symbols unified $symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~ tokenized stock $symbols are not supported here, use fetchTicker() per symbol instead
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $this->check_no_stock_symbols($symbols, 'fetchBidsAsks');
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchBidsAsks', $market, $params);
@@ -4867,12 +4881,13 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->subType] "linear" or "inverse"
          * @param {string} [$params->type] 'spot', 'option', use $params["subType"] for swap and future markets
-         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=ticker-structure ticker structures~ tokenized stock $symbols are not supported here, use fetchTicker() per symbol instead
          */
         if ($this->markets === null) {
             $this->load_markets();
         }
         $symbols = $this->market_symbols($symbols, null, true, true, true);
+        $this->check_no_stock_symbols($symbols, 'fetchTickers');
         $market = $this->get_market_from_symbols($symbols);
         $type = null;
         list($type, $params) = $this->handle_market_type_and_params('fetchTickers', $market, $params);
