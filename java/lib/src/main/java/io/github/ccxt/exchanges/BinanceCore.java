@@ -6424,6 +6424,23 @@ public class BinanceCore extends BinanceApi
 
     }
 
+    public void checkNoStockSymbols(Object symbols, Object methodName)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+        {
+            return;
+        }
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+        {
+            Object symbolMarket = this.market(Helpers.GetValue(symbols, i));
+            Object stock = this.safeBool(symbolMarket, "stock", false);
+            if (Helpers.isTrue(Helpers.isEqual(stock, true)))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), Helpers.GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+            }
+        }
+    }
+
     /**
      * @method
      * @name binance#fetchBidsAsks
@@ -6435,7 +6452,7 @@ public class BinanceCore extends BinanceApi
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
     {
@@ -6449,6 +6466,7 @@ public class BinanceCore extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
+            this.checkNoStockSymbols(symbols, "fetchBidsAsks");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
@@ -6606,7 +6624,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
@@ -6620,6 +6638,7 @@ public class BinanceCore extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
+            this.checkNoStockSymbols(symbols, "fetchTickers");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
