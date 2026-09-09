@@ -183,7 +183,20 @@ std::any wsStoreArray (const std::any& side, const std::any& delta);
 std::any wsLimit (const std::any& bookOrSide);
 std::any wsAppend (const std::any& cache, const std::any& item);
 std::any wsGetLimit (const std::any& cache, const std::any& symbol, const std::any& limit);
+std::any wsClientFuture (const std::any& client, const std::any& messageHash);
+std::any wsClientReusableFuture (const std::any& client, const std::any& messageHash);
+std::any wsClientSend (const std::any& client, const std::any& message);
+std::any wsClientReset (const std::any& client, const std::any& error);
+std::any wsFutureResolve (const std::any& future, const std::any& value = std::any {});
+std::any wsFutureReject (const std::any& future, const std::any& error = std::any {});
+std::any makeExchangeError (const std::any& errorClass, const std::any& message);
 std::any wsClear (const std::any& cache);
+std::any wsReset (const std::any& book);
+std::any wsClientResolve (const std::any& client, const std::any& result, const std::any& messageHash);
+std::any wsClientReject (const std::any& client, const std::any& reason, const std::any& messageHash);
+std::any wsClientFuture (const std::any& client, const std::any& messageHash);
+std::any wsClientSend (const std::any& client, const std::any& message);
+std::any wsClientReset (const std::any& client, const std::any& error);
 // Recursively converts ws values (books, sides, caches) to plain dict/list shapes so
 // structural comparisons (the test equals) can treat them like their JS originals.
 std::any wsToPlain (const std::any& v);

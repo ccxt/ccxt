@@ -42,6 +42,7 @@ const BASE_DISPATCH_FILE    = './cpp/ccxt/base/Exchange.Dispatch.inc';
 const TYPED_API_FILE        = './cpp/ccxt/base/Exchange.TypedApi.inc';
 const ERRORS_FILE           = './cpp/ccxt/base/Errors.h';
 const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
+const PRO_EXCHANGES_FOLDER  = './cpp/ccxt/pro/';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
 const EXCHANGE_TESTS_FOLDER = './cpp/tests/Generated/';
 const TS_BASE_TESTS_FOLDER  = './ts/src/test/base/';
@@ -288,6 +289,64 @@ function rewriteSuperCalls (content: string, parentClass: string): string {
     return content.replace (/\bbase\.(\w+)\s*\(/g, `${parentClass}::$1(`);
 }
 
+// JS `method.call(this, ...args)` with a method NAME stored in a variable (pro
+// exchanges build subscription dicts carrying method references, which the
+// stringify pass turns into std::string names). The C++ route is the dynamic
+// dispatcher: method.call(this, a, b) -> this->dispatchMethodName(method, list{a, b}).
+// The argument list is paren-balanced per match (args contain nested calls).
+function rewriteMethodNameCalls (content: string): string {
+    let out = '';
+    let cursor = 0;
+    for (;;) {
+        const marker = '.call(this, ';
+        const at = content.indexOf (marker, cursor);
+        if (at === -1) {
+            out += content.slice (cursor);
+            return out;
+        }
+        // find the receiver start (last identifier before the dot)
+        let receiverStart = at;
+        while (receiverStart > cursor && /[A-Za-z0-9_]/.test (content[receiverStart - 1])) {
+            receiverStart--;
+        }
+        const receiver = content.slice (receiverStart, at);
+        const argsStart = at + marker.length;
+        let depth = 1;
+        let inStr = false;
+        let i = argsStart;
+        for (; i < content.length; i++) {
+            const c = content[i];
+            if (inStr) {
+                if (c === '\\') { i++; continue; }
+                if (c === '"') { inStr = false; }
+                continue;
+            }
+            if (c === '"') { inStr = true; continue; }
+            if (c === '(') { depth++; continue; }
+            if (c === ')') {
+                depth--;
+                if (depth === 0) {
+                    break;
+                }
+            }
+        }
+        const args = content.slice (argsStart, i);
+        out += content.slice (cursor, receiverStart);
+        out += 'this->dispatchMethodName(' + receiver + ', ccxt::list{' + args + '})';
+        cursor = i + 1;   // past the closing ')'
+    }
+}
+
+// JS `broad[broadKey](errorMessage)` where the dict holds an error CLASS name:
+// the C++ exceptions map stores the name as a string (rewriteErrorClassValues),
+// and rewriteAnyMemberAccess turns the index into ::getValue(...), leaving the
+// invocation dangling: `::getValue(broad, broadKey)(errorMessage)`. Rewrite the
+// call form into makeExchangeError(name, message). Only pro venues use it.
+function rewriteDynamicErrorCalls (content: string): string {
+    return content.replace (/::getValue\(([^()]*)\)\(/g,
+        '::makeExchangeError(::getValue($1), ');
+}
+
 // TS `catch (e) { ... throw e; }` becomes `catch (const std::exception& e) { ... throw e; }`,
 // which SLICES: rethrowing the caught reference by value copies it down to the static
 // type, so a BadRequest leaves the catch block as a bare std::exception and every
@@ -332,9 +391,22 @@ function rewriteAsyncLambdasMutable (content: string): string {
 // C++ port has no WS layer yet (an explicit non-goal for this iteration), so property
 // reads go through getValue and the two resolve/reject calls land on the base stubs.
 function rewriteWsClientAccess (content: string): string {
+    const cap = (s: string) => s.charAt (0).toUpperCase () + s.slice (1);
     return content
         .replace (/\bclient\.(resolve|reject)\s*\(/g, 'this->$1(')
+        .replace (/\bclient\.(future|reusableFuture|send|reset)\s*\(/g, (_m, m) => '::wsClient' + cap (m) + '(client, ')
         .replace (/\bclient\.([A-Za-z_]\w*)\b(?!\s*\()/g, '::getValue(client, std::string("$1"))');
+}
+
+// a ws Future held in an std::any local: future.resolve(v) / future.reject(e).
+// `.resolve()` with no args resolves undefined — pass an empty any instead of
+// emitting a trailing comma.
+function rewriteWsFutureAccess (content: string): string {
+    return content
+        .replace (/\b(future|promise)\.(resolve|reject)\s*\(\s*\)/g,
+                  (_m, recv, m) => '::wsFuture' + m.charAt (0).toUpperCase () + m.slice (1) + '(' + recv + ')')
+        .replace (/\b(future|promise)\.(resolve|reject)\s*\(/g,
+                  (_m, recv, m) => '::wsFuture' + m.charAt (0).toUpperCase () + m.slice (1) + '(' + recv + ', ');
 }
 
 // `Precise.stringAdd(...)` is a static call on an imported class; the backend has no
@@ -531,9 +603,10 @@ function applyCommonFixes (content: string): string {
                 rewriteShadowedHelperNames (
                 rewriteReservedIdentifiers (
                 rewriteAnyMemberAccess (
+                rewriteWsFutureAccess (
                 rewriteWsClientAccess (
                     rewriteAsyncLambdasMutable (
-                        rewriteDynamicDispatch (extendOverrideSignatures (content)))))))))))));
+                        rewriteDynamicDispatch (extendOverrideSignatures (content))))))))))))));
 }
 
 // ---------------------------------------------------------------------------
@@ -1211,6 +1284,150 @@ class CppTranspilerDriver {
     }
 
     // -----------------------------------------------------------------------
+    // pro exchanges: ts/src/pro/<id>.ts -> cpp/ccxt/pro/<id>.h + tu
+    // -----------------------------------------------------------------------
+    //
+
+    // The pro tier's client/cache/orderbook member calls land on std::any receivers
+    // exactly like the ws base tests do; reuse the ws value fixes BEFORE the common
+    // fixes so `.storeArray(` is consumed by wsStoreArray instead of this->storeArray.
+    //
+    // Method references passed as values (`this->delay(d, this->watchOrderBookSnapshot,
+    // ...)` or the "method" key of a subscription dict) emit as bare `this->Name`
+    // identifiers that cannot compile. Method names are known: the class source
+    // declares them, so exactly those bare references become string literals.
+    stringifyMethodReferences (id: string, content: string): string {
+        // methods may live on the REST base or the shared base fragments
+        // (e.g. delay(d, this->loadOrderBook, ...) where loadOrderBook is
+        // Exchange's own), so the whole class surface is scanned
+        let source = fs.readFileSync ('./ts/src/pro/' + id + '.ts').toString ();
+        for (const fragment of [ BASE_METHODS_FILE, TRADING_METHODS_FILE ]) {
+            if (fs.existsSync (fragment)) {
+                source += '\n' + fs.readFileSync (fragment).toString ();
+            }
+        }
+        const methods = new Set<string> ();
+        const re = /^[ \t]*(?:override\s+)?(?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(/gm;
+        let m: RegExpExecArray | null;
+        while ((m = re.exec (source)) !== null) {
+            methods.add (m[1]);
+        }
+        if (!methods.size) {
+            return content;
+        }
+        const names = Array.from (methods).sort ((a, b) => b.length - a.length).join ('|');
+        // a bare this->Name NOT followed by `(` is a method reference (a genuine call
+        // always has the paren list, and non-method members are not in the set)
+        return content.replace (
+            new RegExp (`this->(${names})\\b(?!\\s*\\()`, 'g'),
+            (_m, name) => 'std::string("' + name + '")');
+    }
+
+    createProExchangeFile (id: string, result: any): string {
+        let content = result.content as string;
+        // Mirror the TS hierarchy when a pro exchange derives from ANOTHER pro
+        // exchange (kucoinfutures -> kucoin): the C++ class must derive from the
+        // pro parent, not the REST class, so inherited watch* methods, super calls
+        // and the dispatch fallthrough all resolve to the pro tier.
+        const tsSource = fs.readFileSync ('./ts/src/pro/' + id + '.ts').toString ();
+        const parentMatch = /\bclass\s+\w+\s+extends\s+(\w+)/.exec (tsSource);
+        const tsParentId = parentMatch ? parentMatch[1] : id;
+        const hasProParent = (tsParentId !== id) && fs.existsSync ('./ts/src/pro/' + tsParentId + '.ts');
+        const parent = hasProParent ? 'ccxt::pro::' + tsParentId : 'ccxt::' + id;
+        const ctorId = hasProParent ? tsParentId : id;
+        // class binance : public binanceRest  ->  class binance : public ccxt::binance
+        content = content.replace (/^class\s+(\w+)\s*:\s*public\s+\w+/m, `class $1 : public ${parent}`);
+        // C++ does not inherit constructors; pull the parent's in explicitly
+        // (same pattern as createExchangeFile's using <id>Api::<id>Api)
+        content = content.replace (/^(class\s+\w+\s*:\s*public\s+\S+\s*\{\s*\npublic:\n)/m,
+                                   `$1    using ${parent}::${ctorId};\n`);
+        content = this.stringifyMethodReferences (id, content);
+        content = rewriteMethodNameCalls (content);
+        content = rewriteSuperCalls (content, parent);
+        content = this.applyWsValueFixes (content);
+        content = applyCommonFixes (content);
+        content = rewriteDynamicErrorCalls (content);
+        // the pro dispatch falls through to the TS parent's table (the pro parent
+        // for pro-derived exchanges, else the REST class's table, which itself
+        // falls through to Exchange::callMethod), so inherited methods keep
+        // resolving exactly as in TS
+        const dispatch = this.createDispatchTable (id, content, parent);
+        const lastBrace = content.lastIndexOf ('};');
+        if (lastBrace !== -1) {
+            content = content.slice (0, lastBrace) + dispatch + content.slice (lastBrace);
+        }
+        return [
+            '#pragma once',
+            '',
+            ...createGeneratedHeader (),
+            '#include "../exchanges/' + id + '.h"',
+            '#include "../base/Exchange.h"',
+            '#include "ProExchangeFactory.h"',
+            ...(hasProParent ? ['#include "' + tsParentId + '.h"'] : []),
+            '',
+            'namespace ccxt {',
+            'namespace pro {',
+            '',
+            content,
+            '',
+            '} // namespace pro',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
+    }
+
+    createProExchangeTu (id: string): string {
+        return [
+            '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
+            '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code',
+            '',
+            `#include "${id}.h"`,
+            '#include "ProExchangeFactory.h"',
+            '',
+            'namespace ccxt {',
+            'namespace pro {',
+            'namespace factory {',
+            'namespace {',
+            '',
+            `std::shared_ptr<ExchangeBase> create_${id} (std::any config) {`,
+            `    return newExchange<ccxt::pro::${id}> (config);`,
+            '}',
+            '',
+            `struct Registrar_${id} {`,
+            `    Registrar_${id} () { registerProExchange ("${id}", &create_${id}); }`,
+            '};',
+            '',
+            `static Registrar_${id} g_registrar_${id};`,
+            '',
+            '} // namespace',
+            '} // namespace factory',
+            '} // namespace pro',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
+    }
+
+    transpileProExchangeFiles (ids: string[], force = true) {
+        let files = ids.map ((id) => 'pro/' + id + '.ts');
+        files = filterDirtyExchangeFiles ('cpp', files, force, (file: string) => ({
+            'tsPath': './ts/src/' + file,
+            'outputs': [ PRO_EXCHANGES_FOLDER + path.basename (file, '.ts') + '.h' ],
+        }));
+        if (!files.length) {
+            return;
+        }
+        log.blue ('[cpp] Transpiling pro [', files.join (', '), ']');
+        for (const file of files) {
+            const id = path.basename (file, '.ts');
+            assertNoDroppedConstructs ('./ts/src/' + file);
+            const result: any = this.transpiler.transpileCppByPath ('./ts/src/' + file);
+            overwriteFileAndFolder (PRO_EXCHANGES_FOLDER + id + '.h', this.createProExchangeFile (id, result));
+            overwriteFileAndFolder (PRO_EXCHANGES_FOLDER + 'tu_' + id + '.cpp', this.createProExchangeTu (id));
+            log.green ('[cpp] Transpiled pro', (id as any).yellow);
+        }
+    }
+
+    // -----------------------------------------------------------------------
     // base tests
     // -----------------------------------------------------------------------
     //
@@ -1297,7 +1514,11 @@ class CppTranspilerDriver {
             .replace (/\b([A-Za-z_]\w*)\.append\(/g, '::wsAppend($1, ')
             .replace (/\b([A-Za-z_]\w*)\.getLimit\(/g, '::wsGetLimit($1, ')
             .replace (/\b([A-Za-z_]\w*)\.clear\(\)/g, '::wsClear($1)')
-            .replace (/\b([A-Za-z_]\w*)\.hashmap\b/g, '::getValue($1, std::string("hashmap"))'));
+            // a no-arg reset means "rebuild from the stored snapshot" (ws reset)
+            .replace (/\b([A-Za-z_]\w*)\.reset\(\s*\)/g, '::wsReset($1)')
+            .replace (/\b([A-Za-z_]\w*)\.hashmap\b/g, '::getValue($1, std::string("hashmap"))')
+            // member rewrites on this-> receivers emit `this->::name(` — collapse
+            .replace (/this->::(getValue|wsAppend|wsStore|wsStoreArray|wsLimit|wsGetLimit|wsClear)\b/g, '::$1'));
     }
 
     // -----------------------------------------------------------------------
@@ -1645,12 +1866,35 @@ function applyExchangeTestFixes (content: string): string {
         return rewriteExchangeVarImpl (rewriteExchangeVarImpl (withD3, 'exchange'), 'mockedExchange');
     });
     const commonFixed = applyCommonFixes (d3AndVar);
-    // The backend leaks `undefined` as a bare identifier in expression contexts,
+    // The static ws tests pair an injector future with a watcher future inside
+    // testWsStatically and REQUIRE true concurrency: the injector polls for the
+    // watcher's pending future before injecting each frame, so awaiting them in
+    // list order (plain promiseAll) would let the injector run to completion --
+    // injecting everything into a not-yet-created future, then rejecting it --
+    // before the watcher ever registers. Replace exactly the two pairs inside
+    // testWsStatically; every other promiseAll (runStaticTests fan-out etc) keeps
+    // its sequential semantics.
+    let wsFixed = commonFixed
+        // parsedResponses branch: final-state assert after all frames
+        .replace (/std::any results = awaitValue\(promiseAll\(promises\)\);\n\s*std::any unifiedResult =/,
+                  'std::any results = awaitValue(promiseAllConcurrent(promises));\n                   std::any unifiedResult =')
+        // sequential branch: one watch resolution per frame
+        .replace (/awaitValue\(promiseAll\(promises\)\);\n\s*this->assertWsSentMessages/,
+                  'awaitValue(promiseAllConcurrent(promises));\n                   this->assertWsSentMessages')
+        // single-parsedResponse branch: the dispatcher awaits the watch future
+        // INLINE (callMethod emits awaitValue(watchX(...))), so building the
+        // promises list on the caller thread would block inside the watch chain
+        // before the injector thread exists. Wrap the dispatch in a deferred
+        // future so promiseAllConcurrent's worker runs it concurrently with
+        // the injector, mirroring the sequential branch's shape.
+        .replace (/std::any promises = ccxt::list\{callExchangeMethodDynamically\(exchange, method, input\), this->injectWsMessages\(exchange, url, messages\)\};/,
+                  `std::any promises = ccxt::list{\n                       std::async(std::launch::deferred, [=]() -> std::any {\n                           return callExchangeMethodDynamically(exchange, method, input);\n                       }).share(),\n                       this->injectWsMessages(exchange, url, messages)};`);
+// The backend leaks `undefined` as a bare identifier in expression contexts,
     // and its string wrapper can produce `std::string(undefined)`. Neither is
     // valid C++; the wrapped form goes first so the bare replacement never
     // yields std::string(std::any{}). Masked so real string contents
     // ("fetchEvents returned undefined") are untouched.
-    return outsideStringLiterals (commonFixed, (masked) => masked
+    return outsideStringLiterals (wsFixed, (masked) => masked
         .replace (/std::string\(undefined\)/g, 'std::any{}')
         .replace (/\bundefined\b/g, 'std::any{}'));
 }
@@ -1822,6 +2066,7 @@ async function runMain () {
     const baseClassOnly = process.argv.includes ('--baseClass');
     const baseTestsOnly = process.argv.includes ('--baseTests');
     const exchangeTestsOnly = process.argv.includes ('--tests');
+    const proOnly = process.argv.includes ('--pro');
     const typedApiOnly = process.argv.includes ('--typedApi');
     const allExchangesOnly = process.argv.includes ('--all');
     const ids = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
@@ -1847,6 +2092,17 @@ async function runMain () {
         driver.transpileMainTest ();
         driver.transpileExchangeTestFiles ();
         driver.transpileTestRegistry ();
+        return;
+    }
+    if (proOnly) {
+        // pro (WebSocket) tier: ts/src/pro/<id>.ts -> cpp/ccxt/pro/<id>.h. Named ids
+        // or the whole ws-fixture-backed set (static/ws/<id>.json dir listing).
+        const proIds = ids.length
+            ? ids
+            : fs.readdirSync ('./ts/src/test/static/ws/')
+                  .filter ((f) => f.endsWith ('.json'))
+                  .map ((f) => f.replace ('.json', ''));
+        driver.transpileProExchangeFiles (proIds, force);
         return;
     }
     if (ids.length) {

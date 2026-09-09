@@ -57,6 +57,15 @@ public:
         this->reduceFees = std::any (true);
         this->quoteJsonNumbers = std::any (true);
         this->minFundingAddressLength = std::any (1);
+        // ws accumulator caches seed to empty dicts (TS constructor, Exchange.ts:578-589):
+        // watch handlers setValue into them directly, and a set into an empty std::any
+        // is a silent no-op, which dropped every ticker/trade/ohlcv/book update
+        this->balance = std::any (ccxt::dict {});
+        this->bidsasks = std::any (ccxt::dict {});
+        this->orderbooks = std::any (ccxt::dict {});
+        this->tickers = std::any (ccxt::dict {});
+        this->trades = std::any (ccxt::dict {});
+        this->ohlcvs = std::any (ccxt::dict {});
         // TS seeds options from getDefaultOptions() before describe() merges over it
         // (ts/src/base/Exchange.ts:557). These are not cosmetic defaults:
         // defaultNetworkCodeReplacements lives there, and without it
@@ -80,6 +89,15 @@ public:
         // and every network id comes back unmapped ('LIGHTNING' instead of
         // 'BTCLIGHTNING').
         this->afterConstruct ();
+        // ws tier: options.newUpdates gates watch resolution (TS Exchange.ts:631).
+        // Pro describe() blocks can set it; the default is true.
+        this->newUpdates = std::any (true);
+        if (isDict (this->options)) {
+            const auto& opts = std::any_cast<dict> (this->options);
+            if (opts.has (std::string ("newUpdates"))) {
+                this->newUpdates = opts.get (std::string ("newUpdates"));
+            }
+        }
     }
 
     // describe() returns a flat map of settings; route the ones that are real members
