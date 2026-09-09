@@ -535,12 +535,12 @@ public partial class modetrade : Exchange
                             { "GTD", false },
                         } },
                         { "hedged", false },
-                        { "trailing", true },
-                        { "leverage", true },
+                        { "trailing", false },
+                        { "leverage", false },
                         { "marketBuyByCost", false },
                         { "marketBuyRequiresPrice", false },
                         { "selfTradePrevention", false },
-                        { "iceberg", true },
+                        { "iceberg", false },
                     } },
                     { "createOrders", new Dictionary<string, object>() {
                         { "max", 10 },
@@ -565,7 +565,15 @@ public partial class modetrade : Exchange
                         { "trailing", false },
                         { "symbolRequired", false },
                     } },
-                    { "fetchOrders", null },
+                    { "fetchOrders", new Dictionary<string, object>() {
+                        { "marginMode", false },
+                        { "limit", 500 },
+                        { "daysBack", null },
+                        { "untilDays", 100000 },
+                        { "trigger", true },
+                        { "trailing", false },
+                        { "symbolRequired", false },
+                    } },
                     { "fetchClosedOrders", new Dictionary<string, object>() {
                         { "marginMode", false },
                         { "limit", 500 },
@@ -580,9 +588,7 @@ public partial class modetrade : Exchange
                         { "limit", 1000 },
                     } },
                 } },
-                { "spot", new Dictionary<string, object>() {
-                    { "extends", "default" },
-                } },
+                { "spot", null },
                 { "forDerivatives", new Dictionary<string, object>() {
                     { "extends", "default" },
                     { "createOrder", new Dictionary<string, object>() {
@@ -1920,8 +1926,11 @@ public partial class modetrade : Exchange
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
