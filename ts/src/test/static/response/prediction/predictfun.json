@@ -14,6 +14,380 @@
 		"jwtTokenExpiresAt": 9999999999999
 	},
 	"methods": {
+		"fetchTicker": [
+			{
+				"description": "fetchTicker quotes the yes side of the market",
+				"method": "fetchTicker",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"id": 1878469,
+						"categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+						"conditionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
+						"decimalPrecision": 2,
+						"feeRateBps": "200",
+						"isNegRisk": false,
+						"isYieldBearing": false,
+						"isVisible": true,
+						"marketVariant": "PRICE_TARGET",
+						"status": "REGISTERED",
+						"tradingStatus": "OPEN",
+						"title": "↑ 100,000",
+						"outcomes": [
+							{
+								"bestAsk": {
+									"price": 0.41,
+									"size": 80
+								},
+								"bestBid": {
+									"price": 0.4,
+									"size": 100
+								},
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							{
+								"bestAsk": {
+									"price": 0.6,
+									"size": 100
+								},
+								"bestBid": {
+									"price": 0.59,
+									"size": 80
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+								"status": null
+							}
+						]
+					}
+				},
+				"parsedResponse": {
+					"timestamp": 1788944201946,
+					"datetime": "2026-09-09T08:56:41.946Z",
+					"high": null,
+					"low": null,
+					"bid": 0.4,
+					"bidVolume": 100,
+					"ask": 0.41,
+					"askVolume": 80,
+					"open": null,
+					"close": null,
+					"last": null,
+					"change": null,
+					"percentage": null,
+					"average": null,
+					"baseVolume": null,
+					"quoteVolume": null,
+					"openInterest": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+					"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+					"label": "YES",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+					"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+					"info": {
+						"id": 1878469,
+						"categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+						"conditionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
+						"decimalPrecision": 2,
+						"feeRateBps": "200",
+						"isNegRisk": false,
+						"isYieldBearing": false,
+						"isVisible": true,
+						"marketVariant": "PRICE_TARGET",
+						"status": "REGISTERED",
+						"tradingStatus": "OPEN",
+						"title": "↑ 100,000",
+						"outcomes": [
+							{
+								"bestAsk": {
+									"price": 0.41,
+									"size": 80
+								},
+								"bestBid": {
+									"price": 0.4,
+									"size": 100
+								},
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							{
+								"bestAsk": {
+									"price": 0.6,
+									"size": 100
+								},
+								"bestBid": {
+									"price": 0.59,
+									"size": 80
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+								"status": null
+							}
+						]
+					}
+				}
+			},
+			{
+				"description": "fetchTicker picks the outcome by indexSet, not the first one listed",
+				"method": "fetchTicker",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"id": 1878469,
+						"categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+						"conditionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
+						"decimalPrecision": 2,
+						"feeRateBps": "200",
+						"isNegRisk": false,
+						"isYieldBearing": false,
+						"isVisible": true,
+						"marketVariant": "PRICE_TARGET",
+						"status": "REGISTERED",
+						"tradingStatus": "OPEN",
+						"title": "↑ 100,000",
+						"outcomes": [
+							{
+								"bestAsk": {
+									"price": 0.41,
+									"size": 80
+								},
+								"bestBid": {
+									"price": 0.4,
+									"size": 100
+								},
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							{
+								"bestAsk": {
+									"price": 0.6,
+									"size": 100
+								},
+								"bestBid": {
+									"price": 0.59,
+									"size": 80
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+								"status": null
+							}
+						]
+					}
+				},
+				"parsedResponse": {
+					"timestamp": 1788944201951,
+					"datetime": "2026-09-09T08:56:41.951Z",
+					"high": null,
+					"low": null,
+					"bid": 0.59,
+					"bidVolume": 80,
+					"ask": 0.6,
+					"askVolume": 100,
+					"open": null,
+					"close": null,
+					"last": null,
+					"change": null,
+					"percentage": null,
+					"average": null,
+					"baseVolume": null,
+					"quoteVolume": null,
+					"openInterest": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
+					"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+					"label": "NO",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
+					"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+					"info": {
+						"id": 1878469,
+						"categorySlug": "what-price-will-bitcoin-hit-in-september-2026",
+						"conditionId": "0x6ab55f25f108508e7c6cc9bb22e3304d3fcecd0771d741fdf6d67e6b7ab9af2c",
+						"decimalPrecision": 2,
+						"feeRateBps": "200",
+						"isNegRisk": false,
+						"isYieldBearing": false,
+						"isVisible": true,
+						"marketVariant": "PRICE_TARGET",
+						"status": "REGISTERED",
+						"tradingStatus": "OPEN",
+						"title": "↑ 100,000",
+						"outcomes": [
+							{
+								"bestAsk": {
+									"price": 0.41,
+									"size": 80
+								},
+								"bestBid": {
+									"price": 0.4,
+									"size": 100
+								},
+								"indexSet": 1,
+								"name": "Yes",
+								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+								"status": null
+							},
+							{
+								"bestAsk": {
+									"price": 0.6,
+									"size": 100
+								},
+								"bestBid": {
+									"price": 0.59,
+									"size": 80
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+								"status": null
+							}
+						]
+					}
+				}
+			}
+		],
+		"fetchOrderBook": [
+			{
+				"description": "fetchOrderBook for the yes outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"asks": [
+							[
+								0.41,
+								80
+							],
+							[
+								0.42,
+								300
+							]
+						],
+						"bids": [
+							[
+								0.4,
+								100
+							],
+							[
+								0.39,
+								250
+							]
+						],
+						"lastOrderSettled": null,
+						"marketId": 1878469,
+						"updateTimestampMs": 1787770521244
+					}
+				},
+				"parsedResponse": {
+					"bids": [
+						[
+							0.4,
+							100
+						],
+						[
+							0.39,
+							250
+						]
+					],
+					"asks": [
+						[
+							0.41,
+							80
+						],
+						[
+							0.42,
+							300
+						]
+					],
+					"timestamp": 1787770521244,
+					"datetime": "2026-08-26T18:55:21.244Z",
+					"nonce": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
+					"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
+				}
+			},
+			{
+				"description": "fetchOrderBook mirrors the book for the no outcome",
+				"method": "fetchOrderBook",
+				"input": [
+					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO"
+				],
+				"httpResponse": {
+					"success": true,
+					"data": {
+						"asks": [
+							[
+								0.41,
+								80
+							],
+							[
+								0.42,
+								300
+							]
+						],
+						"bids": [
+							[
+								0.4,
+								100
+							],
+							[
+								0.39,
+								250
+							]
+						],
+						"lastOrderSettled": null,
+						"marketId": 1878469,
+						"updateTimestampMs": 1787770521244
+					}
+				},
+				"parsedResponse": {
+					"bids": [
+						[
+							0.59,
+							80
+						],
+						[
+							0.58,
+							300
+						]
+					],
+					"asks": [
+						[
+							0.6,
+							100
+						],
+						[
+							0.61,
+							250
+						]
+					],
+					"timestamp": 1787770521244,
+					"datetime": "2026-08-26T18:55:21.244Z",
+					"nonce": null,
+					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
+					"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
+					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
+				}
+			}
+		],
 		"fetchTrades": [
 			{
 				"description": "fetchTrades flattens a settlement into the leg of the requested outcome",
@@ -78,7 +452,7 @@
 						"datetime": "2026-09-06T11:45:23.000Z",
 						"type": "market",
 						"side": "buy",
-						"takerOrMaker": "taker",
+						"takerOrMaker": null,
 						"price": 0.5,
 						"amount": 10,
 						"cost": 5,
@@ -90,133 +464,6 @@
 						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
 						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
 						"label": "YES",
-						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
-						"info": {
-							"amountFilled": "10000000000000000000",
-							"executedAt": "2026-09-06T11:45:23.000Z",
-							"priceExecuted": "500000000000000000",
-							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
-							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
-							"taker": {
-								"amount": "10000000000000000000",
-								"fee": {
-									"amount": "100000000000000000",
-									"type": "SHARES"
-								},
-								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
-								"outcome": {
-									"indexSet": 1,
-									"name": "Yes",
-									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
-								},
-								"price": "520000000000000000",
-								"quoteType": "Bid",
-								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
-							},
-							"makers": [
-								{
-									"amount": "1000000000000000000",
-									"fee": {
-										"amount": "0",
-										"type": "SHARES"
-									},
-									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
-									"outcome": {
-										"indexSet": 2,
-										"name": "No",
-										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
-									},
-									"price": "880000000000000000",
-									"quoteType": "Bid",
-									"signer": "0xabababababababababababababababababababab"
-								}
-							],
-							"market": {
-								"id": 1878469
-							}
-						}
-					}
-				]
-			}
-		],
-		"fetchMyTrades": [
-			{
-				"description": "fetchMyTrades reports the leg the wallet signed, here the maker side",
-				"method": "fetchMyTrades",
-				"input": [
-					null,
-					null,
-					null
-				],
-				"httpResponse": {
-					"success": true,
-					"data": [
-						{
-							"amountFilled": "10000000000000000000",
-							"executedAt": "2026-09-06T11:45:23.000Z",
-							"priceExecuted": "500000000000000000",
-							"settlementId": "01a07689-955a-7070-86af-a100b7b7350c",
-							"transactionHash": "0x435863c29443ff45b2f8966c52428d3bb3a29a38de24dc6c17ca0817951fda79",
-							"taker": {
-								"amount": "10000000000000000000",
-								"fee": {
-									"amount": "100000000000000000",
-									"type": "SHARES"
-								},
-								"hash": "0x0a0eab35c68fda64ced0989aec9313f5884e5ecba51d780f9b7da634cc979027",
-								"outcome": {
-									"indexSet": 1,
-									"name": "Yes",
-									"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040"
-								},
-								"price": "520000000000000000",
-								"quoteType": "Bid",
-								"signer": "0x6Da6Cb464F92AE7aD4Ec3d239c81719Cb1D0Ae03"
-							},
-							"makers": [
-								{
-									"amount": "1000000000000000000",
-									"fee": {
-										"amount": "0",
-										"type": "SHARES"
-									},
-									"hash": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
-									"outcome": {
-										"indexSet": 2,
-										"name": "No",
-										"onChainId": "96698288160790104687834887423441831252979718939737526835951872455705731505479"
-									},
-									"price": "880000000000000000",
-									"quoteType": "Bid",
-									"signer": "0xabababababababababababababababababababab"
-								}
-							],
-							"market": {
-								"id": 1878469
-							}
-						}
-					]
-				},
-				"parsedResponse": [
-					{
-						"id": "01a07689-955a-7070-86af-a100b7b7350c",
-						"order": "0x0950ef588b53e2489f95cb1d830a6e0cb0bffc0f4baf4286e3b2e03bad2eba47",
-						"timestamp": 1788695123000,
-						"datetime": "2026-09-06T11:45:23.000Z",
-						"type": "limit",
-						"side": "buy",
-						"takerOrMaker": "maker",
-						"price": 0.88,
-						"amount": 1,
-						"cost": 0.88,
-						"fee": {
-							"currency": null,
-							"cost": 0
-						},
-						"realizedPnl": null,
-						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
-						"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
-						"label": "NO",
 						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
 						"info": {
 							"amountFilled": "10000000000000000000",
@@ -349,40 +596,46 @@
 		],
 		"fetchOpenOrders": [
 			{
-				"description": "fetchOpenOrders backfills remaining from amount and filled",
+				"description": "fetch open orders",
 				"method": "fetchOpenOrders",
-				"input": [
-					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
-				],
+				"input": [],
 				"httpResponse": {
-					"success": true,
+					"cursor": null,
 					"data": [
 						{
+							"amount": "10000000000000000000",
+							"amountFilled": "0",
+							"currency": "USDT",
+							"id": "3321815746",
+							"isNegRisk": false,
+							"isYieldBearing": true,
+							"marketId": 2107,
 							"order": {
-								"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
-								"salt": "1",
+								"expiration": 1788945352,
+								"feeRateBps": "200",
+								"hash": "0x94c4e4eac39297ddbcdf1a5e1be717f7ebd33889fc13cfcf237d7b96607d821b",
 								"maker": "0xabababababababababababababababababababab",
+								"makerAmount": "1000000000000000000",
+								"nonce": "0",
+								"salt": "1788941752813",
+								"side": 0,
+								"signature": "0xabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab1c",
+								"signatureType": 0,
 								"signer": "0xabababababababababababababababababababab",
 								"taker": "0x0000000000000000000000000000000000000000",
-								"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-								"makerAmount": "4000000000000000000",
 								"takerAmount": "10000000000000000000",
-								"expiration": "1789017900",
-								"nonce": "0",
-								"feeRateBps": "200",
-								"side": "Bid",
-								"signatureType": 0
+								"tokenId": "11755619521560507246941857733124673401539364429068333264940202564484253415073"
 							},
+							"rewardEarningRate": 0,
 							"status": "OPEN",
-							"strategy": "LIMIT",
-							"createdAt": "2026-09-06T11:45:23.000Z",
-							"filledAmount": "2000000000000000000"
+							"strategy": "LIMIT"
 						}
-					]
+					],
+					"success": true
 				},
 				"parsedResponse": [
 					{
-						"id": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+						"id": "0x94c4e4eac39297ddbcdf1a5e1be717f7ebd33889fc13cfcf237d7b96607d821b",
 						"clientOrderId": null,
 						"timestamp": null,
 						"datetime": null,
@@ -392,41 +645,48 @@
 						"type": "limit",
 						"timeInForce": null,
 						"side": "buy",
-						"price": 0.4,
+						"price": 0.1,
 						"average": null,
 						"amount": 10,
-						"filled": null,
-						"remaining": null,
-						"cost": null,
+						"filled": 0,
+						"remaining": 10,
+						"cost": 0,
 						"fee": null,
 						"reduceOnly": null,
 						"postOnly": null,
 						"trades": [],
-						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
-						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-						"label": "YES",
-						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
-						"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:NO",
+						"outcomeId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+						"label": "NO",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"event": "TRUMP_ACQUIRE_GREENLAND_2027",
 						"info": {
+							"amount": "10000000000000000000",
+							"amountFilled": "0",
+							"currency": "USDT",
+							"id": "3321815746",
+							"isNegRisk": false,
+							"isYieldBearing": true,
+							"marketId": 2107,
 							"order": {
-								"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
-								"salt": "1",
+								"expiration": 1788945352,
+								"feeRateBps": "200",
+								"hash": "0x94c4e4eac39297ddbcdf1a5e1be717f7ebd33889fc13cfcf237d7b96607d821b",
 								"maker": "0xabababababababababababababababababababab",
+								"makerAmount": "1000000000000000000",
+								"nonce": "0",
+								"salt": "1788941752813",
+								"side": 0,
+								"signature": "0xabababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab1c",
+								"signatureType": 0,
 								"signer": "0xabababababababababababababababababababab",
 								"taker": "0x0000000000000000000000000000000000000000",
-								"tokenId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-								"makerAmount": "4000000000000000000",
 								"takerAmount": "10000000000000000000",
-								"expiration": "1789017900",
-								"nonce": "0",
-								"feeRateBps": "200",
-								"side": "Bid",
-								"signatureType": 0
+								"tokenId": "11755619521560507246941857733124673401539364429068333264940202564484253415073"
 							},
+							"rewardEarningRate": 0,
 							"status": "OPEN",
-							"strategy": "LIMIT",
-							"createdAt": "2026-09-06T11:45:23.000Z",
-							"filledAmount": "2000000000000000000"
+							"strategy": "LIMIT"
 						}
 					}
 				]
@@ -434,201 +694,507 @@
 		],
 		"fetchPositions": [
 			{
-				"description": "fetchPositions for an unresolved market",
+				"description": "fetch positions",
 				"method": "fetchPositions",
 				"input": [],
 				"httpResponse": {
-					"success": true,
+					"cursor": null,
 					"data": [
 						{
+							"amount": "5780000000000000000",
+							"averageBuyPriceUsd": "0.029",
+							"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MDk5LCJzb3J0Q3Vyc29yIjoiMTIwNzI4MDU0In0=",
 							"market": {
-								"id": 1878469,
-								"status": "REGISTERED"
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1483.2199999999998
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 1386.724081632653
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 1386.724081632653
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1483.2199999999998
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
 							},
 							"outcome": {
+								"bestAsk": {
+									"price": 0.029,
+									"size": 1483.2199999999998
+								},
+								"bestBid": {
+									"price": 0.02,
+									"size": 1386.724081632653
+								},
 								"indexSet": 1,
 								"name": "Yes",
-								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-								"status": null
+								"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+								"status": null,
+								"team": null,
+								"variantData": null
 							},
-							"quantity": "10000000000000000000",
-							"averagePrice": "400000000000000000",
-							"realizedPnl": "0",
-							"value": "4500000000000000000"
+							"pnlUsd": "-0.05",
+							"valueUsd": "0.12"
+						},
+						{
+							"amount": "999591836734693878",
+							"averageBuyPriceUsd": "0.98",
+							"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MTAwLCJzb3J0Q3Vyc29yIjoiMTIwNzIzMjM2In0=",
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1483.2199999999998
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 1386.724081632653
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 1386.724081632653
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1483.2199999999998
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"outcome": {
+								"bestAsk": {
+									"price": 0.98,
+									"size": 1386.724081632653
+								},
+								"bestBid": {
+									"price": 0.971,
+									"size": 1483.2199999999998
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+								"status": null,
+								"team": null,
+								"variantData": null
+							},
+							"pnlUsd": "-0.01",
+							"valueUsd": "0.97"
 						}
-					]
+					],
+					"success": true
 				},
 				"parsedResponse": [
 					{
-						"id": null,
+						"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MDk5LCJzb3J0Q3Vyc29yIjoiMTIwNzI4MDU0In0=",
 						"timestamp": null,
 						"datetime": null,
-						"contracts": null,
+						"contracts": 5.78,
 						"contractSize": 1,
 						"side": "long",
-						"notional": null,
-						"unrealizedPnl": null,
+						"notional": 0.12,
+						"unrealizedPnl": -0.05,
 						"realizedPnl": null,
-						"collateral": null,
-						"entryPrice": null,
-						"markPrice": null,
+						"collateral": 0.16762,
+						"entryPrice": 0.029,
+						"markPrice": 0.020761245674740483,
 						"lastPrice": null,
-						"percentage": null,
+						"percentage": -29.82937596945472,
 						"resolved": false,
 						"won": null,
 						"settleFraction": null,
 						"payout": null,
-						"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
-						"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
 						"label": "YES",
-						"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000",
-						"event": "PRICE_BITCOIN_HIT_SEPTEMBER_2026",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"event": "TRUMP_ACQUIRE_GREENLAND_2027",
 						"info": {
+							"amount": "5780000000000000000",
+							"averageBuyPriceUsd": "0.029",
+							"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MDk5LCJzb3J0Q3Vyc29yIjoiMTIwNzI4MDU0In0=",
 							"market": {
-								"id": 1878469,
-								"status": "REGISTERED"
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1483.2199999999998
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 1386.724081632653
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 1386.724081632653
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1483.2199999999998
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
 							},
 							"outcome": {
+								"bestAsk": {
+									"price": 0.029,
+									"size": 1483.2199999999998
+								},
+								"bestBid": {
+									"price": 0.02,
+									"size": 1386.724081632653
+								},
 								"indexSet": 1,
 								"name": "Yes",
-								"onChainId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-								"status": null
+								"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+								"status": null,
+								"team": null,
+								"variantData": null
 							},
-							"quantity": "10000000000000000000",
-							"averagePrice": "400000000000000000",
-							"realizedPnl": "0",
-							"value": "4500000000000000000"
+							"pnlUsd": "-0.05",
+							"valueUsd": "0.12"
+						}
+					},
+					{
+						"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MTAwLCJzb3J0Q3Vyc29yIjoiMTIwNzIzMjM2In0=",
+						"timestamp": null,
+						"datetime": null,
+						"contracts": 0.9995918367346939,
+						"contractSize": 1,
+						"side": "long",
+						"notional": 0.97,
+						"unrealizedPnl": -0.01,
+						"realizedPnl": null,
+						"collateral": 0.9796,
+						"entryPrice": 0.98,
+						"markPrice": 0.9703960800326664,
+						"lastPrice": null,
+						"percentage": -1.0208248264597795,
+						"resolved": false,
+						"won": null,
+						"settleFraction": null,
+						"payout": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:NO",
+						"outcomeId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+						"label": "NO",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"event": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amount": "999591836734693878",
+							"averageBuyPriceUsd": "0.98",
+							"id": "eyJtYXJrZXRJZCI6MjEwNywib3V0Y29tZUlkIjo0MTAwLCJzb3J0Q3Vyc29yIjoiMTIwNzIzMjM2In0=",
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1483.2199999999998
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 1386.724081632653
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 1386.724081632653
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1483.2199999999998
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"outcome": {
+								"bestAsk": {
+									"price": 0.98,
+									"size": 1386.724081632653
+								},
+								"bestBid": {
+									"price": 0.971,
+									"size": 1483.2199999999998
+								},
+								"indexSet": 2,
+								"name": "No",
+								"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+								"status": null,
+								"team": null,
+								"variantData": null
+							},
+							"pnlUsd": "-0.01",
+							"valueUsd": "0.97"
 						}
 					}
 				]
-			}
-		],
-		"fetchOrderBook": [
-			{
-				"description": "fetchOrderBook for the yes outcome",
-				"method": "fetchOrderBook",
-				"input": [
-					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES"
-				],
-				"httpResponse": {
-					"success": true,
-					"data": {
-						"asks": [
-							[
-								0.41,
-								80
-							],
-							[
-								0.42,
-								300
-							]
-						],
-						"bids": [
-							[
-								0.4,
-								100
-							],
-							[
-								0.39,
-								250
-							]
-						],
-						"lastOrderSettled": null,
-						"marketId": 1878469,
-						"updateTimestampMs": 1787770521244
-					}
-				},
-				"parsedResponse": {
-					"bids": [
-						[
-							0.4,
-							100
-						],
-						[
-							0.39,
-							250
-						]
-					],
-					"asks": [
-						[
-							0.41,
-							80
-						],
-						[
-							0.42,
-							300
-						]
-					],
-					"timestamp": 1787770521244,
-					"datetime": "2026-08-26T18:55:21.244Z",
-					"nonce": null,
-					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:YES",
-					"outcomeId": "59609662274634420713255055715470737173946398995313530846306470637882773028040",
-					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
-				}
-			},
-			{
-				"description": "fetchOrderBook mirrors the book for the no outcome",
-				"method": "fetchOrderBook",
-				"input": [
-					"PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO"
-				],
-				"httpResponse": {
-					"success": true,
-					"data": {
-						"asks": [
-							[
-								0.41,
-								80
-							],
-							[
-								0.42,
-								300
-							]
-						],
-						"bids": [
-							[
-								0.4,
-								100
-							],
-							[
-								0.39,
-								250
-							]
-						],
-						"lastOrderSettled": null,
-						"marketId": 1878469,
-						"updateTimestampMs": 1787770521244
-					}
-				},
-				"parsedResponse": {
-					"bids": [
-						[
-							0.59,
-							80
-						],
-						[
-							0.58,
-							300
-						]
-					],
-					"asks": [
-						[
-							0.6,
-							100
-						],
-						[
-							0.61,
-							250
-						]
-					],
-					"timestamp": 1787770521244,
-					"datetime": "2026-08-26T18:55:21.244Z",
-					"nonce": null,
-					"outcome": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000:NO",
-					"outcomeId": "96698288160790104687834887423441831252979718939737526835951872455705731505479",
-					"market": "PRICE_BITCOIN_HIT_SEPTEMBER_2026_100000"
-				}
 			}
 		]
 	}
