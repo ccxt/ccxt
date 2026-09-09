@@ -20,8 +20,11 @@
 
 #include "../ccxt/base/ExchangeBase.h"
 #include "../ccxt/exchanges/ExchangeFactory.h"
+#include "../ccxt/pro/ProExchangeFactory.h"
 
 #include <any>
+#include <cstdio>
+#include <cstdlib>
 #include <filesystem>
 #include <functional>
 #include <future>
@@ -58,7 +61,10 @@ public:
     static bool isLinux () { return true; }
     static bool isAmd64 () { return true; }
     static std::any isNullValue (std::any value) { return !value.has_value (); }
-    static std::any close (std::any) { return std::any {}; }
+    static std::any close (std::any exchange) {
+        // reject pending ws futures + drop the clients, then await the close
+        return awaitValue (unwrapExchange (exchange)->close (std::any {}));
+    }
 
     // Called inside catch blocks: `std::any e = getRootException (ex)`. The call
     // itself would slice `ex` down to std::exception (losing the concrete ccxt
@@ -125,20 +131,71 @@ public:
     // -------------------------------------------------------------------------
 
     static std::any setupWsMockTransport (std::any, std::any, std::any, std::any, std::any) {
-        throw ccxt::NotSupported ("WS mock transport is not implemented in the C++ port");
+        return std::any {};
     }
-    static std::any setupWsMockTransport (std::any, std::any) {
-        throw ccxt::NotSupported ("WS mock transport is not implemented in the C++ port");
+    static std::any setupWsMockTransport (std::any exchange, std::any url) {
+        // the static ws tests never dial: mark the client as connected so watch()
+        // proceeds straight to subscription + future registration
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        client.mockConnect ();
+        return std::any (client);
     }
-    static std::any injectWsMessage (std::any, std::any, std::any) { return std::any {}; }
-    static std::any rejectPendingWsFutures (std::any, std::any) { return std::any {}; }
+    static std::any injectWsMessage (std::any exchange, std::any url, std::any message) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        // frames arrive as JSON strings; handleMessage parses the inner payload itself
+        std::any parsed = message;
+        if (message.has_value () && message.type () == typeid (std::string)) {
+            ccxt::ExchangeBase parser;
+            parsed = parser.parseJson (std::any_cast<std::string> (message));
+        }
+        ex->callDynamically ("handleMessage", ccxt::list { std::any (client), parsed });
+        return std::any {};
+    }
+    static std::any rejectPendingWsFutures (std::any exchange, std::any url) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ws-reject] url=%s pending=%d\n", client.url ().c_str (),
+                          static_cast<int> (client.pendingFuturesCount ()));
+        }
+        client.reject (std::any (std::string ("ExchangeError")),
+                       "" /* every pending future */);
+        return std::any {};
+    }
     static std::any wsClientHasPendingFutures (std::any) { return false; }
-    static std::any wsClientHasPendingFutures (std::any, std::any) { return false; }
-    static std::any markWsTestCompleted (std::any, std::any) { return std::any {}; }
+    static std::any wsClientHasPendingFutures (std::any exchange, std::any url) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        bool pending = client.hasPendingFutures ();
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ws-pending] url=%s pending=%d\n", client.url ().c_str (),
+                          static_cast<int> (pending));
+        }
+        return pending;
+    }
+    static std::any markWsTestCompleted (std::any exchange, std::any url) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ws-completed] url=%s\n", client.url ().c_str ());
+        }
+        client.markWsTestCompleted ();
+        return std::any {};
+    }
     static std::any isWsTestCompleted (std::any) { return false; }
-    static std::any isWsTestCompleted (std::any, std::any) { return false; }
+    static std::any isWsTestCompleted (std::any exchange, std::any url) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        return client.isWsTestCompleted ();
+    }
     static std::any getWsSentMessages (std::any) { return ccxt::list {}; }
-    static std::any getWsSentMessages (std::any, std::any) { return ccxt::list {}; }
+    static std::any getWsSentMessages (std::any exchange, std::any url) {
+        auto ex = unwrapExchange (exchange);
+        ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (ex->client (url));
+        return std::any (client.sentMessagesView ());
+    }
 
     // -------------------------------------------------------------------------
     // exchange plumbing over std::any-held shared_ptr<ExchangeBase>
@@ -244,8 +301,8 @@ public:
     // -------------------------------------------------------------------------
 
     static std::any initExchange (std::any exchangeIdAny, std::any exchangeArgs, std::any isWs = std::any (false)) {
-        (void) isWs;   // ccxt.pro is a non-goal; regular exchange classes only
         const std::string id = str (exchangeIdAny);
+        const bool ws = isTrue (isWs);   // ws static tests construct ccxt.pro instances
         std::any config = exchangeArgs.has_value () ? exchangeArgs : std::any (ccxt::dict {});
         // merge credentials from keys.json when present
         const std::string keysPath = ccxt::testutils::rootDir () + "keys.json";
@@ -261,6 +318,9 @@ public:
         }
         // stored as shared_ptr<ExchangeBase> so unwrapExchange can cast it back;
         // the per-exchange factories live in the generated tu_*.cpp units
+        if (ws) {
+            return std::any (ccxt::pro::factory::createProExchange (id, config));
+        }
         return std::any (ccxt::factory::createExchange (id, config));
     }
 

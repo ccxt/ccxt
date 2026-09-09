@@ -16,6 +16,9 @@
 #include "Errors.h"
 #include "Precise.h"
 #include "helpers.h"
+#include "ws/Cache.h"
+#include "ws/Client.h"
+#include "ws/OrderBook.h"
 
 #include <any>
 #include <functional>
@@ -37,6 +40,7 @@ inline const std::any MAX_SAFE_INTEGER = static_cast<long long> (900719925474099
 // Awaiting a value that is not a future just yields the value, as in JS.
 std::any awaitValue (const std::any& value);
 std::any promiseAll (const std::any& futures);
+std::any promiseAllConcurrent (const std::any& futures);
 
 // `x instanceof T` cannot be a dynamic_cast on a std::any; the transpiler rewrites it
 // to this. Three argument shapes occur: caught exceptions (const std::exception&),
@@ -281,6 +285,9 @@ public:
     std::any orderbooks;
     std::any tickers;
     std::any bidsasks;
+    // ws tier: whether watch methods resolve on EVERY update vs only NEW entries.
+    // Seeded from options.newUpdates at construction (TS Exchange.ts:631), default true.
+    std::any newUpdates;
     std::any orders;
     std::any trades;
     std::any myTrades;
@@ -536,6 +543,62 @@ public:
     virtual std::any storeArray (std::any target, std::any value);
     virtual std::any resolve (std::any value, std::any messageHash = std::any {});
     virtual std::any reject (std::any value, std::any messageHash = std::any {});
+
+    // -- ws plumbing (hand-written, mirrors ts/src/base/Exchange.ts above the
+    //    transpile marker + the runtime below it) --------------------------------
+    virtual std::any client (std::any url);
+    virtual std::any watch (std::any url, std::any messageHash, std::any message = std::any {},
+                            std::any subscribeHash = std::any {}, std::any subscription = std::any {});
+    virtual std::any watchMultiple (std::any url, std::any messageHashes, std::any message = std::any {},
+                                    std::any subscribeHashes = std::any {}, std::any subscription = std::any {});
+    virtual std::shared_future<std::any> spawn (std::any methodName, std::any args);
+    virtual std::shared_future<std::any> delay (std::any timeout, std::any methodName, std::any args);
+    virtual std::any ping (std::any client);
+    // pro tier request-id serialisation (TS lockId/unlockId stubs above the
+    // transpile marker; the ws harness races requestId() across threads) —
+    // inline definitions live below with the dispatch helpers
+    virtual std::any lockId () {
+        idLock.lock ();
+        return std::any {};
+    }
+    virtual std::any unlockId () {
+        idLock.unlock ();
+        return std::any {};
+    }
+    mutable std::mutex idLock;
+    // transpiled pro code calls delay(timeout, methodName, ...rest) and
+    // spawn(methodName, ...rest) with the rest arguments FLAT (JS rest-spread);
+    // the variadic overloads pack them into the args list the dynamic dispatcher
+    // expects
+    template <class... Args>
+    std::shared_future<std::any> delay (std::any timeout, std::any methodName, Args&&... rest) {
+        ccxt::list args;
+        (args.push (std::any (rest)), ...);
+        return this->delay (timeout, methodName, std::any (args));
+    }
+    template <class... Args>
+    std::shared_future<std::any> spawn (std::any methodName, Args&&... rest) {
+        ccxt::list args;
+        (args.push (std::any (rest)), ...);
+        return this->spawn (methodName, std::any (args));
+    }
+    // generated pro code stores a method NAME in a dict value and later calls it
+    // as method.call(this, ...); route the name through the dispatch table
+    std::any dispatchMethodName (std::any methodName, std::any args) {
+        return this->callDynamically (str (methodName), args);
+    }
+    // ws base emulations declared in TS Exchange.ts ABOVE the transpile marker, so
+    // the pro overrides (bitvavo fetchMarketsWs etc) need base declarations here.
+    // The bodies mirror the TS ones: resolve the current state immediately.
+    virtual std::shared_future<std::any> fetchMarketsWs (std::any params = std::any {});
+    virtual std::shared_future<std::any> fetchCurrenciesWs (std::any params = std::any {});
+    virtual std::shared_future<std::any> fetchBalanceWs (std::any params = std::any {});
+    virtual std::shared_future<std::any> fetchTradingFeesWs (std::any params = std::any {});
+    virtual void handleMessage (std::any client, std::any message);
+    virtual void onConnected (std::any client, std::any message = std::any {});
+    virtual void onError (std::any client, std::any error);
+    virtual void onClose (std::any client, std::any error);
+    virtual std::shared_future<std::any> close (std::any cleanInstanceCache = std::any {});
     virtual std::shared_future<std::any> throttle (std::any cost = std::any {});
 
     // -- network --------------------------------------------------------------------
