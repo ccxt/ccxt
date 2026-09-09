@@ -1261,11 +1261,11 @@ export default class mudrex extends Exchange {
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows and per-fill REBATE rows are excluded
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
      * @see https://docs.trade.mudrex.com/docs/fees
      * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
      * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
-     * @param {int} [limit] the maximum number of trade structures to retrieve, the requested page is doubled to compensate the excluded rows
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied or the history ends
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
@@ -1278,20 +1278,61 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request: Dict = {};
+        let pageSize = 0;
         if (limit !== undefined) {
-            // every fill produces a TRANSACTION row plus a REBATE row, so over-request to let the unified limit survive the filtering below
-            request['limit'] = limit * 2;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = limit * 2;
         }
-        const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
-        const data = this.safeList (response, 'data', []);
-        const rows = [];
-        for (let i = 0; i < data.length; i++) {
-            const entry = data[i];
+        const allRows = [];
+        let transactionsCount = 0;
+        let offset = 0;
+        let paging = true;
+        while (paging === true) {
+            const request: Dict = {};
+            if (pageSize > 0) {
+                request['limit'] = pageSize;
+                request['offset'] = offset;
+            }
+            const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
+            const data = this.safeList (response, 'data', []);
+            const dataLength = data.length;
+            for (let i = 0; i < dataLength; i++) {
+                const entry = data[i];
+                allRows.push (entry);
+                if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
+                    transactionsCount = this.sum (transactionsCount, 1);
+                }
+            }
+            paging = false;
+            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit)) {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum (offset, pageSize);
+                paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of its fill's TRANSACTION fee, matched by symbol, time and notional - collect them to report the net fee
+        const rebates: Dict = {};
+        const transactions = [];
+        const transactionKeys = [];
+        for (let i = 0; i < allRows.length; i++) {
+            const entry = allRows[i];
             const feeType = this.safeString (entry, 'fee_type');
-            // keep only actual fills - FUNDING rows are funding fee payments and REBATE rows are fee credits duplicating their fill
+            const pairKey = this.safeString (entry, 'symbol', '') + ':' + this.safeString (entry, 'created_at', '') + ':' + this.safeString (entry, 'transaction_amount', '');
             if (feeType === 'TRANSACTION') {
-                rows.push (entry);
+                transactions.push (entry);
+                transactionKeys.push (pairKey);
+            } else if (feeType === 'REBATE') {
+                const previous = this.safeString (rebates, pairKey, '0');
+                rebates[pairKey] = Precise.stringAdd (previous, this.safeString (entry, 'fee_amount', '0'));
+            }
+        }
+        const rows = [];
+        for (let i = 0; i < transactions.length; i++) {
+            const rebate = this.safeString (rebates, transactionKeys[i]);
+            if (rebate === undefined) {
+                rows.push (transactions[i]);
+            } else {
+                rows.push (this.extend (transactions[i], { 'rebate_amount': rebate }));
             }
         }
         return this.parseTrades (rows, market, since, limit);
@@ -1317,6 +1358,7 @@ export default class mudrex extends Exchange {
         market = this.safeMarket (ms, market);
         const symbol = market['symbol'];
         const ts = this.parse8601 (this.safeString (trade, 'created_at'));
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         const side = this.safeStringLower (trade, 'order_type');
         let tradeSide: Str = undefined;
         if (side === 'long') {
@@ -1331,7 +1373,12 @@ export default class mudrex extends Exchange {
             takerOrMaker = 'taker';
         }
         let fee: FeeString = undefined;
-        const feeCostString = this.safeString (trade, 'fee_amount');
+        let feeCostString = this.safeString (trade, 'fee_amount');
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        const rebateString = this.safeString (trade, 'rebate_amount');
+        if ((feeCostString !== undefined) && (rebateString !== undefined)) {
+            feeCostString = Precise.stringSub (feeCostString, rebateString);
+        }
         if (feeCostString !== undefined) {
             fee = {
                 'cost': feeCostString,

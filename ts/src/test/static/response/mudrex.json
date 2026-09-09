@@ -10416,7 +10416,8 @@
                             "trade_currency": "USDT",
                             "order_type": "STOPLOSS",
                             "trigger_type": "MARKET",
-                            "gst_amount": "0.00431135"
+                            "gst_amount": "0.00431135",
+                            "rebate_amount": "0.0113"
                         },
                         "timestamp": 1782868365000,
                         "datetime": "2026-07-01T01:12:45.000Z",
@@ -10431,12 +10432,12 @@
                         "cost": 47.904,
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.02826336
+                            "cost": 0.01696336
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.02826336
+                                "cost": 0.01696336
                             }
                         ]
                     },
@@ -10452,7 +10453,8 @@
                             "trade_currency": "USDT",
                             "order_type": "SHORT",
                             "trigger_type": "MARKET",
-                            "gst_amount": "0.00401227"
+                            "gst_amount": "0.00401227",
+                            "rebate_amount": "0.0105"
                         },
                         "timestamp": 1782901137000,
                         "datetime": "2026-07-01T10:18:57.000Z",
@@ -10467,12 +10469,12 @@
                         "cost": 44.5808,
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.02630268
+                            "cost": 0.01580268
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.02630268
+                                "cost": 0.01580268
                             }
                         ]
                     },
@@ -10488,7 +10490,8 @@
                             "trade_currency": "USDT",
                             "order_type": "STOPLOSS",
                             "trigger_type": "MARKET",
-                            "gst_amount": "0.00409886"
+                            "gst_amount": "0.00409886",
+                            "rebate_amount": "0.0107"
                         },
                         "timestamp": 1782928821000,
                         "datetime": "2026-07-01T18:00:21.000Z",
@@ -10503,12 +10506,12 @@
                         "cost": 45.543,
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.02687037
+                            "cost": 0.01617037
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.02687037
+                                "cost": 0.01617037
                             }
                         ]
                     },
@@ -10524,7 +10527,8 @@
                             "trade_currency": "USDT",
                             "order_type": "LONG",
                             "trigger_type": "MARKET",
-                            "gst_amount": "0.00376492"
+                            "gst_amount": "0.00376492",
+                            "rebate_amount": "0.0098"
                         },
                         "timestamp": 1782979858000,
                         "datetime": "2026-07-02T08:10:58.000Z",
@@ -10539,12 +10543,12 @@
                         "cost": 41.83245,
                         "fee": {
                             "currency": "USDT",
-                            "cost": 0.02468116
+                            "cost": 0.01488116
                         },
                         "fees": [
                             {
                                 "currency": "USDT",
-                                "cost": 0.02468116
+                                "cost": 0.01488116
                             }
                         ]
                     }
