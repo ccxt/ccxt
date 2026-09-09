@@ -569,3 +569,21 @@ exchange = ccxt.prediction.hyperliquid({
 ```
 
 The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
+
+## How to fetch an RPI orderbook?
+
+OKX/Binance/Bybit publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
+
+```Python
+exchange = ccxt.okx()
+
+# per call
+orderbook = exchange.fetch_order_book('BTC/USDT', 5, {'rpi': True})
+
+# or for every call
+exchange.options['fetchOrderBook'] = {'rpi': True}
+orderbook = exchange.fetch_order_book('BTC/USDT', 5)
+
+print(orderbook['bids'][0], orderbook['asks'][0])
+```
+

@@ -1494,6 +1494,32 @@
                         "method": "publicGetMarketBooksFull"
                     }
                 ]
+            },
+            {
+                "description": "fetch rpi orderbook with params",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT&sz=5",
+                "input": [
+                    "BTC/USDT",
+                    5,
+                    {
+                        "rpi": true
+                    }
+                ]
+            },
+            {
+                "description": "fetch rpi orderbook via exchange options",
+                "method": "fetchOrderBook",
+                "url": "https://www.okx.com/api/v5/market/books-rpi?instId=BTC-USDT-SWAP&sz=5",
+                "options": {
+                    "fetchOrderBook": {
+                        "rpi": true
+                    }
+                },
+                "input": [
+                    "BTC/USDT:USDT",
+                    5
+                ]
             }
         ],
         "fetchDeposits": [

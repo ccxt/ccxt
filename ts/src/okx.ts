@@ -201,6 +201,7 @@ export default class okx extends Exchange {
                         'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'market/books': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/books-full': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/books-rpi': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/candles': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/history-candles': { 'cost': 1 } as Endpoint<Dict>,
                         'market/trades': { 'cost': 1 / 5 } as Endpoint<Dict>,
@@ -2134,10 +2135,12 @@ export default class okx extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, max 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2148,6 +2151,8 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
+        let rpi = false;
+        [ rpi, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
@@ -2158,7 +2163,9 @@ export default class okx extends Exchange {
             request['sz'] = limit; // max 400
         }
         let response = undefined;
-        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+        if (rpi) {
+            response = await this.publicGetMarketBooksRpi (this.extend (request, params));
+        } else if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
             response = await this.publicGetMarketBooksFull (this.extend (request, params));
         } else {
             response = await this.publicGetMarketBooks (this.extend (request, params));
@@ -2183,6 +2190,10 @@ export default class okx extends Exchange {
         //             }
         //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {}) as Dict;
