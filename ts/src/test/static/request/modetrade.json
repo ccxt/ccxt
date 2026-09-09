@@ -231,6 +231,29 @@
                     "trigger": true
                   }
                 ]
+            },
+            {
+                "description": "limit above the plain-order cap is clamped to 500",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/orders?size=500&symbol=PERP_LTC_USDC",
+                "input": [
+                  "LTC/USDC:USDC",
+                  null,
+                  1000
+                ]
+            },
+            {
+                "description": "limit above the trigger-order cap is clamped to 100",
+                "method": "fetchOrders",
+                "url": "https://api-evm.orderly.org/v1/algo/orders?algo_type=STOP&size=100&symbol=PERP_XRP_USDC",
+                "input": [
+                  "XRP/USDC:USDC",
+                  null,
+                  1000,
+                  {
+                    "trigger": true
+                  }
+                ]
             }
         ],
         "fetchMyTrades": [
