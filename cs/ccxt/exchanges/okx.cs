@@ -5189,8 +5189,10 @@ public partial class okx : Exchange
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "canceled", "canceled" },
             { "order_failed", "canceled" },
+            { "mmp_canceled", "canceled" },
             { "live", "open" },
             { "partially_filled", "open" },
+            { "partially_effective", "open" },
             { "filled", "closed" },
             { "effective", "closed" },
         };
@@ -5461,7 +5463,7 @@ public partial class okx : Exchange
         object takeProfitPrice = this.safeNumber2(order, "tpTriggerPx", "tpOrdPx");
         string? reduceOnlyRaw = this.safeString(order, "reduceOnly");
         bool reduceOnly = false;
-        if (isTrue(!isEqual(reduceOnly, null)))
+        if (isTrue(!isEqual(reduceOnlyRaw, null)))
         {
             reduceOnly = (isEqual(reduceOnlyRaw, "true"));
         }
