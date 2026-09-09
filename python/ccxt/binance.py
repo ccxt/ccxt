@@ -4594,6 +4594,15 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(response, market)
 
+    def check_no_stock_symbols(self, symbols: Strings, methodName: str):
+        if symbols is None:
+            return
+        for i in range(0, len(symbols)):
+            symbolMarket = self.market(symbols[i])
+            stock = self.safe_bool(symbolMarket, 'stock', False)
+            if stock is True:
+                raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols(' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
+
     def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
@@ -4606,11 +4615,12 @@ class binance(Exchange, ImplicitAPI):
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchBidsAsks')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
@@ -4752,11 +4762,12 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchTickers')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
