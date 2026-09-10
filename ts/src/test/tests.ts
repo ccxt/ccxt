@@ -402,9 +402,13 @@ class testMainClass {
         // run-tests.js, so the exceptions are still printed out to console from there.
         const maxRetries = 3;
         const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+        let lastUrl = '';
         for (let i = 0; i < maxRetries; i++) {
             try {
-                await this.testMethod (methodName, exchange, args, isPublic);
+                const methodPromise = this.testMethod (methodName, exchange, args, isPublic);
+                await exchange.sleep (10);
+                lastUrl = exchange.last_request_url;
+                await methodPromise;
                 return true;
             }
             catch (ex) {
@@ -416,7 +420,7 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + exchange.last_request_url + ' )';
+                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + lastUrl + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
