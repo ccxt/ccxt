@@ -322,6 +322,14 @@ public class GateCore extends GateApi
                             put( "{settle}/risk_limit_tiers", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "{settle}/adl_risk_states", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "{settle}/funding_rates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "delivery", new java.util.HashMap<String, Object>() {{
@@ -404,6 +412,15 @@ public class GateCore extends GateApi
                                 put( "cost", 1 );
                             }} );
                             put( "structured/products", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "dual/project-recommend", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "fixed-term/product", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "fixed-term/product/{asset}/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -495,6 +512,9 @@ public class GateCore extends GateApi
                                 put( "cost", 1 );
                             }} );
                             put( "getLowCapExchangeList", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "transfers", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -600,6 +620,12 @@ public class GateCore extends GateApi
                             put( "leverage/user_currency_setting", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
+                            put( "delta_neutral", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "estimated_quick_repayment", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                             put( "account_mode", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
@@ -615,6 +641,15 @@ public class GateCore extends GateApi
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
                             put( "collateral_currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "delta_neutral", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "leverage/user_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "quick_repayment", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
                             put( "account_mode", new java.util.HashMap<String, Object>() {{
@@ -659,6 +694,12 @@ public class GateCore extends GateApi
                             put( "price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "pov_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "pov_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "batch_orders", new java.util.HashMap<String, Object>() {{
@@ -682,6 +723,9 @@ public class GateCore extends GateApi
                             put( "price_orders", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 0.4 );
                             }} );
+                            put( "pov_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
                             put( "orders", new java.util.HashMap<String, Object>() {{
@@ -694,6 +738,12 @@ public class GateCore extends GateApi
                                 put( "cost", Helpers.divide(20, 75) );
                             }} );
                             put( "price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "pov_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 75) );
+                            }} );
+                            put( "pov_orders/{order_id}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 75) );
                             }} );
                         }} );
@@ -901,6 +951,21 @@ public class GateCore extends GateApi
                             put( "{settle}/price_orders/{order_id}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "{settle}/autoorder/v1/trail/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/change_log", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/autoorder/v1/chase/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "{settle}/autoorder/v1/chase/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "{settle}/positions/{contract}/margin", new java.util.HashMap<String, Object>() {{
@@ -955,6 +1020,27 @@ public class GateCore extends GateApi
                                 put( "cost", 0.4 );
                             }} );
                             put( "{settle}/price_orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/stop", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/stop_all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/trail/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/chase/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/chase/stop", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 0.4 );
+                            }} );
+                            put( "{settle}/autoorder/v1/chase/stop_all", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 0.4 );
                             }} );
                         }} );
@@ -1099,6 +1185,11 @@ public class GateCore extends GateApi
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
                         }} );
+                        put( "put", new java.util.HashMap<String, Object>() {{
+                            put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                        }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
                             put( "orders", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
@@ -1155,6 +1246,33 @@ public class GateCore extends GateApi
                             put( "staking/assets", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
+                            put( "dual/order-refund-preview", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "fixed-term/user/lend", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "fixed-term/user/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/coins", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/config", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/list_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                             put( "uni/currencies", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
@@ -1176,6 +1294,33 @@ public class GateCore extends GateApi
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
                             put( "staking/swap", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "dual/order-refund", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "dual/modify-order-reinvest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "fixed-term/user/lend", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "fixed-term/user/pre-redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/min_invest_amount", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/add_position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/stop", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
+                            put( "autoinvest/plans/update", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
                         }} );
@@ -1332,6 +1477,9 @@ public class GateCore extends GateApi
                             put( "user/sub_relation", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(20, 15) );
                             }} );
+                            put( "partner/data/aggregated", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(20, 15) );
+                            }} );
                         }} );
                     }} );
                     put( "otc", new java.util.HashMap<String, Object>() {{
@@ -1346,6 +1494,12 @@ public class GateCore extends GateApi
                                 put( "cost", 1 );
                             }} );
                             put( "order/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/bank_supplement_checklist", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -1363,6 +1517,24 @@ public class GateCore extends GateApi
                                 put( "cost", 1 );
                             }} );
                             put( "order/cancel", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/delete", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/set_default", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/personal/bank_supplement", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "bank/enterprise/bank_supplement", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "upload/pre_upload", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );

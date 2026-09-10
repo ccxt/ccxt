@@ -384,7 +384,7 @@ public partial class coinone : ccxt.coinone
         }, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -396,9 +396,9 @@ public partial class coinone : ccxt.coinone
         string? type = this.safeString(message, "response_type", "");
         if (isTrue(isEqual(type, "ERROR")))
         {
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -428,7 +428,7 @@ public partial class coinone : ccxt.coinone
                 return;
             }
             List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))

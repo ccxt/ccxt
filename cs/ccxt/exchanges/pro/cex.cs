@@ -108,7 +108,7 @@ public partial class cex : ccxt.cex
             { "info", data },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)freeBalance).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object account = this.account();
@@ -159,7 +159,7 @@ public partial class cex : ccxt.cex
         if (isTrue(!isEqual(client as WebSocketClient, null)))
         {
             List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(subscriptionKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(subscriptionKeys)); postFixIncrement(ref i))
             {
                 object subscriptionKey = getValue(subscriptionKeys, i);
                 if (isTrue(isEqual(subscriptionKey, subscriptionHash)))
@@ -827,7 +827,7 @@ public partial class cex : ccxt.cex
             order = this.parseWsOrderUpdate(data, market);
         }
         ((IDictionary<string,object>)order)["remaining"] = remains;
-        object canceled = this.safeBool(data, "cancel", false);
+        bool? canceled = this.safeBool(data, "cancel", false);
         if (isTrue(isEqual(canceled, true)))
         {
             ((IDictionary<string,object>)order)["status"] = "canceled";
@@ -934,7 +934,7 @@ public partial class cex : ccxt.cex
         {
             timestamp = this.parse8601(time);
         }
-        object canceled = this.safeBool(order, "cancel", false);
+        bool? canceled = this.safeBool(order, "cancel", false);
         string status = "open";
         if (isTrue(isEqual(canceled, true)))
         {
@@ -1013,7 +1013,7 @@ public partial class cex : ccxt.cex
         //         "ok": "ok"
         //     }
         //
-        object symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
+        string? symbol = this.safeString(message, "oid"); // symbol is set as requestId in watchOrders
         object rawOrders = this.safeValue(message, "data", new List<object>() {});
         object myOrders = this.orders;
         if (isTrue(isEqual(myOrders, null)))
@@ -1021,7 +1021,7 @@ public partial class cex : ccxt.cex
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCacheBySymbolById(limit);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(rawOrders, i);
             object market = this.safeMarket(symbol);
@@ -1104,7 +1104,7 @@ public partial class cex : ccxt.cex
         string? pair = this.safeString(data, "pair");
         object symbol = this.pairToSymbol(pair);
         object messageHash = add("orderbook:", symbol);
-        object timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
+        Int64? timestamp = this.safeInteger2(data, "timestamp_ms", "timestamp");
         Int64? incrementalId = this.safeInteger(data, "id");
         object orderbook = this.orderBook(new Dictionary<string, object>() {});
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
@@ -1175,7 +1175,7 @@ public partial class cex : ccxt.cex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1257,7 +1257,7 @@ public partial class cex : ccxt.cex
         Int64? limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCacheByTimestamp(limit);
         List<object> sorted = this.sortBy(data, 0);
-        for (object i = 0; isLessThan(i, getArrayLength(sorted)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(sorted)); postFixIncrement(ref i))
         {
             callDynamically(stored, "append", new object[] {this.parseOHLCV(getValue(sorted, i), market)});
         }
@@ -1325,7 +1325,7 @@ public partial class cex : ccxt.cex
         object messageHash = add("ohlcv:", symbol);
         // const stored = this.safeValue (this.ohlcvs, symbol);
         object stored = getValue(getValue(this.ohlcvs, symbol), "unknown");
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             List<object> ohlcv = new List<object> {this.safeTimestamp(getValue(data, i), 0), this.safeNumber(getValue(data, i), 1), this.safeNumber(getValue(data, i), 2), this.safeNumber(getValue(data, i), 3), this.safeNumber(getValue(data, i), 4), this.safeNumber(getValue(data, i), 5)};
             callDynamically(stored, "append", new object[] {ohlcv});
@@ -1623,13 +1623,13 @@ public partial class cex : ccxt.cex
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         try
         {
             object data = this.safeValue(message, "data", new Dictionary<string, object>() {});
-            object error = this.safeString(data, "error");
-            object eventVar = this.safeString(message, "e", "");
+            string? error = this.safeString(data, "error");
+            string? eventVar = this.safeString(message, "e", "");
             object feedback = add(add(add(add(this.id, " "), eventVar), " "), error);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
@@ -1641,7 +1641,7 @@ public partial class cex : ccxt.cex
             if (isTrue(!isEqual(future, null)))
             {
                 ((WebSocketClient)client).reject(error, messageHash);
-                return true;
+                return ((bool?)((object)(true)));
             } else
             {
                 throw error;

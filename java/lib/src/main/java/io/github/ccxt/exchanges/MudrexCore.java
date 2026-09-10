@@ -127,6 +127,9 @@ public class MudrexCore extends MudrexApi
                         put( "futures/funds", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "futures/transactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "futures/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -569,12 +572,11 @@ public class MudrexCore extends MudrexApi
         String ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object ts = this.milliseconds();
         Object pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
-            put( "timestamp", ts );
-            put( "datetime", MudrexCore.this.iso8601(ts) );
+            put( "timestamp", null );
+            put( "datetime", null );
             put( "high", null );
             put( "low", null );
             put( "bid", null );
@@ -802,11 +804,8 @@ public class MudrexCore extends MudrexApi
     {
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
-        Object timestamp = this.milliseconds();
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
-            put( "timestamp", timestamp );
-            put( "datetime", MudrexCore.this.iso8601(timestamp) );
         }};
         Object account = this.account();
         String futuresBalance = this.safeString(data, "balance");
@@ -1003,10 +1002,14 @@ public class MudrexCore extends MudrexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
             Object response = (this.privatePostFuturesAssetIdOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
-            // the create response omits the order/trigger type, so restore them from the request
-            Helpers.addElementToObject(data, "order_type", Helpers.GetValue(request, "order_type"));
-            Helpers.addElementToObject(data, "trigger_type", Helpers.GetValue(request, "trigger_type"));
-            return this.parseOrder(data, market);
+            // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+            Object merged = this.extend(data, new java.util.HashMap<String, Object>() {{
+                put( "order_type", Helpers.GetValue(request, "order_type") );
+                put( "trigger_type", Helpers.GetValue(request, "trigger_type") );
+            }});
+            Object order = this.parseOrder(merged, market);
+            Helpers.addElementToObject(order, "info", data);
+            return order;
         });
 
     }
@@ -1093,6 +1096,25 @@ public class MudrexCore extends MudrexApi
         {
             side = "sell";
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        Object isRiskOrder = Helpers.isTrue((Helpers.isEqual(rawSide, "STOPLOSS"))) || Helpers.isTrue((Helpers.isEqual(rawSide, "TAKEPROFIT")));
+        String priceString = this.safeString2(order, "price", "order_price");
+        Object orderPrice = priceString;
+        Object triggerPrice = null;
+        Object stopLossPrice = null;
+        Object takeProfitPrice = null;
+        if (Helpers.isTrue(isRiskOrder))
+        {
+            triggerPrice = priceString;
+            orderPrice = null;
+            if (Helpers.isTrue(Helpers.isEqual(rawSide, "STOPLOSS")))
+            {
+                stopLossPrice = priceString;
+            } else
+            {
+                takeProfitPrice = priceString;
+            }
+        }
         String trig = (String)this.safeStringUpper(order, "trigger_type");
         Object typ = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
@@ -1103,40 +1125,40 @@ public class MudrexCore extends MudrexApi
             typ = "limit";
         }
         Object ts = this.parse8601(this.safeString(order, "created_at"));
-        if (Helpers.isTrue(Helpers.isEqual(ts, null)))
-        {
-            ts = this.milliseconds();
-        }
         Object status = this.parseOrderStatus(this.safeStringLower(order, "status"));
         Object sym = Helpers.GetValue(market, "symbol");
-        final Object finalTs = ts;
         final Object finalTyp = typ;
         final Object finalSide = side;
+        final Object finalOrderPrice = orderPrice;
+        final Object finalTriggerPrice = triggerPrice;
+        final Object finalStopLossPrice = stopLossPrice;
+        final Object finalTakeProfitPrice = takeProfitPrice;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", oid );
             put( "clientOrderId", null );
-            put( "timestamp", finalTs );
-            put( "datetime", MudrexCore.this.iso8601(finalTs) );
+            put( "timestamp", ts );
+            put( "datetime", MudrexCore.this.iso8601(ts) );
             put( "lastTradeTimestamp", null );
             put( "symbol", sym );
             put( "type", finalTyp );
             put( "timeInForce", null );
             put( "postOnly", null );
             put( "side", finalSide );
-            put( "price", MudrexCore.this.safeNumber2(order, "price", "order_price") );
-            put( "stopPrice", null );
-            put( "triggerPrice", null );
-            put( "amount", MudrexCore.this.safeNumber2(order, "quantity", "amount") );
+            put( "price", finalOrderPrice );
+            put( "triggerPrice", finalTriggerPrice );
+            put( "stopLossPrice", finalStopLossPrice );
+            put( "takeProfitPrice", finalTakeProfitPrice );
+            put( "amount", MudrexCore.this.safeString2(order, "quantity", "amount") );
             put( "cost", null );
-            put( "average", null );
-            put( "filled", null );
+            put( "average", MudrexCore.this.safeString(order, "filled_price") );
+            put( "filled", MudrexCore.this.safeString(order, "filled_quantity") );
             put( "remaining", null );
             put( "status", status );
             put( "fee", null );
             put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
-            put( "lastUpdateTimestamp", null );
+            put( "lastUpdateTimestamp", MudrexCore.this.parse8601(MudrexCore.this.safeString(order, "updated_at")) );
             put( "reduceOnly", MudrexCore.this.safeBool(order, "reduce_only") );
         }}, market);
     }

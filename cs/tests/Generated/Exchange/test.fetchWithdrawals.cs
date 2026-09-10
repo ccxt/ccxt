@@ -13,7 +13,7 @@ public partial class testMainClass : BaseTest
         object transactions = await invokeExchangeDynamically(exchange, "fetchWithdrawals", code);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
         object now = exchange.milliseconds();
-        for (object i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
         {
             testDepositWithdrawal(exchange, skippedProperties, method, getValue(transactions, i), code, now);
         }

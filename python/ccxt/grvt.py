@@ -113,9 +113,22 @@ class grvt(Exchange, ImplicitAPI):
             'api': {
                 # RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
+                    'get': {
+                        'api/v1/deposit/addresses': {'cost': rlOthers},
+                        'api/v1/bridge/withdrawal-info': {'cost': rlOthers},
+                        'api/v1/bridge/withdrawal-status': {'cost': rlOthers},
+                        'api/v1/referral/epochs': {'cost': rlOthers},
+                        'api/v1/referral/points': {'cost': rlOthers},
+                        'api/v1/referral/data': {'cost': rlOthers},
+                        'api/v1/referral/indirect_data': {'cost': rlOthers},
+                    },
                     'post': {
                         'auth/api_key/login': {'cost': 100},
                         'auth/wallet/login': {'cost': 100},
+                        'auth/builder/authorize': {'cost': 100},
+                        'api/v1/deposit/generate-address': {'cost': 100},
+                        'api/v1/bridge/withdrawal-quote': {'cost': 100},
+                        'api/v1/bridge/withdraw': {'cost': 100},
                     },
                 },
                 'publicMarket': {
@@ -132,6 +145,8 @@ class grvt(Exchange, ImplicitAPI):
                         'full/v1/trade_history': {'cost': 12},
                         'full/v1/kline': {'cost': 12},
                         'full/v1/funding': {'cost': 12},
+                        'full/v1/supported_assets': {'cost': 12},
+                        'full/v1/get_all_collateral_asset_info': {'cost': 12},
                     },
                 },
                 'privateTrading': {
@@ -172,6 +187,16 @@ class grvt(Exchange, ImplicitAPI):
                         'full/v1/authorize_builder': {'cost': rlOthers},  # https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': {'cost': rlOthers},
                         'full/v1/builder_fill_history': {'cost': rlOthers},
+                        'full/v1/create_rfq': {'cost': 5},
+                        'full/v1/cancel_rfq': {'cost': 5},
+                        'full/v1/ecn_from_broker': {'cost': rlOthers},
+                        'full/v2/bulk_orders': {'cost': 50},
+                        'full/v1/position_history': {'cost': rlOrders},
+                        'full/v1/interest_payment_history': {'cost': rlOthers},
+                        'full/v1/get_collateral_preference': {'cost': rlOthers},
+                        'full/v1/spot_account_summary': {'cost': rlOthers},
+                        'full/v1/set_indicative_prices': {'cost': rlOthers},
+                        'full/v1/withdrawal_fee': {'cost': 100},
                     },
                 },
             },

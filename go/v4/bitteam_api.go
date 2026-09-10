@@ -52,6 +52,11 @@ func (this *BitteamCore) PublicGetTradeApiRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiRates", args...)
 }
 
+// PublicGetTradeApiStats returns a channel that yields a JSON object.
+func (this *BitteamCore) PublicGetTradeApiStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTradeApiStats", args...)
+}
+
 // PublicGetTradeApiTradeId returns a channel that yields a JSON object.
 func (this *BitteamCore) PublicGetTradeApiTradeId(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradeApiTradeId", args...)

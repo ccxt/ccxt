@@ -104,6 +104,9 @@ public partial class zebpay : Exchange
                             { "v2/market/orderbook", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v2/market/orderbook/ticker", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v2/market/trades", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -141,6 +144,12 @@ public partial class zebpay : Exchange
                             { "v1/exchange/tradefees", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v1/exchange/exchangeInfo", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/pairs", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v1/market/orderBook", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -148,6 +157,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v1/market/markets", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/marketInfo", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                             { "v1/market/aggTrade", new Dictionary<string, object>() {
@@ -176,6 +188,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v2/ex/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/myfee/{symbol}", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                             { "v2/ex/order", new Dictionary<string, object>() {
@@ -208,6 +223,9 @@ public partial class zebpay : Exchange
                             { "v1/trade/order/open-orders", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v1/trade/order/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v1/trade/userLeverages", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -218,6 +236,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v1/trade/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/transaction/history", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                         } },
@@ -242,6 +263,14 @@ public partial class zebpay : Exchange
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/all", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
                             { "v1/trade/order", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -396,7 +425,7 @@ public partial class zebpay : Exchange
         object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         List<object> defaultMarkets = new List<object>() {"spot", "swap"};
         object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object type = getValue(types, i);
             if (isTrue(isEqual(type, "spot")))
@@ -476,7 +505,7 @@ public partial class zebpay : Exchange
         object minDepositString = null;
         object deposit = false;
         object withdraw = false;
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chainId");
@@ -655,7 +684,7 @@ public partial class zebpay : Exchange
         //
         object fees = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -853,7 +882,7 @@ public partial class zebpay : Exchange
                 ((IDictionary<string,object>)request)["since"] = since;
             }
         }
-        object until = this.safeInteger2(parameters, "until", "endtime");
+        Int64? until = this.safeInteger2(parameters, "until", "endtime");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["endTime"] = until;
@@ -1086,7 +1115,7 @@ public partial class zebpay : Exchange
         //
         string? id = this.safeString2(trade, "id", "aggregateTradeId");
         string? orderId = this.safeString2(trade, "id", "order");
-        object timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
+        Int64? timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         object symbol = getValue(market, "symbol");
@@ -1849,7 +1878,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1931,7 +1960,7 @@ public partial class zebpay : Exchange
         List<object> result = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object markets = this.safeList(data, "symbols", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1985,7 +2014,7 @@ public partial class zebpay : Exchange
             { "datetime", null },
         };
         object currencyList = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
         {
             object entry = getValue(currencyList, i);
             object account = this.account();
@@ -2094,7 +2123,7 @@ public partial class zebpay : Exchange
         //        }
         //     ]
         //
-        object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
+        Int64? timestamp = this.safeInteger2(ticker, "timestamp", "ts");
         string? marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId);
         string? close = this.safeString(ticker, "close");
@@ -2194,7 +2223,7 @@ public partial class zebpay : Exchange
             if (isTrue(isTrue(isEqual(method, "GET")) || isTrue((isTrue(isEqual(method, "DELETE")) && isTrue(isSpot)))))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                object queryString = this.urlencode(parameters);
+                string queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256, "hex");
                 url = add(url, add("?", queryString));
             } else
@@ -2233,7 +2262,7 @@ public partial class zebpay : Exchange
         // {"statusDescription":"Order quantity is out of range","data":{},"statusCode":400,"customMessage":["Order quantity is out of range"]}
         //
         string? errorCode = this.safeString2(response, "code", "statusCode");
-        object message = this.safeString2(response, "msg", "statusDescription");
+        string? message = this.safeString2(response, "msg", "statusDescription");
         object feedback = add(add(this.id, " "), message);
         this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
         this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);

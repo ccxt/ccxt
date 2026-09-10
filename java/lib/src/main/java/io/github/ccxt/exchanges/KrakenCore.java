@@ -151,6 +151,9 @@ public class KrakenCore extends KrakenApi
                         put( "SystemStatus", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "MaintenanceSchedule", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "Assets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -243,6 +246,9 @@ public class KrakenCore extends KrakenApi
                             put( "cost", 3 );
                         }} );
                         put( "GetApiKeyInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 3 );
+                        }} );
+                        put( "ListWalletAccounts", new java.util.HashMap<String, Object>() {{
                             put( "cost", 3 );
                         }} );
                         put( "AddOrder", new java.util.HashMap<String, Object>() {{

@@ -195,6 +195,7 @@ class delta(Exchange, ImplicitAPI):
                         'users/update_mmp': {'cost': 1},
                         'users/reset_mmp': {'cost': 1},
                         'users/margin_mode': {'cost': 1},
+                        'users/trading_preferences': {'cost': 1},
                     },
                     'delete': {
                         'orders': {'cost': 1},

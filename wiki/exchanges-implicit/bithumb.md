@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bithumb API documentation:** [apidocs.bithumb.com](https://apidocs.bithumb.com)
 
-> 67 implicit endpoints across 2 access groups.
+> 70 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -98,6 +98,8 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV1OrdersChance` | GET | `v1/orders/chance` | 1 |
 | `privateGetV1Order` | GET | `v1/order` | 1 |
 | `privateGetV1Orders` | GET | `v1/orders` | 1 |
+| `privateGetV2OrdersPending` | GET | `v2/orders/pending` | 1 |
+| `privateGetV2OrdersHistory` | GET | `v2/orders/history` | 1 |
 | `privateGetV1Twap` | GET | `v1/twap` | 1 |
 | `privateGetV1Withdraws` | GET | `v1/withdraws` | 1 |
 | `privateGetV1WithdrawsKrw` | GET | `v1/withdraws/krw` | 1 |
@@ -129,6 +131,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostV2Orders` | POST | `v2/orders` | 1 |
 | `privatePostV2OrdersBatch` | POST | `v2/orders/batch` | 6 |
 | `privatePostV2OrdersCancel` | POST | `v2/orders/cancel` | 6 |
+| `privatePostV2OrdersSearch` | POST | `v2/orders/search` | 1 |
 | `privatePostV1Twap` | POST | `v1/twap` | 1 |
 | `privatePostV1WithdrawsCoin` | POST | `v1/withdraws/coin` | 1 |
 | `privatePostV1WithdrawsKrw` | POST | `v1/withdraws/krw` | 1 |

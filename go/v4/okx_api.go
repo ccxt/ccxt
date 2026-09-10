@@ -287,6 +287,16 @@ func (this *OkxCore) PublicGetPublicVipInterestRateLoanQuota(args ...any) <-chan
 	return this.callEndpointAsync("publicGetPublicVipInterestRateLoanQuota", args...)
 }
 
+// PublicGetPublicMmInstrumentTypes returns a channel that yields a JSON object.
+func (this *OkxCore) PublicGetPublicMmInstrumentTypes(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicMmInstrumentTypes", args...)
+}
+
+// PublicGetPublicDeltaHedgeCurrencies returns a channel that yields a JSON object.
+func (this *OkxCore) PublicGetPublicDeltaHedgeCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPublicDeltaHedgeCurrencies", args...)
+}
+
 // PublicGetRubikStatTradingDataSupportCoin returns a channel that yields a JSON object.
 func (this *OkxCore) PublicGetRubikStatTradingDataSupportCoin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetRubikStatTradingDataSupportCoin", args...)
@@ -1232,6 +1242,66 @@ func (this *OkxCore) PrivateGetFinanceFlexibleLoanInterestAccrued(args ...any) <
 	return this.callEndpointAsync("privateGetFinanceFlexibleLoanInterestAccrued", args...)
 }
 
+// PrivateGetFinanceFlexibleLoanEmodeInfo returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceFlexibleLoanEmodeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceFlexibleLoanEmodeInfo", args...)
+}
+
+// PrivateGetFinanceOkusdLimits returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdLimits", args...)
+}
+
+// PrivateGetFinanceOkusdAccount returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdAccount", args...)
+}
+
+// PrivateGetFinanceOkusdSubscribeHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdSubscribeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdSubscribeHistory", args...)
+}
+
+// PrivateGetFinanceOkusdRedeemHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdRedeemHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdRedeemHistory", args...)
+}
+
+// PrivateGetFinanceOkusdRewardsHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdRewardsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdRewardsHistory", args...)
+}
+
+// PrivateGetFinanceOkusdRateHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceOkusdRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceOkusdRateHistory", args...)
+}
+
+// PrivateGetFinanceStableRewardsProductInfo returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceStableRewardsProductInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceStableRewardsProductInfo", args...)
+}
+
+// PrivateGetFinanceStableRewardsBalance returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceStableRewardsBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceStableRewardsBalance", args...)
+}
+
+// PrivateGetFinanceStableRewardsApyHistory returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetFinanceStableRewardsApyHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFinanceStableRewardsApyHistory", args...)
+}
+
+// PrivateGetUsersGlpTodayperformance returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetUsersGlpTodayperformance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersGlpTodayperformance", args...)
+}
+
+// PrivateGetUsersGlpHistoricalperformance returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetUsersGlpHistoricalperformance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersGlpHistoricalperformance", args...)
+}
+
 // PrivateGetCopytradingCurrentSubpositions returns a channel that yields a JSON object.
 func (this *OkxCore) PrivateGetCopytradingCurrentSubpositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetCopytradingCurrentSubpositions", args...)
@@ -1390,6 +1460,31 @@ func (this *OkxCore) PrivateGetFinanceSfpDcdOrderHistory(args ...any) <-chan any
 // PrivateGetAffiliateInviteeDetail returns a channel that yields a JSON object.
 func (this *OkxCore) PrivateGetAffiliateInviteeDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAffiliateInviteeDetail", args...)
+}
+
+// PrivateGetAffiliatePerformanceSummary returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetAffiliatePerformanceSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliatePerformanceSummary", args...)
+}
+
+// PrivateGetAffiliateInviteeList returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetAffiliateInviteeList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateInviteeList", args...)
+}
+
+// PrivateGetAffiliateLinkList returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetAffiliateLinkList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateLinkList", args...)
+}
+
+// PrivateGetAffiliateCoInviterList returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetAffiliateCoInviterList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateCoInviterList", args...)
+}
+
+// PrivateGetAffiliateSubAffiliateList returns a channel that yields a JSON object.
+func (this *OkxCore) PrivateGetAffiliateSubAffiliateList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateSubAffiliateList", args...)
 }
 
 // PrivateGetUsersPartnerIfRebate returns a channel that yields a JSON object.
@@ -2100,6 +2195,26 @@ func (this *OkxCore) PrivatePostFinanceFlexibleLoanMaxLoan(args ...any) <-chan a
 // PrivatePostFinanceFlexibleLoanAdjustCollateral returns a channel that yields a JSON object.
 func (this *OkxCore) PrivatePostFinanceFlexibleLoanAdjustCollateral(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFinanceFlexibleLoanAdjustCollateral", args...)
+}
+
+// PrivatePostFinanceFlexibleLoanBorrow returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFinanceFlexibleLoanBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFinanceFlexibleLoanBorrow", args...)
+}
+
+// PrivatePostFinanceFlexibleLoanRepay returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFinanceFlexibleLoanRepay(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFinanceFlexibleLoanRepay", args...)
+}
+
+// PrivatePostFinanceOkusdSubscribe returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFinanceOkusdSubscribe(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFinanceOkusdSubscribe", args...)
+}
+
+// PrivatePostFinanceOkusdRedeem returns a channel that yields a JSON object.
+func (this *OkxCore) PrivatePostFinanceOkusdRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFinanceOkusdRedeem", args...)
 }
 
 // PrivatePostCopytradingAlgoOrder returns a channel that yields a JSON object.

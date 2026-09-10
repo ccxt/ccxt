@@ -160,6 +160,12 @@ public partial class independentreserve : Exchange
                         { "GetOrderMinimumVolumes", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "GetDepositFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFiatWithdrawalFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "GetCryptoWithdrawalFees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -212,10 +218,22 @@ public partial class independentreserve : Exchange
                         { "GetTrades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "GetTradesByOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "GetBrokerageFees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "GetDigitalCurrencyWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFiatWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawalLimits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "PlaceLimitOrder", new Dictionary<string, object>() {
@@ -225,6 +243,9 @@ public partial class independentreserve : Exchange
                             { "cost", 1 },
                         } },
                         { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "SynchDigitalCurrencyDepositAddressWithBlockchain", new Dictionary<string, object>() {
@@ -413,12 +434,12 @@ public partial class independentreserve : Exchange
         List<object> result = new List<object>() {};
         IList<object> baseCurrencyIds = this.toArray(baseCurrencies);
         IList<object> quoteCurrencyIds = this.toArray(quoteCurrencies);
-        for (object i = 0; isLessThan(i, getArrayLength(baseCurrencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(baseCurrencyIds)); postFixIncrement(ref i))
         {
             object baseId = getValue(baseCurrencyIds, i);
             object bs = this.safeCurrencyCode(baseId);
             object minAmount = this.safeNumber(limits, baseId);
-            for (object j = 0; isLessThan(j, getArrayLength(quoteCurrencyIds)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(quoteCurrencyIds)); postFixIncrement(ref j))
             {
                 object quoteId = getValue(quoteCurrencyIds, j);
                 object quote = this.safeCurrencyCode(quoteId);
@@ -482,7 +503,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
@@ -559,7 +580,7 @@ public partial class independentreserve : Exchange
         // }
         Int64? timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
         object baseId = this.safeString(ticker, "PrimaryCurrencyCode");
-        object quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
+        string? quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
         object defaultMarketId = null;
         if (isTrue(isTrue((!isEqual(baseId, null))) && isTrue((!isEqual(quoteId, null)))))
         {
@@ -928,7 +949,7 @@ public partial class independentreserve : Exchange
         object amount = this.parseNumber(amountString);
         object cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         object baseId = this.safeString(trade, "PrimaryCurrencyCode");
-        object quoteId = this.safeString(trade, "SecondaryCurrencyCode");
+        string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
         object marketId = null;
         if (isTrue(isTrue((!isEqual(baseId, null))) && isTrue((!isEqual(quoteId, null)))))
         {
@@ -1017,7 +1038,7 @@ public partial class independentreserve : Exchange
         //
         Dictionary<string, object> fees = new Dictionary<string, object>() {};
         IList<object> rows = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object fee = getValue(rows, i);
             string? currencyId = this.safeString(fee, "CurrencyCode");
@@ -1033,7 +1054,7 @@ public partial class independentreserve : Exchange
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -1319,7 +1340,7 @@ public partial class independentreserve : Exchange
             object nonce = this.nonce();
             List<object> auth = new List<object>() {url, add("apiKey=", this.apiKey), add("nonce=", ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 string value = ((object)getValue(parameters, key)).ToString();
@@ -1331,7 +1352,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)query)["apiKey"] = this.apiKey;
             ((IDictionary<string,object>)query)["nonce"] = nonce;
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 ((IDictionary<string,object>)query)[(string)key] = getValue(parameters, key);

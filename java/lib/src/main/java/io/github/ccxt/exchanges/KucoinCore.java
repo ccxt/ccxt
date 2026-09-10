@@ -217,6 +217,9 @@ public class KucoinCore extends KucoinApi
                         put( "margin/collateralRatio", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "margin/available-inventory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                         put( "convert/symbol", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -445,6 +448,9 @@ public class KucoinCore extends KucoinApi
                         put( "margin/interest", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
+                        put( "margin/borrowRate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
+                        }} );
                         put( "project/list", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
@@ -491,6 +497,21 @@ public class KucoinCore extends KucoinApi
                             put( "cost", 5 );
                         }} );
                         put( "affiliate/inviter/statistics", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "affiliate/queryInvitees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "affiliate/queryMyCommission", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "affiliate/queryTransactionByUid", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "affiliate/queryTransactionByTime", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "affiliate/queryKumining", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
                     }} );
@@ -1011,6 +1032,9 @@ public class KucoinCore extends KucoinApi
                         put( "broker/nd/rebase/download", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "broker/nd/mark-up", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                         put( "asset/ndbroker/deposit/list", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2 );
                         }} );
@@ -1035,6 +1059,9 @@ public class KucoinCore extends KucoinApi
                             put( "cost", 6 );
                         }} );
                         put( "broker/nd/account/update-apikey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 6 );
+                        }} );
+                        put( "broker/nd/mark-up", new java.util.HashMap<String, Object>() {{
                             put( "cost", 6 );
                         }} );
                     }} );
@@ -1533,6 +1560,7 @@ public class KucoinCore extends KucoinApi
                             put( "symbols", "v2" );
                             put( "mark-price/all-symbols", "v3" );
                             put( "announcements", "v3" );
+                            put( "margin/available-inventory", "v3" );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -1569,6 +1597,7 @@ public class KucoinCore extends KucoinApi
                             put( "margin/borrow", "v3" );
                             put( "margin/repay", "v3" );
                             put( "margin/interest", "v3" );
+                            put( "margin/borrowRate", "v3" );
                             put( "project/list", "v3" );
                             put( "project/marketInterestRate", "v3" );
                             put( "redeem/orders", "v3" );
@@ -1576,6 +1605,11 @@ public class KucoinCore extends KucoinApi
                             put( "migrate/user/account/status", "v3" );
                             put( "margin/symbols", "v3" );
                             put( "affiliate/inviter/statistics", "v2" );
+                            put( "affiliate/queryInvitees", "v2" );
+                            put( "affiliate/queryMyCommission", "v2" );
+                            put( "affiliate/queryTransactionByUid", "v2" );
+                            put( "affiliate/queryTransactionByTime", "v2" );
+                            put( "affiliate/queryKumining", "v2" );
                             put( "asset/ndbroker/deposit/list", "v1" );
                         }} );
                         put( "POST", new java.util.HashMap<String, Object>() {{

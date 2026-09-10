@@ -82,6 +82,7 @@ public partial class revolutx : Exchange
                         { "1.0/orders/{venue_order_id}", 1 },
                         { "1.0/orders/fills/{venue_order_id}", 1 },
                         { "1.0/trades/private/{symbol}", 1 },
+                        { "1.0/transactions", 1 },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "1.0/orders", 1 },
@@ -212,7 +213,7 @@ public partial class revolutx : Exchange
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = getArrayLength(queryKeys);
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), implodedPath);
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -289,7 +290,7 @@ public partial class revolutx : Exchange
     {
         string? id = this.safeString(market, "id");
         object bs = this.safeString(market, "base", "");
-        object quote = this.safeString(market, "quote", "");
+        string? quote = this.safeString(market, "quote", "");
         object baseId = bs;
         object quoteId = quote;
         string? baseStep = this.safeString(market, "base_step");
@@ -389,12 +390,12 @@ public partial class revolutx : Exchange
         object markets = this.safeDict(response, "data", response);
         List<object> keys = new List<object>(((IDictionary<string,object>)markets).Keys);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object market = this.safeDict(markets, key, new Dictionary<string, object>() {});
             object bs = this.safeString(market, "base");
-            object quote = this.safeString(market, "quote");
+            string? quote = this.safeString(market, "quote");
             object marketId = add(add(bs, "-"), quote);
             Dictionary<string, object> marketData = this.extend(market, new Dictionary<string, object>() {
                 { "id", marketId },
@@ -480,7 +481,7 @@ public partial class revolutx : Exchange
         object currencies = this.safeDict(response, "data", response);
         List<object> keys = new List<object>(((IDictionary<string,object>)currencies).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object currency = this.safeDict(currencies, key, new Dictionary<string, object>() {});
@@ -519,7 +520,7 @@ public partial class revolutx : Exchange
         string? priceChange = this.safeString(ticker, "price_change_24h");
         string? baseVolume = this.safeString(ticker, "volume_24h");
         Int64? timestamp = this.safeInteger(ticker, "timestamp");
-        object open = null;
+        string? open = null;
         if (isTrue(isTrue(!isEqual(last, null)) && isTrue(!isEqual(priceChange, null))))
         {
             open = Precise.stringSub(last, priceChange);
@@ -575,7 +576,7 @@ public partial class revolutx : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             List<object> marketIds = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
@@ -603,7 +604,7 @@ public partial class revolutx : Exchange
         object metadata = this.safeDict(response, "metadata", new Dictionary<string, object>() {});
         Int64? timestamp = this.safeInteger(metadata, "timestamp");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object tickerData = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)tickerData)["timestamp"] = timestamp;
@@ -618,7 +619,7 @@ public partial class revolutx : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             Dictionary<string, object> filtered = new Dictionary<string, object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object s = getValue(symbols, i);
                 if (isTrue(inOp(result, s)))
@@ -756,7 +757,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["since"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["until"] = until;
@@ -858,7 +859,7 @@ public partial class revolutx : Exchange
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
         }
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(until, null)))
         {
             ((IDictionary<string,object>)request)["end_date"] = until;
@@ -887,7 +888,7 @@ public partial class revolutx : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IList<object>)result).Add(this.parseTrade(trade, market));
@@ -921,7 +922,7 @@ public partial class revolutx : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = this.safeDict(data, i, new Dictionary<string, object>() {});
             string? currency = this.safeString(balance, "currency");
@@ -999,7 +1000,7 @@ public partial class revolutx : Exchange
         string? timeInForce = this.safeStringUpper(order, "time_in_force");
         Int64? createdDate = this.safeInteger(order, "created_date");
         Int64? updatedDate = this.safeInteger(order, "updated_date");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(totalFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1298,7 +1299,7 @@ public partial class revolutx : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IList<object>)result).Add(this.parseOrder(order));
@@ -1335,7 +1336,7 @@ public partial class revolutx : Exchange
             ((IDictionary<string,object>)request)["symbols"] = getValue(market, "id");
         }
         object thirtyDays = 2592000000;
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
@@ -1374,7 +1375,7 @@ public partial class revolutx : Exchange
         object response = await this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new List<object>() {"until", "cursor", "orderStates", "order_states", "orderTypes", "order_types"})));
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IList<object>)result).Add(this.parseOrder(order));
@@ -1419,8 +1420,8 @@ public partial class revolutx : Exchange
         object price = this.safeNumber(trade, "p");
         object amount = this.safeNumber(trade, "q");
         string? side = this.safeStringLower(trade, "s");
-        object timestamp = this.safeInteger2(trade, "tdt", "pdt");
-        object isMaker = this.safeBool(trade, "im", false);
+        Int64? timestamp = this.safeInteger2(trade, "tdt", "pdt");
+        bool? isMaker = this.safeBool(trade, "im", false);
         string takerOrMaker = ((bool) isTrue((isMaker))) ? "maker" : "taker";
         object cost = null;
         if (isTrue(isTrue(!isEqual(price, null)) && isTrue(!isEqual(amount, null))))
@@ -1475,7 +1476,7 @@ public partial class revolutx : Exchange
             { "symbol", getValue(market, "id") },
         };
         object thirtyDays = 2592000000;
-        object until = this.safeInteger2(parameters, "until", "until");
+        Int64? until = this.safeInteger2(parameters, "until", "until");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["start_date"] = since;
@@ -1514,7 +1515,7 @@ public partial class revolutx : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IList<object>)result).Add(this.parseMyTrade(trade, market));

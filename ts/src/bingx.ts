@@ -230,6 +230,14 @@ export default class bingx extends Exchange {
                                 'market/depth': { 'cost': 1 } as Endpoint<Dict>,
                                 'market/kline': { 'cost': 1 } as Endpoint<Dict>,
                                 'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/historicalKlines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/trades': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -317,6 +325,7 @@ export default class bingx extends Exchange {
                                 'trade/allOrders': { 'cost': 2 } as Endpoint<Dict>,
                                 'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
                                 'trade/fillHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionHistory': { 'cost': 2 } as Endpoint<Dict>,
                                 'user/income/export': { 'cost': 2 } as Endpoint<Dict>,
                                 'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
                                 'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
@@ -388,6 +397,13 @@ export default class bingx extends Exchange {
                             'delete': {
                                 'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>, // post method in doc
                                 'trade/cancelOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'post': {
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -550,6 +566,21 @@ export default class bingx extends Exchange {
                                 'asset/partnerData': { 'cost': 5 } as Endpoint<Dict>,
                                 'commissionDataList/referralCode': { 'cost': 5 } as Endpoint<Dict>,
                                 'account/superiorCheck': { 'cost': 5 } as Endpoint<Dict>,
+                            },
+                        },
+                    },
+                },
+                'wealth': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'product/dual-currency/pre-order': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/position': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/order-records': { 'cost': 2 } as Endpoint<Dict>,
+                            },
+                            'post': {
+                                'product/dual-currency/invest-asset-list': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/order': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -1040,8 +1071,8 @@ export default class bingx extends Exchange {
         let currency = this.safeString (market, 'currency');
         let checkIsInverse = false;
         let checkIsLinear = true;
-        const minTickSize = this.safeNumber (market, 'minTickSize');
-        if (minTickSize !== undefined) {
+        const inverseContractSize = this.safeNumber (market, 'minTickSize');
+        if (inverseContractSize !== undefined) {
             // inverse swap market
             currency = baseId;
             checkIsInverse = true;
@@ -1064,7 +1095,10 @@ export default class bingx extends Exchange {
             symbol += ':' + settle;
         }
         const fees = this.safeDict (this.fees, type, {});
-        const contractSize = (swap) ? this.parseNumber ('1') : undefined;
+        let contractSize: Num = undefined;
+        if (swap) {
+            contractSize = (checkIsInverse) ? inverseContractSize : this.parseNumber ('1');
+        }
         let isActive = false;
         if ((this.safeString (market, 'apiStateOpen') === 'true') && (this.safeString (market, 'apiStateClose') === 'true')) {
             isActive = true; // swap active
@@ -1124,7 +1158,7 @@ export default class bingx extends Exchange {
                     'max': undefined,
                 },
                 'price': {
-                    'min': minTickSize,
+                    'min': undefined,
                     'max': undefined,
                 },
                 'cost': {
@@ -1892,16 +1926,27 @@ export default class bingx extends Exchange {
      * @name bingx#fetchFundingHistory
      * @description fetches historical funding received
      * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
-     * @param {string} symbol unified symbol of the market to fetch the funding history for
+     * @param {string} symbol unified symbol of the market to fetch the funding history for, inverse (Coin-M) markets are not supported
      * @param {int} [since] timestamp in ms of the earliest funding to fetch
      * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
      * @param {int} [params.until] timestamp in ms of the latest funding to fetch
      * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
      */
     override async fetchFundingHistory (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets ();
+        }
+        let market: Market = undefined;
+        if (symbol !== undefined) {
+            market = this.market (symbol);
+        }
+        let subType: Str = undefined;
+        [ subType, params ] = this.handleSubTypeAndParams ('fetchFundingHistory', market, params);
+        const isInverse = (market !== undefined) ? (market['inverse'] === true) : (subType === 'inverse');
+        if (isInverse) {
+            throw new NotSupported (this.id + ' fetchFundingHistory() is not supported for inverse swap markets');
         }
         let paginate = false;
         [ paginate, params ] = this.handleOptionAndParams (params, 'fetchFundingHistory', 'paginate');
@@ -1911,9 +1956,7 @@ export default class bingx extends Exchange {
         const request: Dict = {
             'incomeType': 'FUNDING_FEE',
         };
-        let market: Market = undefined;
-        if (symbol !== undefined) {
-            market = this.market (symbol);
+        if (market !== undefined) {
             request['symbol'] = market['id'];
         }
         if (since !== undefined) {

@@ -1253,17 +1253,10 @@ class toobit extends \ccxt\async\toobit {
         if ($time - $lastAuthenticatedTime > $delay) {
             $this->check_required_credentials();
             // single-flight leader election on a never-dialed $client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on $this->client($this->get_user_stream_url()), but that url
-            // embeds the $listenKey it is about to mint, so the $client the
-            // flight registers on is not the $client the next caller looks at:
-            // the cold call elected on .../ws/null and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a $future
-            // nobody resolves. $client->futures is the registry => $client->future()
-            // is the atomic check-and-insert and $client->resolve() /
-            // $client->reject() settle and remove the entry under the same lock
-            // in every port
+            // https://github.com/ccxt/ccxt/issues/29393 => the user-stream url embeds the $listenKey being minted,
+            // so the flight must not live on that $client or later callers would look at a different one.
+            // $client->futures is the registry => $client->future() is the atomic check-and-insert and
+            // $client->resolve() / $client->reject() settle and remove the entry under the same lock in every port
             $messageHash = 'authenticate';
             $client = $this->client('authenticationFlights');
             if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {

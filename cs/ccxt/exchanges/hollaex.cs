@@ -188,6 +188,9 @@ public partial class hollaex : Exchange
                         { "user/withdrawal/fee", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "user/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -200,6 +203,9 @@ public partial class hollaex : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccount/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "order", new Dictionary<string, object>() {
@@ -405,7 +411,7 @@ public partial class hollaex : Exchange
         object pairs = this.safeValue(response, "pairs", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)pairs).Keys);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object market = getValue(pairs, key);
@@ -559,7 +565,7 @@ public partial class hollaex : Exchange
         object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         List<object> networkIds = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
-        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
             object networkId = getValue(networkIds, j);
             object networkEntry = this.safeDict(rawNetworks, networkId);
@@ -630,7 +636,7 @@ public partial class hollaex : Exchange
         object response = await this.publicGetOrderbooks(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
@@ -763,7 +769,7 @@ public partial class hollaex : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object ticker = getValue(tickers, key);
@@ -907,7 +913,7 @@ public partial class hollaex : Exchange
         string? amountString = this.safeString(trade, "size");
         string? feeCostString = this.safeString(trade, "fee");
         string? feeCoin = this.safeString(trade, "fee_coin");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -981,7 +987,7 @@ public partial class hollaex : Exchange
         object makerFees = this.safeValue(fees, "maker", new Dictionary<string, object>() {});
         object takerFees = this.safeValue(fees, "taker", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);
@@ -1097,7 +1103,7 @@ public partial class hollaex : Exchange
             throw new ExchangeError ((string)add(this.id, " currencies not loaded")) ;
         }
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)currenciesById).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -1401,7 +1407,7 @@ public partial class hollaex : Exchange
         string? filled = this.safeString(order, "filled");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         object meta = this.safeValue(order, "meta", new Dictionary<string, object>() {});
-        object postOnly = this.safeBool(meta, "post_only", false);
+        bool? postOnly = this.safeBool(meta, "post_only", false);
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -1458,7 +1464,7 @@ public partial class hollaex : Exchange
         };
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stop"});
         object meta = this.safeValue(parameters, "meta", new Dictionary<string, object>() {});
-        object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
+        bool? exchangeSpecificParam = this.safeBool(meta, "post_only", false);
         bool isMarketOrder = isEqual(type, "market");
         object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
         if (!isTrue(isMarketOrder))
@@ -1989,7 +1995,7 @@ public partial class hollaex : Exchange
         string? feeCurrencyId = this.safeString(transaction, "fee_coin");
         object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId, currency);
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2134,7 +2140,7 @@ public partial class hollaex : Exchange
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdrawalFees).Keys);
             int keysLength = getArrayLength(keys);
-            for (object i = 0; isLessThan(i, keysLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, keysLength); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 object value = getValue(withdrawalFees, key);
@@ -2226,7 +2232,7 @@ public partial class hollaex : Exchange
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            object defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
+            Int64? defaultExpires = this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(divide(this.timeout, 1000)));
             object expires = this.sum(this.seconds(), defaultExpires);
             string expiresString = ((object)expires).ToString();
             object auth = add(add(method, path), expiresString);

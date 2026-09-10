@@ -231,6 +231,12 @@ public class BithumbCore extends BithumbApi
                         put( "v1/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v2/orders/pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/twap", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -325,6 +331,9 @@ public class BithumbCore extends BithumbApi
                         }} );
                         put( "v2/orders/cancel", new java.util.HashMap<String, Object>() {{
                             put( "cost", 6 );
+                        }} );
+                        put( "v2/orders/search", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
                         put( "v1/twap", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );

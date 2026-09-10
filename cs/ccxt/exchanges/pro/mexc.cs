@@ -182,7 +182,7 @@ public partial class mexc : ccxt.mexc
         this.handleBidAsk(client as WebSocketClient, message);
         object rawTicker = this.safeDictN(message, new List<object>() {"d", "data", "publicAggreBookTicker"});
         string? marketId = this.safeString2(message, "s", "symbol");
-        object timestamp = this.safeInteger2(message, "t", "sendTime");
+        Int64? timestamp = this.safeInteger2(message, "t", "sendTime");
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object ticker = null;
@@ -326,7 +326,7 @@ public partial class mexc : ccxt.mexc
         object messageHashPrefix = ((bool) isTrue((isEqual(isSpot, true)))) ? spotPrefix : "";
         object topic = add(messageHashPrefix, "ticker");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             object ticker = null;
@@ -443,7 +443,7 @@ public partial class mexc : ccxt.mexc
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             if (isTrue(isSpot))
             {
@@ -483,7 +483,7 @@ public partial class mexc : ccxt.mexc
         //    }
         //
         object parsedTicker = this.parseWsBidAsk(message);
-        object symbol = this.safeString(parsedTicker, "symbol");
+        string? symbol = this.safeString(parsedTicker, "symbol");
         if (isTrue(isEqual(symbol, null)))
         {
             return;
@@ -515,7 +515,7 @@ public partial class mexc : ccxt.mexc
     public async virtual Task<object> watchSpotPublic(object channel, object messageHash, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
+        bool? unsubscribed = this.safeBool(parameters, "unsubscribed", false);
         parameters = this.omit(parameters, new List<object>() {"unsubscribed"});
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "spot");
         string method = ((bool) isTrue((isEqual(unsubscribed, true)))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
@@ -599,7 +599,7 @@ public partial class mexc : ccxt.mexc
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar);
         object messageHash = add(add(add("candles:", symbolVar), ":"), timeframeVar);
         object ohlcv = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -844,7 +844,7 @@ public partial class mexc : ccxt.mexc
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Int64? nonce = this.safeInteger(orderbook, "nonce");
         object firstDelta = this.safeValue(cache, 0);
-        object firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
+        Int64? firstDeltaNonce = this.safeIntegerN(firstDelta, new List<object>() {"r", "version", "fromVersion"});
         if (isTrue(isTrue((isEqual(nonce, null))) || isTrue((isEqual(firstDeltaNonce, null)))))
         {
             return -1;
@@ -853,10 +853,10 @@ public partial class mexc : ccxt.mexc
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
+            Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
             if (isTrue(isEqual(deltaNonce, null)))
             {
                 continue;
@@ -964,7 +964,7 @@ public partial class mexc : ccxt.mexc
         try
         {
             this.handleDelta(storedOrderBook, data);
-            object timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
+            Int64? timestamp = this.safeIntegerN(message, new List<object>() {"t", "ts", "sendTime"});
             ((IDictionary<string,object>)storedOrderBook)["timestamp"] = timestamp;
             ((IDictionary<string,object>)storedOrderBook)["datetime"] = this.iso8601(timestamp);
         } catch(Exception e)
@@ -989,7 +989,7 @@ public partial class mexc : ccxt.mexc
         //        "v": "0.000000"
         //    }]
         //
-        for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
             object bidask = getValue(bidasks, i);
             if (isTrue(((bidask is IList<object>) || (bidask.GetType().IsGenericType && bidask.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -1007,7 +1007,7 @@ public partial class mexc : ccxt.mexc
     public override void handleDelta(object orderbook, object delta)
     {
         Int64? existingNonce = this.safeInteger(orderbook, "nonce");
-        object deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
+        Int64? deltaNonce = this.safeIntegerN(delta, new List<object>() {"r", "version", "fromVersion"});
         if (isTrue(isTrue(isTrue((!isEqual(deltaNonce, null))) && isTrue((!isEqual(existingNonce, null)))) && isTrue((isLessThan(deltaNonce, existingNonce)))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
@@ -1137,7 +1137,7 @@ public partial class mexc : ccxt.mexc
         {
             trades = this.safeList(message, "data", new List<object>() {});
         }
-        for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
         {
             object parsedTrade = null;
             if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -1319,7 +1319,7 @@ public partial class mexc : ccxt.mexc
         //        time: 1736417034280
         //      }
         //
-        object timestamp = this.safeInteger2(trade, "T", "time");
+        Int64? timestamp = this.safeInteger2(trade, "T", "time");
         string? tradeId = this.safeString2(trade, "t", "tradeId");
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1586,7 +1586,7 @@ public partial class mexc : ccxt.mexc
         string? side = this.safeString(order, "tradeType");
         string? status = this.safeString2(order, "status", "state");
         string? type = this.safeString(order, "orderType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "N");
         if (isTrue(!isEqual(feeCurrency, null)))
         {
@@ -1735,11 +1735,11 @@ public partial class mexc : ccxt.mexc
         //     }
         //
         string? channel = this.safeString(message, "channel");
-        object type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
+        string type = ((bool) isTrue((isEqual(channel, "spot@private.account.v3.api.pb")))) ? "spot" : "swap";
         object messageHash = add("balance:", type);
         object data = this.safeDictN(message, new List<object>() {"data", "privateAccount"});
-        object futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
-        object timestamp = this.safeInteger2(data, "time", futuresTimestamp);
+        Int64? futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
+        Int64? timestamp = this.safeInteger2(data, "time", futuresTimestamp);
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
@@ -1956,7 +1956,7 @@ public partial class mexc : ccxt.mexc
         }
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             if (isTrue(isSpot))
             {
@@ -1997,7 +1997,7 @@ public partial class mexc : ccxt.mexc
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframe);
+        string? timeframeId = this.safeString(timeframes, timeframe);
         object messageHash = add(add(add("unsubscribe:candles:", symbol), ":"), timeframe);
         object url = null;
         if (isTrue(isEqual(getValue(market, "spot"), true)))
@@ -2107,7 +2107,7 @@ public partial class mexc : ccxt.mexc
 
     public virtual void handleUnsubscriptions(WebSocketClient client, object messageHashes)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
@@ -2119,7 +2119,7 @@ public partial class mexc : ccxt.mexc
                 {
                     // unWatchTickers
                     List<object> symbols = new List<object>(((IDictionary<string,object>)this.tickers).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                     {
                         ((IDictionary<string,object>)this.tickers).Remove((string)getValue(symbols, j));
                     }
@@ -2187,7 +2187,7 @@ public partial class mexc : ccxt.mexc
         // otherwise the user-data subscriptions would be split across two connections
         var client = this.client(getValue(getValue(getValue(this.urls, "api"), "ws"), "spot"));
         string messageHash = "authenticate:listenKey";
-        object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
+        bool? isFetching = this.safeBool(this.options, "listenKeyFetching", false);
         if (isTrue(isEqual(isFetching, true)))
         {
             await client.future(messageHash);

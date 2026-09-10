@@ -247,6 +247,10 @@ class gate extends gate$1["default"] {
                             '{settle}/index_constituents/{index}': { 'cost': 1 },
                             '{settle}/liq_orders': { 'cost': 1 },
                             '{settle}/risk_limit_tiers': { 'cost': 1 },
+                            '{settle}/adl_risk_states': { 'cost': 1 },
+                        },
+                        'post': {
+                            '{settle}/funding_rates': { 'cost': 1 },
                         },
                     },
                     'delivery': {
@@ -283,6 +287,9 @@ class gate extends gate$1["default"] {
                             'uni/currencies/{currency}': { 'cost': 1 },
                             'dual/investment_plan': { 'cost': 1 },
                             'structured/products': { 'cost': 1 },
+                            'dual/project-recommend': { 'cost': 1 },
+                            'fixed-term/product': { 'cost': 1 },
+                            'fixed-term/product/{asset}/list': { 'cost': 1 },
                         },
                     },
                     'loan': {
@@ -325,6 +332,7 @@ class gate extends gate$1["default"] {
                             'small_balance_history': { 'cost': 1 },
                             'push': { 'cost': 1 },
                             'getLowCapExchangeList': { 'cost': 1 },
+                            'transfers': { 'cost': 1 },
                         },
                         'post': {
                             'transfers': { 'cost': 2.5 }, // 8r/s cost = 20 / 8 = 2.5
@@ -370,6 +378,8 @@ class gate extends gate$1["default"] {
                             'loan_margin_tiers': { 'cost': 20 / 15 },
                             'leverage/user_currency_config': { 'cost': 20 / 15 },
                             'leverage/user_currency_setting': { 'cost': 20 / 15 },
+                            'delta_neutral': { 'cost': 20 / 15 },
+                            'estimated_quick_repayment': { 'cost': 20 / 15 },
                             'account_mode': { 'cost': 20 / 15 }, // deprecated
                         },
                         'post': {
@@ -377,6 +387,9 @@ class gate extends gate$1["default"] {
                             'portfolio_calculator': { 'cost': 20 / 15 },
                             'leverage/user_currency_setting': { 'cost': 20 / 15 },
                             'collateral_currencies': { 'cost': 20 / 15 },
+                            'delta_neutral': { 'cost': 20 / 15 },
+                            'leverage/user_setting': { 'cost': 20 / 15 },
+                            'quick_repayment': { 'cost': 20 / 15 },
                             'account_mode': { 'cost': 20 / 15 }, // deprecated
                         },
                         'put': {
@@ -396,6 +409,8 @@ class gate extends gate$1["default"] {
                             'my_trades': { 'cost': 1 },
                             'price_orders': { 'cost': 1 },
                             'price_orders/{order_id}': { 'cost': 1 },
+                            'pov_orders': { 'cost': 1 },
+                            'pov_orders/{order_id}': { 'cost': 1 },
                         },
                         'post': {
                             'batch_orders': { 'cost': 0.4 },
@@ -405,12 +420,15 @@ class gate extends gate$1["default"] {
                             'countdown_cancel_all': { 'cost': 20 / 75 },
                             'amend_batch_orders': { 'cost': 0.4 },
                             'price_orders': { 'cost': 0.4 },
+                            'pov_orders': { 'cost': 0.4 },
                         },
                         'delete': {
                             'orders': { 'cost': 20 / 75 },
                             'orders/{order_id}': { 'cost': 20 / 75 },
                             'price_orders': { 'cost': 20 / 75 },
                             'price_orders/{order_id}': { 'cost': 20 / 75 },
+                            'pov_orders': { 'cost': 20 / 75 },
+                            'pov_orders/{order_id}': { 'cost': 20 / 75 },
                         },
                         'patch': {
                             'orders/{order_id}': { 'cost': 0.4 },
@@ -494,6 +512,11 @@ class gate extends gate$1["default"] {
                             '{settle}/risk_limit_table': { 'cost': 1 },
                             '{settle}/price_orders': { 'cost': 1 },
                             '{settle}/price_orders/{order_id}': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/list': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/detail': { 'cost': 1 },
+                            '{settle}/autoorder/v1/trail/change_log': { 'cost': 1 },
+                            '{settle}/autoorder/v1/chase/list': { 'cost': 1 },
+                            '{settle}/autoorder/v1/chase/detail': { 'cost': 1 },
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': { 'cost': 1 },
@@ -514,6 +537,13 @@ class gate extends gate$1["default"] {
                             '{settle}/batch_amend_orders': { 'cost': 0.4 },
                             '{settle}/bbo_orders': { 'cost': 0.4 },
                             '{settle}/price_orders': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/create': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/stop': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/stop_all': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/trail/update': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/create': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/stop': { 'cost': 0.4 },
+                            '{settle}/autoorder/v1/chase/stop_all': { 'cost': 0.4 },
                         },
                         'put': {
                             '{settle}/orders/{order_id}': { 'cost': 1 },
@@ -574,6 +604,9 @@ class gate extends gate$1["default"] {
                             'mmp': { 'cost': 20 / 15 },
                             'mmp/reset': { 'cost': 20 / 15 },
                         },
+                        'put': {
+                            'orders/{order_id}': { 'cost': 20 / 15 },
+                        },
                         'delete': {
                             'orders': { 'cost': 20 / 15 },
                             'orders/{order_id}': { 'cost': 20 / 15 },
@@ -596,6 +629,15 @@ class gate extends gate$1["default"] {
                             'staking/order_list': { 'cost': 20 / 15 },
                             'staking/award_list': { 'cost': 20 / 15 },
                             'staking/assets': { 'cost': 20 / 15 },
+                            'dual/order-refund-preview': { 'cost': 20 / 15 },
+                            'fixed-term/user/lend': { 'cost': 20 / 15 },
+                            'fixed-term/user/history': { 'cost': 20 / 15 },
+                            'autoinvest/coins': { 'cost': 20 / 15 },
+                            'autoinvest/config': { 'cost': 20 / 15 },
+                            'autoinvest/orders': { 'cost': 20 / 15 },
+                            'autoinvest/plans/detail': { 'cost': 20 / 15 },
+                            'autoinvest/plans/list_info': { 'cost': 20 / 15 },
+                            'autoinvest/plans/records': { 'cost': 20 / 15 },
                             'uni/currencies': { 'cost': 20 / 15 }, // deprecated
                             'uni/currencies/{currency}': { 'cost': 20 / 15 }, // deprecated
                         },
@@ -605,6 +647,15 @@ class gate extends gate$1["default"] {
                             'dual/orders': { 'cost': 20 / 15 },
                             'structured/orders': { 'cost': 20 / 15 },
                             'staking/swap': { 'cost': 20 / 15 },
+                            'dual/order-refund': { 'cost': 20 / 15 },
+                            'dual/modify-order-reinvest': { 'cost': 20 / 15 },
+                            'fixed-term/user/lend': { 'cost': 20 / 15 },
+                            'fixed-term/user/pre-redeem': { 'cost': 20 / 15 },
+                            'autoinvest/min_invest_amount': { 'cost': 20 / 15 },
+                            'autoinvest/plans/add_position': { 'cost': 20 / 15 },
+                            'autoinvest/plans/create': { 'cost': 20 / 15 },
+                            'autoinvest/plans/stop': { 'cost': 20 / 15 },
+                            'autoinvest/plans/update': { 'cost': 20 / 15 },
                         },
                         'put': {
                             'uni/interest_reinvest': { 'cost': 20 / 15 }, // deprecated
@@ -671,6 +722,7 @@ class gate extends gate$1["default"] {
                             'broker/transaction_history': { 'cost': 20 / 15 },
                             'user/info': { 'cost': 20 / 15 },
                             'user/sub_relation': { 'cost': 20 / 15 },
+                            'partner/data/aggregated': { 'cost': 20 / 15 },
                         },
                     },
                     'otc': {
@@ -679,6 +731,8 @@ class gate extends gate$1["default"] {
                             'order/list': { 'cost': 1 },
                             'stable_coin/order/list': { 'cost': 1 },
                             'order/detail': { 'cost': 1 },
+                            'bank/list': { 'cost': 1 },
+                            'bank/bank_supplement_checklist': { 'cost': 1 },
                         },
                         'post': {
                             'quote': { 'cost': 1 },
@@ -686,6 +740,12 @@ class gate extends gate$1["default"] {
                             'stable_coin/order/create': { 'cost': 1 },
                             'order/paid': { 'cost': 1 },
                             'order/cancel': { 'cost': 1 },
+                            'bank/create': { 'cost': 1 },
+                            'bank/delete': { 'cost': 1 },
+                            'bank/set_default': { 'cost': 1 },
+                            'bank/personal/bank_supplement': { 'cost': 1 },
+                            'bank/enterprise/bank_supplement': { 'cost': 1 },
+                            'upload/pre_upload': { 'cost': 1 },
                         },
                     },
                 },

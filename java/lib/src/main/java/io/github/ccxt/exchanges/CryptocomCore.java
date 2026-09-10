@@ -296,6 +296,9 @@ public class CryptocomCore extends CryptocomApi
                             put( "private/get-instrument-fee-rate", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
+                            put( "private/get-fee-credit-balances", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
                             put( "private/fiat/fiat-deposit-info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(10, 3) );
                             }} );
@@ -351,6 +354,27 @@ public class CryptocomCore extends CryptocomApi
                                 put( "cost", Helpers.divide(10, 3) );
                             }} );
                             put( "private/change-isolated-margin-leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/create-trading-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/update-trading-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/terminate-trading-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/pause-trading-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/resume-trading-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/get-trading-bots", new java.util.HashMap<String, Object>() {{
+                                put( "cost", Helpers.divide(10, 3) );
+                            }} );
+                            put( "private/bot/get-trading-bot-executions", new java.util.HashMap<String, Object>() {{
                                 put( "cost", Helpers.divide(10, 3) );
                             }} );
                         }} );

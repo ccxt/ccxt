@@ -240,6 +240,17 @@ public class ApexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV3StockAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV3StockAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV3StockAccount", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostV3DeleteOpenOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -314,6 +325,50 @@ public class ApexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3ContractTransferOut (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV3ContractTransferOut", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV3ContractTransferTo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3ContractTransferTo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV3ContractTransferTo", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV3SubmitWithdrawClaim endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3SubmitWithdrawClaim (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV3SubmitWithdrawClaim", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV3StockRegisterAccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3StockRegisterAccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV3StockRegisterAccount", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV3StockGenerateApi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV3StockGenerateApi (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV3StockGenerateApi", optionalArgs);
     }
 
 }

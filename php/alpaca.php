@@ -152,6 +152,29 @@ class alpaca extends Exchange {
             ),
             'api' => array(
                 'broker' => array(
+                    'private' => array(
+                        'get' => array(
+                            'v1/accounts/{account_id}/tokenization/requests' => array( 'cost' => 1 ),
+                            'v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}' => array( 'cost' => 1 ),
+                            'v1/accounts/{account_id}/tokenization/requests:by_client_request_id' => array( 'cost' => 1 ),
+                            'v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id' => array( 'cost' => 1 ),
+                            'v1/fpsl/analytics/{account_id}/loans' => array( 'cost' => 1 ),
+                            'v1/ipos' => array( 'cost' => 1 ),
+                            'v1/ipos/{offering_reference}' => array( 'cost' => 1 ),
+                            'v1/wallets/travel-rule/vasps' => array( 'cost' => 1 ),
+                            'v1beta1/acats' => array( 'cost' => 1 ),
+                            'v1beta1/acats/contrabrokers' => array( 'cost' => 1 ),
+                            'v1beta1/acats/{account_id}' => array( 'cost' => 1 ),
+                            'v1beta1/acats/{account_id}/{acats_id}' => array( 'cost' => 1 ),
+                            'v1beta1/acats/{account_id}/{acats_id}/assets' => array( 'cost' => 1 ),
+                        ),
+                        'post' => array(
+                            'v1beta1/acats/{account_id}' => array( 'cost' => 1 ),
+                        ),
+                        'patch' => array(
+                            'v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info' => array( 'cost' => 1 ),
+                        ),
+                    ),
                 ),
                 'trader' => array(
                     'private' => array(
@@ -176,6 +199,13 @@ class alpaca extends Exchange {
                             'v2/corporate_actions/announcements' => array( 'cost' => 1 ),
                             'v2/wallets' => array( 'cost' => 1 ),
                             'v2/wallets/transfers' => array( 'cost' => 1 ),
+                            'v1/locates' => array( 'cost' => 1 ),
+                            'v1/locates/{locate_id}' => array( 'cost' => 1 ),
+                            'v1/locates/quotes' => array( 'cost' => 1 ),
+                            'v2/tokenization/requests' => array( 'cost' => 1 ),
+                            'v2/tokenization/requests/{tokenization_request_id}' => array( 'cost' => 1 ),
+                            'v2/tokenization/requests:by_client_request_id' => array( 'cost' => 1 ),
+                            'v2/wallets/travel-rule/vasps' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'v2/orders' => array( 'cost' => 1 ),
@@ -183,6 +213,7 @@ class alpaca extends Exchange {
                             'v2/watchlists/{watchlist_id}' => array( 'cost' => 1 ),
                             'v2/watchlists:by_name' => array( 'cost' => 1 ),
                             'v2/wallets/transfers' => array( 'cost' => 1 ),
+                            'v1/locates' => array( 'cost' => 1 ),
                         ),
                         'put' => array(
                             'v2/orders/{order_id}' => array( 'cost' => 1 ),
@@ -192,6 +223,7 @@ class alpaca extends Exchange {
                         'patch' => array(
                             'v2/orders/{order_id}' => array( 'cost' => 1 ),
                             'v2/account/configurations' => array( 'cost' => 1 ),
+                            'v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info' => array( 'cost' => 1 ),
                         ),
                         'delete' => array(
                             'v2/orders' => array( 'cost' => 1 ),
@@ -220,6 +252,8 @@ class alpaca extends Exchange {
                     'private' => array(
                         'get' => array(
                             'v1beta1/corporate-actions' => array( 'cost' => 1 ),
+                            'v1beta1/fixed_income/latest/prices' => array( 'cost' => 1 ),
+                            'v1beta1/fixed_income/latest/quotes' => array( 'cost' => 1 ),
                             'v1beta1/forex/latest/rates' => array( 'cost' => 1 ),
                             'v1beta1/forex/rates' => array( 'cost' => 1 ),
                             'v1beta1/logos/{symbol}' => array( 'cost' => 1 ),

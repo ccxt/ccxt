@@ -184,11 +184,23 @@ public partial class coinbaseexchange : Exchange
                         { "products/volume-summary", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "wrapped-assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/{wrapped_asset_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/{wrapped_asset_id}/conversion-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "address-book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book/counterparty", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "accounts", new Dictionary<string, object>() {
@@ -278,6 +290,9 @@ public partial class coinbaseexchange : Exchange
                         { "transfers/{transfer_id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "users/self/exchange-limits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -285,6 +300,9 @@ public partial class coinbaseexchange : Exchange
                             { "cost", 1 },
                         } },
                         { "users/self/trailing-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/{user_id}/trading-volumes", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "withdrawals/fee-estimate", new Dictionary<string, object>() {
@@ -332,6 +350,21 @@ public partial class coinbaseexchange : Exchange
                         { "loans", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "loans/options", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem/{redeem_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap/{stake_wrap_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "conversions", new Dictionary<string, object>() {
@@ -344,6 +377,9 @@ public partial class coinbaseexchange : Exchange
                             { "cost", 1 },
                         } },
                         { "coinbase-accounts/{id}/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "funding/repay", new Dictionary<string, object>() {
@@ -373,10 +409,28 @@ public partial class coinbaseexchange : Exchange
                         { "withdrawals/coinbase-account", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "withdrawals/counterparty", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "withdrawals/crypto", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "withdrawals/payment-method", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/{transfer_id}/travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/{user_id}/settlement-preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "loans/open", new Dictionary<string, object>() {
@@ -399,12 +453,21 @@ public partial class coinbaseexchange : Exchange
                         { "orders/{id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "address-book/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel-rules/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "profiles/{id}/deactivate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "profiles/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book/{id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -648,7 +711,7 @@ public partial class coinbaseexchange : Exchange
         object details = this.safeDict(rawCurrency, "details", new Dictionary<string, object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(supportedNetworks)); postFixIncrement(ref j))
         {
             object network = getValue(supportedNetworks, j);
             string? networkId = this.safeString(network, "id");
@@ -762,7 +825,7 @@ public partial class coinbaseexchange : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -894,7 +957,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1101,7 +1164,7 @@ public partial class coinbaseexchange : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         string delimiter = "-";
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object entry = this.safeValue(response, marketId, new List<object>() {});
@@ -1367,7 +1430,7 @@ public partial class coinbaseexchange : Exchange
         object maker = this.safeNumber(response, "maker_fee_rate");
         object taker = this.safeNumber(response, "taker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1550,7 +1613,7 @@ public partial class coinbaseexchange : Exchange
         string? amount = this.safeString(order, "size", filled);
         string? cost = this.safeString(order, "executed_value");
         object feeCost = this.safeNumber(order, "fill_fees");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2115,7 +2178,7 @@ public partial class coinbaseexchange : Exchange
         }
         object response = await this.privateGetAccountsIdLedger(this.extend(request, parameters));
         IList<object> entries = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(entries, i))["currency"] = code;
         }
@@ -2201,7 +2264,7 @@ public partial class coinbaseexchange : Exchange
             //    ]
             //
             response = this.toArray(transfers);
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 string? account_id = this.safeString(getValue(response, i), "account_id");
                 object account = this.safeValue(this.accountsById, account_id);
@@ -2238,7 +2301,7 @@ public partial class coinbaseexchange : Exchange
             //    ]
             //
             response = this.toArray(accountTransfers);
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 ((IDictionary<string,object>)getValue(response, i))["currency"] = code;
             }
@@ -2491,7 +2554,7 @@ public partial class coinbaseexchange : Exchange
         {
             if (isTrue(isEqual(getValue(body, 0), "{")))
             {
-                object message = this.safeString(response, "message");
+                string? message = this.safeString(response, "message");
                 object feedback = add(add(this.id, " "), message);
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);

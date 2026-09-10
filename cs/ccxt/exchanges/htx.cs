@@ -711,6 +711,21 @@ public partial class htx : Exchange
                             { "v2/etp/limit", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "v2/invitee/rebate/referrals", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/invitee/rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/all_rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/batcher_rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v1/account/transfer", new Dictionary<string, object>() {
@@ -832,6 +847,9 @@ public partial class htx : Exchange
                             } },
                             { "v2/etp/batch-cancel", new Dictionary<string, object>() {
                                 { "cost", 50 },
+                            } },
+                            { "v5/account/universal_transfer", new Dictionary<string, object>() {
+                                { "cost", 4 },
                             } },
                         } },
                     } },
@@ -1212,6 +1230,24 @@ public partial class htx : Exchange
                             { "v5/algo/order/history", new Dictionary<string, object>() {
                                 { "cost", 0.41679 },
                             } },
+                            { "api/v6/copyTrading/trader/instruments", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/statistics", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/profit-sharing-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/profit-sharing-history-summary", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/unrealized-profit-sharing-summary", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/followers", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "api/v1/contract_balance_valuation", new Dictionary<string, object>() {
@@ -1588,6 +1624,21 @@ public partial class htx : Exchange
                             } },
                             { "v5/algo/cancel_orders", new Dictionary<string, object>() {
                                 { "cost", 0.41679 },
+                            } },
+                            { "api/v6/copyTrading/trader/follower", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/transfer", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/follower-settings", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/config", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/apikey", new Dictionary<string, object>() {
+                                { "cost", 2 },
                             } },
                         } },
                     } },
@@ -2101,8 +2152,8 @@ public partial class htx : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object status = null;
-        object eta = null;
+        string? status = null;
+        Int64? eta = null;
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
         {
@@ -2282,7 +2333,7 @@ public partial class htx : Exchange
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
@@ -2384,7 +2435,7 @@ public partial class htx : Exchange
         object allMarkets = new List<object>() {};
         object promises = new List<object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)types).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(isEqual(this.safeBool(types, key), true)))
@@ -2403,7 +2454,7 @@ public partial class htx : Exchange
             }
         }
         promises = await promiseAll(promises);
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             allMarkets = this.arrayConcat(allMarkets, getValue(promises, i));
         }
@@ -2543,11 +2594,11 @@ public partial class htx : Exchange
             throw new OperationFailed ((string)add(add(this.id, " fetchMarkets() returned an empty response: "), this.json(response))) ;
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             object baseId = null;
-            object quoteId = null;
+            string? quoteId = null;
             object settleId = null;
             object id = null;
             string? lowercaseId = null;
@@ -2782,7 +2833,7 @@ public partial class htx : Exchange
             { "quarter", "CQ" },
             { "next_quarter", "NQ" },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(futureMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(futureMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(futureMarkets, i);
             object info = this.safeValue(market, "info", new Dictionary<string, object>() {});
@@ -2852,7 +2903,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString2(ticker, "symbol", "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         symbol = this.tryGetSymbolFromFutureMarkets(symbol);
-        object timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
+        Int64? timestamp = this.safeInteger2(ticker, "ts", "quoteTime");
         string? bid = null;
         string? bidVolume = null;
         string? ask = null;
@@ -3414,7 +3465,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"ts", "created-at", "created_at", "create_date", "created_time"});
         string? order = this.safeString2(trade, "order-id", "order_id");
         object side = this.safeString2(trade, "direction", "side");
         object type = this.safeString(trade, "type");
@@ -3429,7 +3480,7 @@ public partial class htx : Exchange
         string? amountString = this.safeString2(trade, "filled-amount", "amount");
         amountString = this.safeString(trade, "trade_volume", amountString);
         string? costString = this.safeString(trade, "trade_turnover");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(trade, "filled-fees");
         if (isTrue(isEqual(feeCost, null)))
         {
@@ -3835,10 +3886,10 @@ public partial class htx : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trades = this.safeValue(getValue(data, i), "data", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
             {
                 object trade = this.parseTrade(getValue(trades, j), market);
                 ((IList<object>)result).Add(trade);
@@ -3904,7 +3955,7 @@ public partial class htx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object priceType = this.safeString2(parameters, "priceType", "price");
+        string? priceType = this.safeString2(parameters, "priceType", "price");
         parameters = this.omit(parameters, new List<object>() {"priceType", "price"});
         object until = null;
         var untilparametersVariable = this.handleParamInteger(parameters, "until");
@@ -4141,7 +4192,7 @@ public partial class htx : Exchange
         {
             marketId = this.marketId(symbol);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             object info = this.safeValue(account, "info");
@@ -4236,7 +4287,7 @@ public partial class htx : Exchange
         }
         object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
             string? uniqueChainId = this.safeString(chainEntry, "chain"); // i.e. usdterc20, trc20usdt ...
@@ -4583,7 +4634,7 @@ public partial class htx : Exchange
         if (isTrue(isTrue(isMultiAssetMode) || isTrue((isTrue(linear) && isTrue((isTrue(swap) || isTrue(future)))))))
         {
             object details = this.safeList(data, "details", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
             {
                 object balance = getValue(details, i);
                 string? currencyId = this.safeString(balance, "currency");
@@ -4601,12 +4652,12 @@ public partial class htx : Exchange
         {
             if (isTrue(isolated))
             {
-                for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                 {
                     object entry = getValue(data, i);
                     object balances = this.safeValue(entry, "list");
                     Dictionary<string, object> subResult = new Dictionary<string, object>() {};
-                    for (object j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(balances)); postFixIncrement(ref j))
                     {
                         object balance = getValue(balances, j);
                         string? currencyId = this.safeString(balance, "currency");
@@ -4617,7 +4668,7 @@ public partial class htx : Exchange
                         }
                     }
                     List<object> subCodes = new List<object>(((IDictionary<string,object>)subResult).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(subCodes)); postFixIncrement(ref j))
                     {
                         object subCode = getValue(subCodes, j);
                         result = this.mergeBalanceAccount(result, subCode, getValue(subResult, subCode));
@@ -4627,7 +4678,7 @@ public partial class htx : Exchange
             } else
             {
                 object balances = this.safeValue(data, "list", new List<object>() {});
-                for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
                 {
                     object balance = getValue(balances, i);
                     string? currencyId = this.safeString(balance, "currency");
@@ -4641,7 +4692,7 @@ public partial class htx : Exchange
             }
         } else if (isTrue(inverse))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object balance = getValue(data, i);
                 string? currencyId = this.safeString(balance, "symbol");
@@ -4712,11 +4763,11 @@ public partial class htx : Exchange
             }
         } else
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
-            object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing");
             bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             string? clientOrderId = this.safeStringN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
@@ -5028,11 +5079,11 @@ public partial class htx : Exchange
         object market = this.market(symbol);
         object request = new Dictionary<string, object>() {};
         object response = null;
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-        object stopLoss = this.safeBool(parameters, "stopLoss");
-        object takeProfit = this.safeBool(parameters, "takeProfit");
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? stopLoss = this.safeBool(parameters, "stopLoss");
+        bool? takeProfit = this.safeBool(parameters, "takeProfit");
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         if (isTrue(!isEqual(since, null)))
@@ -5140,11 +5191,11 @@ public partial class htx : Exchange
         object market = this.market(symbol);
         if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
             if (isTrue(isEqual(isAlgo, true)))
             {
@@ -5266,11 +5317,11 @@ public partial class htx : Exchange
             Dictionary<string, object> request = new Dictionary<string, object>() {};
             if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
-                object trigger = this.safeBool2(parameters, "stop", "trigger");
+                bool? trigger = this.safeBool2(parameters, "stop", "trigger");
                 object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                object stopLoss = this.safeBool(parameters, "stopLoss");
-                object takeProfit = this.safeBool(parameters, "takeProfit");
-                object trailing = this.safeBool(parameters, "trailing", false);
+                bool? stopLoss = this.safeBool(parameters, "stopLoss");
+                bool? takeProfit = this.safeBool(parameters, "takeProfit");
+                bool? trailing = this.safeBool(parameters, "trailing", false);
                 bool isAlgo = (isTrue(isTrue(isTrue(isTrue((isEqual(trigger, true))) || isTrue((isEqual(stopLoss, true)))) || isTrue((isEqual(takeProfit, true)))) || isTrue((isEqual(stopLossTakeProfit, true)))) || isTrue((isEqual(trailing, true))));
                 if (isTrue(isEqual(isAlgo, true)))
                 {
@@ -5391,7 +5442,7 @@ public partial class htx : Exchange
             {
                 // pick the first account
                 await this.loadAccounts();
-                for (object i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
                 {
                     object account = getValue(this.accounts, i);
                     if (isTrue(isEqual(this.safeString(account, "type"), "spot")))
@@ -5428,11 +5479,11 @@ public partial class htx : Exchange
                     ((IDictionary<string,object>)request)["page_size"] = limit;
                 }
             }
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
-            object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            object stopLoss = this.safeBool(parameters, "stopLoss");
-            object takeProfit = this.safeBool(parameters, "takeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+            bool? stopLoss = this.safeBool(parameters, "stopLoss");
+            bool? takeProfit = this.safeBool(parameters, "takeProfit");
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
             if (isTrue(isLinear))
             {
@@ -6034,7 +6085,7 @@ public partial class htx : Exchange
                 }
             }
         }
-        object timestamp = this.safeIntegerN(order, new List<object>() {"created_at", "created-at", "create_date", "created_time"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"created_at", "created-at", "create_date", "created_time"});
         string? clientOrderId = this.safeStringN(order, new List<object>() {"client_order_id", add("client-or", "der-id"), "algo_client_order_id"}); // transpiler regex trick for php issue
         string? cost = null;
         string? amount = null;
@@ -6050,7 +6101,7 @@ public partial class htx : Exchange
         string? price = this.safeString2(order, "price", "order_price");
         string? feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled feeSide
         feeCost = this.safeString(order, "fee", feeCost);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((!isEqual(feeCost, "0")))) && isTrue((!isEqual(feeCost, "0.0")))))
         {
             object feeCurrency = null;
@@ -6069,7 +6120,7 @@ public partial class htx : Exchange
         }
         string? average = this.safeString(order, "trade_avg_price");
         object trades = this.safeValue(order, "trades");
-        object reduceOnly = null;
+        bool? reduceOnly = null;
         if (isTrue(isEqual(isLinearOrder, true)))
         {
             reduceOnly = this.safeBool(order, "reduce_only");
@@ -6368,8 +6419,8 @@ public partial class htx : Exchange
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isLinear = (isEqual(subType, "linear"));
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        object hedged = this.safeBool(parameters, "hedged", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? hedged = this.safeBool(parameters, "hedged", false);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (isTrue(isLinear))
         {
@@ -6454,7 +6505,7 @@ public partial class htx : Exchange
         bool isTrigger = !isEqual(triggerPrice, null);
         bool isStopLossTriggerOrder = !isEqual(stopLossTriggerPrice, null);
         bool isTakeProfitTriggerOrder = !isEqual(takeProfitTriggerPrice, null);
-        object clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
+        Int64? clientOrderId = this.safeIntegerN(parameters, new List<object>() {"client_order_id", "clientOrderId", "algo_client_order_id"});
         if (isTrue(isTrue(isLinear) && isTrue((isTrue(isTrue(isTrue(isTrailingPercentOrder) || isTrue(isTrigger)) || isTrue(isStopLossTriggerOrder)) || isTrue(isTakeProfitTriggerOrder)))))
         {
             if (isTrue(!isEqual(clientOrderId, null)))
@@ -6805,7 +6856,7 @@ public partial class htx : Exchange
         object symbol = null;
         object market = null;
         object marginMode = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -6996,9 +7047,9 @@ public partial class htx : Exchange
         parameters = ((IList<object>)subTypeparametersVariable)[1];
         bool isLinear = (isEqual(subType, "linear"));
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
-        object stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
-        object trailing = this.safeBool(parameters, "trailing", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? stopLossTakeProfit = this.safeBoolN(parameters, new List<object>() {"stopLossTakeProfit", "stopLoss", "takeProfit"});
+        bool? trailing = this.safeBool(parameters, "trailing", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit"});
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -7197,7 +7248,7 @@ public partial class htx : Exchange
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
         parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trigger"});
         object response = null;
@@ -7445,7 +7496,7 @@ public partial class htx : Exchange
         object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
         object data = this.safeList(orders, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object order = getValue(data, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -7455,7 +7506,7 @@ public partial class htx : Exchange
                 { "clientOrderId", this.safeString(order, "client_order_id") },
             }));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
         {
             object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -7464,7 +7515,7 @@ public partial class htx : Exchange
                 { "status", "canceled" },
             }));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
         {
             object order = getValue(failed, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -7537,9 +7588,9 @@ public partial class htx : Exchange
                 ((IDictionary<string,object>)request)["symbol"] = this.safeString(market, "settleId");
             }
             ((IDictionary<string,object>)request)["contract_code"] = this.safeString(market, "id");
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            object trailing = this.safeBool(parameters, "trailing", false);
+            bool? trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "stopLossTakeProfit", "trailing", "trigger"});
             if (isTrue(isEqual(this.safeBool(market, "linear"), true)))
             {
@@ -7758,7 +7809,7 @@ public partial class htx : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object allAddresses = this.parseDepositAddresses(data, new List<object>() {getValue(currency, "code")}, false);
         List<object> addresses = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allAddresses)); postFixIncrement(ref i))
         {
             object address = getValue(allAddresses, i);
             bool noteMatch = isTrue((isEqual(note, null))) || isTrue((isEqual(getValue(address, "note"), note)));
@@ -8550,7 +8601,7 @@ public partial class htx : Exchange
         List<object> rates = new List<object>() {};
         if (isTrue(isEqual(getValue(market, "linear"), true)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object entry = getValue(data, i);
                 string? marketId = this.safeString(entry, "contract_code");
@@ -8568,7 +8619,7 @@ public partial class htx : Exchange
         {
             object cursor = this.safeValue(data, "current_page");
             object result = this.safeValue(data, "data", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object entry = getValue(result, i);
                 ((IDictionary<string,object>)entry)["current_page"] = cursor;
@@ -9338,7 +9389,7 @@ public partial class htx : Exchange
         string? marketId = this.safeString(income, "contract_code");
         object symbol = this.safeSymbol(marketId, market);
         object amount = this.safeNumber(income, "amount");
-        object timestamp = this.safeInteger2(income, "ts", "created_time");
+        Int64? timestamp = this.safeInteger2(income, "ts", "created_time");
         string? id = this.safeString(income, "id");
         string? currencyId = this.safeStringN(income, new List<object>() {"symbol", "asset", "currency"});
         object code = this.safeCurrencyCode(currencyId);
@@ -9566,7 +9617,7 @@ public partial class htx : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object position = getValue(data, i);
             object parsed = this.parsePosition(position);
@@ -9653,7 +9704,7 @@ public partial class htx : Exchange
         object position = null;
         if (isTrue(isTrue((isEqual(getValue(market, "future"), true))) && isTrue((isEqual(getValue(market, "inverse"), true)))))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
                 object entry = getValue(positions, i);
                 if (isTrue(isEqual(getValue(entry, "contract_code"), getValue(market, "id"))))
@@ -9876,12 +9927,12 @@ public partial class htx : Exchange
         string? marketId = this.safeString(info, "contract_code");
         List<object> tiers = new List<object>() {};
         object brackets = this.safeList(info, "list", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(brackets)); postFixIncrement(ref i))
         {
             object item = getValue(brackets, i);
             string? leverage = this.safeString(item, "lever_rate");
             object ladders = this.safeList(item, "ladders", new List<object>() {});
-            for (object k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, getArrayLength(ladders)); postFixIncrement(ref k))
             {
                 object bracket = getValue(ladders, k);
                 string? adjustFactor = this.safeString(bracket, "adjust_factor");
@@ -9935,7 +9986,7 @@ public partial class htx : Exchange
             { "1d", "1day" },
         };
         object market = this.market(symbol);
-        object amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
+        Int64? amountType = this.safeInteger2(parameters, "amount_type", "amountType", 2);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "period", getValue(timeframes, timeframe) },
             { "amount_type", amountType },
@@ -10701,14 +10752,14 @@ public partial class htx : Exchange
         object chains = this.safeValue(fee, "chains", new List<object>() {});
         string? code = this.safeString(currency, "code");
         object result = this.depositWithdrawFee(fee);
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chainEntry = getValue(chains, j);
             string? networkId = this.safeString(chainEntry, "chain");
             string? withdrawFeeType = this.safeString(chainEntry, "withdrawFeeType");
             object networkCode = this.networkIdToCode(networkId, code);
             object withdrawFee = null;
-            object withdrawResult = null;
+            Dictionary<string, object> withdrawResult = null;
             if (isTrue(isEqual(withdrawFeeType, "fixed")))
             {
                 withdrawFee = this.safeNumber(chainEntry, "transactFeeWithdraw");
@@ -10790,7 +10841,7 @@ public partial class htx : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             object settlement = getValue(settlements, i);
             object list = this.safeValue(settlement, "list");
@@ -10805,7 +10856,7 @@ public partial class htx : Exchange
                     { "timestamp", timestamp },
                     { "datetime", this.iso8601(timestamp) },
                 };
-                for (object j = 0; isLessThan(j, getArrayLength(list)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(list)); postFixIncrement(ref j))
                 {
                     object item = getValue(list, j);
                     object parsedSettlement = this.parseSettlement(item, market);
@@ -10888,7 +10939,7 @@ public partial class htx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
+        Int64? tradeType = this.safeInteger2(parameters, "trade_type", "tradeType", 0);
         object request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(getValue(market, "linear"), true)))
         {
@@ -10986,7 +11037,7 @@ public partial class htx : Exchange
         //     }
         //
         string? marketId = this.safeString(liquidation, "contract_code");
-        object timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
+        Int64? timestamp = this.safeInteger2(liquidation, "created_at", "liquidation_time");
         return this.safeLiquidation(new Dictionary<string, object>() {
             { "info", liquidation },
             { "symbol", this.safeSymbol(marketId, market) },

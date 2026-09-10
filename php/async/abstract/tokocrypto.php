@@ -76,6 +76,12 @@ abstract class tokocrypto extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function binance_get_executionrules($params = array()) {
+        return $this->request('executionRules', 'binance', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 40));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function binance_put_userdatastream($params = array()) {
         return $this->request('userDataStream', 'binance', 'PUT', $params, null, null, array("cost" => 1));
     }
@@ -208,6 +214,12 @@ abstract class tokocrypto extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_open_v1_user_listen_token($params = array()) {
+        return $this->request('open/v1/user-listen-token', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function binanceGetPing($params = array()) {
         return $this->request('ping', 'binance', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -270,6 +282,12 @@ abstract class tokocrypto extends \ccxt\async\Exchange {
      */
     public function binanceGetExchangeInfo($params = array()) {
         return $this->request('exchangeInfo', 'binance', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function binanceGetExecutionRules($params = array()) {
+        return $this->request('executionRules', 'binance', 'GET', $params, null, null, array("cost" => 2, "noSymbol" => 40));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -402,5 +420,11 @@ abstract class tokocrypto extends \ccxt\async\Exchange {
      */
     public function privatePostOpenV1UserDataStream($params = array()) {
         return $this->request('open/v1/user-data-stream', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostOpenV1UserListenToken($params = array()) {
+        return $this->request('open/v1/user-listen-token', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
 }

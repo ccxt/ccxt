@@ -525,6 +525,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/pmloan-history': {'cost': 5},
                         'portfolio/earn-asset-balance': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         # staking
                         'staking/productList': {'cost': 0.1},
                         'staking/position': {'cost': 0.1},
@@ -701,6 +702,7 @@ class binance(Exchange, ImplicitAPI):
                         'portfolio/redeem': {'cost': 20},
                         'portfolio/earn-asset-transfer': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': {'cost': 0.1},  # Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -734,6 +736,7 @@ class binance(Exchange, ImplicitAPI):
                     },
                     'delete': {
                         # 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'portfolio/margin-call-level': {'cost': 150},  # Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders': {'cost': 0.1},
                         'margin/order': {'cost': 0.006667},  # Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': {'cost': 0.006667},
@@ -1070,6 +1073,7 @@ class binance(Exchange, ImplicitAPI):
                         'countdownCancelAllHeartBeat': {'cost': 10},
                         'block/order/create': {'cost': 5},
                         'block/order/execute': {'cost': 5},
+                        'stock/contract': {'cost': 50},  # Weight(IP): 50 => cost = 50
                     },
                     'put': {
                         'listenKey': {'cost': 1},
@@ -1102,7 +1106,11 @@ class binance(Exchange, ImplicitAPI):
                         'ticker/price': {'cost': 0.4, 'noSymbol': 0.8},
                         'ticker/bookTicker': {'cost': 0.4, 'noSymbol': 0.8},
                         'exchangeInfo': {'cost': 4},  # Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'executionRules': {'cost': 0.4, 'noSymbol': 8},  # Weight(IP): 2(symbol) / 40(none) => cost = 0.2 * weight
                         'avgPrice': {'cost': 0.4},
+                        'referencePrice': {'cost': 0.4},  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation': {'cost': 0.4},  # Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades': {'cost': 5},  # Weight(IP): 25 => cost = 0.2 * 25 = 5
                     },
                     'put': {
                         'userDataStream': {'cost': 0.4},
@@ -1167,6 +1175,10 @@ class binance(Exchange, ImplicitAPI):
                         'um/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'um/conditional/orderHistory': {'cost': 1},
                         'um/conditional/allOrders': {'cost': 1, 'noSymbol': 40},
+                        # algo(conditional) orders
+                        'um/algo/algoOrder': {'cost': 1},
+                        'um/algo/openAlgoOrders': {'cost': 1},
+                        'um/algo/allAlgoOrders': {'cost': 5},
                         'cm/conditional/openOrder': {'cost': 1},
                         'cm/conditional/openOrders': {'cost': 1, 'noSymbol': 40},
                         'cm/conditional/orderHistory': {'cost': 1},
@@ -1225,6 +1237,7 @@ class binance(Exchange, ImplicitAPI):
                     'post': {
                         'um/order': {'cost': 1},
                         'um/conditional/order': {'cost': 1},
+                        'um/algo/order': {'cost': 1},
                         'cm/order': {'cost': 1},
                         'cm/conditional/order': {'cost': 1},
                         'margin/order': {'cost': 1},
@@ -1255,6 +1268,8 @@ class binance(Exchange, ImplicitAPI):
                         'um/conditional/order': {'cost': 1},
                         'um/allOpenOrders': {'cost': 1},
                         'um/conditional/allOpenOrders': {'cost': 1},
+                        'um/algo/order': {'cost': 1},
+                        'um/algo/allOpenOrders': {'cost': 1},
                         'cm/order': {'cost': 1},
                         'cm/conditional/order': {'cost': 1},
                         'cm/allOpenOrders': {'cost': 1},

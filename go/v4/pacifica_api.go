@@ -127,6 +127,21 @@ func (this *PacificaCore) PublicGetOrdersHistoryById(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetOrdersHistoryById", args...)
 }
 
+// PublicGetOrdersTwap returns a channel that yields a JSON object.
+func (this *PacificaCore) PublicGetOrdersTwap(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrdersTwap", args...)
+}
+
+// PublicGetOrdersTwapHistory returns a channel that yields a JSON object.
+func (this *PacificaCore) PublicGetOrdersTwapHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrdersTwapHistory", args...)
+}
+
+// PublicGetOrdersTwapHistoryById returns a channel that yields a JSON object.
+func (this *PacificaCore) PublicGetOrdersTwapHistoryById(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetOrdersTwapHistoryById", args...)
+}
+
 // PublicGetSpotAssets returns a channel that yields a JSON object.
 func (this *PacificaCore) PublicGetSpotAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSpotAssets", args...)
@@ -150,6 +165,21 @@ func (this *PacificaCore) PublicGetLakeList(args ...any) <-chan any {
 // PublicGetAccountBuilderCodesApprovals returns a channel that yields a JSON array.
 func (this *PacificaCore) PublicGetAccountBuilderCodesApprovals(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAccountBuilderCodesApprovals", args...)
+}
+
+// PublicGetBuilderOverview returns a channel that yields a JSON array.
+func (this *PacificaCore) PublicGetBuilderOverview(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetBuilderOverview", args...)
+}
+
+// PublicGetBuilderTrades returns a channel that yields a JSON object.
+func (this *PacificaCore) PublicGetBuilderTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetBuilderTrades", args...)
+}
+
+// PublicGetLeaderboardBuilderCode returns a channel that yields a JSON object.
+func (this *PacificaCore) PublicGetLeaderboardBuilderCode(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetLeaderboardBuilderCode", args...)
 }
 
 // PrivatePostAccountLeverage returns a channel that yields a JSON object.
@@ -252,6 +282,16 @@ func (this *PacificaCore) PrivatePostOrdersBatch(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrdersBatch", args...)
 }
 
+// PrivatePostOrdersTwapCreate returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostOrdersTwapCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersTwapCreate", args...)
+}
+
+// PrivatePostOrdersTwapCancel returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostOrdersTwapCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrdersTwapCancel", args...)
+}
+
 // PrivatePostAccountBuilderCodesApprove returns a channel that yields a JSON object.
 func (this *PacificaCore) PrivatePostAccountBuilderCodesApprove(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountBuilderCodesApprove", args...)
@@ -262,9 +302,54 @@ func (this *PacificaCore) PrivatePostAccountBuilderCodesRevoke(args ...any) <-ch
 	return this.callEndpointAsync("privatePostAccountBuilderCodesRevoke", args...)
 }
 
+// PrivatePostBuilderUpdateFeeRate returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostBuilderUpdateFeeRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostBuilderUpdateFeeRate", args...)
+}
+
+// PrivatePostReferralUserCodeClaim returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostReferralUserCodeClaim(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReferralUserCodeClaim", args...)
+}
+
 // PrivatePostAgentBind returns a channel that yields a JSON object.
 func (this *PacificaCore) PrivatePostAgentBind(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAgentBind", args...)
+}
+
+// PrivatePostAgentList returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentList", args...)
+}
+
+// PrivatePostAgentRevoke returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentRevoke(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentRevoke", args...)
+}
+
+// PrivatePostAgentRevokeAll returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentRevokeAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentRevokeAll", args...)
+}
+
+// PrivatePostAgentIpWhitelistList returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentIpWhitelistList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentIpWhitelistList", args...)
+}
+
+// PrivatePostAgentIpWhitelistAdd returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentIpWhitelistAdd(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentIpWhitelistAdd", args...)
+}
+
+// PrivatePostAgentIpWhitelistRemove returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentIpWhitelistRemove(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentIpWhitelistRemove", args...)
+}
+
+// PrivatePostAgentIpWhitelistToggle returns a channel that yields a JSON object.
+func (this *PacificaCore) PrivatePostAgentIpWhitelistToggle(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAgentIpWhitelistToggle", args...)
 }
 
 // PrivatePostAccountApiKeysCreate returns a channel that yields a JSON object.

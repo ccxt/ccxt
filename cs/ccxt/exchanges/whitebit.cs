@@ -287,6 +287,9 @@ public partial class whitebit : Exchange
                             { "collateral-account/positions/open", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "collateral-account/positions/closed-pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "collateral-account/summary", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -326,6 +329,9 @@ public partial class whitebit : Exchange
                             { "main-account/withdraw-pay", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "main-account/express-withdraw/token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "main-account/transfer", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -347,6 +353,30 @@ public partial class whitebit : Exchange
                             { "main-account/smart/interest-payment-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "main-account/smart-flex/plans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/payment-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/invest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/close", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/auto-invest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "trade-account/balance", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -354,6 +384,9 @@ public partial class whitebit : Exchange
                                 { "cost", 1 },
                             } },
                             { "trade-account/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/order/history/query", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "trade-account/order", new Dictionary<string, object>() {
@@ -393,6 +426,9 @@ public partial class whitebit : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel/bulk", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "order/kill-switch", new Dictionary<string, object>() {
@@ -491,10 +527,52 @@ public partial class whitebit : Exchange
                             { "mining/rewards", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "mining/hashrate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/payout-destination", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/payout-destination/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/miners/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/workers/names", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/workers/hashrate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/watcher-links/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/watcher-links/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/accounts/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "market/fee", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "market/fee/single", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "conditional-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "travel-rule/deposit/verification", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "jwt", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -885,7 +963,7 @@ public partial class whitebit : Exchange
         object depositLimits = this.safeDict(networkLimits, "deposit", new Dictionary<string, object>() {});
         object withdrawLimits = this.safeDict(networkLimits, "withdraw", new Dictionary<string, object>() {});
         object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
-        for (object j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(allNetworks)); postFixIncrement(ref j))
         {
             object networkId = getValue(allNetworks, j);
             object networkCode = this.networkIdToCode(networkId, code);
@@ -989,7 +1067,7 @@ public partial class whitebit : Exchange
         List<object> currenciesIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
         Dictionary<string, object> depositFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currenciesIds)); postFixIncrement(ref i))
         {
             object currency = getValue(currenciesIds, i);
             object data = this.safeDict(response, currency, new Dictionary<string, object>() {});
@@ -1117,7 +1195,7 @@ public partial class whitebit : Exchange
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         codes = this.marketCodes(codes);
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object entry = getValue(currencyIds, i);
             List<object> splitEntry = ((string)entry).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
@@ -1165,7 +1243,7 @@ public partial class whitebit : Exchange
             }
         }
         List<object> depositWithdrawCodes = new List<object>(((IDictionary<string,object>)depositWithdrawFees).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(depositWithdrawCodes)); postFixIncrement(ref i))
         {
             object code = getValue(depositWithdrawCodes, i);
             object currency = this.currency(code);
@@ -1209,7 +1287,7 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -1298,7 +1376,7 @@ public partial class whitebit : Exchange
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = getValue(markets, marketId);
@@ -1312,7 +1390,7 @@ public partial class whitebit : Exchange
             if (isTrue(!isEqual(symbols, null)))
             {
                 bool symbolFound = false;
-                for (object j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(symbols)); postFixIncrement(ref j))
                 {
                     if (isTrue(isEqual(getValue(symbols, j), symbol)))
                     {
@@ -1437,7 +1515,7 @@ public partial class whitebit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> currencyKeys = new List<object>(((IDictionary<string,object>)currenciesData).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyKeys)); postFixIncrement(ref i))
         {
             object code = getValue(currencyKeys, i);
             object currency = getValue(currenciesData, code);
@@ -1452,7 +1530,7 @@ public partial class whitebit : Exchange
             // Find corresponding fee data for this currency
             object feeData = null;
             List<object> feeKeys = new List<object>(((IDictionary<string,object>)feesData).Keys);
-            for (object j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(feeKeys)); postFixIncrement(ref j))
             {
                 object feeKey = getValue(feeKeys, j);
                 object fee = this.safeDict(feesData, feeKey);
@@ -1703,8 +1781,8 @@ public partial class whitebit : Exchange
             await this.loadMarkets();
         }
         // Extract control parameters from params
-        object checkActive = this.safeBool(parameters, "checkActive", true);
-        object checkExecuted = this.safeBool(parameters, "checkExecuted", true);
+        bool? checkActive = this.safeBool(parameters, "checkActive", true);
+        bool? checkExecuted = this.safeBool(parameters, "checkExecuted", true);
         parameters = this.omit(parameters, new List<object>() {"checkActive", "checkExecuted"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderId", id },
@@ -1723,7 +1801,7 @@ public partial class whitebit : Exchange
                 object response = await this.v4PrivatePostOrders(this.extend(request, parameters));
                 // Search for order in active orders response (array format)
                 IList<object> orders = this.toArray(response);
-                for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
                 {
                     object order = getValue(orders, i);
                     string? orderId = this.safeString(order, "orderId");
@@ -1750,12 +1828,12 @@ public partial class whitebit : Exchange
                 object response = await this.v4PrivatePostTradeAccountOrderHistory(this.extend(request, parameters));
                 // Search for order in executed orders response (object format)
                 List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
                     object marketNew = this.safeMarket(marketId, null, "_");
                     object marketOrders = this.safeList(response, marketId, new List<object>() {});
-                    for (object j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(marketOrders)); postFixIncrement(ref j))
                     {
                         object order = getValue(marketOrders, j);
                         string? orderId = this.safeString(order, "id");
@@ -1798,7 +1876,7 @@ public partial class whitebit : Exchange
         bool onlyContractSymbols = true;
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
@@ -1899,7 +1977,7 @@ public partial class whitebit : Exchange
         }
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
@@ -2067,7 +2145,7 @@ public partial class whitebit : Exchange
         {
             object results = new List<object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object marketId = getValue(keys, i);
                 object marketNew = this.safeMarket(marketId, null, "_");
@@ -2140,7 +2218,7 @@ public partial class whitebit : Exchange
         {
             takerOrMaker = ((bool) isTrue((isEqual(role, 1)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2384,7 +2462,7 @@ public partial class whitebit : Exchange
         bool isMarketOrder = isEqual(type, "market");
         object triggerPrice = this.safeNumberN(parameters, new List<object>() {"triggerPrice", "stopPrice", "activation_price"});
         bool isStopOrder = (!isEqual(triggerPrice, null));
-        object timeInForce = this.safeStringUpper(parameters, "timeInForce");
+        string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isTrue(isTrue(isTrue((!isEqual(timeInForce, null))) && isTrue((!isEqual(timeInForce, "GTC")))) && isTrue((!isEqual(timeInForce, "IOC")))) && isTrue((!isEqual(timeInForce, "PO")))))
         {
             throw new NotSupported ((string)add(add(add(this.id, " createOrder() does not support timeInForce "), timeInForce), ", only GTC, IOC and PO are allowed")) ;
@@ -2746,7 +2824,7 @@ public partial class whitebit : Exchange
     {
         List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
             object id = getValue(balanceKeys, i);
             object code = this.safeCurrencyCode(id);
@@ -2941,12 +3019,12 @@ public partial class whitebit : Exchange
         //
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         object results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object marketNew = this.safeMarket(marketId, null, "_");
             object orders = this.safeList(response, marketId, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
             {
                 object order = this.parseOrder(getValue(orders, j), marketNew);
                 ((IList<object>)results).Add(this.extend(order, new Dictionary<string, object>() {
@@ -3041,7 +3119,7 @@ public partial class whitebit : Exchange
             amount = filled;
         }
         string? dealFee = this.safeString(order, "dealFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(dealFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -3051,8 +3129,8 @@ public partial class whitebit : Exchange
         }
         object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
         object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
-        object postOnly = this.safeBool(order, "postOnly");
-        object ioc = this.safeBool(order, "ioc");
+        bool? postOnly = this.safeBool(order, "postOnly");
+        bool? ioc = this.safeBool(order, "ioc");
         string? timeInForce = null;
         if (isTrue(isEqual(ioc, true)))
         {
@@ -3466,7 +3544,7 @@ public partial class whitebit : Exchange
         //     }
         //
         object subAccounts = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subAccounts)); postFixIncrement(ref i))
         {
             object subAccount = this.safeDict(subAccounts, i, new Dictionary<string, object>() {});
             string? accountId = this.safeString(subAccount, "id");
@@ -4191,7 +4269,7 @@ public partial class whitebit : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             ((IList<object>)result).Add(this.parseFundingHistory(contract, market));
@@ -4720,10 +4798,10 @@ public partial class whitebit : Exchange
         });
     }
 
-    public virtual object isFiat(object currency)
+    public virtual bool isFiat(object currency)
     {
         object fiatCurrencies = this.safeValue(this.options, "fiatCurrencies", new List<object>() {});
-        return this.inArray(currency, fiatCurrencies);
+        return ((bool)((object)(this.inArray(currency, fiatCurrencies)))!);
     }
 
     /**
@@ -4833,7 +4911,7 @@ public partial class whitebit : Exchange
         {
             this.checkRequiredCredentials();
             string nonce = ((object)this.nonce()).ToString();
-            object secret = this.encode(this.secret);
+            string? secret = this.encode(this.secret);
             object request = add(add(add(add("/", "api"), "/"), version), pathWithParams);
             var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((IList<object>) nonceWindowrequestParamsVariable)[0];
@@ -4907,7 +4985,7 @@ public partial class whitebit : Exchange
                 throw new ExchangeError ((string)feedback) ;
             }
             // {"success":false,"message":{"limit":["limit must be less than or equal to 100"]},"result":null}
-            object success = this.safeBool(response, "success", true);
+            bool? success = this.safeBool(response, "success", true);
             if (isTrue(!isEqual(success, true)))
             {
                 object errMsg = this.safeDict(response, "message", new Dictionary<string, object>() {});

@@ -889,6 +889,17 @@ public class PoloniexApi extends Exchange
     }
 
     /**
+     * Calls the swapPublicGetV3MarketFundingRateHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPublicGetV3MarketFundingRateHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("swapPublicGetV3MarketFundingRateHistory", optionalArgs);
+    }
+
+    /**
      * Calls the swapPublicGetV3MarketOpenInterest endpoint.
      *
      * @param optionalArgs the request parameters
@@ -919,6 +930,17 @@ public class PoloniexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPublicGetV3MarketRiskLimit (Object... optionalArgs)
     {
         return this.callAsync ("swapPublicGetV3MarketRiskLimit", optionalArgs);
+    }
+
+    /**
+     * Calls the swapPublicGetV3MarketLimitPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPublicGetV3MarketLimitPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("swapPublicGetV3MarketLimitPrice", optionalArgs);
     }
 
     /**
@@ -977,6 +999,17 @@ public class PoloniexApi extends Exchange
     }
 
     /**
+     * Calls the swapPrivateGetV3TradeOrderDetails endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPrivateGetV3TradeOrderDetails (Object... optionalArgs)
+    {
+        return this.callAsync ("swapPrivateGetV3TradeOrderDetails", optionalArgs);
+    }
+
+    /**
      * Calls the swapPrivateGetV3TradePositionOpens endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1018,6 +1051,17 @@ public class PoloniexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPrivateGetV3PositionMode (Object... optionalArgs)
     {
         return this.callAsync ("swapPrivateGetV3PositionMode", optionalArgs);
+    }
+
+    /**
+     * Calls the swapPrivateGetV3PositionRiskLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  swapPrivateGetV3PositionRiskLimit (Object... optionalArgs)
+    {
+        return this.callAsync ("swapPrivateGetV3PositionRiskLimit", optionalArgs);
     }
 
     /**

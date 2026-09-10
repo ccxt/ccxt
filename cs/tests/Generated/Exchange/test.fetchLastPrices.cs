@@ -25,7 +25,7 @@ public partial class testMainClass : BaseTest
         List<object> values = new List<object>(((IDictionary<string,object>)response).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         bool atLeastOnePassed = false;
-        for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             // todo: symbol check here
             testLastPrice(exchange, skippedProperties, method, getValue(values, i), ((string)checkedSymbol));

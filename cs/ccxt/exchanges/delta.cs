@@ -274,6 +274,9 @@ public partial class delta : Exchange
                         { "users/margin_mode", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "users/trading_preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "orders", new Dictionary<string, object>() {
@@ -441,7 +444,7 @@ public partial class delta : Exchange
             expiry = add(add(slice(expiry, 4, null), slice(expiry, 2, 4)), slice(expiry, 0, 2));
         }
         object settle = quote;
-        object strike = this.safeString(optionParts, 2);
+        string? strike = this.safeString(optionParts, 2);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         string optionTypeUnified = ((bool) isTrue((isEqual(optionType, "C")))) ? "call" : "put";
@@ -660,7 +663,7 @@ public partial class delta : Exchange
         object code = this.safeCurrencyCode(id);
         object chains = this.safeList(rawCurrency, "networks", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "network");
@@ -741,7 +744,7 @@ public partial class delta : Exchange
             return null;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object item = getValue(input, key);
@@ -947,7 +950,7 @@ public partial class delta : Exchange
         //
         object markets = this.safeList(response, "result", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? type = this.safeString(market, "contract_type");
@@ -975,7 +978,7 @@ public partial class delta : Exchange
             bool swap = (isEqual(type, "perpetual_futures"));
             bool future = (isEqual(type, "futures"));
             bool option = (isTrue(isTrue(callOptions) || isTrue(putOptions)) || isTrue(moveOptions));
-            object strike = this.safeString(market, "strike_price");
+            string? strike = this.safeString(market, "strike_price");
             string? expiryDatetime = this.safeString(market, "settlement_time");
             Int64? expiry = this.parse8601(expiryDatetime);
             object contractSize = this.safeNumber(market, "contract_value");
@@ -1526,7 +1529,7 @@ public partial class delta : Exchange
         //
         object tickers = this.safeList(response, "result", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(tickers, i);
             string? contractType = this.safeString(rawTicker, "contract_type");
@@ -1667,7 +1670,7 @@ public partial class delta : Exchange
             type = ((string)type).Replace((string)"_order", (string)"");
         }
         string? feeCostString = this.safeString(trade, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             object settlingAsset = this.safeDict(product, "settling_asset", new Dictionary<string, object>() {});
@@ -1830,7 +1833,7 @@ public partial class delta : Exchange
             { "info", response },
         };
         object currenciesByNumericId = this.safeDict(this.options, "currenciesByNumericId", new Dictionary<string, object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset_id");
@@ -2125,7 +2128,7 @@ public partial class delta : Exchange
         string? amount = this.safeString(order, "size");
         string? remaining = this.safeString(order, "unfilled_size");
         string? average = this.safeString(order, "average_fill_price");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "paid_commission");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -2199,7 +2202,7 @@ public partial class delta : Exchange
         {
             ((IDictionary<string,object>)request)["client_order_id"] = clientOrderId;
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         if (isTrue(isEqual(reduceOnly, true)))
         {
             ((IDictionary<string,object>)request)["reduce_only"] = reduceOnly;
@@ -3541,7 +3544,7 @@ public partial class delta : Exchange
     public virtual object parseSettlements(object settlements, object market)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }

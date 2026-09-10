@@ -192,6 +192,7 @@ class tokocrypto extends Exchange {
                         'ticker/price' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'ticker/bookTicker' => array( 'cost' => 1, 'noSymbol' => 2 ),
                         'exchangeInfo' => array( 'cost' => 10 ),
+                        'executionRules' => array( 'cost' => 2, 'noSymbol' => 40 ),
                     ),
                     'put' => array(
                         'userDataStream' => array( 'cost' => 1 ),
@@ -231,6 +232,7 @@ class tokocrypto extends Exchange {
                         'open/v1/orders/oco' => array( 'cost' => 1 ),
                         'open/v1/withdraws' => array( 'cost' => 1 ),
                         'open/v1/user-data-stream' => array( 'cost' => 1 ),
+                        'open/v1/user-listen-token' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

@@ -186,7 +186,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -246,7 +246,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -341,12 +341,12 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
+            string suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
         }
@@ -402,12 +402,12 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        bool? use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
-            object suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
+            string suffix = ((bool) isTrue((isEqual(use1sFreq, true)))) ? "@1s" : "";
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
             ((IList<object>)messageHashes).Add(add("unsubscribe:ticker:", getValue(market, "symbol")));
         }
@@ -540,7 +540,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -595,7 +595,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -730,7 +730,7 @@ public partial class aster : ccxt.aster
             { "params", subscriptionArgs },
             { "id", 1 },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -785,7 +785,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -959,7 +959,7 @@ public partial class aster : ccxt.aster
             }
             takerOrMaker = ((bool) isTrue((isEqual(getValue(trade, "m"), true)))) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "n");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1073,7 +1073,7 @@ public partial class aster : ccxt.aster
         {
             limitVar = 20;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -1130,7 +1130,7 @@ public partial class aster : ccxt.aster
         {
             limit = 20;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -1271,7 +1271,7 @@ public partial class aster : ccxt.aster
             { "method", "SUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
@@ -1281,8 +1281,8 @@ public partial class aster : ccxt.aster
             }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
-            object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1);
+            string? timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1336,7 +1336,7 @@ public partial class aster : ccxt.aster
             { "method", "UNSUBSCRIBE" },
             { "params", subscriptionArgs },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
@@ -1346,8 +1346,8 @@ public partial class aster : ccxt.aster
             }
             object market = this.market(symbolString);
             symbolString = getValue(market, "symbol");
-            object unfiedTimeframe = this.safeString(data, 1);
-            object timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1);
+            string? timeframeId = ((bool) isTrue((isEqual(unfiedTimeframe, null)))) ? null : this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)subscriptionArgs).Add(add(add(this.safeStringLower(market, "id"), "@kline_"), timeframeId));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:ohlcv:", getValue(market, "symbol")), ":"), unfiedTimeframe));
         }
@@ -1490,7 +1490,7 @@ public partial class aster : ccxt.aster
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(parameters, "type", "spot");
         object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
-        object listenKey = this.safeString(listenKeyOptions, type);
+        string? listenKey = this.safeString(listenKeyOptions, type);
         if (isTrue(isEqual(listenKey, null)))
         {
             return;
@@ -1509,7 +1509,7 @@ public partial class aster : ccxt.aster
             object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1528,7 +1528,7 @@ public partial class aster : ccxt.aster
     {
         type ??= "spot";
         object listenKeyOptions = this.safeDict(this.options, "listenKey", new Dictionary<string, object>() {});
-        object listenKey = this.safeString(listenKeyOptions, type);
+        string? listenKey = this.safeString(listenKeyOptions, type);
         object url = add(add(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
         return url;
     }
@@ -1559,8 +1559,8 @@ public partial class aster : ccxt.aster
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
@@ -1577,7 +1577,7 @@ public partial class aster : ccxt.aster
             return;
         }
         object options = this.safeValue(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -1673,7 +1673,7 @@ public partial class aster : ccxt.aster
         message = this.safeDict(message, "a", message);
         object B = this.safeList(message, "B", new List<object>() {});
         string? wallet = this.safeString(this.options, "wallet", "wb");
-        for (object i = 0; isLessThan(i, getArrayLength(B)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(B)); postFixIncrement(ref i))
         {
             object entry = getValue(B, i);
             string? currencyId = this.safeString(entry, "a");
@@ -1725,7 +1725,7 @@ public partial class aster : ccxt.aster
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add(messageHash, "::"), symbol));
@@ -1773,7 +1773,7 @@ public partial class aster : ccxt.aster
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
@@ -1833,7 +1833,7 @@ public partial class aster : ccxt.aster
         object data = this.safeDict(message, "a", new Dictionary<string, object>() {});
         object rawPositions = this.safeList(data, "P", new List<object>() {});
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parseWsPosition(rawPosition);
@@ -1846,7 +1846,7 @@ public partial class aster : ccxt.aster
         object messageHashes = this.findMessageHashes(client as WebSocketClient, messageHash);
         if (!isTrue(this.isEmpty(messageHashes)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(newPositions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(newPositions)); postFixIncrement(ref i))
             {
                 object position = getValue(newPositions, i);
                 object symbol = getValue(position, "symbol");
@@ -2042,7 +2042,7 @@ public partial class aster : ccxt.aster
             string? orderId = this.safeString(trade, "order");
             object tradeFee = this.safeDict(trade, "fee", new Dictionary<string, object>() {});
             tradeFee = this.extend(new Dictionary<string, object>() {}, tradeFee);
-            object symbol = this.safeString(trade, "symbol");
+            string? symbol = this.safeString(trade, "symbol");
             if (isTrue(isTrue(isTrue(!isEqual(orderId, null)) && isTrue(!isEqual(tradeFee, null))) && isTrue(!isEqual(symbol, null))))
             {
                 object cachedOrders = this.orders;
@@ -2058,7 +2058,7 @@ public partial class aster : ccxt.aster
                         if (!isTrue(this.isEmpty(fees)))
                         {
                             bool insertNewFeeCurrency = true;
-                            for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+                            for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
                             {
                                 object orderFee = getValue(fees, i);
                                 if (isTrue(isEqual(getValue(orderFee, "currency"), getValue(tradeFee, "currency"))))
@@ -2228,7 +2228,7 @@ public partial class aster : ccxt.aster
             lastTradeTimestamp = T;
         }
         object lastUpdateTimestamp = T;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "n");
         if (isTrue(isTrue((!isEqual(feeCost, null))) && isTrue((Precise.stringGt(feeCost, "0")))))
         {

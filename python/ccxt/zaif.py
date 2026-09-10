@@ -115,6 +115,9 @@ class zaif(Exchange, ImplicitAPI):
                         'last_price/{pair}': {'cost': 1},
                         'ticker/{pair}': {'cost': 1},
                         'trades/{pair}': {'cost': 1},
+                        'vasp_info/{vasp_master_id}': {'cost': 1},
+                        'country_info/{code}': {'cost': 1},
+                        'corp_type_id_info/{id}': {'cost': 1},
                     },
                 },
                 'private': {

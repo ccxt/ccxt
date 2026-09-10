@@ -42,7 +42,7 @@ public partial class testMainClass : BaseTest
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testPosition(exchange, skippedProperties, method, getValue(response, i), null, now);
                 }
@@ -72,7 +72,7 @@ public partial class testMainClass : BaseTest
                 // max theoretical 4 positions: two for one-way-mode and two for two-way mode
                 assert(isLessThanOrEqual(getArrayLength(positionsForSymbols), 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbols)));
                 now = exchange.milliseconds();
-                for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(positionsForSymbols)); postFixIncrement(ref i))
                 {
                     testPosition(exchange, skippedProperties, method, getValue(positionsForSymbols, i), symbol, now);
                 }

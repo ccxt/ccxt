@@ -103,11 +103,46 @@ public class GrvtCore extends GrvtApi
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "privateEdge", new java.util.HashMap<String, Object>() {{
+                    put( "get", new java.util.HashMap<String, Object>() {{
+                        put( "api/v1/deposit/addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/bridge/withdrawal-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/bridge/withdrawal-status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/referral/epochs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/referral/points", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/referral/data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "api/v1/referral/indirect_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                    }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "auth/api_key/login", new java.util.HashMap<String, Object>() {{
                             put( "cost", 100 );
                         }} );
                         put( "auth/wallet/login", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "auth/builder/authorize", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "api/v1/deposit/generate-address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "api/v1/bridge/withdrawal-quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
+                        }} );
+                        put( "api/v1/bridge/withdraw", new java.util.HashMap<String, Object>() {{
                             put( "cost", 100 );
                         }} );
                     }} );
@@ -148,6 +183,12 @@ public class GrvtCore extends GrvtApi
                             put( "cost", 12 );
                         }} );
                         put( "full/v1/funding", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/supported_assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "full/v1/get_all_collateral_asset_info", new java.util.HashMap<String, Object>() {{
                             put( "cost", 12 );
                         }} );
                     }} );
@@ -261,6 +302,36 @@ public class GrvtCore extends GrvtApi
                         }} );
                         put( "full/v1/builder_fill_history", new java.util.HashMap<String, Object>() {{
                             put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/create_rfq", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "full/v1/cancel_rfq", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "full/v1/ecn_from_broker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v2/bulk_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "full/v1/position_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOrders );
+                        }} );
+                        put( "full/v1/interest_payment_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/get_collateral_preference", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/spot_account_summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/set_indicative_prices", new java.util.HashMap<String, Object>() {{
+                            put( "cost", rlOthers );
+                        }} );
+                        put( "full/v1/withdrawal_fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 100 );
                         }} );
                     }} );
                 }} );

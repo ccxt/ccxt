@@ -278,6 +278,8 @@ class okx(Exchange, ImplicitAPI):
                         'public/event-contract/markets': {'cost': 1},
                         'public/event-contract/series': {'cost': 1},
                         'public/vip-interest-rate-loan-quota': {'cost': 10},  # not documented
+                        'public/mm-instrument-types': {'cost': 4},
+                        'public/delta-hedge-currencies': {'cost': 1},
                         # rubik
                         'rubik/stat/trading-data/support-coin': {'cost': 4},
                         'rubik/stat/contracts/open-interest-history': {'cost': 2},
@@ -488,6 +490,21 @@ class okx(Exchange, ImplicitAPI):
                         'finance/flexible-loan/loan-info': {'cost': 4},
                         'finance/flexible-loan/loan-history': {'cost': 4},
                         'finance/flexible-loan/interest-accrued': {'cost': 4},
+                        'finance/flexible-loan/emode-info': {'cost': 4},
+                        # okusd
+                        'finance/okusd/limits': {'cost': 10},
+                        'finance/okusd/account': {'cost': 10},
+                        'finance/okusd/subscribe/history': {'cost': 4},
+                        'finance/okusd/redeem/history': {'cost': 4},
+                        'finance/okusd/rewards/history': {'cost': 4},
+                        'finance/okusd/rate/history': {'cost': 4},
+                        # stable rewards
+                        'finance/stable-rewards/product-info': {'cost': 4},
+                        'finance/stable-rewards/balance': {'cost': 4},
+                        'finance/stable-rewards/apy-history': {'cost': 5 / 3},
+                        # glp
+                        'users/glp/todayperformance': {'cost': 4},
+                        'users/glp/historicalperformance': {'cost': 4},
                         # copytrading
                         'copytrading/current-subpositions': {'cost': 1},
                         'copytrading/subpositions-history': {'cost': 1},
@@ -523,6 +540,11 @@ class okx(Exchange, ImplicitAPI):
                         'finance/sfp/dcd/order-history': {'cost': 2},
                         # affiliate
                         'affiliate/invitee/detail': {'cost': 1},
+                        'affiliate/performance/summary': {'cost': 10 / 3},
+                        'affiliate/invitee/list': {'cost': 10 / 3},
+                        'affiliate/link/list': {'cost': 10 / 3},
+                        'affiliate/co-inviter/list': {'cost': 10 / 3},
+                        'affiliate/sub-affiliate/list': {'cost': 10 / 3},
                         'users/partner/if-rebate': {'cost': 1},  # not documented
                         'support/announcements': {'cost': 4},
                     },
@@ -677,6 +699,11 @@ class okx(Exchange, ImplicitAPI):
                         'finance/staking-defi/sol/cancel-redeem': {'cost': 5},
                         'finance/flexible-loan/max-loan': {'cost': 4},
                         'finance/flexible-loan/adjust-collateral': {'cost': 4},
+                        'finance/flexible-loan/borrow': {'cost': 10},
+                        'finance/flexible-loan/repay': {'cost': 10},
+                        # okusd
+                        'finance/okusd/subscribe': {'cost': 20},
+                        'finance/okusd/redeem': {'cost': 20},
                         # copytrading
                         'copytrading/algo-order': {'cost': 1},
                         'copytrading/close-subposition': {'cost': 1},

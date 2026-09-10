@@ -190,11 +190,17 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/history': {'cost': 12},
                         'orders/history_by_id': {'cost': 1},
+                        'orders/twap': {'cost': 1},
+                        'orders/twap/history': {'cost': 12},
+                        'orders/twap/history_by_id': {'cost': 1},
                         'spot_assets': {'cost': 1},
                         'spot_assets/bridge/info': {'cost': 1},
                         'spot_assets/bridge/parameters/{symbol}': {'cost': 1},
                         'lake/list': {'cost': 1},
                         'account/builder_codes/approvals': {'cost': 1},
+                        'builder/overview': {'cost': 1},
+                        'builder/trades': {'cost': 1},
+                        'leaderboard/builder_code': {'cost': 1},
                     },
                 },
                 'private': {
@@ -219,9 +225,20 @@ class pacifica(Exchange, ImplicitAPI):
                         'orders/stop/cancel': {'cost': 0.5},
                         'orders/edit': {'cost': 1},
                         'orders/batch': {'cost': 1},
+                        'orders/twap/create': {'cost': 1},
+                        'orders/twap/cancel': {'cost': 0.5},
                         'account/builder_codes/approve': {'cost': 1},
                         'account/builder_codes/revoke': {'cost': 1},
+                        'builder/update_fee_rate': {'cost': 1},
+                        'referral/user/code/claim': {'cost': 1},
                         'agent/bind': {'cost': 1},
+                        'agent/list': {'cost': 1},
+                        'agent/revoke': {'cost': 1},
+                        'agent/revoke_all': {'cost': 1},
+                        'agent/ip_whitelist/list': {'cost': 1},
+                        'agent/ip_whitelist/add': {'cost': 1},
+                        'agent/ip_whitelist/remove': {'cost': 1},
+                        'agent/ip_whitelist/toggle': {'cost': 1},
                         'account/api_keys/create': {'cost': 1},
                         'account/api_keys/revoke': {'cost': 1},
                         'account/api_keys': {'cost': 1},
@@ -1378,7 +1395,9 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':

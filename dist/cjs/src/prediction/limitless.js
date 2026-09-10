@@ -12,6 +12,7 @@ require('../base/functions/platform.js');
 require('../base/functions/encode.js');
 var crypto = require('../base/functions/crypto.js');
 require('../base/functions/time.js');
+require('../base/functions/throttle.js');
 require('../base/functions/io.js');
 
 // ----------------------------------------------------------------------------

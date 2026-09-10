@@ -275,6 +275,13 @@ class bybit extends Exchange {
                         'v5/ins-loan/ensure-tokens-convert' => array( 'cost' => 5 ),
                         // earn
                         'v5/earn/product' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/project/list' => array( 'cost' => 5 ),
+                        'v5/spot-x/puzzle/project/list' => array( 'cost' => 5 ),
+                        'v5/spot-x/token-splash/project/list' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/instruments-info' => array( 'cost' => 5 ),
+                        'v5/event/orderbook' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
@@ -424,6 +431,7 @@ class bybit extends Exchange {
                         'v5/user/submembers' => array( 'cost' => 5 ),
                         'v5/user/escrow_sub_members' => array( 'cost' => 5 ),
                         'v5/user/invitation/referrals' => array( 'cost' => 5 ),
+                        'v5/user/invitation/code' => array( 'cost' => 5 ),
                         // affilate
                         'v5/affiliate/aff-user-list' => array( 'cost' => 5 ),
                         'v5/affiliate/affiliate-sub-list' => array( 'cost' => 5 ),
@@ -431,6 +439,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/order-record' => array( 'cost' => 1 ), // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/flexible-available-inventory' => array( 'cost' => 5 ),
+                        'v5/spot-margin-trade/fixed-available-inventory' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/interest-rate-history' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/state' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/max-borrowable' => array( 'cost' => 5 ),
@@ -467,6 +476,8 @@ class bybit extends Exchange {
                         'v5/crypto-loan-fixed/renew-info' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/supply-order-info' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/repayment-history' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/available-inventory' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/available-inventory' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos' => array( 'cost' => 5 ),
                         'v5/ins-loan/ensure-tokens' => array( 'cost' => 5 ), // deprecated
@@ -491,6 +502,21 @@ class bybit extends Exchange {
                         'v5/earn/position' => array( 'cost' => 5 ),
                         'v5/earn/yield' => array( 'cost' => 5 ),
                         'v5/earn/hourly-yield' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/order-realtime' => array( 'cost' => 5 ),
+                        'v5/event/order-list' => array( 'cost' => 5 ),
+                        'v5/event/positions' => array( 'cost' => 5 ),
+                        'v5/event/trades' => array( 'cost' => 5 ),
+                        'v5/event/settlements' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/user/current-staking' => array( 'cost' => 5 ),
+                        'v5/spot-x/token-splash/user/activity-params' => array( 'cost' => 5 ),
+                        // rfq
+                        'v5/rfq/rfq-detail-list' => array( 'cost' => 5 ),
+                        // alpha prediction market
+                        'v5/alpha/prediction/engine-status' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/pay-token-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/timeline-stages' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         // spot
@@ -658,6 +684,27 @@ class bybit extends Exchange {
                         'v5/broker/award/distribution-record' => array( 'cost' => 5 ),
                         // earn
                         'v5/earn/place-order' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/quotes' => array( 'cost' => 5 ),
+                        'v5/event/cancel' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/user/activity-log' => array( 'cost' => 5 ),
+                        'v5/spot-x/launchpool/user/history' => array( 'cost' => 5 ),
+                        // alpha prediction market
+                        'v5/alpha/prediction/event-detail' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-estimate' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/buy' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sell' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-book' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/token-price' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/price-history' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/position-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/position-history' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/portfolio-summary' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/side-market-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/match-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/group-stage-detail' => array( 'cost' => 5 ),
                     ),
                 ),
             ),

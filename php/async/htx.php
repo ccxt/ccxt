@@ -421,6 +421,12 @@ class htx extends Exchange {
                             'v2/etp/transactions' => array( 'cost' => 5 ),
                             'v2/etp/transaction' => array( 'cost' => 5 ),
                             'v2/etp/limit' => array( 'cost' => 1 ),
+                            // Referral
+                            'v2/invitee/rebate/referrals' => array( 'cost' => 10 ), // 1 request per second
+                            'v2/invitee/rebate/detail' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/history' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/all_rebate/detail' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/batcher_rebate/detail' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             // Account
@@ -471,6 +477,8 @@ class htx extends Exchange {
                             'v2/etp/redemption' => array( 'cost' => 5 ),
                             'v2/etp/{transactId}/cancel' => array( 'cost' => 10 ),
                             'v2/etp/batch-cancel' => array( 'cost' => 50 ),
+                            // Universal Transfer
+                            'v5/account/universal_transfer' => array( 'cost' => 4 ), // 5 requests per 2 seconds
                         ),
                     ),
                 ),
@@ -610,6 +618,13 @@ class htx extends Exchange {
                             'v5/algo/order/opens' => array( 'cost' => 0.41679 ),
                             'v5/algo/order' => array( 'cost' => 0.41679 ),
                             'v5/algo/order/history' => array( 'cost' => 0.41679 ),
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/instruments' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/statistics' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/profit-sharing-history' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/followers' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
                             // Future Account Interface
@@ -744,6 +759,12 @@ class htx extends Exchange {
                             'v5/account/fee_deduction_currency' => array( 'cost' => 0.20834 ),
                             'v5/algo/order' => array( 'cost' => 0.41679 ),
                             'v5/algo/cancel_orders' => array( 'cost' => 0.41679 ),
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/follower' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/transfer' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/follower-settings' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/config' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/apikey' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),

@@ -497,6 +497,102 @@ public class BitgetCore extends BitgetApi
                             put( "v3/market/index-components", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
+                            put( "v3/market/risk-reserve-all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 6.6667 );
+                            }} );
+                            put( "v3/market/risk-reserve-hour", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v3/market/score-weights", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/market/fee-group", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/market/cash-dividend-records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/market/split-records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/market/liquidations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/market/rpi-orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/market/rpi-symbols", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/market/spot-whale-flow", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/spot-fund-flow", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/spot-net-flow", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/margin-long-short", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/margin-loan-growth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/margin-isolated-borrow", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/futures-active-buy-sell", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/futures-long-short", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/futures-position-long-short", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/market/futures-account-long-short", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/stock-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/states", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/calendar", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/company-overview", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/valuation-indicators", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/earnings-forecast", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/suspension-resumption-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/dividends", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/share-capital-change", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/inner-trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/executive-shareholdings", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/reality/market/sharehold-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/account/custom-collateral-coins", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                         }} );
                     }} );
                 }} );
@@ -1237,6 +1333,9 @@ public class BitgetCore extends BitgetApi
                             put( "v2/user/modify-virtual-subaccount-apikey", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 4 );
                             }} );
+                            put( "v2/user/create-agent-subaccount", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
                         }} );
                     }} );
                     put( "p2p", new java.util.HashMap<String, Object>() {{
@@ -1314,6 +1413,27 @@ public class BitgetCore extends BitgetApi
                             put( "v2/broker/manage/subaccount-apikey-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
+                            put( "v2/broker/sub-customer-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/agent-commission", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-commissions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-kyc-result", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/order-commission", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/broker/rebate-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/broker/total-commission", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "broker/v1/account/sub-create", new java.util.HashMap<String, Object>() {{
@@ -1362,6 +1482,18 @@ public class BitgetCore extends BitgetApi
                                 put( "cost", 2 );
                             }} );
                             put( "v2/broker/manage/modify-subaccount-apikey", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-asset", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-deposit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v2/broker/customer-trade-volume", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
                         }} );
@@ -1879,6 +2011,24 @@ public class BitgetCore extends BitgetApi
                             put( "v2/earn/account/assets", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
+                            put( "v2/earn/elite/product", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/subscribe-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/subscribe-result", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/redeem-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "v2/earn/savings/subscribe", new java.util.HashMap<String, Object>() {{
@@ -1898,6 +2048,12 @@ public class BitgetCore extends BitgetApi
                             }} );
                             put( "v2/earn/loan/revise-pledge", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
+                            }} );
+                            put( "v2/earn/elite/subscribe", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v2/earn/elite/redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
                             }} );
                         }} );
                     }} );
@@ -2066,6 +2222,216 @@ public class BitgetCore extends BitgetApi
                             put( "v3/user/sub-api-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
+                            put( "v3/account/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/account/all-fee-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 6.6667 );
+                            }} );
+                            put( "v3/account/delta-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v3/account/withdraw-address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/account/max-withdrawal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/move-position-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/account/collateral-type", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/pre-set-leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/eligible-symbols", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/eligible-margin-tier", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/eligible-loan-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/eligible-discount-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v3/account/funding-financial-records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/reality-orderbook", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/reality-fills", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/copy/futures/trading-pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/copy/futures/position-summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/copy/futures/max-transferable", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/copy/futures/transfer-record", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/copy/futures/current-follower", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/copy/futures/history-follower", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/copy/futures/profit-summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/copy/futures/profit-details", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/convert/small-assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/convert/small-assets-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/earn/elite-product", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-subscribe-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-subscribe-result", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-redeem-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/trade/loan-data", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/strategy-sub-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/grid/bot-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/grid/list-details", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/neutral-bot-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/grid/neutral-list-details", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/user/rate-limit-quota", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-chain-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-expiry-date", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/option-volume", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/depth", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/static", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/quote", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/trade", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/intraday", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/history-candlestick", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/market/candlestick", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/trade/today-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/history-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/order-detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/today-executions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/history-executions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/asset/account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/cash-flow", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/stock-position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/stockplus/asset/transfer-records", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/ad-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/ad-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/ad-limit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/my-ads", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/pending-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/all-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/order-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/user-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/currencies", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/pay-method", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/balance", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/exchange-rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "v3/account/set-leverage", new java.util.HashMap<String, Object>() {{
@@ -2186,6 +2552,102 @@ public class BitgetCore extends BitgetApi
                                 put( "cost", 2 );
                             }} );
                             put( "v3/user/delete-sub-api", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/move-positions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/account/cancel-withdrawal", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/account/set-margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/account/set-collateral-type", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v3/copy/futures/transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/convert/small-assets-trade", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/earn/elite-subscribe", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/earn/elite-redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/trade/place-reality-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/cancel-reality-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/trade/grid/validate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/create-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/modify-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/modify-grid-interval", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/add-investment", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/close-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/validate-neutral", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/create-neutral-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/modify-neutral-bot", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/trade/grid/modify-neutral-grid-interval", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/user/set-rate-limit-quota", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/user/sub-account/agent-create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/place-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/cancel-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/trade/modify-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "v3/stockplus/asset/transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
+                            }} );
+                            put( "v3/p2p/ad-create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/ad-update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/ad-operate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/fee-simulate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/order-pay", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "v3/p2p/order-release", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
                         }} );

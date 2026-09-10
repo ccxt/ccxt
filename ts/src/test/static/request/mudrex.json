@@ -60,6 +60,22 @@
                     }
                 ],
                 "output": "{\"leverage\":\"20\",\"quantity\":\"100\",\"order_price\":\"0.05\",\"order_type\":\"LONG\",\"trigger_type\":\"LIMIT\",\"reduce_only\":false}"
+            },
+            {
+                "description": "createOrder market",
+                "method": "createOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/order?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    0.05,
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "output": "{\"leverage\":\"20\",\"quantity\":\"100\",\"order_price\":\"0.05\",\"order_type\":\"LONG\",\"trigger_type\":\"MARKET\",\"reduce_only\":false}"
             }
         ],
         "fetchTickers": [
@@ -177,6 +193,18 @@
                 "url": "https://trade.mudrex.com/fapi/v1/futures/BTCUSDT?is_symbol=1",
                 "input": [
                     "BTC/USDT:USDT"
+                ],
+                "output": null
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder",
+                "method": "fetchOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders/0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                "input": [
+                    "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                    "DOGE/USDT:USDT"
                 ],
                 "output": null
             }

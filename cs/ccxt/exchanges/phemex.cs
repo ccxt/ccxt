@@ -224,6 +224,9 @@ public partial class phemex : Exchange
                         { "public/products-plus", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "public/index-sources", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "md/v2/orderbook", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -402,6 +405,30 @@ public partial class phemex : Exchange
                         { "assets/quote", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "phemex-lb/public/api/trader/performance-info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-api/risk/risk-mode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-api/risk/risk-units", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-biz/assets", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/borrow", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/payback", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/borrow/interests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-exchanger/assets/convert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/orders", new Dictionary<string, object>() {
@@ -453,6 +480,12 @@ public partial class phemex : Exchange
                             { "cost", 5 },
                         } },
                         { "phemex-withdraw/wallets/api/cancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-account/switch-mode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/payback", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -1306,7 +1339,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
         Dictionary<string, object> currenciesByCode = this.indexBy(currencies, "currency");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(products)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(products)); postFixIncrement(ref i))
         {
             object market = getValue(products, i);
             string? type = this.safeStringLower(market, "type");
@@ -1436,12 +1469,12 @@ public partial class phemex : Exchange
             { "nonce", null },
         };
         List<object> sides = new List<object>() {bidsKey, asksKey};
-        for (object i = 0; isLessThan(i, getArrayLength(sides)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(sides)); postFixIncrement(ref i))
         {
             object side = getValue(sides, i);
             List<object> orders = new List<object>() {};
             object bidasks = this.safeValue(orderbook, side);
-            for (object k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, getArrayLength(bidasks)); postFixIncrement(ref k))
             {
                 ((IList<object>)orders).Add(this.customParseBidAsk(getValue(bidasks, k), priceKey, amountKey, market));
             }
@@ -1649,7 +1682,7 @@ public partial class phemex : Exchange
             { "symbol", getValue(market, "id") },
             { "resolution", this.safeString(this.timeframes, timeframeVar, timeframeVar) },
         };
-        object until = this.safeInteger2(parameters, "until", "to");
+        Int64? until = this.safeInteger2(parameters, "until", "to");
         parameters = this.omit(parameters, new List<object>() {"until"});
         bool isStableSettled = isTrue((isEqual(getValue(market, "settle"), "USDT"))) || isTrue((isEqual(getValue(market, "settle"), "USDC")));
         bool usesSpecialFromToEndpoint = isTrue(((isTrue((isEqual(getValue(market, "linear"), true))) || isTrue(isStableSettled)))) && isTrue((isTrue((!isEqual(sinceVar, null))) || isTrue((!isEqual(until, null)))));
@@ -2192,7 +2225,7 @@ public partial class phemex : Exchange
         object side = null;
         object costString = null;
         object type = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCostString = null;
         object feeRateString = null;
         object feeCurrencyCode = null;
@@ -2354,7 +2387,7 @@ public partial class phemex : Exchange
             { "info", response },
         };
         object data = this.safeValue(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -2756,7 +2789,7 @@ public partial class phemex : Exchange
         string? side = this.safeStringLower(order, "side");
         object type = this.parseOrderType(this.safeString(order, "ordType"));
         object timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2949,7 +2982,7 @@ public partial class phemex : Exchange
         string? stopLoss = this.safeString(order, "stopLossRp");
         object feeValue = this.omitZero(this.safeString(order, "execFeeRv"));
         object ptFeeRv = this.omitZero(this.safeString(order, "ptFeeRv"));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2993,7 +3026,7 @@ public partial class phemex : Exchange
 
     public override object parseOrder(object order, object market = null)
     {
-        object isSwap = this.safeBool(market, "swap", false);
+        bool? isSwap = this.safeBool(market, "swap", false);
         bool hasPnl = isTrue(isTrue((inOp(order, "closedPnl"))) || isTrue((inOp(order, "closedPnlRv")))) || isTrue((inOp(order, "totalPnlRv")));
         if (isTrue(isTrue((isEqual(isSwap, true))) || isTrue(hasPnl)))
         {
@@ -3119,14 +3152,14 @@ public partial class phemex : Exchange
             }
         } else if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            object hedged = this.safeBool(parameters, "hedged", false);
+            bool? hedged = this.safeBool(parameters, "hedged", false);
             parameters = this.omit(parameters, "hedged");
             string? posSide = this.safeStringLower(parameters, "posSide");
             if (isTrue(isEqual(posSide, null)))
             {
                 if (isTrue(isEqual(hedged, true)))
                 {
-                    object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                    bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
                     if (isTrue(isEqual(reduceOnly, true)))
                     {
                         sideVar = ((bool) isTrue((isEqual(sideVar, "buy")))) ? "sell" : "buy";
@@ -3579,7 +3612,7 @@ public partial class phemex : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "clOrdID"});
         if (isTrue(!isEqual(clientOrderId, null)))
         {
@@ -4267,14 +4300,14 @@ public partial class phemex : Exchange
         currency = this.safeCurrency(currencyId, currency);
         object code = getValue(currency, "code");
         string? networkId = this.safeString(transaction, "chainName");
-        object timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
+        Int64? timestamp = this.safeIntegerN(transaction, new List<object>() {"createdAt", "submitedAt", "submittedAt"});
         string? type = this.safeStringLower(transaction, "type");
         object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (isTrue(isEqual(feeCost, null)))
         {
             feeCost = this.safeNumber(transaction, "feeRv");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             type = "withdrawal";
@@ -4466,7 +4499,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object positions = this.safeValue(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             ((IList<object>)result).Add(this.parsePosition(position));
@@ -4788,7 +4821,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rows = this.safeValue(data, "rows", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "createTime");
@@ -5243,7 +5276,7 @@ public partial class phemex : Exchange
         object riskLimits = (getValue(getValue(market, "info"), "riskLimits"));
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (object i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
         {
             object tier = getValue(riskLimits, i);
             Int64? maxNotional = this.safeInteger(tier, "limit");
@@ -5271,7 +5304,7 @@ public partial class phemex : Exchange
         object query = this.omit(parameters, this.extractParams(path));
         object requestPath = add("/", this.implodeParams(path, parameters));
         object url = requestPath;
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isTrue(isTrue(isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))) || isTrue((isEqual(method, "PUT")))) || isTrue((isEqual(url, "/positions/assign")))))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))
@@ -5349,7 +5382,7 @@ public partial class phemex : Exchange
         {
             await this.loadMarkets();
         }
-        object isHedged = this.safeBool(parameters, "hedged", false);
+        bool? isHedged = this.safeBool(parameters, "hedged", false);
         Int64? longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
         Int64? shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
         object market = this.market(symbol);
@@ -5457,7 +5490,7 @@ public partial class phemex : Exchange
             transfer = this.parseTransfer(response);
         }
         object transferOptions = this.safeValue(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             if (isTrue(isEqual(getValue(transfer, "fromAccount"), null)))
@@ -5697,7 +5730,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object rates = this.safeValue(data, "rows");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
         {
             object item = getValue(rates, i);
             Int64? timestamp = this.safeInteger(item, "fundingTime");
@@ -6207,7 +6240,7 @@ public partial class phemex : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object ranks = this.safeValue(data, "positions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ranks)); postFixIncrement(ref i))
         {
             object rank = getValue(ranks, i);
             ((IList<object>)result).Add(this.parseADLRank(rank));

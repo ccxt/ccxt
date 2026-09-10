@@ -123,7 +123,7 @@ public partial class whitebit : ccxt.whitebit
         // }
         //
         object parameters = this.safeValue(message, "params", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
         {
             object data = getValue(parameters, i);
             string? marketId = this.safeString(data, 7);
@@ -262,7 +262,7 @@ public partial class whitebit : ccxt.whitebit
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -315,7 +315,7 @@ public partial class whitebit : ccxt.whitebit
         object id = this.nonce();
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add("ticker:", getValue(market, "symbol")));
@@ -363,7 +363,7 @@ public partial class whitebit : ccxt.whitebit
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
         // watchTickers
         List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object currentMessageHash = getValue(messageHashes, i);
             if (isTrue(isTrue(isGreaterThanOrEqual(getIndexOf(currentMessageHash, "tickers"), 0)) && isTrue(isGreaterThanOrEqual(getIndexOf(currentMessageHash, symbol), 0))))
@@ -455,7 +455,7 @@ public partial class whitebit : ccxt.whitebit
         }
         object data = this.safeValue(parameters, 1, new List<object>() {});
         object parsedTrades = this.parseTrades(data, market);
-        for (object j = 0; isLessThan(j, getArrayLength(parsedTrades)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(parsedTrades)); postFixIncrement(ref j))
         {
             callDynamically(stored, "append", new object[] {getValue(parsedTrades, j)});
         }
@@ -559,7 +559,7 @@ public partial class whitebit : ccxt.whitebit
         string? amount = this.safeString(trade, 5);
         string? marketId = this.safeString(trade, 2);
         market = this.safeMarket(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, 6);
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -740,7 +740,7 @@ public partial class whitebit : ccxt.whitebit
         Int64? rawSide = this.safeInteger(order, "side");
         string side = ((bool) isTrue((isEqual(rawSide, 1)))) ? "sell" : "buy";
         string? dealFee = this.safeString(order, "deal_fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(dealFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -934,7 +934,7 @@ public partial class whitebit : ccxt.whitebit
         }
         bool isMargin = (isGreaterThanOrEqual(getIndexOf(method, "Margin"), 0));
         object data = this.safeList(message, "params", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balanceDict = this.safeDict(data, i, new Dictionary<string, object>() {});
             ((IDictionary<string,object>)this.balance)["info"] = balanceDict;
@@ -953,7 +953,7 @@ public partial class whitebit : ccxt.whitebit
             } else
             {
                 List<object> keys = new List<object>(((IDictionary<string,object>)balanceDict).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(keys, j);
                     object rawBalance = this.safeDict(balanceDict, currencyId, new Dictionary<string, object>() {});
@@ -1006,7 +1006,7 @@ public partial class whitebit : ccxt.whitebit
         object url = getValue(getValue(this.urls, "api"), "ws");
         object id = this.nonce();
         var client = this.safeValue(this.clients, url);
-        object request = null;
+        Dictionary<string, object> request = null;
         List<object> marketIds = new List<object>() {};
         if (isTrue(isEqual(client as WebSocketClient, null)))
         {
@@ -1035,7 +1035,7 @@ public partial class whitebit : ccxt.whitebit
             bool hasSymbolSubscription = true;
             object market = this.market(symbol);
             object marketId = getValue(market, "id");
-            object isSubscribed = this.safeBool(subscription, marketId, false);
+            bool? isSubscribed = this.safeBool(subscription, marketId, false);
             if (isTrue(!isEqual(isSubscribed, true)))
             {
                 if (isTrue(!isEqual(marketId, null)))
@@ -1099,18 +1099,11 @@ public partial class whitebit : ccxt.whitebit
         // the authorized sentinel authenticate () has always returned - every
         // path below hands back that same value
         int authorized = 1;
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        // subscriptions['authenticated'], which watch () only registers once
-        // the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-        // every concurrent cold caller used to pass that gate, burn a
-        // rate-limited private REST call for its own websocket_token and push
-        // its own authorize frame down the shared socket. the flight is
-        // registered in client.futures on the very client that carries the
-        // handshake, under a key that is not one of the exchange's own
-        // messageHashes, and is settled through client.resolve () /
-        // ((WebSocketClient)client).reject () so every write to that map goes through the
-        // client's own accessors
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        // token fetch, so concurrent cold callers would each burn a private REST call and push
+        // their own authorize frame. the flight lives in client.futures of the handshake client
+        // under a non-messageHash key and settles only via client.resolve () / ((WebSocketClient)client).reject ()
         string messageHash = "authenticateFlight";
         if (isTrue(inOp(client.futures, messageHash)))
         {
@@ -1197,7 +1190,7 @@ public partial class whitebit : ccxt.whitebit
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1224,10 +1217,10 @@ public partial class whitebit : ccxt.whitebit
                 {
                     ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)"authenticated");
                 }
-                return false;
+                return ((bool?)((object)(false)));
             }
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -1280,7 +1273,7 @@ public partial class whitebit : ccxt.whitebit
         // as an object so we can't do indeById here
         object subs = ((WebSocketClient)client).subscriptions;
         List<object> values = new List<object>(((IDictionary<string,object>)subs).Values);
-        for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
         {
             object subscription = getValue(values, i);
             if (isTrue(!isEqual(subscription, true)))

@@ -17,6 +17,11 @@ func (this *BtcturkCore) PublicGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTicker", args...)
 }
 
+// PublicGetTickerCurrency returns a channel that yields a JSON object.
+func (this *BtcturkCore) PublicGetTickerCurrency(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTickerCurrency", args...)
+}
+
 // PublicGetTrades returns a channel that yields a JSON object.
 func (this *BtcturkCore) PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTrades", args...)
@@ -47,9 +52,29 @@ func (this *BtcturkCore) PrivateGetAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAllOrders", args...)
 }
 
+// PrivateGetOrderOrderId returns a channel that yields a JSON object.
+func (this *BtcturkCore) PrivateGetOrderOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderOrderId", args...)
+}
+
 // PrivateGetUsersTransactionsTrade returns a channel that yields a JSON object.
 func (this *BtcturkCore) PrivateGetUsersTransactionsTrade(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersTransactionsTrade", args...)
+}
+
+// PrivateGetUsersTransactionsCrypto returns a channel that yields a JSON object.
+func (this *BtcturkCore) PrivateGetUsersTransactionsCrypto(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersTransactionsCrypto", args...)
+}
+
+// PrivateGetUsersTransactionsFiat returns a channel that yields a JSON object.
+func (this *BtcturkCore) PrivateGetUsersTransactionsFiat(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersTransactionsFiat", args...)
+}
+
+// PrivateGetCryptoDepositDeclarations returns a channel that yields a JSON array.
+func (this *BtcturkCore) PrivateGetCryptoDepositDeclarations(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCryptoDepositDeclarations", args...)
 }
 
 // PrivatePostUsersTransactionsCrypto returns a channel that yields a JSON object.
@@ -70,6 +95,11 @@ func (this *BtcturkCore) PrivatePostOrder(args ...any) <-chan any {
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *BtcturkCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
+}
+
+// PrivatePostCryptoDepositDeclarationsConfirm returns a channel that yields a JSON object.
+func (this *BtcturkCore) PrivatePostCryptoDepositDeclarationsConfirm(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCryptoDepositDeclarationsConfirm", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.

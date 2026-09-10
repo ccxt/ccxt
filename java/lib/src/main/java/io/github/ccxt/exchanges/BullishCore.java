@@ -169,10 +169,19 @@ public class BullishCore extends BullishApi
                         put( "v1/assets/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v1/vol-grids", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/assets/{symbol}/vol-grid", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/markets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/markets/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/history/markets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/history/markets/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -190,10 +199,22 @@ public class BullishCore extends BullishApi
                         put( "v1/markets/{symbol}/candle", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v1/markets/{symbol}/auctions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/markets/{symbol}/auctions/noii", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/history/markets/{symbol}/trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/history/markets/{symbol}/funding-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/history/markets/{symbol}/auctions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/history/option-trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/index-prices", new java.util.HashMap<String, Object>() {{
@@ -222,6 +243,9 @@ public class BullishCore extends BullishApi
                             put( "cost", 1 );
                         }} );
                         put( "v2/orders/{orderId}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/orders/client-order-id/{clientOrderId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v2/amm-instructions", new java.util.HashMap<String, Object>() {{
@@ -305,6 +329,15 @@ public class BullishCore extends BullishApi
                         put( "v2/otc-trades/unconfirmed-trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v2/otc-trades/delegated-accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/idb/delegated-accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/idb/otc-trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "v2/orders", new java.util.HashMap<String, Object>() {{
@@ -325,6 +358,9 @@ public class BullishCore extends BullishApi
                         put( "v1/simulate-portfolio-margin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v1/bulk-simulate-portfolio-margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/wallets/self-hosted/initiate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -335,6 +371,12 @@ public class BullishCore extends BullishApi
                             put( "cost", 1 );
                         }} );
                         put( "v2/otc-command", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/idb/otc-trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/idb/otc-command", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

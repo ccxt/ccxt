@@ -37,6 +37,11 @@ func (this *MudrexCore) PrivateGetFuturesFunds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFuturesFunds", args...)
 }
 
+// PrivateGetFuturesTransactions returns a channel that yields a JSON object.
+func (this *MudrexCore) PrivateGetFuturesTransactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetFuturesTransactions", args...)
+}
+
 // PrivateGetFuturesOrders returns a channel that yields a JSON object.
 func (this *MudrexCore) PrivateGetFuturesOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFuturesOrders", args...)

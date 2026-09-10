@@ -205,7 +205,13 @@ public class IndodaxCore extends IndodaxApi
                         put( "getOrder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "getOrderByClientOrderId", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                         put( "cancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "cancelByClientOrderId", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
                         put( "withdrawFee", new java.util.HashMap<String, Object>() {{

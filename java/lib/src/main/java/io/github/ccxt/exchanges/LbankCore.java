@@ -254,6 +254,9 @@ public class LbankCore extends LbankApi
                             put( "supplement/get_deposit_address", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
+                            put( "supplement/add_deposit_address", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
                             put( "supplement/asset_detail", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
@@ -291,6 +294,21 @@ public class LbankCore extends LbankApi
                                 put( "cost", 2.5 );
                             }} );
                             put( "supplement/transaction_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "spot/wallet/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "spot/wallet/deposit_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "spot/wallet/withdraws", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "spot/trade/orders_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2.5 );
+                            }} );
+                            put( "spot/trade/orders_info_history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2.5 );
                             }} );
                         }} );

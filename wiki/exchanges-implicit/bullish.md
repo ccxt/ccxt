@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bullish API documentation:** [api.exchange.bullish.com](https://api.exchange.bullish.com/docs/api/rest/)
 
-> 58 implicit endpoints across 2 access groups.
+> 72 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -67,15 +67,22 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetV1Time` | GET | `v1/time` | 1 |
 | `publicGetV1Assets` | GET | `v1/assets` | 1 |
 | `publicGetV1AssetsSymbol` | GET | `v1/assets/{symbol}` | 1 |
+| `publicGetV1VolGrids` | GET | `v1/vol-grids` | 1 |
+| `publicGetV1AssetsSymbolVolGrid` | GET | `v1/assets/{symbol}/vol-grid` | 1 |
 | `publicGetV1Markets` | GET | `v1/markets` | 1 |
 | `publicGetV1MarketsSymbol` | GET | `v1/markets/{symbol}` | 1 |
+| `publicGetV1HistoryMarkets` | GET | `v1/history/markets` | 1 |
 | `publicGetV1HistoryMarketsSymbol` | GET | `v1/history/markets/{symbol}` | 1 |
 | `publicGetV1MarketsSymbolOrderbookHybrid` | GET | `v1/markets/{symbol}/orderbook/hybrid` | 1 |
 | `publicGetV1MarketsSymbolTrades` | GET | `v1/markets/{symbol}/trades` | 1 |
 | `publicGetV1MarketsSymbolTick` | GET | `v1/markets/{symbol}/tick` | 1 |
 | `publicGetV1MarketsSymbolCandle` | GET | `v1/markets/{symbol}/candle` | 1 |
+| `publicGetV1MarketsSymbolAuctions` | GET | `v1/markets/{symbol}/auctions` | 1 |
+| `publicGetV1MarketsSymbolAuctionsNoii` | GET | `v1/markets/{symbol}/auctions/noii` | 1 |
 | `publicGetV1HistoryMarketsSymbolTrades` | GET | `v1/history/markets/{symbol}/trades` | 1 |
 | `publicGetV1HistoryMarketsSymbolFundingRate` | GET | `v1/history/markets/{symbol}/funding-rate` | 1 |
+| `publicGetV1HistoryMarketsSymbolAuctions` | GET | `v1/history/markets/{symbol}/auctions` | 1 |
+| `publicGetV1HistoryOptionTrades` | GET | `v1/history/option-trades` | 1 |
 | `publicGetV1IndexPrices` | GET | `v1/index-prices` | 1 |
 | `publicGetV1IndexPricesAssetSymbol` | GET | `v1/index-prices/{assetSymbol}` | 1 |
 | `publicGetV1ExpiryPricesSymbol` | GET | `v1/expiry-prices/{symbol}` | 1 |
@@ -91,6 +98,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV2Orders` | GET | `v2/orders` | 1 |
 | `privateGetV2HistoryOrders` | GET | `v2/history/orders` | 1 |
 | `privateGetV2OrdersOrderId` | GET | `v2/orders/{orderId}` | 1 |
+| `privateGetV2OrdersClientOrderIdClientOrderId` | GET | `v2/orders/client-order-id/{clientOrderId}` | 1 |
 | `privateGetV2AmmInstructions` | GET | `v2/amm-instructions` | 1 |
 | `privateGetV2AmmInstructionsInstructionId` | GET | `v2/amm-instructions/{instructionId}` | 1 |
 | `privateGetV1WalletsTransactions` | GET | `v1/wallets/transactions` | 1 |
@@ -118,14 +126,20 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetV2OtcTrades` | GET | `v2/otc-trades` | 1 |
 | `privateGetV2OtcTradesOtcTradeId` | GET | `v2/otc-trades/{otcTradeId}` | 1 |
 | `privateGetV2OtcTradesUnconfirmedTrade` | GET | `v2/otc-trades/unconfirmed-trade` | 1 |
+| `privateGetV2OtcTradesDelegatedAccounts` | GET | `v2/otc-trades/delegated-accounts` | 1 |
+| `privateGetV2IdbDelegatedAccounts` | GET | `v2/idb/delegated-accounts` | 1 |
+| `privateGetV2IdbOtcTrades` | GET | `v2/idb/otc-trades` | 1 |
 | `privatePostV2Orders` | POST | `v2/orders` | 5 |
 | `privatePostV2Command` | POST | `v2/command` | 5 |
 | `privatePostV2AmmInstructions` | POST | `v2/amm-instructions` | 1 |
 | `privatePostV1WalletsWithdrawal` | POST | `v1/wallets/withdrawal` | 1 |
 | `privatePostV2UsersLogin` | POST | `v2/users/login` | 1 |
 | `privatePostV1SimulatePortfolioMargin` | POST | `v1/simulate-portfolio-margin` | 1 |
+| `privatePostV1BulkSimulatePortfolioMargin` | POST | `v1/bulk-simulate-portfolio-margin` | 1 |
 | `privatePostV1WalletsSelfHostedInitiate` | POST | `v1/wallets/self-hosted/initiate` | 1 |
 | `privatePostV2MmpConfiguration` | POST | `v2/mmp-configuration` | 1 |
 | `privatePostV2OtcTrades` | POST | `v2/otc-trades` | 1 |
 | `privatePostV2OtcCommand` | POST | `v2/otc-command` | 1 |
+| `privatePostV2IdbOtcTrades` | POST | `v2/idb/otc-trades` | 1 |
+| `privatePostV2IdbOtcCommand` | POST | `v2/idb/otc-command` | 1 |
 

@@ -193,7 +193,13 @@ public partial class indodax : Exchange
                         { "getOrder", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
+                        { "getOrderByClientOrderId", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                         { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "cancelByClientOrderId", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
                         { "withdrawFee", new Dictionary<string, object>() {
@@ -397,7 +403,7 @@ public partial class indodax : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -475,7 +481,7 @@ public partial class indodax : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)free).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -682,7 +688,7 @@ public partial class indodax : Exchange
         object tickers = this.safeDict(response, "tickers", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> parsedTickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object rawTicker = getValue(tickers, key);
@@ -1006,7 +1012,7 @@ public partial class indodax : Exchange
         // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
         List<object> marketIds = new List<object>(((IDictionary<string,object>)rawOrders).Keys);
         object exchangeOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object marketOrders = getValue(rawOrders, marketId);
@@ -1351,13 +1357,13 @@ public partial class indodax : Exchange
         if (isTrue(isEqual(code, null)))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)withdraw).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(withdraw, key));
             }
             keys = new List<object>(((IDictionary<string,object>)deposit).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object key = getValue(keys, i);
                 transactions = this.arrayConcat(transactions, getValue(deposit, key));
@@ -1480,7 +1486,7 @@ public partial class indodax : Exchange
         object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
         string? depositId = this.safeString(transaction, "deposit_id");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1580,7 +1586,7 @@ public partial class indodax : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(addressKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(addressKeys)); postFixIncrement(ref i))
         {
             object marketId = getValue(addressKeys, i);
             object code = this.safeCurrencyCode(marketId);
@@ -1604,7 +1610,7 @@ public partial class indodax : Exchange
                             throw new ExchangeError ((string)add(this.id, " fetchDepositAddresses() missing networkId")) ;
                         }
                         List<object> networkIds = ((string)networkId).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-                        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+                        for (int j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                         {
                             object _netIdTmp = this.networkIdToCode(getValue(networkIds, j), code);
                             if (isTrue(!isEqual(_netIdTmp, null)))

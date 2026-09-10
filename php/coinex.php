@@ -320,6 +320,7 @@ class coinex extends Exchange {
                             'futures/basis-history' => array( 'cost' => 1 ),
                             'assets/deposit-withdraw-config' => array( 'cost' => 1 ),
                             'assets/all-deposit-withdraw-config' => array( 'cost' => 1 ),
+                            'assets/info' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -431,6 +432,8 @@ class coinex extends Exchange {
                             'futures/adjust-position-leverage' => array( 'cost' => 20 ),
                             'futures/set-position-stop-loss' => array( 'cost' => 20 ),
                             'futures/set-position-take-profit' => array( 'cost' => 20 ),
+                            'futures/modify-position-stop-loss' => array( 'cost' => 20 ),
+                            'futures/modify-position-take-profit' => array( 'cost' => 20 ),
                         ),
                     ),
                 ),

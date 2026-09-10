@@ -171,6 +171,7 @@ class blofin extends Exchange {
                 'public' => array(
                     'get' => array(
                         'market/instruments' => array( 'cost' => 1 ),
+                        'market/instruments-history' => array( 'cost' => 1 ),
                         'market/tickers' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 ),
@@ -181,6 +182,12 @@ class blofin extends Exchange {
                         'market/index-candles' => array( 'cost' => 1 ),
                         'market/mark-price-candles' => array( 'cost' => 1 ),
                         'market/position-tiers' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/market/instruments' => array( 'cost' => 1 ),
+                        'spot/market/tickers' => array( 'cost' => 1 ),
+                        'spot/market/books' => array( 'cost' => 1 ),
+                        'spot/market/trades' => array( 'cost' => 1 ),
+                        'spot/market/candles' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -190,12 +197,14 @@ class blofin extends Exchange {
                         'asset/bills' => array( 'cost' => 1 ),
                         'asset/withdrawal-history' => array( 'cost' => 1 ),
                         'asset/deposit-history' => array( 'cost' => 1 ),
+                        'asset/deposit-address' => array( 'cost' => 1 ),
                         'account/config' => array( 'cost' => 1 ),
                         'asset/currencies' => array( 'cost' => 1 ),
                         // trading
                         'account/balance' => array( 'cost' => 1 ),
                         'account/positions' => array( 'cost' => 1 ),
                         'account/positions-history' => array( 'cost' => 1 ),
+                        'account/funding-fees' => array( 'cost' => 1 ),
                         'account/margin-mode' => array( 'cost' => 1 ),
                         'account/position-mode' => array( 'cost' => 1 ),
                         'account/leverage-info' => array( 'cost' => 1 ),
@@ -235,11 +244,19 @@ class blofin extends Exchange {
                         'user/query-apikey' => array( 'cost' => 1 ),
                         // tax
                         'spot/trade/fills-history' => array( 'cost' => 1 ),
+                        // spot
+                        'spot/trade/orders-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-detail' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-pending' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/orders-algo-history' => array( 'cost' => 1.67 ),
+                        'spot/trade/order/price-range' => array( 'cost' => 1.67 ),
                     ),
                     'post' => array(
                         // account
                         'asset/transfer' => array( 'cost' => 1 ),
                         'asset/demo-apply-money' => array( 'cost' => 1 ),
+                        'asset/withdrawal-apply' => array( 'cost' => 1 ),
                         // trading
                         'account/set-margin-mode' => array( 'cost' => 1.67 ),
                         'account/set-position-mode' => array( 'cost' => 1.67 ),
@@ -252,7 +269,18 @@ class blofin extends Exchange {
                         'trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
                         'trade/cancel-tpsl' => array( 'cost' => 1.67 ),
                         'trade/cancel-algo' => array( 'cost' => 1.67 ),
+                        'trade/amend-order' => array( 'cost' => 1.67 ),
+                        'trade/amend-batch-orders' => array( 'cost' => 1.67 ),
+                        'trade/amend-tpsl' => array( 'cost' => 1.67 ),
+                        'trade/amend-algo' => array( 'cost' => 1.67 ),
                         'trade/close-position' => array( 'cost' => 1.67 ),
+                        // spot
+                        'spot/trade/order' => array( 'cost' => 1.67 ),
+                        'spot/trade/batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/order-algo' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-order' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-batch-orders' => array( 'cost' => 1.67 ),
+                        'spot/trade/cancel-algo' => array( 'cost' => 1.67 ),
                         // copy trading
                         'copytrading/account/set-position-mode' => array( 'cost' => 1.67 ),
                         'copytrading/account/set-leverage' => array( 'cost' => 1.67 ),

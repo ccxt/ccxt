@@ -200,6 +200,10 @@ public partial class tokocrypto : Exchange
                         { "exchangeInfo", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "executionRules", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                            { "noSymbol", 40 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", new Dictionary<string, object>() {
@@ -280,6 +284,9 @@ public partial class tokocrypto : Exchange
                             { "cost", 1 },
                         } },
                         { "open/v1/user-data-stream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/user-listen-token", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -843,7 +850,7 @@ public partial class tokocrypto : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object list = this.safeValue(data, "list", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
         {
             object market = getValue(list, i);
             string? baseId = this.safeString(market, "baseAsset");
@@ -860,7 +867,7 @@ public partial class tokocrypto : Exchange
             string? status = this.safeString(market, "spotTradingEnable");
             bool active = (isEqual(status, "1"));
             object permissions = this.safeValue(market, "permissions", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(permissions)); postFixIncrement(ref j))
             {
                 if (isTrue(isEqual(getValue(permissions, j), "TRD_GRP_003")))
                 {
@@ -1025,7 +1032,7 @@ public partial class tokocrypto : Exchange
         //         "timestamp":1692262634599
         //     }
         object data = this.safeValue(response, "data", response);
-        object timestamp = this.safeInteger2(response, "T", "timestamp");
+        Int64? timestamp = this.safeInteger2(response, "T", "timestamp");
         object orderbook = this.parseOrderBook(data, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(data, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1126,7 +1133,7 @@ public partial class tokocrypto : Exchange
         //       "tradeId": "1234",
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "T", "time");
+        Int64? timestamp = this.safeInteger2(trade, "T", "time");
         string? price = this.safeString2(trade, "p", "price");
         string? amount = this.safeString2(trade, "q", "qty");
         string? cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
@@ -1152,7 +1159,7 @@ public partial class tokocrypto : Exchange
                 side = ((bool) isTrue((isEqual(getValue(trade, "isBuyer"), true)))) ? "buy" : "sell"; // this is a true side
             }
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "commission")))
         {
             fee = new Dictionary<string, object>() {
@@ -1429,7 +1436,7 @@ public partial class tokocrypto : Exchange
      * @param {object} market a unified market structure
      * @returns {boolean} true when the symbol type of the market is known and is not 1
      */
-    public virtual object isNativeMarket(object market)
+    public virtual bool isNativeMarket(object market)
     {
         object marketInfo = this.safeDict(market, "info", new Dictionary<string, object>() {});
         string? symbolType = this.safeString(marketInfo, "type");
@@ -1437,7 +1444,7 @@ public partial class tokocrypto : Exchange
         // host, the route that answers with data for every symbol type 1 market
         // and errors out loudly for the others, whereas open/v1 would answer an
         // empty list for them
-        return isTrue((!isEqual(symbolType, null))) && isTrue((!isEqual(symbolType, "1")));
+        return ((bool)((object)(isTrue((!isEqual(symbolType, null))) && isTrue((!isEqual(symbolType, "1")))))!);
     }
 
     /**
@@ -1723,7 +1730,7 @@ public partial class tokocrypto : Exchange
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object balances = this.safeValue(data, "accountAssets", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -1953,7 +1960,7 @@ public partial class tokocrypto : Exchange
         }
         object market = this.market(symbol);
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         // only supported for spot/margin api
         if (isTrue(isEqual(postOnly, true)))
         {
@@ -2387,7 +2394,7 @@ public partial class tokocrypto : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object endTime = this.safeInteger2(parameters, "until", "endTime");
+        Int64? endTime = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(since, null)))
         {
             ((IDictionary<string,object>)request)["startTime"] = since;
@@ -2711,7 +2718,7 @@ public partial class tokocrypto : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         object timestamp = null;
         Int64? insertTime = this.safeInteger(transaction, "insertTime");
-        object createTime = this.safeInteger2(transaction, "createTime", "timestamp");
+        Int64? createTime = this.safeInteger2(transaction, "createTime", "timestamp");
         string? type = this.safeString(transaction, "type");
         if (isTrue(isEqual(type, null)))
         {
@@ -2947,7 +2954,7 @@ public partial class tokocrypto : Exchange
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? messageInner = this.safeString(response, "msg");
@@ -2968,7 +2975,7 @@ public partial class tokocrypto : Exchange
                 }
             }
         }
-        object message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "msg");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
@@ -3022,7 +3029,7 @@ public partial class tokocrypto : Exchange
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
                 if (isTrue(isLessThanOrEqual(limit, getValue(entry, 0))))

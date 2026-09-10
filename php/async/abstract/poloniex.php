@@ -484,6 +484,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swappublic_get_v3_market_fundingrate_history($params = array()) {
+        return $this->request('v3/market/fundingRate/history', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swappublic_get_v3_market_openinterest($params = array()) {
         return $this->request('v3/market/openInterest', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
@@ -498,6 +504,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
      */
     public function swappublic_get_v3_market_risklimit($params = array()) {
         return $this->request('v3/market/riskLimit', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function swappublic_get_v3_market_limitprice($params = array()) {
+        return $this->request('v3/market/limitPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -532,6 +544,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swapprivate_get_v3_trade_order_details($params = array()) {
+        return $this->request('v3/trade/order/details', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swapprivate_get_v3_trade_position_opens($params = array()) {
         return $this->request('v3/trade/position/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
@@ -552,6 +570,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
      */
     public function swapprivate_get_v3_position_mode($params = array()) {
         return $this->request('v3/position/mode', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function swapprivate_get_v3_position_risklimit($params = array()) {
+        return $this->request('v3/position/riskLimit', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1090,6 +1114,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swapPublicGetV3MarketFundingRateHistory($params = array()) {
+        return $this->request('v3/market/fundingRate/history', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swapPublicGetV3MarketOpenInterest($params = array()) {
         return $this->request('v3/market/openInterest', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
@@ -1104,6 +1134,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
      */
     public function swapPublicGetV3MarketRiskLimit($params = array()) {
         return $this->request('v3/market/riskLimit', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function swapPublicGetV3MarketLimitPrice($params = array()) {
+        return $this->request('v3/market/limitPrice', 'swapPublic', 'GET', $params, null, null, array("cost" => 0.6666666666666666));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1138,6 +1174,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function swapPrivateGetV3TradeOrderDetails($params = array()) {
+        return $this->request('v3/trade/order/details', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function swapPrivateGetV3TradePositionOpens($params = array()) {
         return $this->request('v3/trade/position/opens', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
@@ -1158,6 +1200,12 @@ abstract class poloniex extends \ccxt\async\Exchange {
      */
     public function swapPrivateGetV3PositionMode($params = array()) {
         return $this->request('v3/position/mode', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function swapPrivateGetV3PositionRiskLimit($params = array()) {
+        return $this->request('v3/position/riskLimit', 'swapPrivate', 'GET', $params, null, null, array("cost" => 20));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

@@ -346,6 +346,18 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_public_mm_instrument_types($params = array()) {
+        return $this->request('public/mm-instrument-types', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function public_get_public_delta_hedge_currencies($params = array()) {
+        return $this->request('public/delta-hedge-currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_rubik_stat_trading_data_support_coin($params = array()) {
         return $this->request('rubik/stat/trading-data/support-coin', 'public', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1480,6 +1492,78 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_finance_flexible_loan_emode_info($params = array()) {
+        return $this->request('finance/flexible-loan/emode-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_limits($params = array()) {
+        return $this->request('finance/okusd/limits', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_account($params = array()) {
+        return $this->request('finance/okusd/account', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_subscribe_history($params = array()) {
+        return $this->request('finance/okusd/subscribe/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_redeem_history($params = array()) {
+        return $this->request('finance/okusd/redeem/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_rewards_history($params = array()) {
+        return $this->request('finance/okusd/rewards/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_okusd_rate_history($params = array()) {
+        return $this->request('finance/okusd/rate/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_stable_rewards_product_info($params = array()) {
+        return $this->request('finance/stable-rewards/product-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_stable_rewards_balance($params = array()) {
+        return $this->request('finance/stable-rewards/balance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_finance_stable_rewards_apy_history($params = array()) {
+        return $this->request('finance/stable-rewards/apy-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_users_glp_todayperformance($params = array()) {
+        return $this->request('users/glp/todayperformance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_users_glp_historicalperformance($params = array()) {
+        return $this->request('users/glp/historicalperformance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_copytrading_current_subpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1668,6 +1752,36 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function private_get_affiliate_invitee_detail($params = array()) {
         return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_affiliate_performance_summary($params = array()) {
+        return $this->request('affiliate/performance/summary', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_affiliate_invitee_list($params = array()) {
+        return $this->request('affiliate/invitee/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_affiliate_link_list($params = array()) {
+        return $this->request('affiliate/link/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_affiliate_co_inviter_list($params = array()) {
+        return $this->request('affiliate/co-inviter/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_get_affiliate_sub_affiliate_list($params = array()) {
+        return $this->request('affiliate/sub-affiliate/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>
@@ -2524,6 +2638,30 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_post_finance_flexible_loan_borrow($params = array()) {
+        return $this->request('finance/flexible-loan/borrow', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_finance_flexible_loan_repay($params = array()) {
+        return $this->request('finance/flexible-loan/repay', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_finance_okusd_subscribe($params = array()) {
+        return $this->request('finance/okusd/subscribe', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_finance_okusd_redeem($params = array()) {
+        return $this->request('finance/okusd/redeem', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_post_copytrading_algo_order($params = array()) {
         return $this->request('copytrading/algo-order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -3024,6 +3162,18 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function publicGetPublicVipInterestRateLoanQuota($params = array()) {
         return $this->request('public/vip-interest-rate-loan-quota', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetPublicMmInstrumentTypes($params = array()) {
+        return $this->request('public/mm-instrument-types', 'public', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetPublicDeltaHedgeCurrencies($params = array()) {
+        return $this->request('public/delta-hedge-currencies', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -4162,6 +4312,78 @@ abstract class okx extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateGetFinanceFlexibleLoanEmodeInfo($params = array()) {
+        return $this->request('finance/flexible-loan/emode-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdLimits($params = array()) {
+        return $this->request('finance/okusd/limits', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdAccount($params = array()) {
+        return $this->request('finance/okusd/account', 'private', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdSubscribeHistory($params = array()) {
+        return $this->request('finance/okusd/subscribe/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdRedeemHistory($params = array()) {
+        return $this->request('finance/okusd/redeem/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdRewardsHistory($params = array()) {
+        return $this->request('finance/okusd/rewards/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceOkusdRateHistory($params = array()) {
+        return $this->request('finance/okusd/rate/history', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceStableRewardsProductInfo($params = array()) {
+        return $this->request('finance/stable-rewards/product-info', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceStableRewardsBalance($params = array()) {
+        return $this->request('finance/stable-rewards/balance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFinanceStableRewardsApyHistory($params = array()) {
+        return $this->request('finance/stable-rewards/apy-history', 'private', 'GET', $params, null, null, array("cost" => 1.6666666666666667));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUsersGlpTodayperformance($params = array()) {
+        return $this->request('users/glp/todayperformance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUsersGlpHistoricalperformance($params = array()) {
+        return $this->request('users/glp/historicalperformance', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateGetCopytradingCurrentSubpositions($params = array()) {
         return $this->request('copytrading/current-subpositions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -4350,6 +4572,36 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function privateGetAffiliateInviteeDetail($params = array()) {
         return $this->request('affiliate/invitee/detail', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAffiliatePerformanceSummary($params = array()) {
+        return $this->request('affiliate/performance/summary', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAffiliateInviteeList($params = array()) {
+        return $this->request('affiliate/invitee/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAffiliateLinkList($params = array()) {
+        return $this->request('affiliate/link/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAffiliateCoInviterList($params = array()) {
+        return $this->request('affiliate/co-inviter/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetAffiliateSubAffiliateList($params = array()) {
+        return $this->request('affiliate/sub-affiliate/list', 'private', 'GET', $params, null, null, array("cost" => 3.3333333333333335));
     }
     /**
      * @return array<string, mixed>
@@ -5202,6 +5454,30 @@ abstract class okx extends \ccxt\Exchange {
      */
     public function privatePostFinanceFlexibleLoanAdjustCollateral($params = array()) {
         return $this->request('finance/flexible-loan/adjust-collateral', 'private', 'POST', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostFinanceFlexibleLoanBorrow($params = array()) {
+        return $this->request('finance/flexible-loan/borrow', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostFinanceFlexibleLoanRepay($params = array()) {
+        return $this->request('finance/flexible-loan/repay', 'private', 'POST', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostFinanceOkusdSubscribe($params = array()) {
+        return $this->request('finance/okusd/subscribe', 'private', 'POST', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostFinanceOkusdRedeem($params = array()) {
+        return $this->request('finance/okusd/redeem', 'private', 'POST', $params, null, null, array("cost" => 20));
     }
     /**
      * @return array<string, mixed>

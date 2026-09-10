@@ -87,9 +87,19 @@ func (this *IndodaxCore) PrivatePostGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrder", args...)
 }
 
+// PrivatePostGetOrderByClientOrderId returns a channel that yields a JSON object.
+func (this *IndodaxCore) PrivatePostGetOrderByClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetOrderByClientOrderId", args...)
+}
+
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *IndodaxCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
+}
+
+// PrivatePostCancelByClientOrderId returns a channel that yields a JSON object.
+func (this *IndodaxCore) PrivatePostCancelByClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelByClientOrderId", args...)
 }
 
 // PrivatePostWithdrawFee returns a channel that yields a JSON object.

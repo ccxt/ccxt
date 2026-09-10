@@ -221,9 +221,11 @@ class poloniex extends Exchange {
                         'v3/market/indexPrice' => array( 'cost' => 2 / 3 ),
                         'v3/market/indexPriceComponents' => array( 'cost' => 2 / 3 ),
                         'v3/market/fundingRate' => array( 'cost' => 2 / 3 ),
+                        'v3/market/fundingRate/history' => array( 'cost' => 2 / 3 ),
                         'v3/market/openInterest' => array( 'cost' => 2 / 3 ),
                         'v3/market/insurance' => array( 'cost' => 2 / 3 ),
                         'v3/market/riskLimit' => array( 'cost' => 2 / 3 ),
+                        'v3/market/limitPrice' => array( 'cost' => 2 / 3 ),
                     ),
                 ),
                 'swapPrivate' => array(
@@ -233,10 +235,12 @@ class poloniex extends Exchange {
                         'v3/trade/order/opens' => array( 'cost' => 20 ),
                         'v3/trade/order/trades' => array( 'cost' => 20 ),
                         'v3/trade/order/history' => array( 'cost' => 20 ),
+                        'v3/trade/order/details' => array( 'cost' => 20 ),
                         'v3/trade/position/opens' => array( 'cost' => 20 ),
                         'v3/trade/position/history' => array( 'cost' => 20 ), // todo => method for this
                         'v3/position/leverages' => array( 'cost' => 20 ),
                         'v3/position/mode' => array( 'cost' => 20 ),
+                        'v3/position/riskLimit' => array( 'cost' => 20 ),
                     ),
                     'post' => array(
                         'v3/trade/order' => array( 'cost' => 4 ),

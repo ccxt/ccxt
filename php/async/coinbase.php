@@ -222,6 +222,7 @@ class coinbase extends Exchange {
                             'payment-methods/{payment_method_id}' => array( 'cost' => 10.6 ),
                             'user' => array( 'cost' => 10.6 ),
                             'user/auth' => array( 'cost' => 10.6 ),
+                            'subscriptions/coinbase-one' => array( 'cost' => 10.6 ),
                         ),
                         'post' => array(
                             'accounts' => array( 'cost' => 10.6 ),
@@ -281,6 +282,9 @@ class coinbase extends Exchange {
                             'brokerage/cfm/positions' => array( 'cost' => 1 ),
                             'brokerage/cfm/positions/{product_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/current_margin_window' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
+                            'brokerage/intx/balances/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/portfolio/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => array( 'cost' => 1 ),
@@ -299,7 +303,9 @@ class coinbase extends Exchange {
                             'brokerage/convert/quote' => array( 'cost' => 1 ),
                             'brokerage/convert/trade/{trade_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps/schedule' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
                             'brokerage/intx/allocate' => array( 'cost' => 1 ),
+                            'brokerage/intx/multi_asset_collateral' => array( 'cost' => 1 ),
                             // futures
                             'brokerage/orders/close_position' => array( 'cost' => 1 ),
                         ),

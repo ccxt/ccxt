@@ -321,3 +321,13 @@ func (this *CoinoneCore) V2_1PrivatePostTransactionCoinHistory(args ...any) <-ch
 func (this *CoinoneCore) V2_1PrivatePostTransactionCoinWithdrawalLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("v2_1PrivatePostTransactionCoinWithdrawalLimit", args...)
 }
+
+// V2_1PrivatePostEventOrderRewardPrograms returns a channel that yields a JSON object.
+func (this *CoinoneCore) V2_1PrivatePostEventOrderRewardPrograms(args ...any) <-chan any {
+	return this.callEndpointAsync("v2_1PrivatePostEventOrderRewardPrograms", args...)
+}
+
+// V2_1PrivatePostEventOrderRewardHistory returns a channel that yields a JSON object.
+func (this *CoinoneCore) V2_1PrivatePostEventOrderRewardHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v2_1PrivatePostEventOrderRewardHistory", args...)
+}

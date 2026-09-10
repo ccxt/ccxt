@@ -845,6 +845,17 @@ public class BitfinexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostAuthROrdersOtcSymbolHist endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthROrdersOtcSymbolHist (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthROrdersOtcSymbolHist", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAuthROrderSymbolIdTrades endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1007,6 +1018,17 @@ public class BitfinexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRPositionsSnap (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthRPositionsSnap", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthWPositionUpdateFundingType endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthWPositionUpdateFundingType (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthWPositionUpdateFundingType", optionalArgs);
     }
 
     /**
@@ -1351,6 +1373,17 @@ public class BitfinexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostAuthRDepositAddressAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRDepositAddressAll (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthRDepositAddressAll", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAuthWDepositInvoice endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1359,6 +1392,17 @@ public class BitfinexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthWDepositInvoice (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthWDepositInvoice", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthRExtInvoicePayments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRExtInvoicePayments (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthRExtInvoicePayments", optionalArgs);
     }
 
     /**
@@ -1392,6 +1436,17 @@ public class BitfinexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRMovementsHist (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthRMovementsHist", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthRMovementsInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRMovementsInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthRMovementsInfo", optionalArgs);
     }
 
     /**
@@ -1513,6 +1568,39 @@ public class BitfinexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthWPulseDel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthWPulseDel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthWExtWalletsDepositsRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthWExtWalletsDepositsRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthWExtWalletsDepositsRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthWExtWalletsWithdrawalsRequest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthWExtWalletsWithdrawalsRequest (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthWExtWalletsWithdrawalsRequest", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthRExtWalletsTransfersFreeCount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAuthRExtWalletsTransfersFreeCount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthRExtWalletsTransfersFreeCount", optionalArgs);
     }
 
 }

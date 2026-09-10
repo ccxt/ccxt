@@ -109,7 +109,7 @@ public partial class luno : ccxt.luno
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(rawTrades, i);
             object trade = this.parseTrade(rawTrade, market);
@@ -272,7 +272,7 @@ public partial class luno : ccxt.luno
         thirdKey ??= 2;
         bidasks = this.toArray(bidasks);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidasks)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
@@ -372,7 +372,7 @@ public partial class luno : ccxt.luno
         }
         List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Values);
         List<object> handlers = new List<object>() {this.handleOrderBook, this.handleTrades};
-        for (object j = 0; isLessThan(j, getArrayLength(handlers)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(handlers)); postFixIncrement(ref j))
         {
             object handler = getValue(handlers, j);
             DynamicInvoker.InvokeMethod(handler, new object[] { client, message, getValue(subscriptions, 0)});

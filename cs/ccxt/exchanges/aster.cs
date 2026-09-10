@@ -390,6 +390,24 @@ public partial class aster : Exchange
                         { "v3/builder", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/builder/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/builder/approvedUserList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/stpMode", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "v3/asset/migrateUser/history", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/strategyOpenOrder", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/strategyHistoryOrder", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v1/positionSide/dual", new Dictionary<string, object>() {
@@ -479,6 +497,24 @@ public partial class aster : Exchange
                         { "v3/updateBuilder", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/registerAndApproveAgent", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/asset/migrateUser", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/chase", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stpMode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/placeStrategyOrder", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/updateStrategyOrder", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "v1/listenKey", new Dictionary<string, object>() {
@@ -505,6 +541,12 @@ public partial class aster : Exchange
                             { "cost", 1 },
                         } },
                         { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/guardedCancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/guardedBatchOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v3/mmp", new Dictionary<string, object>() {
@@ -1069,25 +1111,25 @@ public partial class aster : Exchange
         });
     }
 
-    public virtual object isInverse(object type, object subType = null)
+    public virtual bool isInverse(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return (isEqual(type, "delivery"));
+            return ((bool)((object)((isEqual(type, "delivery"))))!);
         } else
         {
-            return isEqual(subType, "inverse");
+            return ((bool)((object)(isEqual(subType, "inverse")))!);
         }
     }
 
-    public virtual object isLinear(object type, object subType = null)
+    public virtual bool isLinear(object type, object subType = null)
     {
         if (isTrue(isEqual(subType, null)))
         {
-            return isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")));
+            return ((bool)((object)(isTrue((isEqual(type, "future"))) || isTrue((isEqual(type, "swap")))))!);
         } else
         {
-            return isEqual(subType, "linear");
+            return ((bool)((object)(isEqual(subType, "linear")))!);
         }
     }
 
@@ -1265,7 +1307,7 @@ public partial class aster : Exchange
         //
         //
         List<object> fapiRowsFiltered = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fapiRows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fapiRows)); postFixIncrement(ref i))
         {
             object market = getValue(fapiRows, i);
             // tmp skip some markets with base = undefined
@@ -1569,23 +1611,23 @@ public partial class aster : Exchange
         string? amountString = this.safeString2(trade, "qty", "q");
         string? priceString = this.safeString2(trade, "price", "p");
         string? costString = this.safeString2(trade, "quoteQty", "baseQty");
-        object timestamp = this.safeInteger2(trade, "time", "T");
+        Int64? timestamp = this.safeInteger2(trade, "time", "T");
         string? side = this.safeStringLower(trade, "side");
-        object isMaker = this.safeBool(trade, "maker");
+        bool? isMaker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
             if (isTrue(isEqual(side, null)))
             {
-                object isBuyer = this.safeBool(trade, "buyer");
+                bool? isBuyer = this.safeBool(trade, "buyer");
                 if (isTrue(!isEqual(isBuyer, null)))
                 {
                     side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
                 }
             }
         }
-        object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
+        bool? isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
             side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
@@ -2068,7 +2110,7 @@ public partial class aster : Exchange
         }
         IList<object> rows = this.toArray(response);
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(rows, i), "symbol");
             object safeMarket = this.safeMarket(marketId, null, null, marketType);
@@ -2425,7 +2467,7 @@ public partial class aster : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -3097,7 +3139,7 @@ public partial class aster : Exchange
         {
             throw new InvalidOrder ((string)add(this.id, " createOrders() order list max 5 orders")) ;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -3239,21 +3281,12 @@ public partial class aster : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "GTX";
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
-        object closePosition = this.safeBool(parameters, "closePosition", false);
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
+        bool? closePosition = this.safeBool(parameters, "closePosition", false);
         bool timeInForceIsRequired = false;
         bool priceIsRequired = false;
         bool triggerPriceIsRequired = false;
@@ -4065,7 +4098,7 @@ public partial class aster : Exchange
         string? notionalString = this.safeString2(position, "notional", "notionalValue");
         string? notionalStringAbs = Precise.stringAbs(notionalString);
         object maintenanceMarginPercentageString = null;
-        for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
@@ -4125,7 +4158,7 @@ public partial class aster : Exchange
                     }
                     string? inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     string? leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    int quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (isTrue(!isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -4145,7 +4178,7 @@ public partial class aster : Exchange
                     }
                     string? leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     string? rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    int basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (isTrue(!isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -4274,7 +4307,7 @@ public partial class aster : Exchange
         //
         IList<object> rawPositions = this.toArray(response);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             string? entryPriceString = this.safeString(rawPosition, "entryPrice");
@@ -4333,7 +4366,7 @@ public partial class aster : Exchange
         object positions = this.safeList(account, "positions", new List<object>() {});
         object assets = this.safeList(account, "assets", new List<object>() {});
         Dictionary<string, object> balances = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object entry = getValue(assets, i);
             string? currencyId = this.safeString(entry, "asset");
@@ -4349,7 +4382,7 @@ public partial class aster : Exchange
             }
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             string? marketId = this.safeString(position, "symbol");
@@ -4419,7 +4452,7 @@ public partial class aster : Exchange
         object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new Dictionary<string, object>() {});
         object leverageBracket = this.safeList(leverageBrackets, symbol, new List<object>() {});
         object maintenanceMarginPercentageString = null;
-        for (object i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(leverageBracket)); postFixIncrement(ref i))
         {
             object bracket = getValue(leverageBracket, i);
             if (isTrue(Precise.stringLt(notionalStringAbs, getValue(bracket, 0))))
@@ -4436,7 +4469,7 @@ public partial class aster : Exchange
         {
             timestamp = null;
         }
-        object isolated = this.safeBool(position, "isolated");
+        bool? isolated = this.safeBool(position, "isolated");
         if (isTrue(isEqual(isolated, null)))
         {
             string? isolatedMarginRaw = this.safeString(position, "isolatedMargin");
@@ -4515,7 +4548,7 @@ public partial class aster : Exchange
                 string? rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            object pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
+            int pricePrecision = this.precisionFromString(this.safeString(getValue(market, "precision"), "price"));
             object pricePrecisionPlusOne = add(pricePrecision, 1);
             string pricePrecisionPlusOneString = ((object)pricePrecisionPlusOne).ToString();
             // round half up
@@ -4632,14 +4665,14 @@ public partial class aster : Exchange
             //
             ((IDictionary<string,object>)this.options)["leverageBrackets"] = this.createSafeDictionary();
             IList<object> entries = this.toArray(response);
-            for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
             {
                 object entry = getValue(entries, i);
                 string? marketId = this.safeString(entry, "symbol");
                 object symbol = this.safeSymbol(marketId, null, null, "contract");
                 object brackets = this.safeList(entry, "brackets", new List<object>() {});
                 List<object> result = new List<object>() {};
-                for (object j = 0; isLessThan(j, getArrayLength(brackets)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(brackets)); postFixIncrement(ref j))
                 {
                     object bracket = getValue(brackets, j);
                     string? floorValue = this.safeString(bracket, "notionalFloor");
@@ -4895,7 +4928,7 @@ public partial class aster : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
@@ -5013,7 +5046,7 @@ public partial class aster : Exchange
     {
         object encodedString = "";
         List<object> keys = new List<object>(((IDictionary<string,object>)values).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(values, key);
@@ -5029,7 +5062,7 @@ public partial class aster : Exchange
     {
         Dictionary<string, object> capitalized = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)dict).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(dict, key);
@@ -5074,12 +5107,12 @@ public partial class aster : Exchange
     public async virtual Task<object> initializeClient(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
+        bool? builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true)); // we shouldn't omit here
         if (isTrue(!isEqual(builderFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -5098,7 +5131,7 @@ public partial class aster : Exchange
         object approvedBuilders = result;
         int length = getArrayLength(approvedBuilders);
         bool found = false;
-        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object builderInfo = this.safeDict(approvedBuilders, i, new Dictionary<string, object>() {});
             string? builderAccountId = this.safeString(builderInfo, "builderAddress");

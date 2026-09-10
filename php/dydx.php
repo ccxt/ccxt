@@ -192,6 +192,14 @@ class dydx extends Exchange {
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders' => array( 'cost' => 1 ),
                         'fills/parentSubaccount' => array( 'cost' => 1 ),
                         'historical-pnl/parentSubaccount' => array( 'cost' => 1 ),
+                        'pnl' => array( 'cost' => 1 ),
+                        'pnl/parentSubaccountNumber' => array( 'cost' => 1 ),
+                        'tradeHistory' => array( 'cost' => 1 ),
+                        'tradeHistory/parentSubaccountNumber' => array( 'cost' => 1 ),
+                    ),
+                    'post' => array(
+                        'turnkey/signin' => array( 'cost' => 1 ),
+                        'turnkey/uploadAddress' => array( 'cost' => 1 ),
                     ),
                 ),
                 'nodeRpc' => array(

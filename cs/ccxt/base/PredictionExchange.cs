@@ -74,9 +74,9 @@ public partial class PredictionExchange : BaseExchange
         });
     }
 
-    public virtual object isPrediction()
+    public virtual bool isPrediction()
     {
-        return this.safeBool(this.has, "prediction", false);
+        return ((bool)((object)(this.safeBool(this.has, "prediction", false)))!);
     }
 
     public virtual object parseSearchQueries(object parameters = null)
@@ -112,7 +112,7 @@ public partial class PredictionExchange : BaseExchange
         object extraScopeParams = this.safeList(this.options, "eventScopeParams", new List<object>() {});
         int extraScopeParamsLength = getArrayLength(extraScopeParams);
         object extraNames = "";
-        for (object i = 0; isLessThan(i, extraScopeParamsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, extraScopeParamsLength); postFixIncrement(ref i))
         {
             object scopeKey = getValue(extraScopeParams, i);
             if (isTrue(inOp(parameters, scopeKey)))
@@ -138,7 +138,7 @@ public partial class PredictionExchange : BaseExchange
         if (isTrue(isTrue((!isEqual(eventId, null))) || isTrue((!isEqual(slug, null)))))
         {
             List<object> filtered = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object eventVar = getValue(result, i);
                 bool idMatch = isTrue((!isEqual(eventId, null))) && isTrue((isEqual(this.safeString(eventVar, "id"), eventId)));
@@ -182,7 +182,7 @@ public partial class PredictionExchange : BaseExchange
                 // normalize the sort key on every row first — sortBy reads it with a raw
                 // subscript, which raises KeyError/undefined-index in Python/PHP when a
                 // venue's parsed event omits the field (JS alone tolerates the miss)
-                for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
                 {
                     ((IDictionary<string,object>)getValue(result, i))[(string)sortKey] = this.safeNumber(getValue(result, i), sortKey, 0);
                 }
@@ -214,10 +214,10 @@ public partial class PredictionExchange : BaseExchange
         }
         bool wantActive = (isEqual(status, "active"));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
-            object isActive = this.safeBool(eventVar, "active");
+            bool? isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (isTrue(isTrue((isEqual(isActive, null))) || isTrue((isEqual(isActive, wantActive)))))
             {
@@ -243,13 +243,13 @@ public partial class PredictionExchange : BaseExchange
         bool checkTitle = isTrue((isEqual(searchIn, "title"))) || isTrue((isEqual(searchIn, "both")));
         bool checkDescription = isTrue((isEqual(searchIn, "description"))) || isTrue((isEqual(searchIn, "both")));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
             string? title = this.safeStringLower(eventVar, "title", "");
             string? description = this.safeStringLower(eventVar, "description", "");
             bool matched = false;
-            for (object qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
+            for (int qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
             {
                 string q = ((string)getValue(queries, qi)).ToLower();
                 if (isTrue(isEqual(title, null)))
@@ -291,7 +291,7 @@ public partial class PredictionExchange : BaseExchange
         object chars = this.stringToCharsArray(lower);
         object s = "";
         bool pendingSep = false;
-        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             object ch = getValue(chars, i);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
@@ -319,7 +319,7 @@ public partial class PredictionExchange : BaseExchange
             return events;
         }
         List<object> wanted = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tags)); postFixIncrement(ref i))
         {
             object wantedKey = this.normalizeTagKey(getValue(tags, i));
             if (isTrue(!isEqual(wantedKey, "")))
@@ -329,12 +329,12 @@ public partial class PredictionExchange : BaseExchange
             }
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
             object eventTags = this.safeList(eventVar, "tags", new List<object>() {});
             bool matched = false;
-            for (object ti = 0; isLessThan(ti, getArrayLength(eventTags)); postFixIncrement(ref ti))
+            for (int ti = 0; isLessThan(ti, getArrayLength(eventTags)); postFixIncrement(ref ti))
             {
                 object tag = getValue(eventTags, ti);
                 object tagLabel = null;
@@ -348,7 +348,7 @@ public partial class PredictionExchange : BaseExchange
                 if (isTrue(!isEqual(tagLabel, null)))
                 {
                     object tagKey = this.normalizeTagKey(tagLabel);
-                    for (object wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
+                    for (int wi = 0; isLessThan(wi, getArrayLength(wanted)); postFixIncrement(ref wi))
                     {
                         if (isTrue(isGreaterThanOrEqual(getIndexOf(tagKey, getValue(wanted, wi)), 0)))
                         {
@@ -395,7 +395,7 @@ public partial class PredictionExchange : BaseExchange
         {
             this.events_by_slug = new Dictionary<string, object>() {};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
             string? id = this.safeString(eventVar, "id");
@@ -428,7 +428,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> result = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)this.events).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object eventVar = getValue(this.events, getValue(keys, i));
             string? identity = this.safeString2(eventVar, "id", "event", getValue(keys, i));
@@ -502,24 +502,24 @@ public partial class PredictionExchange : BaseExchange
         throw new BadSymbol ((string)add(add(add(this.id, " does not have outcome "), outcomeSymbol), " - pass a known outcome handle or outcomeId, or call fetchEvents ()/loadOutcomes () first")) ;
     }
 
-    public virtual object hasOutcome(object outcomeIdOrSymbol)
+    public virtual bool hasOutcome(object outcomeIdOrSymbol)
     {
         // sync cache-only membership probe — never throws and never fetches. this is the predicate
         // behind loadOutcome's fast path and loadOutcomes' miss filter; safeOutcome (stub on miss)
         // and outcome (throws on miss) are the accessors
         if (isTrue(isEqual(outcomeIdOrSymbol, null)))
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
         if (isTrue(isTrue((!isEqual(this.outcomes, null))) && isTrue((inOp(this.outcomes, outcomeIdOrSymbol)))))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
         if (isTrue(isTrue((!isEqual(this.outcomes_by_id, null))) && isTrue((inOp(this.outcomes_by_id, outcomeIdOrSymbol)))))
         {
-            return true;
+            return ((bool)((object)(true))!);
         }
-        return false;
+        return ((bool)((object)(false))!);
     }
 
     public virtual object safeOutcome(object outcomeIdOrSymbol, object outcomeObj = null)
@@ -590,7 +590,7 @@ public partial class PredictionExchange : BaseExchange
         object chars = this.stringToCharsArray(lower);
         object s = "";
         bool lastDash = true; // start true to drop leading separators
-        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             object ch = getValue(chars, i);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
@@ -604,7 +604,7 @@ public partial class PredictionExchange : BaseExchange
             }
         }
         List<object> replacementKeys = new List<object>(((IDictionary<string,object>)replacements).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(replacementKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(replacementKeys)); postFixIncrement(ref i))
         {
             object replacementKey = getValue(replacementKeys, i);
             string? replacementValue = this.safeString(replacements, replacementKey);
@@ -615,7 +615,7 @@ public partial class PredictionExchange : BaseExchange
         }
         List<object> rawParts = ((string)s).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         List<object> parts = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawParts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawParts)); postFixIncrement(ref i))
         {
             object w = getValue(rawParts, i);
             if (isTrue(isTrue(isGreaterThan(((string)w).Length, 0)) && !isTrue(this.inArray(w, stopWords))))
@@ -664,7 +664,7 @@ public partial class PredictionExchange : BaseExchange
         object chars = this.stringToCharsArray(upper);
         object label = "";
         bool pendingSep = false;
-        for (object i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(chars)); postFixIncrement(ref i))
         {
             object ch = getValue(chars, i);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(allowed, ch), 0)))
@@ -695,7 +695,7 @@ public partial class PredictionExchange : BaseExchange
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         IList<object> marketsList = this.toArray(markets);
         List<object> aliased = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketsList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketsList)); postFixIncrement(ref i))
         {
             object row = getValue(marketsList, i);
             Dictionary<string, object> copy = this.extend(new Dictionary<string, object>() {}, row);
@@ -707,7 +707,7 @@ public partial class PredictionExchange : BaseExchange
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
         List<object> marketKeys = new List<object>(((IDictionary<string,object>)stored).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
         {
             object key = getValue(marketKeys, i);
             ((IDictionary<string,object>)stored)[(string)key] = this.omit(getValue(stored, key), "symbol");
@@ -733,7 +733,7 @@ public partial class PredictionExchange : BaseExchange
             this.outcomes_by_id = new Dictionary<string, object>() {};
         }
         object outcomesList = this.safeList(market, "outcomes", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(outcomesList)); postFixIncrement(ref j))
         {
             object oc = getValue(outcomesList, j);
             object ocSymbol = this.safeString2(oc, "outcome", "symbol");
@@ -790,7 +790,7 @@ public partial class PredictionExchange : BaseExchange
             return;
         }
         List<object> marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketKeys)); postFixIncrement(ref i))
         {
             this.indexMarketOutcomes(getValue(this.markets, getValue(marketKeys, i)));
         }
@@ -809,7 +809,7 @@ public partial class PredictionExchange : BaseExchange
         }
         object markets = this.safeList(eventVar, "markets", new List<object>() {});
         int marketsLength = getArrayLength(markets);
-        for (object i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, marketsLength); postFixIncrement(ref i))
         {
             object m = getValue(markets, i);
             string? marketHandle = this.safeString2(m, "market", "symbol");
@@ -839,7 +839,7 @@ public partial class PredictionExchange : BaseExchange
         if (isTrue(!isEqual(outcomes, null)))
         {
             object missing = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(outcomes)); postFixIncrement(ref i))
             {
                 if (isTrue(isTrue(reload) || !isTrue(this.hasOutcome(getValue(outcomes, i)))))
                 {
@@ -848,12 +848,12 @@ public partial class PredictionExchange : BaseExchange
             }
             int missingLength = getArrayLength(missing);
             bool wasWarm = isTrue((!isEqual(this.outcomes, null))) && !isTrue(this.isEmpty(this.outcomes));
-            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (isTrue(isTrue(isTrue(isTrue((isGreaterThan(missingLength, 0))) && isTrue((isEqual(loadAll, true)))) && !isTrue(wasWarm)) && !isTrue(reload)))
             {
                 await this.loadOutcomes();
                 List<object> stillMissing = new List<object>() {};
-                for (object i = 0; isLessThan(i, missingLength); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, missingLength); postFixIncrement(ref i))
                 {
                     if (!isTrue(this.hasOutcome(getValue(missing, i))))
                     {
@@ -888,7 +888,7 @@ public partial class PredictionExchange : BaseExchange
      */
     public async virtual Task<Dictionary<string, object>> FetchOutcomes(object outcomeSymbols)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomeSymbols)); postFixIncrement(ref i))
         {
             ccxt.BaseExchange.FromDict(await this.FetchOutcome(getValue(outcomeSymbols, i)));
         }
@@ -927,7 +927,7 @@ public partial class PredictionExchange : BaseExchange
                     return this.safeOutcome(outcomeSymbol);
                 }
             }
-            object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
+            bool? loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
             if (isTrue(isTrue((isEqual(loadAll, true))) && !isTrue(wasWarm)))
             {
                 // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
@@ -966,7 +966,7 @@ public partial class PredictionExchange : BaseExchange
         List<object> words = new List<object>() {};
         bool hasLetters = false;
         string letters = "abcdefghijklmnopqrstuvwxyz";
-        for (object i = 0; isLessThan(i, getArrayLength(rawWords)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawWords)); postFixIncrement(ref i))
         {
             object word = getValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
@@ -977,7 +977,7 @@ public partial class PredictionExchange : BaseExchange
             }
             bool wordHasLetters = false;
             object chars = this.stringToCharsArray(word);
-            for (object ci = 0; isLessThan(ci, getArrayLength(chars)); postFixIncrement(ref ci))
+            for (int ci = 0; isLessThan(ci, getArrayLength(chars)); postFixIncrement(ref ci))
             {
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(letters, getValue(chars, ci)), 0)))
                 {
@@ -1507,7 +1507,7 @@ public partial class PredictionExchange : BaseExchange
             {
                 cost = "0";
             }
-            for (object i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
             {
                 object trade = getValue(trades, i);
                 string? tradeAmount = this.safeString(trade, "amount");
@@ -1583,7 +1583,7 @@ public partial class PredictionExchange : BaseExchange
         // trigger orders, so the isTriggerOrSLTp guard collapses): a market order defaults to IOC
         string? orderType = this.safeString(outcomeOrder, "type");
         string? timeInForce = this.safeString(outcomeOrder, "timeInForce");
-        object postOnly = this.safeBool(outcomeOrder, "postOnly");
+        bool? postOnly = this.safeBool(outcomeOrder, "postOnly");
         if (isTrue(isEqual(timeInForce, null)))
         {
             if (isTrue(isEqual(orderType, "market")))
@@ -1828,7 +1828,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(trades);
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object parsed = this.parsePredictionTrade(getValue(rows, i), outcomeObj);
             Dictionary<string, object> trade = this.extend(parsed, parameters);
@@ -1857,7 +1857,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(orders);
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object parsed = this.parsePredictionOrder(getValue(rows, i), outcomeObj);
             Dictionary<string, object> order = this.extend(parsed, parameters);
@@ -1886,7 +1886,7 @@ public partial class PredictionExchange : BaseExchange
         parameters ??= new Dictionary<string, object>();
         IList<object> rows = this.toArray(positions);
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object parsed = this.parsePredictionPosition(getValue(rows, i));
             Dictionary<string, object> position = this.extend(parsed, parameters);
@@ -1991,7 +1991,7 @@ public partial class PredictionExchange : BaseExchange
     public virtual object rlpEncodeList(object items)
     {
         object concatenated = "";
-        for (object i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
             concatenated = add(concatenated, getValue(items, i));
         }

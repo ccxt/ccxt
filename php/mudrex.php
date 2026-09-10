@@ -107,6 +107,7 @@ class mudrex extends Exchange {
                         'futures/{asset_id}' => array( 'cost' => 1 ),
                         'wallet/funds' => array( 'cost' => 5 ),
                         'futures/funds' => array( 'cost' => 5 ),
+                        'futures/transactions' => array( 'cost' => 1 ),
                         'futures/orders' => array( 'cost' => 1 ),
                         'futures/orders/history' => array( 'cost' => 1 ),
                         'futures/orders/{order_id}' => array( 'cost' => 1 ),
@@ -414,12 +415,11 @@ class mudrex extends Exchange {
         $ms = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($ms, $market);
         $symbol = $market['symbol'];
-        $ts = $this->milliseconds();
         $pct = $this->safe_number($ticker, 'change_perc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $ts,
-            'datetime' => $this->iso8601($ts),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -603,11 +603,8 @@ class mudrex extends Exchange {
     public function parse_balance(mixed $response): array {
         $data = $this->safe_dict($response, 'data', array());
         $currency = $this->safe_string($response, 'currency', 'USDT');
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
         );
         $account = $this->account();
         $futuresBalance = $this->safe_string($data, 'balance');
@@ -686,7 +683,7 @@ class mudrex extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * create a trade order
+         * create a trade $order
          *
          * @see https://docs.trade.mudrex.com/docs
          *
@@ -694,19 +691,19 @@ class mudrex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency (also required for $market orders on this exchange)
+         * @param {float} [$price] the $price to fulfill the $order, in units of the quote currency (also required for $market orders on this exchange)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->leverage] leverage for the order, required if setLeverage() was not called beforehand
-         * @param {bool} [$params->reduceOnly] true if the order is reduce only
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the trigger $price of the take-profit order attached to this order
+         * @param {int} [$params->leverage] leverage for the $order, required if setLeverage() was not called beforehand
+         * @param {bool} [$params->reduceOnly] true if the $order is reduce only
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the trigger $price of the take-profit $order attached to this $order
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the trigger $price of the stop-loss order attached to this order
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the trigger $price of the stop-loss $order attached to this $order
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->takeProfitPrice] the trigger $price for a standalone take-profit order on an existing position (requires $params->positionId)
-         * @param {float} [$params->stopLossPrice] the trigger $price for a standalone stop-loss order on an existing position (requires $params->positionId)
-         * @param {string} [$params->positionId] the id of the position the standalone stopLossPrice/takeProfitPrice order is attached to
-         * @param {string} [$params->trade_currency] the settlement currency for the order
-         * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+         * @param {float} [$params->takeProfitPrice] the trigger $price for a standalone take-profit $order on an existing position (requires $params->positionId)
+         * @param {float} [$params->stopLossPrice] the trigger $price for a standalone stop-loss $order on an existing position (requires $params->positionId)
+         * @param {string} [$params->positionId] the id of the position the standalone stopLossPrice/takeProfitPrice $order is attached to
+         * @param {string} [$params->trade_currency] the settlement currency for the $order
+         * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -751,7 +748,7 @@ class mudrex extends Exchange {
             'trigger_type' => ($type === 'market') ? 'MARKET' : 'LIMIT',
             'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
         );
-        // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
+        // mudrex only supports take-profit / stop-loss orders attached to the position-opening $order
         $takeProfit = $this->safe_dict($params, 'takeProfit');
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         if ($takeProfit !== null) {
@@ -765,10 +762,11 @@ class mudrex extends Exchange {
         $params = $this->omit($params, array( 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ));
         $response = $this->privatePostFuturesAssetIdOrder($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', $response);
-        // the create $response omits the order/trigger $type, so restore them from the $request
-        $data['order_type'] = $request['order_type'];
-        $data['trigger_type'] = $request['trigger_type'];
-        return $this->parse_order($data, $market);
+        // the create $response omits the order/trigger $type, so parse a $merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        $merged = $this->extend($data, array( 'order_type' => $request['order_type'], 'trigger_type' => $request['trigger_type'] ));
+        $order = $this->parse_order($merged, $market);
+        $order['info'] = $data;
+        return $order;
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -835,6 +833,22 @@ class mudrex extends Exchange {
         } elseif ($rawSide === 'SHORT') {
             $side = 'sell';
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        $isRiskOrder = ($rawSide === 'STOPLOSS') || ($rawSide === 'TAKEPROFIT');
+        $priceString = $this->safe_string_2($order, 'price', 'order_price');
+        $orderPrice = $priceString;
+        $triggerPrice = null;
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if ($isRiskOrder) {
+            $triggerPrice = $priceString;
+            $orderPrice = null;
+            if ($rawSide === 'STOPLOSS') {
+                $stopLossPrice = $priceString;
+            } else {
+                $takeProfitPrice = $priceString;
+            }
+        }
         $trig = $this->safe_string_upper($order, 'trigger_type');
         $typ = null;
         if ($trig === 'MARKET') {
@@ -843,9 +857,6 @@ class mudrex extends Exchange {
             $typ = 'limit';
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_at'));
-        if ($ts === null) {
-            $ts = $this->milliseconds();
-        }
         $status = $this->parse_order_status($this->safe_string_lower($order, 'status'));
         $sym = $market['symbol'];
         return $this->safe_order(array(
@@ -860,19 +871,20 @@ class mudrex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_number_2($order, 'price', 'order_price'),
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => $this->safe_number_2($order, 'quantity', 'amount'),
+            'price' => $orderPrice,
+            'triggerPrice' => $triggerPrice,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'amount' => $this->safe_string_2($order, 'quantity', 'amount'),
             'cost' => null,
-            'average' => null,
-            'filled' => null,
+            'average' => $this->safe_string($order, 'filled_price'),
+            'filled' => $this->safe_string($order, 'filled_quantity'),
             'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => array(),
             'fees' => array(),
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->parse8601($this->safe_string($order, 'updated_at')),
             'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
         ), $market);
     }

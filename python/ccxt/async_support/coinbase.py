@@ -227,6 +227,7 @@ class coinbase(Exchange, ImplicitAPI):
                             'payment-methods/{payment_method_id}': {'cost': 10.6},
                             'user': {'cost': 10.6},
                             'user/auth': {'cost': 10.6},
+                            'subscriptions/coinbase-one': {'cost': 10.6},
                         },
                         'post': {
                             'accounts': {'cost': 10.6},
@@ -286,6 +287,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/cfm/positions': {'cost': 1},
                             'brokerage/cfm/positions/{product_id}': {'cost': 1},
                             'brokerage/cfm/sweeps': {'cost': 1},
+                            'brokerage/cfm/intraday/current_margin_window': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
+                            'brokerage/intx/balances/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/portfolio/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}': {'cost': 1},
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}': {'cost': 1},
@@ -304,7 +308,9 @@ class coinbase(Exchange, ImplicitAPI):
                             'brokerage/convert/quote': {'cost': 1},
                             'brokerage/convert/trade/{trade_id}': {'cost': 1},
                             'brokerage/cfm/sweeps/schedule': {'cost': 1},
+                            'brokerage/cfm/intraday/margin_setting': {'cost': 1},
                             'brokerage/intx/allocate': {'cost': 1},
+                            'brokerage/intx/multi_asset_collateral': {'cost': 1},
                             # futures
                             'brokerage/orders/close_position': {'cost': 1},
                         },

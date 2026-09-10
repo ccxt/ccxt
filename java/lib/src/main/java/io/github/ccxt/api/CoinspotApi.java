@@ -537,6 +537,17 @@ public class CoinspotApi extends Exchange
     }
 
     /**
+     * Calls the v2PrivatePostMyBuyNowCoinlist endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMyBuyNowCoinlist (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostMyBuyNowCoinlist", optionalArgs);
+    }
+
+    /**
      * Calls the v2PrivatePostMySellNow endpoint.
      *
      * @param optionalArgs the request parameters
@@ -545,6 +556,17 @@ public class CoinspotApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMySellNow (Object... optionalArgs)
     {
         return this.callAsync ("v2PrivatePostMySellNow", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostMySellNowCoinlist endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMySellNowCoinlist (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostMySellNowCoinlist", optionalArgs);
     }
 
     /**
@@ -622,6 +644,28 @@ public class CoinspotApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMyCoinWithdrawSend (Object... optionalArgs)
     {
         return this.callAsync ("v2PrivatePostMyCoinWithdrawSend", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostMyCoinWithdrawSendAsync endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMyCoinWithdrawSendAsync (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostMyCoinWithdrawSendAsync", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostMyCoinWithdrawSendStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostMyCoinWithdrawSendStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostMyCoinWithdrawSendStatus", optionalArgs);
     }
 
     /**

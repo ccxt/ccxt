@@ -386,6 +386,9 @@ public class PoloniexCore extends PoloniexApi
                         put( "v3/market/fundingRate", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(2, 3) );
                         }} );
+                        put( "v3/market/fundingRate/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(2, 3) );
+                        }} );
                         put( "v3/market/openInterest", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(2, 3) );
                         }} );
@@ -393,6 +396,9 @@ public class PoloniexCore extends PoloniexApi
                             put( "cost", Helpers.divide(2, 3) );
                         }} );
                         put( "v3/market/riskLimit", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(2, 3) );
+                        }} );
+                        put( "v3/market/limitPrice", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(2, 3) );
                         }} );
                     }} );
@@ -414,6 +420,9 @@ public class PoloniexCore extends PoloniexApi
                         put( "v3/trade/order/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
+                        put( "v3/trade/order/details", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
+                        }} );
                         put( "v3/trade/position/opens", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
@@ -424,6 +433,9 @@ public class PoloniexCore extends PoloniexApi
                             put( "cost", 20 );
                         }} );
                         put( "v3/position/mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
+                        }} );
+                        put( "v3/position/riskLimit", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
                     }} );

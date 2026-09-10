@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         // without symbol
         object positions = await invokeExchangeDynamically(exchange, "fetchPositions");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             testPosition(exchange, skippedProperties, method, getValue(positions, i), null, now);
         }
@@ -24,7 +24,7 @@ public partial class testMainClass : BaseTest
         assert(((positionsForSymbol is IList<object>) || (positionsForSymbol.GetType().IsGenericType && positionsForSymbol.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
         int positionsForSymbolLength = getArrayLength(positionsForSymbol);
         assert(isLessThanOrEqual(positionsForSymbolLength, 4), add(add(add(add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));
-        for (object i = 0; isLessThan(i, getArrayLength(positionsForSymbol)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positionsForSymbol)); postFixIncrement(ref i))
         {
             testPosition(exchange, skippedProperties, method, getValue(positionsForSymbol, i), symbol, now);
         }

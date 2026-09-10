@@ -352,6 +352,36 @@ func (this *AsterCore) FapiPrivateGetV3Builder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateGetV3Builder", args...)
 }
 
+// FapiPrivateGetV3BuilderUserTrades returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3BuilderUserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3BuilderUserTrades", args...)
+}
+
+// FapiPrivateGetV3BuilderApprovedUserList returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3BuilderApprovedUserList(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3BuilderApprovedUserList", args...)
+}
+
+// FapiPrivateGetV3StpMode returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3StpMode(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3StpMode", args...)
+}
+
+// FapiPrivateGetV3AssetMigrateUserHistory returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3AssetMigrateUserHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3AssetMigrateUserHistory", args...)
+}
+
+// FapiPrivateGetV3StrategyOpenOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3StrategyOpenOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3StrategyOpenOrder", args...)
+}
+
+// FapiPrivateGetV3StrategyHistoryOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateGetV3StrategyHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateGetV3StrategyHistoryOrder", args...)
+}
+
 // FapiPrivatePostV1PositionSideDual returns a channel that yields a JSON object.
 func (this *AsterCore) FapiPrivatePostV1PositionSideDual(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV1PositionSideDual", args...)
@@ -497,6 +527,36 @@ func (this *AsterCore) FapiPrivatePostV3UpdateBuilder(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePostV3UpdateBuilder", args...)
 }
 
+// FapiPrivatePostV3RegisterAndApproveAgent returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3RegisterAndApproveAgent(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3RegisterAndApproveAgent", args...)
+}
+
+// FapiPrivatePostV3AssetMigrateUser returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3AssetMigrateUser(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3AssetMigrateUser", args...)
+}
+
+// FapiPrivatePostV3Chase returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3Chase(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3Chase", args...)
+}
+
+// FapiPrivatePostV3StpMode returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3StpMode(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3StpMode", args...)
+}
+
+// FapiPrivatePostV3PlaceStrategyOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivatePostV3PlaceStrategyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3PlaceStrategyOrder", args...)
+}
+
+// FapiPrivatePostV3UpdateStrategyOrder returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivatePostV3UpdateStrategyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivatePostV3UpdateStrategyOrder", args...)
+}
+
 // FapiPrivatePutV1ListenKey returns a channel that yields a JSON object.
 func (this *AsterCore) FapiPrivatePutV1ListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivatePutV1ListenKey", args...)
@@ -535,6 +595,16 @@ func (this *AsterCore) FapiPrivateDeleteV1BatchOrders(args ...any) <-chan any {
 // FapiPrivateDeleteV3BatchOrders returns a channel that yields a JSON array.
 func (this *AsterCore) FapiPrivateDeleteV3BatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("fapiPrivateDeleteV3BatchOrders", args...)
+}
+
+// FapiPrivateDeleteV3GuardedCancelOrder returns a channel that yields a JSON object.
+func (this *AsterCore) FapiPrivateDeleteV3GuardedCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3GuardedCancelOrder", args...)
+}
+
+// FapiPrivateDeleteV3GuardedBatchOrders returns a channel that yields a JSON array.
+func (this *AsterCore) FapiPrivateDeleteV3GuardedBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("fapiPrivateDeleteV3GuardedBatchOrders", args...)
 }
 
 // FapiPrivateDeleteV3Mmp returns a channel that yields a JSON array.

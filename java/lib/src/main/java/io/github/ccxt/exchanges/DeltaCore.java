@@ -286,6 +286,9 @@ public class DeltaCore extends DeltaApi
                         put( "users/margin_mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "users/trading_preferences", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "orders", new java.util.HashMap<String, Object>() {{

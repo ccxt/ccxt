@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official cex API documentation:** [trade.cex.io](https://trade.cex.io/docs/)
 
-> 28 implicit endpoints across 2 access groups.
+> 29 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -89,6 +89,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostDoCancelMyOrder` | POST | `do_cancel_my_order` | 1 |
 | `privatePostDoCancelAllOrders` | POST | `do_cancel_all_orders` | 5 |
 | `privatePostGetOrderBook` | POST | `get_order_book` | 1 |
+| `privatePostGetTicker` | POST | `get_ticker` | 1 |
 | `privatePostGetCandles` | POST | `get_candles` | 1 |
 | `privatePostGetTradeHistory` | POST | `get_trade_history` | 1 |
 | `privatePostGetMyTransactionHistory` | POST | `get_my_transaction_history` | 1 |

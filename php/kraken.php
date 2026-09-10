@@ -158,6 +158,7 @@ class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time' => array( 'cost' => 1 ),
                         'SystemStatus' => array( 'cost' => 1 ),
+                        'MaintenanceSchedule' => array( 'cost' => 1 ),
                         'Assets' => array( 'cost' => 1 ),
                         'AssetPairs' => array( 'cost' => 1 ),
                         'Ticker' => array( 'cost' => 1 ),
@@ -193,6 +194,7 @@ class kraken extends Exchange {
                         'RetrieveExport' => array( 'cost' => 3 ),
                         'RemoveExport' => array( 'cost' => 3 ),
                         'GetApiKeyInfo' => array( 'cost' => 3 ),
+                        'ListWalletAccounts' => array( 'cost' => 3 ),
                         // trading
                         'AddOrder' => array( 'cost' => 0 ),
                         'AmendOrder' => array( 'cost' => 0 ),

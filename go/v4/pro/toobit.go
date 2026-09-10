@@ -1463,25 +1463,18 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.Subtract(time, lastAuthenticatedTime), delay)) {
 		this.CheckRequiredCredentials()
 		// single-flight leader election on a never-dialed client, see
-		// https://github.com/ccxt/ccxt/issues/29393. the election used to
-		// run on this.client (this.getUserStreamUrl ()), but that url
-		// embeds the listenKey it is about to mint, so the client the
-		// flight registers on is not the client the next caller looks at:
-		// the cold call elected on .../ws/undefined and every later call
-		// landed on .../ws/<key> with an empty subscriptions map, found
-		// the key still fresh, skipped the fetch and hung on a future
-		// nobody resolves. client.futures is the registry: client.future ()
-		// is the atomic check-and-insert and client.resolve () /
-		// client.reject () settle and remove the entry under the same lock
-		// in every port
+		// https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+		// so the flight must not live on that client or later callers would look at a different one.
+		// client.futures is the registry: client.future () is the atomic check-and-insert and
+		// client.resolve () / client.reject () settle and remove the entry under the same lock in every port
 		var messageHash string = "authenticate"
 		var client any = this.Client("authenticationFlights")
 		if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 			// a flight is already in progress - wake when the leader
 			// settles it: the listenKey is then in the bucket
 
-			retRes121016 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-			ccxt.PanicOnError(retRes121016)
+			retRes120316 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+			ccxt.PanicOnError(retRes120316)
 
 			return nil
 		}
@@ -1527,8 +1520,8 @@ func (this *ToobitCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 
 		}
 
-		retRes123812 := <-future.(*ccxt.Future).Await()
-		ccxt.PanicOnError(retRes123812)
+		retRes123112 := <-future.(*ccxt.Future).Await()
+		ccxt.PanicOnError(retRes123112)
 	}
 	return nil
 }

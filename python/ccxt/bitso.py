@@ -221,6 +221,10 @@ class bitso(Exchange, ImplicitAPI):
                         'orders/{oid}': {'cost': 1},
                         'orders/all': {'cost': 1},
                     },
+                    'patch': {
+                        'orders': {'cost': 1},
+                        'orders/{oid}': {'cost': 1},
+                    },
                 },
             },
             'features': {

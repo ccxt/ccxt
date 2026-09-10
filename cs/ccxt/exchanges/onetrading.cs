@@ -177,6 +177,15 @@ public partial class onetrading : Exchange
                         { "time", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "funding-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rate/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rate/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -205,9 +214,30 @@ public partial class onetrading : Exchange
                         { "account/trade/{trade_id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "account/futures/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions/{position_id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions/{position_id}/funding-payments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/funding-payments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -632,7 +662,7 @@ public partial class onetrading : Exchange
     public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object method = this.safeString(parameters, "method");
+        string? method = this.safeString(parameters, "method");
         parameters = this.omit(parameters, "method");
         if (isTrue(isEqual(method, null)))
         {
@@ -711,7 +741,7 @@ public partial class onetrading : Exchange
         object firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -783,7 +813,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         // const tiers = this.parseFeeTiers (feeTiers);
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -806,7 +836,7 @@ public partial class onetrading : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
         {
             object tier = getValue(feeTiers, i);
             object volume = this.safeNumber(tier, "volume");
@@ -959,7 +989,7 @@ public partial class onetrading : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(rawTickers, i));
             object symbol = getValue(ticker, "symbol");
@@ -1082,7 +1112,7 @@ public partial class onetrading : Exchange
             { "WEEKS", "w" },
             { "MONTHS", "M" },
         };
-        object lowercaseUnit = this.safeString(units, unit);
+        string? lowercaseUnit = this.safeString(units, unit);
         if (isTrue(isTrue((isEqual(period, null))) || isTrue((isEqual(lowercaseUnit, null)))))
         {
             throw new ExchangeError ((string)add(this.id, " parseOHLCV() missing period/unit")) ;
@@ -1220,7 +1250,7 @@ public partial class onetrading : Exchange
         object symbol = this.safeSymbol(marketId, market, "_");
         string? feeCostString = this.safeString(feeInfo, "fee_amount");
         string? takerOrMaker = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(feeInfo, "fee_currency");
@@ -1256,7 +1286,7 @@ public partial class onetrading : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency_code");

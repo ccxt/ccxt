@@ -214,7 +214,7 @@ public partial class bittrade : ccxt.bittrade
             tradesCache = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = tradesCache;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(getValue(data, i), market);
             callDynamically(tradesCache, "append", new object[] {trade});
@@ -247,7 +247,7 @@ public partial class bittrade : ccxt.bittrade
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("market.", getValue(market, "id")), ".kline."), interval);
         string? api = this.safeString(this.options, "api", "api");
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
@@ -401,7 +401,7 @@ public partial class bittrade : ccxt.bittrade
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
         object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
         {
             this.handleOrderBookMessage(client as WebSocketClient, getValue(messages, i), orderbook);
         }
@@ -456,7 +456,7 @@ public partial class bittrade : ccxt.bittrade
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -667,7 +667,7 @@ public partial class bittrade : ccxt.bittrade
         this.spawn(this.pong, new object[] { client, message});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -684,7 +684,7 @@ public partial class bittrade : ccxt.bittrade
             string? id = this.safeString(message, "id");
             if (isTrue(isEqual(id, null)))
             {
-                return false;
+                return ((bool?)((object)(false)));
             }
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             object subscription = this.safeValue(subscriptionsById, id);
@@ -705,9 +705,9 @@ public partial class bittrade : ccxt.bittrade
                     }
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

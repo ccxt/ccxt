@@ -42,6 +42,16 @@ func (this *FoxbitCore) V3PublicGetMarketsMarketTicker24hr(args ...any) <-chan a
 	return this.callEndpointAsync("v3PublicGetMarketsMarketTicker24hr", args...)
 }
 
+// V3PublicGetMarketsSparklineWindow returns a channel that yields a JSON object.
+func (this *FoxbitCore) V3PublicGetMarketsSparklineWindow(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetMarketsSparklineWindow", args...)
+}
+
+// V3PublicGetTravelRuleOperationReasons returns a channel that yields a JSON object.
+func (this *FoxbitCore) V3PublicGetTravelRuleOperationReasons(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PublicGetTravelRuleOperationReasons", args...)
+}
+
 // V3PrivateGetAccounts returns a channel that yields a JSON object.
 func (this *FoxbitCore) V3PrivateGetAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetAccounts", args...)
@@ -87,6 +97,11 @@ func (this *FoxbitCore) V3PrivateGetMeFeesTrading(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetMeFeesTrading", args...)
 }
 
+// V3PrivateGetPrimeDeskExecutionsQuoteId returns a channel that yields a JSON object.
+func (this *FoxbitCore) V3PrivateGetPrimeDeskExecutionsQuoteId(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetPrimeDeskExecutionsQuoteId", args...)
+}
+
 // V3PrivatePostOrders returns a channel that yields a JSON object.
 func (this *FoxbitCore) V3PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostOrders", args...)
@@ -105,6 +120,11 @@ func (this *FoxbitCore) V3PrivatePostOrdersCancelReplace(args ...any) <-chan any
 // V3PrivatePostWithdrawals returns a channel that yields a JSON object.
 func (this *FoxbitCore) V3PrivatePostWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostWithdrawals", args...)
+}
+
+// V3PrivatePostDepositsDepositSnTravelRule returns a channel that yields a JSON object.
+func (this *FoxbitCore) V3PrivatePostDepositsDepositSnTravelRule(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostDepositsDepositSnTravelRule", args...)
 }
 
 // V3PrivatePutOrdersCancel returns a channel that yields a JSON object.

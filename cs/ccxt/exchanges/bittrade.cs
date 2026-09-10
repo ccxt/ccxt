@@ -305,6 +305,9 @@ public partial class bittrade : Exchange
                         { "settings/currencys", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "retail/maintain/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -381,6 +384,9 @@ public partial class bittrade : Exchange
                         { "stable-coin/quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "retail/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/transfer", new Dictionary<string, object>() {
@@ -442,6 +448,9 @@ public partial class bittrade : Exchange
                         } },
                         { "subuser/transfer", new Dictionary<string, object>() {
                             { "cost", 10 },
+                        } },
+                        { "retail/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
                         } },
                     } },
                 } },
@@ -649,7 +658,7 @@ public partial class bittrade : Exchange
             throw new ExchangeError ((string)add(this.id, " markets not loaded")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = ccxt.BaseExchange.FromDict(await this.FetchTradingLimitsById(this.marketId(symbol), parameters));
@@ -775,11 +784,11 @@ public partial class bittrade : Exchange
             throw new NetworkError ((string)add(add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             object baseId = this.safeString(market, "base-currency");
-            object quoteId = this.safeString(market, "quote-currency");
+            string? quoteId = this.safeString(market, "quote-currency");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             string? state = this.safeString(market, "state");
@@ -1071,7 +1080,7 @@ public partial class bittrade : Exchange
         object tickers = this.safeValue(response, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "ts");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(tickers, i), "symbol");
             object market = this.safeMarket(marketId);
@@ -1120,7 +1129,7 @@ public partial class bittrade : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeInteger2(trade, "ts", "created-at");
+        Int64? timestamp = this.safeInteger2(trade, "ts", "created-at");
         string? order = this.safeString(trade, "order-id");
         object side = this.safeString(trade, "direction");
         object type = this.safeString(trade, "type");
@@ -1134,7 +1143,7 @@ public partial class bittrade : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "filled-amount", "amount");
         string? cost = Precise.stringMul(price, amount);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(trade, "filled-fees");
         object feeCurrency = this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
         string? filledPoints = this.safeString(trade, "filled-points");
@@ -1289,10 +1298,10 @@ public partial class bittrade : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object trades = this.safeValue(getValue(data, i), "data", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(trades)); postFixIncrement(ref j))
             {
                 object trade = this.parseTrade(getValue(trades, j), market);
                 ((IList<object>)result).Add(trade);
@@ -1450,7 +1459,7 @@ public partial class bittrade : Exchange
         object depositEnabled = this.safeValue(currency, "deposit-enabled");
         object withdrawEnabled = this.safeValue(currency, "withdraw-enabled");
         object countryDisabled = this.safeValue(currency, "country-disabled");
-        object visible = this.safeBool(currency, "visible", false);
+        bool? visible = this.safeBool(currency, "visible", false);
         string? state = this.safeString(currency, "state");
         bool active = isTrue(isTrue(isTrue(isTrue((isEqual(visible, true))) && isTrue((isEqual(depositEnabled, true)))) && isTrue((isEqual(withdrawEnabled, true)))) && isTrue((isEqual(state, "online")))) && isTrue((!isEqual(countryDisabled, true)));
         string? name = this.safeString(currency, "display-name");
@@ -1490,7 +1499,7 @@ public partial class bittrade : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1708,7 +1717,7 @@ public partial class bittrade : Exchange
         {
             // pick the first account
             await this.loadAccounts();
-            for (object i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(this.accounts)); postFixIncrement(ref i))
             {
                 object account = getValue(this.accounts, i);
                 if (isTrue(isEqual(getValue(account, "type"), "spot")))
@@ -1818,7 +1827,7 @@ public partial class bittrade : Exchange
         string? price = this.safeString(order, "price");
         string? cost = this.safeString2(order, "filled-cash-amount", "field-cash-amount"); // same typo
         string? feeCost = this.safeString2(order, "filled-fees", "field-fees"); // typo in their API, filled fees
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             object feeCurrency = ((bool) isTrue((isEqual(side, "sell")))) ? getValue(market, "quote") : getValue(market, "base");
@@ -2096,7 +2105,7 @@ public partial class bittrade : Exchange
         }
         object failed = this.safeList2(orders, "errors", "failed", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
         {
             object order = getValue(success, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -2105,7 +2114,7 @@ public partial class bittrade : Exchange
                 { "status", "canceled" },
             }));
         }
-        for (object i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(failed)); postFixIncrement(ref i))
         {
             object order = getValue(failed, i);
             ((IList<object>)result).Add(this.safeOrder(new Dictionary<string, object>() {

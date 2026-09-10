@@ -145,6 +145,7 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'self-trade-strategy': { 'cost': 1 },
                         'subaccounts': { 'cost': 1 },
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 },
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
                     },
                     'post': {
                         'sendorder': { 'cost': 1 },
@@ -164,6 +165,10 @@ class krakenfutures extends krakenfutures$1["default"] {
                         'pnlpreferences': { 'cost': 1 },
                         'self-trade-strategy': { 'cost': 1 },
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 },
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
+                    },
+                    'delete': {
+                        'rfq-assignment/max-leverage': { 'cost': 1 },
                     },
                 },
                 'charts': {

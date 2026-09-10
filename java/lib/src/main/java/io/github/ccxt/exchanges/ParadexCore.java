@@ -194,6 +194,9 @@ public class ParadexCore extends ParadexApi
                         put( "referrals/config", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "staking/balance/history/global", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "staking/config", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -219,6 +222,9 @@ public class ParadexCore extends ParadexApi
                             put( "cost", 1 );
                         }} );
                         put( "vaults", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "vaults/analytics", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "vaults/balance", new java.util.HashMap<String, Object>() {{
@@ -348,6 +354,21 @@ public class ParadexCore extends ParadexApi
                         put( "referrals/summary", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "rfqs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/drafts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/markets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/{rfq_id}/bbo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "staking/balance/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "staking/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -404,6 +425,12 @@ public class ParadexCore extends ParadexApi
                         put( "account/settings/trading_value_display", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "account/paradigm/enable", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/terminal-token", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "account/keys/subkeys/activate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -440,6 +467,15 @@ public class ParadexCore extends ParadexApi
                         put( "orders/batch", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "rfqs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/drafts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/{rfq_id}/execute", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v2/auth", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -458,6 +494,12 @@ public class ParadexCore extends ParadexApi
                             put( "cost", 1 );
                         }} );
                         put( "account/keys/subkeys/{public_key}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/keys/subkeys/{public_key}/allowed-cidrs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/tokens/{lookup_id}/allowed-cidrs", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
@@ -490,6 +532,12 @@ public class ParadexCore extends ParadexApi
                             put( "cost", 1 );
                         }} );
                         put( "orders/{order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/drafts/{draft_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfqs/{rfq_id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

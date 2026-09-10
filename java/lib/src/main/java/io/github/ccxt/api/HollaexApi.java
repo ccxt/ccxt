@@ -262,6 +262,17 @@ public class HollaexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetSubaccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetSubaccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetSubaccounts", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetUserTrades endpoint.
      *
      * @param optionalArgs the request parameters
@@ -303,6 +314,17 @@ public class HollaexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserWithdrawal (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostSubaccountTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostSubaccountTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostSubaccountTransfer", optionalArgs);
     }
 
     /**

@@ -76,6 +76,12 @@ abstract class bitbank extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_user_margin_status($params = array()) {
+        return $this->request('user/margin/status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_user_margin_positions($params = array()) {
         return $this->request('user/margin/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -240,6 +246,12 @@ abstract class bitbank extends \ccxt\Exchange {
      */
     public function privateGetUserSpotActiveOrders($params = array()) {
         return $this->request('user/spot/active_orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetUserMarginStatus($params = array()) {
+        return $this->request('user/margin/status', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

@@ -174,6 +174,16 @@ class toobit extends Exchange {
                         'api/v1/agent/user/export' => array( 'cost' => 1 ),
                         'api/v1/agent/export-list' => array( 'cost' => 1 ),
                         'api/v1/agent/export-url' => array( 'cost' => 1 ),
+                        // v2
+                        'api/v2/account/balance-flow' => array( 'cost' => 5 ),
+                        'api/v2/futures/order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v2/futures/open-orders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v2/futures/history-orders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v2/futures/user-trades' => array( 'cost' => 5 * 1.67 ),
+                        'api/v2/futures/algo-order' => array( 'cost' => 1 * 1.67 ),
+                        'api/v2/futures/open-algo-orders' => array( 'cost' => 1 * 1.67 ),
+                        'api/v2/futures/history-algo-orders' => array( 'cost' => 5 * 1.67 ),
+                        'api/v2/futures/voucher/list' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'api/v1/spot/orderTest' => array( 'cost' => 1 * 1.67 ),

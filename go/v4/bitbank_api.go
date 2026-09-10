@@ -62,6 +62,11 @@ func (this *BitbankCore) PrivateGetUserSpotActiveOrders(args ...any) <-chan any 
 	return this.callEndpointAsync("privateGetUserSpotActiveOrders", args...)
 }
 
+// PrivateGetUserMarginStatus returns a channel that yields a JSON object.
+func (this *BitbankCore) PrivateGetUserMarginStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserMarginStatus", args...)
+}
+
 // PrivateGetUserMarginPositions returns a channel that yields a JSON object.
 func (this *BitbankCore) PrivateGetUserMarginPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserMarginPositions", args...)

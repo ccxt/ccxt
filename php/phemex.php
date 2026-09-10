@@ -181,6 +181,7 @@ class phemex extends Exchange {
                     'get' => array(
                         'public/products' => array( 'cost' => 5 ),
                         'public/products-plus' => array( 'cost' => 5 ),
+                        'public/index-sources' => array( 'cost' => 5 ), // ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
                         'md/v2/trade' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr' => array( 'cost' => 5 ), // ?symbol=<symbol>&id=<id>
@@ -249,6 +250,16 @@ class phemex extends Exchange {
                         'assets/futures/sub-accounts/transfer' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote' => array( 'cost' => 5 ), // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
+                        // copy trade
+                        'phemex-lb/public/api/trader/performance-info' => array( 'cost' => 5 ), // ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        // uta
+                        'uta-api/risk/risk-mode' => array( 'cost' => 5 ),
+                        'uta-api/risk/risk-units' => array( 'cost' => 5 ), // ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets' => array( 'cost' => 5 ), // ?currency=<currency>
+                        'uta-funds/contract/borrow' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests' => array( 'cost' => 5 ), // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert' => array( 'cost' => 5 ), // ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     ),
                     'post' => array(
                         // spot
@@ -272,6 +283,9 @@ class phemex extends Exchange {
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw' => array( 'cost' => 5 ), // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw' => array( 'cost' => 5 ), // ?id=<id>
+                        // uta
+                        'uta-account/switch-mode' => array( 'cost' => 5 ), // ?riskMode=<riskMode>
+                        'uta-funds/contract/payback' => array( 'cost' => 5 ), // body => currency, amountRv
                     ),
                     'put' => array(
                         // spot

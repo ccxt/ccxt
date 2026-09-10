@@ -319,6 +319,12 @@ public partial class coinmate : Exchange
                         { "bankWireWithdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "lightningDeposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lightningWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },
@@ -487,7 +493,7 @@ public partial class coinmate : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? id = this.safeString(market, "name");
@@ -556,7 +562,7 @@ public partial class coinmate : Exchange
             { "info", response },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -699,7 +705,7 @@ public partial class coinmate : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(keys, i));
             object ticker = this.parseTicker(this.safeValue(data, getValue(keys, i)), market);
@@ -907,7 +913,7 @@ public partial class coinmate : Exchange
         object currency = this.currency(code);
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
         object methods = this.safeValue(withdrawOptions, "methods", new Dictionary<string, object>() {});
-        object method = this.safeString(methods, code);
+        string? method = this.safeString(methods, code);
         if (isTrue(isEqual(method, null)))
         {
             List<object> allowedCurrencies = new List<object>(((IDictionary<string,object>)methods).Keys);
@@ -965,7 +971,7 @@ public partial class coinmate : Exchange
         //
         object data = this.safeValue(response, "data");
         object transaction = this.parseTransaction(data, currency);
-        object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)transaction)["amount"] = amount;
@@ -1055,8 +1061,8 @@ public partial class coinmate : Exchange
         string? type = this.safeStringLower(trade, "orderType");
         string? orderId = this.safeString(trade, "orderId");
         string? id = this.safeString(trade, "transactionId");
-        object timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
-        object fee = null;
+        Int64? timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {

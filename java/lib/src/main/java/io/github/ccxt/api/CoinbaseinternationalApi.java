@@ -108,6 +108,50 @@ public class CoinbaseinternationalApi extends Exchange
     }
 
     /**
+     * Calls the v1PublicGetInstrumentsVolumesDaily endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetInstrumentsVolumesDaily (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetInstrumentsVolumesDaily", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetPositionOffsets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetPositionOffsets (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetPositionOffsets", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetFeeRateTiers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PublicGetFeeRateTiers (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetFeeRateTiers", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateGetAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetAddressBook", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -127,6 +171,50 @@ public class CoinbaseinternationalApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetOrdersId", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetIndexIndexComposition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetIndexIndexComposition (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetIndexIndexComposition", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetIndexIndexCompositionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetIndexIndexCompositionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetIndexIndexCompositionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetIndexIndexPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetIndexIndexPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetIndexIndexPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetIndexIndexCandles endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetIndexIndexCandles (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetIndexIndexCandles", optionalArgs);
     }
 
     /**
@@ -218,6 +306,39 @@ public class CoinbaseinternationalApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetPortfoliosPortfolioPositionLimits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioPositionLimits (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioPositionLimits", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateGetPortfoliosPortfolioPositionLimitsPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositions", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetPortfoliosFills endpoint.
      *
      * @param optionalArgs the request parameters
@@ -240,6 +361,61 @@ public class CoinbaseinternationalApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetPortfoliosFeeRates endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateGetPortfoliosFeeRates (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosFeeRates", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioLoans endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v1PrivateGetPortfoliosPortfolioLoans (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioLoans", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioLoansAsset endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioLoansAsset (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioLoansAsset", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioLoansAssetAvailability endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioLoansAssetAvailability (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioLoansAssetAvailability", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetPortfoliosPortfolioMarginCallStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetPortfoliosPortfolioMarginCallStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetPortfoliosPortfolioMarginCallStatus", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetTransfers endpoint.
      *
      * @param optionalArgs the request parameters
@@ -259,6 +435,17 @@ public class CoinbaseinternationalApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetTransfersTransferUuid (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetTransfersTransferUuid", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit", optionalArgs);
     }
 
     /**
@@ -295,6 +482,50 @@ public class CoinbaseinternationalApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPortfoliosPortfolioAutoMarginEnabled endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosPortfolioAutoMarginEnabled (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPortfoliosPortfolioAutoMarginEnabled", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPortfoliosPortfolioLoansAsset endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosPortfolioLoansAsset (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPortfoliosPortfolioLoansAsset", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPortfoliosPortfolioLoansAssetPreview endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosPortfolioLoansAssetPreview (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPortfoliosPortfolioLoansAssetPreview", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivatePostPortfoliosTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -303,6 +534,17 @@ public class CoinbaseinternationalApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosTransfer (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostPortfoliosTransfer", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostPortfoliosTransferPosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostPortfoliosTransferPosition (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostPortfoliosTransferPosition", optionalArgs);
     }
 
     /**
@@ -402,6 +644,17 @@ public class CoinbaseinternationalApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateDeleteOrdersId (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteOrdersId", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePatchPortfoliosPortfolio endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePatchPortfoliosPortfolio (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePatchPortfoliosPortfolio", optionalArgs);
     }
 
 }

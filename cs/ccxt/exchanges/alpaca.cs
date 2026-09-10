@@ -145,7 +145,61 @@ public partial class alpaca : Exchange
                 { "withdraw", true },
             } },
             { "api", new Dictionary<string, object>() {
-                { "broker", new Dictionary<string, object>() {} },
+                { "broker", new Dictionary<string, object>() {
+                    { "private", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v1/accounts/{account_id}/tokenization/requests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/fpsl/analytics/{account_id}/loans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/ipos", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/ipos/{offering_reference}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/wallets/travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/contrabrokers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}/{acats_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}/{acats_id}/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "v1beta1/acats/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
+                } },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
@@ -209,6 +263,27 @@ public partial class alpaca : Exchange
                             { "v2/wallets/transfers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "v1/locates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates/{locate_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests/{tokenization_request_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests:by_client_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/orders", new Dictionary<string, object>() {
@@ -224,6 +299,9 @@ public partial class alpaca : Exchange
                                 { "cost", 1 },
                             } },
                             { "v2/wallets/transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -243,6 +321,9 @@ public partial class alpaca : Exchange
                                 { "cost", 1 },
                             } },
                             { "v2/account/configurations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -303,6 +384,12 @@ public partial class alpaca : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v1beta1/corporate-actions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/fixed_income/latest/prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/fixed_income/latest/quotes", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "v1beta1/forex/latest/rates", new Dictionary<string, object>() {
@@ -743,7 +830,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -909,7 +996,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -977,7 +1064,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                for (int i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
                 {
                     int ohlcvsLength = getArrayLength(ohlcvs);
                     if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
@@ -1155,7 +1242,7 @@ public partial class alpaca : Exchange
         List<object> results = new List<object>() {};
         object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
@@ -1691,7 +1778,7 @@ public partial class alpaca : Exchange
         string? alpacaStatus = this.safeString(order, "status");
         object status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2042,7 +2129,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
             {
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2080,7 +2167,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
         {
             object entry = getValue(transfers, i);
             string? direction = this.safeString(entry, "direction");
@@ -2191,7 +2278,7 @@ public partial class alpaca : Exchange
         object status = null;
         object comment = null;
         bool? intern = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(activityType, null)))
         {
             string? netAmount = this.safeString(transaction, "net_amount");

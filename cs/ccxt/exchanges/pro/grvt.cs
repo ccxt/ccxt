@@ -188,7 +188,7 @@ public partial class grvt : ccxt.grvt
         symbols = this.marketSymbols(symbols);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -345,7 +345,7 @@ public partial class grvt : ccxt.grvt
         symbols = this.marketSymbols(symbols);
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -463,14 +463,14 @@ public partial class grvt : ccxt.grvt
         }
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
             string? symbolString = this.safeString(data, 0);
             object market = this.market(symbolString);
             object marketId = getValue(market, "id");
-            object unfiedTimeframe = this.safeString(data, 1, "1");
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1, "1");
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add(marketId, "@"), timeframeId), "-TRADE"));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), unfiedTimeframe));
         }
@@ -607,7 +607,7 @@ public partial class grvt : ccxt.grvt
         object extraPart = ((bool) isTrue(isSnapshot)) ? (add(add(((object)interval).ToString(), "-"), ((object)limitVar).ToString())) : ((object)interval).ToString();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -849,7 +849,7 @@ public partial class grvt : ccxt.grvt
         List<object> messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object market = this.market(symbol);
@@ -909,7 +909,7 @@ public partial class grvt : ccxt.grvt
         }
         object data = this.safeDict(message, "feed");
         object position = this.parseWsPosition(data);
-        object symbol = this.safeString(position, "symbol");
+        string? symbol = this.safeString(position, "symbol");
         callDynamically(this.positions, "append", new object[] {position});
         List<object> newPositions = new List<object>() {};
         ((IList<object>)newPositions).Add(position);
@@ -1052,7 +1052,7 @@ public partial class grvt : ccxt.grvt
         return this.parseOrder(order, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object response)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object response)
     {
         //
         //    {
@@ -1077,6 +1077,6 @@ public partial class grvt : ccxt.grvt
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
             throw new ExchangeError ((string)add(add(this.id, " "), body)) ;
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 }

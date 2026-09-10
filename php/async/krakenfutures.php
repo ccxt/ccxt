@@ -150,6 +150,7 @@ class krakenfutures extends Exchange {
                         'self-trade-strategy' => array( 'cost' => 1 ),
                         'subaccounts' => array( 'cost' => 1 ),
                         'subaccount/{uid}/trading-enabled' => array( 'cost' => 1 ),
+                        'rfq-assignment/max-leverage' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'sendorder' => array( 'cost' => 1 ),
@@ -169,6 +170,10 @@ class krakenfutures extends Exchange {
                         'pnlpreferences' => array( 'cost' => 1 ),
                         'self-trade-strategy' => array( 'cost' => 1 ),
                         'subaccount/{uid}/trading-enabled' => array( 'cost' => 1 ),
+                        'rfq-assignment/max-leverage' => array( 'cost' => 1 ),
+                    ),
+                    'delete' => array(
+                        'rfq-assignment/max-leverage' => array( 'cost' => 1 ),
                     ),
                 ),
                 'charts' => array(

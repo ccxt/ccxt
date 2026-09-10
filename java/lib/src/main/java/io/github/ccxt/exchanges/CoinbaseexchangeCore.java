@@ -196,11 +196,23 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                         put( "products/volume-summary", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "wrapped-assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/{wrapped_asset_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/{wrapped_asset_id}/conversion-rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "address-book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "address-book/counterparty", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "accounts", new java.util.HashMap<String, Object>() {{
@@ -290,6 +302,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                         put( "transfers/{transfer_id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "travel-rules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "users/self/exchange-limits", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -297,6 +312,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                             put( "cost", 1 );
                         }} );
                         put( "users/self/trailing-volume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/{user_id}/trading-volumes", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "withdrawals/fee-estimate", new java.util.HashMap<String, Object>() {{
@@ -344,6 +362,21 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                         put( "loans", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "loans/options", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/redeem", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/redeem/{redeem_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/stake-wrap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/stake-wrap/{stake_wrap_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "conversions", new java.util.HashMap<String, Object>() {{
@@ -356,6 +389,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                             put( "cost", 1 );
                         }} );
                         put( "coinbase-accounts/{id}/addresses", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "address-book", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "funding/repay", new java.util.HashMap<String, Object>() {{
@@ -385,10 +421,28 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                         put( "withdrawals/coinbase-account", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "withdrawals/counterparty", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "withdrawals/crypto", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "withdrawals/payment-method", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "transfers/{transfer_id}/travel-rules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel-rules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/{user_id}/settlement-preferences", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/redeem", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "wrapped-assets/stake-wrap", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "loans/open", new java.util.HashMap<String, Object>() {{
@@ -411,12 +465,21 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                         put( "orders/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "address-book/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel-rules/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "profiles/{id}/deactivate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "profiles/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "address-book/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

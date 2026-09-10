@@ -382,6 +382,11 @@ func (this *BitfinexCore) PrivatePostAuthROrdersHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrdersHist", args...)
 }
 
+// PrivatePostAuthROrdersOtcSymbolHist returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthROrdersOtcSymbolHist(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthROrdersOtcSymbolHist", args...)
+}
+
 // PrivatePostAuthROrderSymbolIdTrades returns a channel that yields a JSON array.
 func (this *BitfinexCore) PrivatePostAuthROrderSymbolIdTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthROrderSymbolIdTrades", args...)
@@ -455,6 +460,11 @@ func (this *BitfinexCore) PrivatePostAuthRPositionsAudit(args ...any) <-chan any
 // PrivatePostAuthRPositionsSnap returns a channel that yields a JSON array.
 func (this *BitfinexCore) PrivatePostAuthRPositionsSnap(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRPositionsSnap", args...)
+}
+
+// PrivatePostAuthWPositionUpdateFundingType returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWPositionUpdateFundingType(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthWPositionUpdateFundingType", args...)
 }
 
 // PrivatePostAuthWDerivCollateralSet returns a channel that yields a JSON array.
@@ -612,9 +622,19 @@ func (this *BitfinexCore) PrivatePostAuthWDepositAddress(args ...any) <-chan any
 	return this.callEndpointAsync("privatePostAuthWDepositAddress", args...)
 }
 
+// PrivatePostAuthRDepositAddressAll returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRDepositAddressAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthRDepositAddressAll", args...)
+}
+
 // PrivatePostAuthWDepositInvoice returns a channel that yields a JSON array.
 func (this *BitfinexCore) PrivatePostAuthWDepositInvoice(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWDepositInvoice", args...)
+}
+
+// PrivatePostAuthRExtInvoicePayments returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRExtInvoicePayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthRExtInvoicePayments", args...)
 }
 
 // PrivatePostAuthWWithdraw returns a channel that yields a JSON array.
@@ -630,6 +650,11 @@ func (this *BitfinexCore) PrivatePostAuthRMovementsCurrencyHist(args ...any) <-c
 // PrivatePostAuthRMovementsHist returns a channel that yields a JSON array.
 func (this *BitfinexCore) PrivatePostAuthRMovementsHist(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthRMovementsHist", args...)
+}
+
+// PrivatePostAuthRMovementsInfo returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRMovementsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthRMovementsInfo", args...)
 }
 
 // PrivatePostAuthRAlerts returns a channel that yields a JSON array.
@@ -685,4 +710,19 @@ func (this *BitfinexCore) PrivatePostAuthWPulseAdd(args ...any) <-chan any {
 // PrivatePostAuthWPulseDel returns a channel that yields a JSON array.
 func (this *BitfinexCore) PrivatePostAuthWPulseDel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthWPulseDel", args...)
+}
+
+// PrivatePostAuthWExtWalletsDepositsRequest returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWExtWalletsDepositsRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthWExtWalletsDepositsRequest", args...)
+}
+
+// PrivatePostAuthWExtWalletsWithdrawalsRequest returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthWExtWalletsWithdrawalsRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthWExtWalletsWithdrawalsRequest", args...)
+}
+
+// PrivatePostAuthRExtWalletsTransfersFreeCount returns a channel that yields a JSON array.
+func (this *BitfinexCore) PrivatePostAuthRExtWalletsTransfersFreeCount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthRExtWalletsTransfersFreeCount", args...)
 }

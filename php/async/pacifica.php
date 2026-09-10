@@ -182,11 +182,17 @@ class pacifica extends Exchange {
                         'orders' => array( 'cost' => 1 ),
                         'orders/history' => array( 'cost' => 12 ),
                         'orders/history_by_id' => array( 'cost' => 1 ),
+                        'orders/twap' => array( 'cost' => 1 ),
+                        'orders/twap/history' => array( 'cost' => 12 ),
+                        'orders/twap/history_by_id' => array( 'cost' => 1 ),
                         'spot_assets' => array( 'cost' => 1 ),
                         'spot_assets/bridge/info' => array( 'cost' => 1 ),
                         'spot_assets/bridge/parameters/{symbol}' => array( 'cost' => 1 ),
                         'lake/list' => array( 'cost' => 1 ),
                         'account/builder_codes/approvals' => array( 'cost' => 1 ),
+                        'builder/overview' => array( 'cost' => 1 ),
+                        'builder/trades' => array( 'cost' => 1 ),
+                        'leaderboard/builder_code' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -211,9 +217,20 @@ class pacifica extends Exchange {
                         'orders/stop/cancel' => array( 'cost' => 0.5 ),
                         'orders/edit' => array( 'cost' => 1 ),
                         'orders/batch' => array( 'cost' => 1 ),
+                        'orders/twap/create' => array( 'cost' => 1 ),
+                        'orders/twap/cancel' => array( 'cost' => 0.5 ),
                         'account/builder_codes/approve' => array( 'cost' => 1 ),
                         'account/builder_codes/revoke' => array( 'cost' => 1 ),
+                        'builder/update_fee_rate' => array( 'cost' => 1 ),
+                        'referral/user/code/claim' => array( 'cost' => 1 ),
                         'agent/bind' => array( 'cost' => 1 ),
+                        'agent/list' => array( 'cost' => 1 ),
+                        'agent/revoke' => array( 'cost' => 1 ),
+                        'agent/revoke_all' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/list' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/add' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/remove' => array( 'cost' => 1 ),
+                        'agent/ip_whitelist/toggle' => array( 'cost' => 1 ),
                         'account/api_keys/create' => array( 'cost' => 1 ),
                         'account/api_keys/revoke' => array( 'cost' => 1 ),
                         'account/api_keys' => array( 'cost' => 1 ),
@@ -1481,7 +1498,9 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($trade, 'created_at');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {

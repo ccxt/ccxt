@@ -112,7 +112,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             { "info", message },
         };
         object balances = this.safeValue(message, "balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "currency");
@@ -589,7 +589,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         } else if (isTrue(isEqual(eventVar, "snapshot")))
         {
             object orders = this.safeValue(message, "orders", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object order = getValue(orders, i);
                 object parsedOrder = this.parseWsOrder(order);
@@ -712,7 +712,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         }
         object market = this.market(symbol);
         object url = getValue(getValue(this.urls, "api"), "ws");
-        object type = this.safeString(parameters, "type", "l2");
+        string? type = this.safeString(parameters, "type", "l2");
         parameters = this.omit(parameters, "type");
         object messageHash = add(add(add("orderbook:", symbol), ":"), type);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -761,12 +761,12 @@ public partial class blockchaincom : ccxt.blockchaincom
         //         "timestamp": "2022-08-08T22:03:19.014680Z"
         //     }
         //
-        object eventVar = this.safeString(message, "event");
+        string? eventVar = this.safeString(message, "event");
         if (isTrue(isEqual(eventVar, "subscribed")))
         {
             return;
         }
-        object type = this.safeString(message, "channel");
+        string? type = this.safeString(message, "channel");
         string? marketId = this.safeString(message, "symbol");
         object symbol = this.safeSymbol(marketId);
         object messageHash = add(add(add("orderbook:", symbol), ":"), type);
@@ -804,7 +804,7 @@ public partial class blockchaincom : ccxt.blockchaincom
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }

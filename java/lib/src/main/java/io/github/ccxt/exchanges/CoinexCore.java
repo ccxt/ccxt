@@ -612,6 +612,9 @@ public class CoinexCore extends CoinexApi
                             put( "assets/all-deposit-withdraw-config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "assets/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -931,6 +934,12 @@ public class CoinexCore extends CoinexApi
                                 put( "cost", 20 );
                             }} );
                             put( "futures/set-position-take-profit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "futures/modify-position-stop-loss", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "futures/modify-position-take-profit", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
                         }} );

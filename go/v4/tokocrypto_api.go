@@ -62,6 +62,11 @@ func (this *TokocryptoCore) BinanceGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("binanceGetExchangeInfo", args...)
 }
 
+// BinanceGetExecutionRules returns a channel that yields a JSON object.
+func (this *TokocryptoCore) BinanceGetExecutionRules(args ...any) <-chan any {
+	return this.callEndpointAsync("binanceGetExecutionRules", args...)
+}
+
 // BinancePutUserDataStream returns a channel that yields a JSON object.
 func (this *TokocryptoCore) BinancePutUserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("binancePutUserDataStream", args...)
@@ -170,4 +175,9 @@ func (this *TokocryptoCore) PrivatePostOpenV1Withdraws(args ...any) <-chan any {
 // PrivatePostOpenV1UserDataStream returns a channel that yields a JSON object.
 func (this *TokocryptoCore) PrivatePostOpenV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenV1UserDataStream", args...)
+}
+
+// PrivatePostOpenV1UserListenToken returns a channel that yields a JSON object.
+func (this *TokocryptoCore) PrivatePostOpenV1UserListenToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenV1UserListenToken", args...)
 }

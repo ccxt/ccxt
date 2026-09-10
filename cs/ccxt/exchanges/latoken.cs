@@ -186,7 +186,13 @@ public partial class latoken : Exchange
                         { "auth/account/currency/{currency}/{type}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/account/filtered", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/active", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/order/getOrder/{id}", new Dictionary<string, object>() {
@@ -245,7 +251,13 @@ public partial class latoken : Exchange
                         { "auth/order/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/order/cancelBulk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/placeBulk", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/spot/deposit", new Dictionary<string, object>() {
@@ -510,7 +522,7 @@ public partial class latoken : Exchange
         Dictionary<string, object> currenciesById = this.indexBy(currencies, "id");
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
@@ -714,7 +726,7 @@ public partial class latoken : Exchange
         string? accountType = this.safeString(types, type, type);
         Dictionary<string, object> balancesByType = this.groupBy(response, "type");
         object balances = this.safeValue(balancesByType, accountType, new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -798,7 +810,7 @@ public partial class latoken : Exchange
         object rawBids = this.safeList(response, "bid", new List<object>() {});
         List<object> asks = new List<object>() {};
         List<object> bids = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
         {
             object askEntry = getValue(rawAsks, i);
             string? askQuantity = this.safeString(askEntry, "quantity");
@@ -807,7 +819,7 @@ public partial class latoken : Exchange
                 ((IList<object>)asks).Add(askEntry);
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
         {
             object bidEntry = getValue(rawBids, i);
             string? bidQuantity = this.safeString(bidEntry, "quantity");
@@ -1028,7 +1040,7 @@ public partial class latoken : Exchange
         string? id = this.safeString(trade, "id");
         string? orderId = this.safeString(trade, "order");
         string? feeCost = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2056,7 +2068,7 @@ public partial class latoken : Exchange
         object request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         object requestString = request;
         object query = this.omit(parameters, this.extractParams(path));
-        object urlencodedQuery = this.urlencode(query);
+        string urlencodedQuery = this.urlencode(query);
         if (isTrue(isEqual(method, "GET")))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

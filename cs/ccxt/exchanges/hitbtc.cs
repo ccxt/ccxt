@@ -267,6 +267,9 @@ public partial class hitbtc : Exchange
                         { "margin/history/clearing", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
+                        { "margin-settings", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "futures/balance", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
@@ -306,10 +309,16 @@ public partial class hitbtc : Exchange
                         { "futures/history/clearing", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
+                        { "user/api-keys", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "wallet/balance", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/balance/{currency}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address/white-list", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/crypto/address", new Dictionary<string, object>() {
@@ -331,6 +340,9 @@ public partial class hitbtc : Exchange
                             { "cost", 30 },
                         } },
                         { "wallet/crypto/fee/estimate", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/fee/withdraw/hash", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/airdrops", new Dictionary<string, object>() {
@@ -392,6 +404,9 @@ public partial class hitbtc : Exchange
                         { "wallet/crypto/fees/estimate", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
+                        { "wallet/crypto/fee/estimate/bulk", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
                         { "wallet/airdrops/{id}/claim", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
@@ -402,6 +417,12 @@ public partial class hitbtc : Exchange
                             { "cost", 15 },
                         } },
                         { "sub-account/transfer", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/transfer/sub-to-super", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/transfer/sub-to-sub", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
                         { "sub-account/acl", new Dictionary<string, object>() {
@@ -458,8 +479,17 @@ public partial class hitbtc : Exchange
                         { "margin/account/isolated/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "margin-settings/amm", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/margin-settings/amr", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "futures/account/isolated/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "futures/margin-settings/amr", new Dictionary<string, object>() {
+                            { "cost", 15 },
                         } },
                         { "wallet/crypto/withdraw/{id}", new Dictionary<string, object>() {
                             { "cost", 30 },
@@ -834,7 +864,7 @@ public partial class hitbtc : Exchange
         //
         List<object> result = new List<object>() {};
         List<object> ids = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             if (isTrue(((string)id).EndsWith(((string)"_BQX"))))
@@ -846,7 +876,7 @@ public partial class hitbtc : Exchange
             Int64? expiry = this.safeInteger(market, "expiry");
             bool contract = (isEqual(marketType, "futures"));
             bool spot = (isEqual(marketType, "spot"));
-            object marginTrading = this.safeBool(market, "margin_trading", false);
+            bool? marginTrading = this.safeBool(market, "margin_trading", false);
             bool margin = isTrue(spot) && isTrue(marginTrading);
             bool future = (!isEqual(expiry, null));
             bool swap = (isTrue(contract) && !isTrue(future));
@@ -1006,7 +1036,7 @@ public partial class hitbtc : Exchange
         object entry = currency;
         object rawNetworks = this.safeList(entry, "networks", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(rawNetworks, j);
             string? networkId = this.safeString2(rawNetwork, "protocol", "network");
@@ -1140,7 +1170,7 @@ public partial class hitbtc : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             string? currencyId = this.safeString(entry, "currency");
@@ -1281,7 +1311,7 @@ public partial class hitbtc : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);
             object market = this.safeMarket(marketId);
@@ -1375,7 +1405,7 @@ public partial class hitbtc : Exchange
         object response = await this.publicGetPublicTrades(this.extend(request, parameters));
         object trades = new List<object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object marketInner = this.market(marketId);
@@ -1517,7 +1547,7 @@ public partial class hitbtc : Exchange
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         object taker = this.safeValue(trade, "taker");
         object takerOrMaker = null;
@@ -1808,7 +1838,7 @@ public partial class hitbtc : Exchange
         object response = await this.publicGetPublicOrderbook(this.extend(request, parameters));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object orderbook = this.safeDict(response, marketId, new Dictionary<string, object>() {});
@@ -1953,7 +1983,7 @@ public partial class hitbtc : Exchange
         //     ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(response, i));
             object symbol = getValue(fee, "symbol");
@@ -3131,7 +3161,7 @@ public partial class hitbtc : Exchange
             parameters = this.omit(parameters, "network");
         }
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object includeFee = this.safeBool(withdrawOptions, "includeFee", false);
+        bool? includeFee = this.safeBool(withdrawOptions, "includeFee", false);
         if (isTrue(isEqual(includeFee, true)))
         {
             ((IDictionary<string,object>)request)["include_fee"] = true;
@@ -3198,7 +3228,7 @@ public partial class hitbtc : Exchange
         //
         List<object> marketIds = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> fundingRates = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(marketIds, i);
             if (isTrue(isEqual(marketId, null)))
@@ -3280,12 +3310,12 @@ public partial class hitbtc : Exchange
         //
         List<object> contracts = new List<object>(((IDictionary<string,object>)response).Keys);
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object marketId = getValue(contracts, i);
             object marketInner = this.safeMarket(marketId);
             object fundingRateData = this.safeList(response, marketId, new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(fundingRateData)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(fundingRateData)); postFixIncrement(ref j))
             {
                 object entry = getValue(fundingRateData, j);
                 object symbolInner = this.safeSymbol(getValue(marketInner, "symbol"));
@@ -3387,7 +3417,7 @@ public partial class hitbtc : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(response, i)));
         }
@@ -3519,7 +3549,7 @@ public partial class hitbtc : Exchange
         object liquidationPrice = null;
         object entryPrice = null;
         object contracts = null;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             liquidationPrice = this.safeNumber(entry, "price_liquidation");
@@ -3528,7 +3558,7 @@ public partial class hitbtc : Exchange
         }
         object currencies = this.safeValue(position, "currencies", new List<object>() {});
         object collateral = null;
-        for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
         {
             object entry = getValue(currencies, i);
             collateral = this.safeNumber(entry, "margin_balance");
@@ -3641,7 +3671,7 @@ public partial class hitbtc : Exchange
         //
         List<object> results = new List<object>() {};
         List<object> markets = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object marketId = getValue(markets, i);
             object marketInner = this.safeMarket(marketId);
@@ -4145,7 +4175,7 @@ public partial class hitbtc : Exchange
         //
         object networks = this.safeValue(fee, "networks", new List<object>() {});
         object result = this.depositWithdrawFee(fee);
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networks, j);
             string? networkId = this.safeString(networkEntry, "network");
@@ -4234,7 +4264,7 @@ public partial class hitbtc : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         object marginMode = null;
         var marginModeparametersVariable = base.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((IList<object>)marginModeparametersVariable)[0];
@@ -4327,7 +4357,7 @@ public partial class hitbtc : Exchange
             string payloadString = String.Join("", ((IList<object>)payload).ToArray());
             string signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256, "hex");
             object secondPayload = add(add(add(add(this.apiKey, ":"), signature), ":"), timestamp);
-            object encoded = this.stringToBase64(secondPayload);
+            string encoded = this.stringToBase64(secondPayload);
             ((IDictionary<string,object>)headers)["Authorization"] = add("HS256 ", encoded);
         }
         return new Dictionary<string, object>() {

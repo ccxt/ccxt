@@ -42,6 +42,7 @@ interface Exchange {
     spotPrivatePostSupplementDepositHistory(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementWithdraws(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementGetDepositAddress(params?: {}): Promise<Dict>;
+    spotPrivatePostSupplementAddDepositAddress(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementAssetDetail(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementCustomerTradeFee(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementApiRestrictions(params?: {}): Promise<Dict>;
@@ -55,6 +56,11 @@ interface Exchange {
     spotPrivatePostSupplementOrdersInfoHistory(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementUserInfoAccount(params?: {}): Promise<Dict>;
     spotPrivatePostSupplementTransactionHistory(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletWithdraw(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletDepositHistory(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotWalletWithdraws(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotTradeOrdersInfo(params?: {}): Promise<Dict>;
+    spotPrivatePostSpotTradeOrdersInfoHistory(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubGetTime(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubInstrument(params?: {}): Promise<Dict>;
     contractPublicGetCfdOpenApiV1PubMarketData(params?: {}): Promise<Dict>;

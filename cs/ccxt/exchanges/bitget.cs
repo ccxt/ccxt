@@ -485,6 +485,102 @@ public partial class bitget : Exchange
                             { "v3/market/index-components", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "v3/market/risk-reserve-all", new Dictionary<string, object>() {
+                                { "cost", 6.6667 },
+                            } },
+                            { "v3/market/risk-reserve-hour", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v3/market/score-weights", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/market/fee-group", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/market/cash-dividend-records", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/market/split-records", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/market/liquidations", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/market/rpi-orderbook", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/market/rpi-symbols", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/market/spot-whale-flow", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/spot-fund-flow", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/spot-net-flow", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/margin-long-short", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/margin-loan-growth", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/margin-isolated-borrow", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/futures-active-buy-sell", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/futures-long-short", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/futures-position-long-short", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/market/futures-account-long-short", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/stock-info", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/states", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/calendar", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/company-overview", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/valuation-indicators", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/earnings-forecast", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/suspension-resumption-info", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/dividends", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/share-capital-change", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/inner-trades", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/executive-shareholdings", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/reality/market/sharehold-detail", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/account/custom-collateral-coins", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                     } },
                 } },
@@ -1225,6 +1321,9 @@ public partial class bitget : Exchange
                             { "v2/user/modify-virtual-subaccount-apikey", new Dictionary<string, object>() {
                                 { "cost", 4 },
                             } },
+                            { "v2/user/create-agent-subaccount", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
                         } },
                     } },
                     { "p2p", new Dictionary<string, object>() {
@@ -1302,6 +1401,27 @@ public partial class bitget : Exchange
                             { "v2/broker/manage/subaccount-apikey-list", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "v2/broker/sub-customer-list", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/agent-commission", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-commissions", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-kyc-result", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/order-commission", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/broker/rebate-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/broker/total-commission", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "broker/v1/account/sub-create", new Dictionary<string, object>() {
@@ -1350,6 +1470,18 @@ public partial class bitget : Exchange
                                 { "cost", 2 },
                             } },
                             { "v2/broker/manage/modify-subaccount-apikey", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-asset", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-deposit", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-list", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v2/broker/customer-trade-volume", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
                         } },
@@ -1867,6 +1999,24 @@ public partial class bitget : Exchange
                             { "v2/earn/account/assets", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "v2/earn/elite/product", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/assets", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/records", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/subscribe-info", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/subscribe-result", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/redeem-info", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/earn/savings/subscribe", new Dictionary<string, object>() {
@@ -1886,6 +2036,12 @@ public partial class bitget : Exchange
                             } },
                             { "v2/earn/loan/revise-pledge", new Dictionary<string, object>() {
                                 { "cost", 2 },
+                            } },
+                            { "v2/earn/elite/subscribe", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v2/earn/elite/redeem", new Dictionary<string, object>() {
+                                { "cost", 4 },
                             } },
                         } },
                     } },
@@ -2054,6 +2210,216 @@ public partial class bitget : Exchange
                             { "v3/user/sub-api-list", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "v3/account/info", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/account/all-fee-rate", new Dictionary<string, object>() {
+                                { "cost", 6.6667 },
+                            } },
+                            { "v3/account/delta-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v3/account/withdraw-address", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/account/max-withdrawal", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/move-position-history", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/account/collateral-type", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/pre-set-leverage", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/eligible-symbols", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/eligible-margin-tier", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/eligible-loan-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/eligible-discount-rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v3/account/funding-financial-records", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/reality-orderbook", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/reality-fills", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/copy/futures/trading-pairs", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/copy/futures/position-summary", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/copy/futures/max-transferable", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/copy/futures/transfer-record", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/copy/futures/current-follower", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/copy/futures/history-follower", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/copy/futures/profit-summary", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/copy/futures/profit-details", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/convert/small-assets", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/convert/small-assets-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/earn/elite-product", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-assets", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-subscribe-info", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-records", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-subscribe-result", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-redeem-info", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/trade/loan-data", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/strategy-sub-orders", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/grid/bot-detail", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/grid/list-details", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/neutral-bot-detail", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/grid/neutral-list-details", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/user/rate-limit-quota", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-quote", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-chain-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-expiry-date", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/option-volume", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/depth", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/static", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/quote", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/trade", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/intraday", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/history-candlestick", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/market/candlestick", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/trade/today-orders", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/history-orders", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/order-detail", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/today-executions", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/history-executions", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/asset/account", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/cash-flow", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/stock-position", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/stockplus/asset/transfer-records", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/ad-list", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/ad-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/ad-limit", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/my-ads", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/pending-orders", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/all-orders", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/order-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/user-info", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/currencies", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/pay-method", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/balance", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/exchange-rate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v3/account/set-leverage", new Dictionary<string, object>() {
@@ -2174,6 +2540,102 @@ public partial class bitget : Exchange
                                 { "cost", 2 },
                             } },
                             { "v3/user/delete-sub-api", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/move-positions", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/account/cancel-withdrawal", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/account/set-margin", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/account/set-collateral-type", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v3/copy/futures/transfer", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/convert/small-assets-trade", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/earn/elite-subscribe", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/earn/elite-redeem", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/trade/place-reality-order", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/cancel-reality-order", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/trade/grid/validate", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/create-bot", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/modify-bot", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/modify-grid-interval", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/add-investment", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/close-bot", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/validate-neutral", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/create-neutral-bot", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/modify-neutral-bot", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/trade/grid/modify-neutral-grid-interval", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/user/set-rate-limit-quota", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/user/sub-account/agent-create", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/place-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/cancel-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/trade/modify-order", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "v3/stockplus/asset/transfer", new Dictionary<string, object>() {
+                                { "cost", 4 },
+                            } },
+                            { "v3/p2p/ad-create", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/ad-update", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/ad-operate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/fee-simulate", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/order-pay", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "v3/p2p/order-release", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
                         } },
@@ -3253,13 +3715,13 @@ public partial class bitget : Exchange
         }
         List<object> promises = new List<object>() {};
         bool fetchMargins = false;
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object type = getValue(types, i);
             if (isTrue(isTrue((isEqual(type, "swap"))) || isTrue((isEqual(type, "future")))))
             {
                 List<object> subTypes = new List<object>() {"USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"};
-                for (object j = 0; isLessThan(j, getArrayLength(subTypes)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(subTypes)); postFixIncrement(ref j))
                 {
                     ((IList<object>)promises).Add(this.publicMixGetV2MixMarketContracts(this.extend(parameters, new Dictionary<string, object>() {
                         { "productType", getValue(subTypes, j) },
@@ -3279,12 +3741,12 @@ public partial class bitget : Exchange
         object markets = new List<object>() {};
         ((IDictionary<string,object>)this.options)["crossMarginPairsData"] = new List<object>() {};
         ((IDictionary<string,object>)this.options)["isolatedMarginPairsData"] = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object res = this.safeDict(results, i);
             object data = this.safeList(res, "data", new List<object>() {});
             object firstData = this.safeDict(data, 0, new Dictionary<string, object>() {});
-            object isBorrowable = this.safeBool(firstData, "isBorrowable");
+            bool? isBorrowable = this.safeBool(firstData, "isBorrowable");
             if (isTrue(isTrue(fetchMargins) && isTrue(!isEqual(isBorrowable, null))))
             {
                 // cross and isolated availability are per-symbol - a coin can be listed by
@@ -3293,17 +3755,17 @@ public partial class bitget : Exchange
                 // fail with bitget error 50001 "coin does not support cross"
                 List<object> crossKeys = new List<object>() {};
                 List<object> isolatedKeys = new List<object>() {};
-                for (object j = 0; isLessThan(j, getArrayLength(data)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(data)); postFixIncrement(ref j))
                 {
                     object entry = this.safeDict(data, j, new Dictionary<string, object>() {});
                     string? entrySymbol = this.safeString(entry, "symbol");
-                    object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
+                    bool? entryBorrowable = this.safeBool(entry, "isBorrowable", true);
                     if (isTrue(isTrue((isEqual(entryBorrowable, true))) && isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
                     {
                         ((IList<object>)crossKeys).Add(entrySymbol);
                     }
-                    object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
-                    object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                    bool? isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                    bool? isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                     if (isTrue(isTrue((isEqual(entryBorrowable, true))) && isTrue((isTrue((isEqual(isolatedBase, true))) || isTrue((isEqual(isolatedQuote, true)))))))
                     {
                         ((IList<object>)isolatedKeys).Add(entrySymbol);
@@ -3374,7 +3836,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? marketId = this.safeString(market, "symbol");
@@ -3396,7 +3858,7 @@ public partial class bitget : Exchange
             }
             object settle = this.safeCurrencyCode(settleId);
             object symbol = add(add(bs, "/"), quote);
-            object type = null;
+            string? type = null;
             bool swap = false;
             bool spot = false;
             bool future = false;
@@ -3408,7 +3870,7 @@ public partial class bitget : Exchange
             Int64? expiry = null;
             string? expiryDatetime = null;
             string? symbolType = this.safeString(market, "symbolType");
-            object marginModes = null;
+            Dictionary<string, object> marginModes = null;
             bool isMarginTradingAllowed = false;
             if (isTrue(isEqual(symbolType, null)))
             {
@@ -3438,7 +3900,7 @@ public partial class bitget : Exchange
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
-                    object month = this.safeString(expiryParts, 1);
+                    string? month = this.safeString(expiryParts, 1);
                     object day = slice(dayPart, 0, 2);
                     object expiryString = add(add(year, month), day);
                     type = "future";
@@ -3539,7 +4001,7 @@ public partial class bitget : Exchange
     {
         List<object> subTypes = new List<object>() {"SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"};
         List<object> promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(subTypes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subTypes)); postFixIncrement(ref i))
         {
             Dictionary<string, object> req = this.extend(parameters, new Dictionary<string, object>() {
                 { "category", getValue(subTypes, i) },
@@ -3548,7 +4010,7 @@ public partial class bitget : Exchange
         }
         object results = await promiseAll(promises);
         object markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object res = this.safeDict(results, i);
             object data = this.safeList(res, "data", new List<object>() {});
@@ -3644,7 +4106,7 @@ public partial class bitget : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? category = this.safeString(market, "category");
@@ -3682,7 +4144,7 @@ public partial class bitget : Exchange
             Int64? expiry = null;
             string? expiryDatetime = null;
             string? symbolType = this.safeString(market, "type");
-            object marginModes = null;
+            Dictionary<string, object> marginModes = null;
             bool isMarginTradingAllowed = false;
             bool isUtaMargin = (isEqual(category, "MARGIN"));
             if (isTrue(isTrue(isUtaMargin) || isTrue((isEqual(category, "SPOT")))))
@@ -3717,7 +4179,7 @@ public partial class bitget : Exchange
                     string? yearPart = this.safeString(expiryParts, 0, "");
                     string? dayPart = this.safeString(expiryParts, 2, "");
                     object year = slice(yearPart, 2, 4);
-                    object month = this.safeString(expiryParts, 1);
+                    string? month = this.safeString(expiryParts, 1);
                     object day = slice(dayPart, 0, 2);
                     object expiryString = add(add(year, month), day);
                     type = "future";
@@ -3862,7 +4324,7 @@ public partial class bitget : Exchange
             withdraw = false;
             deposit = false;
         }
-        for (object j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, chainsLength); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chain");
@@ -4131,7 +4593,7 @@ public partial class bitget : Exchange
         //
         List<object> tiers = new List<object>() {};
         object minNotional = 0;
-        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object item = getValue(info, i);
             object minimumNotional = this.safeNumber2(item, "startUnit", "minTierValue");
@@ -4356,7 +4818,7 @@ public partial class bitget : Exchange
         object result = this.parseTransaction(data, currency);
         ((IDictionary<string,object>)result)["type"] = "withdrawal";
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             ((IDictionary<string,object>)result)["currency"] = code;
@@ -4554,7 +5016,7 @@ public partial class bitget : Exchange
         //
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
+        Int64? timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
         string? networkId = this.safeString(transaction, "chain");
         string? status = this.safeString(transaction, "status");
         string? tag = this.safeString(transaction, "tag");
@@ -4573,7 +5035,7 @@ public partial class bitget : Exchange
         {
             feeCostAbsString = Precise.stringAbs(feeCostString);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? amountString = this.safeString(transaction, "size");
         if (isTrue(!isEqual(feeCostAbsString, null)))
         {
@@ -5457,8 +5919,8 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(trade, "symbol");
         object symbol = this.safeSymbol(marketId, market);
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"cTime", "ts", "createdTime"});
-        object fee = null;
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"cTime", "ts", "createdTime"});
+        Dictionary<string, object> fee = null;
         object feeDetail = this.safeValue(trade, "feeDetail");
         string? posMode = this.safeString(trade, "posMode");
         string? category = this.safeString(trade, "category");
@@ -5756,7 +6218,7 @@ public partial class bitget : Exchange
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         if (isTrue(isEqual(marketType, "spot")))
         {
-            object margin = this.safeBool(parameters, "margin", false);
+            bool? margin = this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, "margin");
             if (isTrue(isTrue((!isEqual(marginMode, null))) || isTrue((isEqual(margin, true)))))
             {
@@ -5850,7 +6312,7 @@ public partial class bitget : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -5888,7 +6350,7 @@ public partial class bitget : Exchange
         //         "1399132.341"
         //     ]
         //
-        object inverse = this.safeBool(market, "inverse");
+        bool? inverse = this.safeBool(market, "inverse");
         int volumeIndex = ((bool) isTrue((isEqual(inverse, true)))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
@@ -5930,8 +6392,8 @@ public partial class bitget : Exchange
         int defaultLimit = 100; // default 100, max 1000
         int maxLimitForRecentEndpoint = 1000;
         int maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
-        object useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
+        bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        bool? useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -6335,7 +6797,7 @@ public partial class bitget : Exchange
         //         "balance": "0.01"
         //     }
         //
-        for (object i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
         {
             object entry = getValue(balance, i);
             object account = this.account();
@@ -6405,7 +6867,7 @@ public partial class bitget : Exchange
         //           // "symbol": "BTCUSDT" // only for isolated margin
         //       }
         //
-        for (object i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
         {
             object entry = getValue(balance, i);
             object account = this.account();
@@ -6699,10 +7161,10 @@ public partial class bitget : Exchange
         }
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeIntegerN(order, new List<object>() {"cTime", "ctime", "createdTime"});
-        object updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"cTime", "ctime", "createdTime"});
+        Int64? updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
         string? rawStatus = this.safeStringN(order, new List<object>() {"status", "state", "orderStatus", "planStatus"});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -6729,7 +7191,7 @@ public partial class bitget : Exchange
                 object parsedFeeDetail = parseJson(feeDetail);
                 List<object> feeValues = new List<object>(((IDictionary<string,object>)parsedFeeDetail).Values);
                 object feeObject = null;
-                for (object i = 0; isLessThan(i, getArrayLength(feeValues)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(feeValues)); postFixIncrement(ref i))
                 {
                     object feeValue = getValue(feeValues, i);
                     if (isTrue(!isEqual(this.safeValue(feeValue, "feeCoinCode"), null)))
@@ -7122,7 +7584,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)request)["timeInForce"] = "ioc";
             }
         }
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object hedged = null;
         var hedgedparametersVariable = this.handleParamBool(parameters, "hedged", false);
         hedged = ((IList<object>)hedgedparametersVariable)[0];
@@ -7218,7 +7680,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["price"] = this.priceToPrecision(symbol, price);
         }
         string? triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         string? clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         string? exchangeSpecificTifParam = this.safeString2(parameters, "force", "timeInForce");
         object postOnly = null;
@@ -7481,7 +7943,7 @@ public partial class bitget : Exchange
         List<object> ordersRequests = new List<object>() {};
         object symbol = null;
         object marginMode = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -7569,7 +8031,7 @@ public partial class bitget : Exchange
         List<object> ordersRequests = new List<object>() {};
         object symbol = null;
         object marginMode = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -7803,7 +8265,7 @@ public partial class bitget : Exchange
         {
             string? cost = this.safeString(parameters, "cost");
             parameters = this.omit(parameters, "cost");
-            object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
+            bool? editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
             if (isTrue(isTrue(isTrue((isTrue((isEqual(editMarketBuyOrderRequiresPrice, true))) || isTrue((!isEqual(cost, null))))) && isTrue(isMarketOrder)) && isTrue((isEqual(side, "buy")))))
             {
                 if (isTrue(isTrue(isEqual(price, null)) && isTrue(isEqual(cost, null))))
@@ -8165,7 +8627,7 @@ public partial class bitget : Exchange
         productType = ((IList<object>)productTypeparametersVariable)[0];
         parameters = ((IList<object>)productTypeparametersVariable)[1];
         List<object> requestList = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object individualId = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -8238,7 +8700,7 @@ public partial class bitget : Exchange
         object trigger = this.safeValue2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         List<object> orderIdList = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object individualId = getValue(ids, i);
             Dictionary<string, object> orderId = new Dictionary<string, object>() {
@@ -8347,7 +8809,7 @@ public partial class bitget : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object response = null;
         object uta = null;
@@ -8697,8 +9159,8 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, sinceVar, limit, parameters, cursorReceived, cursorSent));
         }
         object response = null;
-        object trailing = this.safeBool(parameters, "trailing");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         bool planTypeDefined = !isEqual(this.safeString(parameters, "planType"), null);
         bool isTrigger = isTrue((isEqual(trigger, true))) || isTrue(planTypeDefined);
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
@@ -9213,8 +9675,8 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, sinceVar, limit, parameters, cursorReceived, "idLessThan"));
         }
         object response = null;
-        object trailing = this.safeBool(parameters, "trailing");
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trailing = this.safeBool(parameters, "trailing");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "trailing"});
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
@@ -9259,7 +9721,7 @@ public partial class bitget : Exchange
                 {
                     throw new ArgumentsRequired ((string)add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                 }
-                object endTime = this.safeInteger2(parameters, "endTime", "until");
+                Int64? endTime = this.safeInteger2(parameters, "endTime", "until");
                 parameters = this.omit(parameters, new List<object>() {"until"});
                 if (isTrue(isEqual(sinceVar, null)))
                 {
@@ -9545,7 +10007,7 @@ public partial class bitget : Exchange
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
         object response = null;
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(trigger, true)))
         {
@@ -10298,7 +10760,7 @@ public partial class bitget : Exchange
             return ccxt.BaseExchange.ToPositionList(await this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan"));
         }
         object method = null;
-        object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+        bool? useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
         if (isTrue(isEqual(useHistoryEndpoint, true)))
         {
             method = "privateMixGetV2MixPositionHistoryPosition";
@@ -10482,7 +10944,7 @@ public partial class bitget : Exchange
             position = this.safeList(response, "data", new List<object>() {});
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(position)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(position, i), market));
         }
@@ -10624,7 +11086,7 @@ public partial class bitget : Exchange
         string? marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
+        Int64? timestamp = this.safeIntegerN(position, new List<object>() {"cTime", "ctime", "createdTime"});
         string? marginMode = this.safeString(position, "marginMode");
         string? collateral = null;
         object initialMargin = null;
@@ -10823,12 +11285,12 @@ public partial class bitget : Exchange
             result = this.safeList(response, "data", new List<object>() {});
         }
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
             object symbolInner = this.safeSymbol(marketId, market);
-            object timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
+            Int64? timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
             ((IList<object>)rates).Add(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", symbolInner },
@@ -11080,7 +11542,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(contract, "symbol");
         object symbol = this.safeSymbol(marketId, market, null, "swap");
-        object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        Int64? fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
         object interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         Int64? timestamp = this.safeInteger(contract, "ts");
         object markPrice = this.safeNumber(contract, "markPrice");
@@ -11224,7 +11686,7 @@ public partial class bitget : Exchange
         //
         string? marketId = this.safeString(contract, "symbol");
         string? currencyId = this.safeString(contract, "coin");
-        object timestamp = this.safeInteger2(contract, "cTime", "ts");
+        Int64? timestamp = this.safeInteger2(contract, "cTime", "ts");
         return new Dictionary<string, object>() {
             { "info", contract },
             { "symbol", this.safeSymbol(marketId, market, null, "swap") },
@@ -11239,7 +11701,7 @@ public partial class bitget : Exchange
     public virtual object parseFundingHistories(object contracts, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(contracts)); postFixIncrement(ref i))
         {
             object contract = getValue(contracts, i);
             // for non-uta, we've set bussinessType in request payload. Not sure why this existed.
@@ -11937,7 +12399,7 @@ public partial class bitget : Exchange
             } },
             { "networks", new Dictionary<string, object>() {} },
         };
-        for (object i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
         {
             object chain = getValue(chains, i);
             string? networkId = this.safeString(chain, "chain");
@@ -13338,7 +13800,7 @@ public partial class bitget : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object data = this.safeList(response, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? id = this.safeString(entry, "coin");
@@ -13597,7 +14059,7 @@ public partial class bitget : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             }
         }
-        object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        bool? sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (isTrue(isTrue(isTrue((isEqual(sandboxMode, true))) && isTrue((!isEqual(path, "v2/public/time")))) && isTrue((!isEqual(path, "v3/market/current-fund-rate")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336

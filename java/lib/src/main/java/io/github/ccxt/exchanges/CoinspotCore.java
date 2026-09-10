@@ -281,7 +281,13 @@ public class CoinspotCore extends CoinspotApi
                             put( "my/buy/now", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "my/buy/now/coinlist", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "my/sell/now", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "my/sell/now/coinlist", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "my/swap/now", new java.util.HashMap<String, Object>() {{
@@ -303,6 +309,12 @@ public class CoinspotCore extends CoinspotApi
                                 put( "cost", 1 );
                             }} );
                             put( "my/coin/withdraw/send", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "my/coin/withdraw/send/async", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "my/coin/withdraw/send/status", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "ro/status", new java.util.HashMap<String, Object>() {{

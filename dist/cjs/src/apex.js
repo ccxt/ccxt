@@ -185,6 +185,7 @@ class apex extends apex$1["default"] {
                         'v3/open-orders': { 'cost': 1 },
                         'v3/transfers': { 'cost': 1 },
                         'v3/transfer': { 'cost': 1 },
+                        'v3/stock/account': { 'cost': 1 },
                     },
                     'post': {
                         'v3/delete-open-orders': { 'cost': 1 },
@@ -194,6 +195,10 @@ class apex extends apex$1["default"] {
                         'v3/set-initial-margin-rate': { 'cost': 1 },
                         'v3/transfer-out': { 'cost': 1 },
                         'v3/contract-transfer-out': { 'cost': 1 },
+                        'v3/contract-transfer-to': { 'cost': 1 },
+                        'v3/submit-withdraw-claim': { 'cost': 1 },
+                        'v3/stock/register-account': { 'cost': 1 },
+                        'v3/stock/generate-api': { 'cost': 1 },
                     },
                 },
             },

@@ -100,7 +100,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             market = this.market(symbol);
@@ -397,7 +397,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         symbols = this.marketSymbols(symbols);
         object marketIds = this.marketIds(symbols);
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             ((IList<object>)messageHashes).Add(add(add(name, ":"), marketId));
@@ -475,7 +475,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object trade = this.parseWsTrade(message);
@@ -503,7 +503,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public virtual object handleMyTrade(WebSocketClient client, object message)
     {
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object trade = this.parseWsTrade(message);
@@ -709,7 +709,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
             this.orders = currentOrders;
         }
         string? type = this.safeString(message, "type");
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object messageHash = add("orders:", marketId);
@@ -756,7 +756,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         object totalCost = "0";
                         object totalAmount = "0";
                         object trades = getValue(previousOrder, "trades");
-                        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
                         {
                             object tradeEntry = getValue(trades, i);
                             totalCost = this.safeString(tradeEntry, "cost", "0");
@@ -799,7 +799,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                         object order = this.parseWsOrder(info);
                         List<object> keys = new List<object>(((IDictionary<string,object>)order).Keys);
                         // update the reference
-                        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                         {
                             object key = getValue(keys, i);
                             if (isTrue(!isEqual(getValue(order, key), null)))
@@ -895,7 +895,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //         "last_size": "0.41969131"
         //     }
         //
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         if (isTrue(!isEqual(marketId, null)))
         {
             object ticker = this.parseTicker(message);
@@ -977,7 +977,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -1011,7 +1011,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? type = this.safeString(message, "type");
-        object marketId = this.safeString(message, "product_id");
+        string? marketId = this.safeString(message, "product_id");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         string name = "level2";
@@ -1037,7 +1037,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
                 { "sell", "asks" },
                 { "buy", "bids" },
             };
-            for (object i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(changes)); postFixIncrement(ref i))
             {
                 object change = getValue(changes, i);
                 string? key = this.safeString(change, 0);
@@ -1069,7 +1069,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         return message;
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1087,7 +1087,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         //     }
         //
         string? errMsg = this.safeString(message, "message");
-        object reason = this.safeString(message, "reason");
+        string? reason = this.safeString(message, "reason");
         try
         {
             if (isTrue(isEqual(errMsg, "Authentication Failed")))
@@ -1100,7 +1100,7 @@ public partial class coinbaseexchange : ccxt.coinbaseexchange
         } catch(Exception error)
         {
             ((WebSocketClient)client).reject(error);
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

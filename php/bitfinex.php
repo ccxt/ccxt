@@ -233,6 +233,7 @@ class bitfinex extends Exchange {
                         'auth/w/order/cancel/multi' => array( 'cost' => 2.7 ),
                         'auth/r/orders/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/orders/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/orders/otc/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/order/{symbol}:{id}/trades' => array( 'cost' => 2.7 ),
                         'auth/r/trades/{symbol}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/trades/hist' => array( 'cost' => 2.7 ),
@@ -248,6 +249,7 @@ class bitfinex extends Exchange {
                         'auth/r/positions/hist' => array( 'cost' => 2.7 ),
                         'auth/r/positions/audit' => array( 'cost' => 2.7 ),
                         'auth/r/positions/snap' => array( 'cost' => 2.7 ),
+                        'auth/w/position/update/funding/type' => array( 'cost' => 2.7 ),
                         'auth/w/deriv/collateral/set' => array( 'cost' => 2.7 ),
                         'auth/w/deriv/collateral/limits' => array( 'cost' => 2.7 ),
                         'auth/r/funding/offers' => array( 'cost' => 2.7 ),
@@ -279,10 +281,13 @@ class bitfinex extends Exchange {
                         'auth/r/audit/hist' => array( 'cost' => 2.7 ),
                         'auth/w/transfer' => array( 'cost' => 2.7 ), // ratelimit not in docs...
                         'auth/w/deposit/address' => array( 'cost' => 24 ), // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/r/deposit/address/all' => array( 'cost' => 24 ), // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice' => array( 'cost' => 24 ), // ratelimit not in docs
+                        'auth/r/ext/invoice/payments' => array( 'cost' => 2.7 ),
                         'auth/w/withdraw' => array( 'cost' => 24 ), // ratelimit not in docs
                         'auth/r/movements/{currency}/hist' => array( 'cost' => 2.7 ),
                         'auth/r/movements/hist' => array( 'cost' => 2.7 ),
+                        'auth/r/movements/info' => array( 'cost' => 2.7 ),
                         'auth/r/alerts' => array( 'cost' => 5.34 ), // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set' => array( 'cost' => 2.7 ),
                         'auth/w/alert/price:{symbol}:{price}/del' => array( 'cost' => 2.7 ),
@@ -294,6 +299,9 @@ class bitfinex extends Exchange {
                         'auth/r/pulse/hist' => array( 'cost' => 2.7 ),
                         'auth/w/pulse/add' => array( 'cost' => 16 ), // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del' => array( 'cost' => 2.7 ),
+                        'auth/w/ext/wallets/deposits/request' => array( 'cost' => 2.7 ),
+                        'auth/w/ext/wallets/withdrawals/request' => array( 'cost' => 2.7 ),
+                        'auth/r/ext/wallets/transfers/free/count' => array( 'cost' => 2.7 ),
                     ),
                 ),
             ),

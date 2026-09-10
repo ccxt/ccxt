@@ -1377,7 +1377,7 @@ class BaseExchange(object):
     _PARSE8601_ISO8601_PATTERN = re.compile(
         r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
         r'([0-9]{2}):?([0-9]{2}):?([0-9]{2})'
-        r'(\.[0-9]{1,3})?'
+        r'(\.[0-9]+)?'
         r'(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?',
         re.IGNORECASE
     )
@@ -1393,9 +1393,9 @@ class BaseExchange(object):
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             # Parse milliseconds
             if ms:
-                ms = ms[1:]  # Remove leading dot
-                ms = ms + '0' * (3 - len(ms))  # Pad to 3 digits
-                msint = int(ms)
+                # a fraction may carry more digits than milliseconds, and the offset
+                # group only matches when all of them are consumed
+                msint = int((ms[1:] + '00')[:3])
             else:
                 msint = 0
             # Parse timezone offset
@@ -7630,7 +7630,9 @@ class BaseExchange(object):
         year = date[0:2]
         month = date[2:4]
         day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        # the milliseconds are spelled out because every caller writes the result into
+        # expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z'
         return reconstructedDate
 
     def convert_expire_date_to_market_id_date(self, date: Str):

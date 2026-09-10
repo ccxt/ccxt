@@ -118,6 +118,7 @@ class mudrex(Exchange, ImplicitAPI):
                         'futures/{asset_id}': {'cost': 1},
                         'wallet/funds': {'cost': 5},
                         'futures/funds': {'cost': 5},
+                        'futures/transactions': {'cost': 1},
                         'futures/orders': {'cost': 1},
                         'futures/orders/history': {'cost': 1},
                         'futures/orders/{order_id}': {'cost': 1},
@@ -392,12 +393,11 @@ class mudrex(Exchange, ImplicitAPI):
         ms = self.safe_string(ticker, 'symbol')
         market = self.safe_market(ms, market)
         symbol = market['symbol']
-        ts = self.milliseconds()
         pct = self.safe_number(ticker, 'change_perc')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': ts,
-            'datetime': self.iso8601(ts),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': None,
@@ -561,11 +561,8 @@ class mudrex(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         data = self.safe_dict(response, 'data', {})
         currency = self.safe_string(response, 'currency', 'USDT')
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
         }
         account = self.account()
         futuresBalance = self.safe_string(data, 'balance')
@@ -708,10 +705,11 @@ class mudrex(Exchange, ImplicitAPI):
         params = self.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss'])
         response = await self.privatePostFuturesAssetIdOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        # the create response omits the order/trigger type, so restore them from the request
-        data['order_type'] = request['order_type']
-        data['trigger_type'] = request['trigger_type']
-        return self.parse_order(data, market)
+        # the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        merged = self.extend(data, {'order_type': request['order_type'], 'trigger_type': request['trigger_type']})
+        order = self.parse_order(merged, market)
+        order['info'] = data
+        return order
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
@@ -770,6 +768,20 @@ class mudrex(Exchange, ImplicitAPI):
             side = 'buy'
         elif rawSide == 'SHORT':
             side = 'sell'
+        # stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        isRiskOrder = (rawSide == 'STOPLOSS') or (rawSide == 'TAKEPROFIT')
+        priceString = self.safe_string_2(order, 'price', 'order_price')
+        orderPrice = priceString
+        triggerPrice = None
+        stopLossPrice = None
+        takeProfitPrice = None
+        if isRiskOrder:
+            triggerPrice = priceString
+            orderPrice = None
+            if rawSide == 'STOPLOSS':
+                stopLossPrice = priceString
+            else:
+                takeProfitPrice = priceString
         trig = self.safe_string_upper(order, 'trigger_type')
         typ = None
         if trig == 'MARKET':
@@ -777,8 +789,6 @@ class mudrex(Exchange, ImplicitAPI):
         elif trig == 'LIMIT':
             typ = 'limit'
         ts = self.parse8601(self.safe_string(order, 'created_at'))
-        if ts is None:
-            ts = self.milliseconds()
         status = self.parse_order_status(self.safe_string_lower(order, 'status'))
         sym = market['symbol']
         return self.safe_order({
@@ -793,19 +803,20 @@ class mudrex(Exchange, ImplicitAPI):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number_2(order, 'price', 'order_price'),
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': self.safe_number_2(order, 'quantity', 'amount'),
+            'price': orderPrice,
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': self.safe_string_2(order, 'quantity', 'amount'),
             'cost': None,
-            'average': None,
-            'filled': None,
+            'average': self.safe_string(order, 'filled_price'),
+            'filled': self.safe_string(order, 'filled_quantity'),
             'remaining': None,
             'status': status,
             'fee': None,
             'trades': [],
             'fees': [],
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.parse8601(self.safe_string(order, 'updated_at')),
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
         }, market)
 

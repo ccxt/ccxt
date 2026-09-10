@@ -276,6 +276,26 @@ public partial class dydx : Exchange
                         { "historical-pnl/parentSubaccount", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnl/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "turnkey/signin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "turnkey/uploadAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "nodeRpc", new Dictionary<string, object>() {
@@ -944,7 +964,7 @@ public partial class dydx : Exchange
         //
         List<object> rates = new List<object>() {};
         object rows = this.safeList(response, "historicalFunding", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
@@ -1473,7 +1493,7 @@ public partial class dydx : Exchange
         string? r = Precise.stringMul(n, "1");
         object c = this.parseToInt(m);
         // TODO: cap
-        for (object i = 1; isLessThan(i, c); postFixIncrement(ref i))
+        for (int i = 1; isLessThan(i, c); postFixIncrement(ref i))
         {
             r = Precise.stringMul(r, n);
         }
@@ -1491,7 +1511,7 @@ public partial class dydx : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " requires a side argument")) ;
         }
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
         if (isTrue(isEqual(side, null)))
@@ -1765,7 +1785,7 @@ public partial class dydx : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isTrue((!isEqual(isTrigger, true))) && isTrue((isEqual(symbol, null)))))
         {
@@ -2182,8 +2202,8 @@ public partial class dydx : Exchange
         object credentials = this.retrieveCredentials();
         object account = ccxt.BaseExchange.FromDict(await this.FetchDydxAccount());
         object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
-        object payload = null;
-        object signingPayload = null;
+        Dictionary<string, object> payload = null;
+        Dictionary<string, object> signingPayload = null;
         if (isTrue(isEqual(fromAccount, "main")))
         {
             // deposit to subaccount
@@ -2652,7 +2672,7 @@ public partial class dydx : Exchange
         //
         object rows = this.safeList(response, "subaccounts", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object account = getValue(rows, i);
             string? accountId = this.safeString(account, "subaccountNumber");

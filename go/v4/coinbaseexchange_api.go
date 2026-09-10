@@ -62,9 +62,29 @@ func (this *CoinbaseexchangeCore) PublicGetProductsVolumeSummary(args ...any) <-
 	return this.callEndpointAsync("publicGetProductsVolumeSummary", args...)
 }
 
+// PublicGetWrappedAssets returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PublicGetWrappedAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWrappedAssets", args...)
+}
+
+// PublicGetWrappedAssetsWrappedAssetId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PublicGetWrappedAssetsWrappedAssetId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWrappedAssetsWrappedAssetId", args...)
+}
+
+// PublicGetWrappedAssetsWrappedAssetIdConversionRate returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PublicGetWrappedAssetsWrappedAssetIdConversionRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWrappedAssetsWrappedAssetIdConversionRate", args...)
+}
+
 // PrivateGetAddressBook returns a channel that yields a JSON array.
 func (this *CoinbaseexchangeCore) PrivateGetAddressBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddressBook", args...)
+}
+
+// PrivateGetAddressBookCounterparty returns a channel that yields a JSON array.
+func (this *CoinbaseexchangeCore) PrivateGetAddressBookCounterparty(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAddressBookCounterparty", args...)
 }
 
 // PrivateGetAccounts returns a channel that yields a JSON object.
@@ -212,6 +232,11 @@ func (this *CoinbaseexchangeCore) PrivateGetTransfersTransferId(args ...any) <-c
 	return this.callEndpointAsync("privateGetTransfersTransferId", args...)
 }
 
+// PrivateGetTravelRules returns a channel that yields a JSON array.
+func (this *CoinbaseexchangeCore) PrivateGetTravelRules(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTravelRules", args...)
+}
+
 // PrivateGetUsersSelfExchangeLimits returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivateGetUsersSelfExchangeLimits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersSelfExchangeLimits", args...)
@@ -225,6 +250,11 @@ func (this *CoinbaseexchangeCore) PrivateGetUsersSelfHoldBalances(args ...any) <
 // PrivateGetUsersSelfTrailingVolume returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivateGetUsersSelfTrailingVolume(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUsersSelfTrailingVolume", args...)
+}
+
+// PrivateGetUsersUserIdTradingVolumes returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivateGetUsersUserIdTradingVolumes(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUsersUserIdTradingVolumes", args...)
 }
 
 // PrivateGetWithdrawalsFeeEstimate returns a channel that yields a JSON object.
@@ -302,6 +332,31 @@ func (this *CoinbaseexchangeCore) PrivateGetLoans(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLoans", args...)
 }
 
+// PrivateGetLoansOptions returns a channel that yields a JSON array.
+func (this *CoinbaseexchangeCore) PrivateGetLoansOptions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLoansOptions", args...)
+}
+
+// PrivateGetWrappedAssetsRedeem returns a channel that yields a JSON array.
+func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWrappedAssetsRedeem", args...)
+}
+
+// PrivateGetWrappedAssetsRedeemRedeemId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsRedeemRedeemId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWrappedAssetsRedeemRedeemId", args...)
+}
+
+// PrivateGetWrappedAssetsStakeWrap returns a channel that yields a JSON array.
+func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsStakeWrap(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWrappedAssetsStakeWrap", args...)
+}
+
+// PrivateGetWrappedAssetsStakeWrapStakeWrapId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivateGetWrappedAssetsStakeWrapStakeWrapId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWrappedAssetsStakeWrapStakeWrapId", args...)
+}
+
 // PrivatePostConversions returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePostConversions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostConversions", args...)
@@ -320,6 +375,11 @@ func (this *CoinbaseexchangeCore) PrivatePostDepositsPaymentMethod(args ...any) 
 // PrivatePostCoinbaseAccountsIdAddresses returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePostCoinbaseAccountsIdAddresses(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCoinbaseAccountsIdAddresses", args...)
+}
+
+// PrivatePostAddressBook returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostAddressBook(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAddressBook", args...)
 }
 
 // PrivatePostFundingRepay returns a channel that yields a JSON object.
@@ -367,6 +427,11 @@ func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCoinbaseAccount(args ...
 	return this.callEndpointAsync("privatePostWithdrawalsCoinbaseAccount", args...)
 }
 
+// PrivatePostWithdrawalsCounterparty returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCounterparty(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWithdrawalsCounterparty", args...)
+}
+
 // PrivatePostWithdrawalsCrypto returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCrypto(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsCrypto", args...)
@@ -375,6 +440,31 @@ func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsCrypto(args ...any) <-ch
 // PrivatePostWithdrawalsPaymentMethod returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePostWithdrawalsPaymentMethod(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWithdrawalsPaymentMethod", args...)
+}
+
+// PrivatePostTransfersTransferIdTravelRules returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostTransfersTransferIdTravelRules(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTransfersTransferIdTravelRules", args...)
+}
+
+// PrivatePostTravelRules returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostTravelRules(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTravelRules", args...)
+}
+
+// PrivatePostUsersUserIdSettlementPreferences returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostUsersUserIdSettlementPreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUsersUserIdSettlementPreferences", args...)
+}
+
+// PrivatePostWrappedAssetsRedeem returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostWrappedAssetsRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWrappedAssetsRedeem", args...)
+}
+
+// PrivatePostWrappedAssetsStakeWrap returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePostWrappedAssetsStakeWrap(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWrappedAssetsStakeWrap", args...)
 }
 
 // PrivatePostLoansOpen returns a channel that yields a JSON object.
@@ -407,6 +497,16 @@ func (this *CoinbaseexchangeCore) PrivateDeleteOrdersId(args ...any) <-chan any 
 	return this.callEndpointAsync("privateDeleteOrdersId", args...)
 }
 
+// PrivateDeleteAddressBookId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivateDeleteAddressBookId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteAddressBookId", args...)
+}
+
+// PrivateDeleteTravelRulesId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivateDeleteTravelRulesId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteTravelRulesId", args...)
+}
+
 // PrivatePutProfilesIdDeactivate returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePutProfilesIdDeactivate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutProfilesIdDeactivate", args...)
@@ -415,4 +515,9 @@ func (this *CoinbaseexchangeCore) PrivatePutProfilesIdDeactivate(args ...any) <-
 // PrivatePutProfilesId returns a channel that yields a JSON object.
 func (this *CoinbaseexchangeCore) PrivatePutProfilesId(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutProfilesId", args...)
+}
+
+// PrivatePutAddressBookId returns a channel that yields a JSON object.
+func (this *CoinbaseexchangeCore) PrivatePutAddressBookId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAddressBookId", args...)
 }

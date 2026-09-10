@@ -153,6 +153,8 @@ class foxbit extends Exchange {
                             'markets/{market}/candlesticks' => array( 'cost' => 12 ), // 5 requests per 2 seconds
                             'markets/{market}/trades/history' => array( 'cost' => 12 ), // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr' => array( 'cost' => 15 ), // 4 requests per 2 seconds
+                            'markets/sparkline/{window}' => array( 'cost' => 20 ), // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                     ),
                     'private' => array(
@@ -166,12 +168,14 @@ class foxbit extends Exchange {
                             'deposits' => array( 'cost' => 10 ), // 3 requests per second
                             'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
                             'me/fees/trading' => array( 'cost' => 60 ), // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}' => array( 'cost' => 10 ), // 6 requests per 2 seconds
                         ),
                         'post' => array(
                             'orders' => array( 'cost' => 2 ), // 30 requests per 2 seconds
                             'orders/batch' => array( 'cost' => 7.5 ), // 8 requests per 2 seconds
                             'orders/cancel-replace' => array( 'cost' => 3 ), // 20 requests per 2 seconds
                             'withdrawals' => array( 'cost' => 10 ), // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule' => array( 'cost' => 30 ), // 2 requests per 2 seconds
                         ),
                         'put' => array(
                             'orders/cancel' => array( 'cost' => 2 ), // 30 requests per 2 seconds

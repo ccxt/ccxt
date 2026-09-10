@@ -125,6 +125,7 @@ public partial class mercado : Exchange
                     { "private", "https://www.mercadobitcoin.net/tapi" },
                     { "v4Public", "https://www.mercadobitcoin.com.br/v4" },
                     { "v4PublicNet", "https://api.mercadobitcoin.net/api/v4" },
+                    { "v4Private", "https://api.mercadobitcoin.net/api/v4" },
                 } },
                 { "www", "https://www.mercadobitcoin.com.br" },
                 { "doc", new List<object>() {"https://www.mercadobitcoin.com.br/api-doc", "https://www.mercadobitcoin.com.br/trade-api"} },
@@ -205,6 +206,24 @@ public partial class mercado : Exchange
                 { "v4PublicNet", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                } },
+                { "v4Private", new Dictionary<string, object>() {
+                    { "post", new Dictionary<string, object>() {
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{accountId}/{symbol}/transfers/internal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oauth2/token", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "patch", new Dictionary<string, object>() {
+                        { "accounts/{accountId}/wallet/{symbol}/deposits/{depositId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -333,7 +352,7 @@ public partial class mercado : Exchange
         List<object> result = new List<object>() {};
         object amountLimits = this.safeValue(this.options, "limits", new Dictionary<string, object>() {});
         IList<object> coins = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object coin = getValue(coins, i);
             object baseId = coin;
@@ -511,7 +530,7 @@ public partial class mercado : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString2(trade, "amount", "quantity");
         string? feeCost = this.safeString(trade, "fee_rate");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -584,7 +603,7 @@ public partial class mercado : Exchange
             { "info", response },
         };
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -1121,10 +1140,10 @@ public partial class mercado : Exchange
     public virtual object ordersToTrades(object orders)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object trades = this.safeValue(getValue(orders, i), "trades", new List<object>() {});
-            for (object y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
+            for (int y = 0; isLessThan(y, getArrayLength(trades)); postFixIncrement(ref y))
             {
                 ((IList<object>)result).Add(getValue(trades, y));
             }

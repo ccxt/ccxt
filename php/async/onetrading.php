@@ -176,6 +176,9 @@ class onetrading extends Exchange {
                         'market-ticker' => array( 'cost' => 1 ),
                         'market-ticker/{instrument_code}' => array( 'cost' => 1 ),
                         'time' => array( 'cost' => 1 ),
+                        'funding-rate' => array( 'cost' => 1 ),
+                        'funding-rate/history' => array( 'cost' => 1 ),
+                        'funding-rate/settings' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
@@ -188,9 +191,16 @@ class onetrading extends Exchange {
                         'account/orders/{order_id}/trades' => array( 'cost' => 1 ),
                         'account/trades' => array( 'cost' => 1 ),
                         'account/trade/{trade_id}' => array( 'cost' => 1 ),
+                        'account/futures/summary' => array( 'cost' => 1 ),
+                        'account/futures/positions' => array( 'cost' => 1 ),
+                        'account/futures/positions-history' => array( 'cost' => 1 ),
+                        'account/futures/positions/{position_id}/trades' => array( 'cost' => 1 ),
+                        'account/futures/positions/{position_id}/funding-payments' => array( 'cost' => 1 ),
+                        'account/futures/funding-payments' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'account/orders' => array( 'cost' => 1 ),
+                        'subaccounts/transfers' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'account/orders' => array( 'cost' => 1 ),

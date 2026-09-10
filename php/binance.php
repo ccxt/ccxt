@@ -495,6 +495,7 @@ class binance extends Exchange {
                         'portfolio/pmloan-history' => array( 'cost' => 5 ),
                         'portfolio/earn-asset-balance' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         // staking
                         'staking/productList' => array( 'cost' => 0.1 ),
                         'staking/position' => array( 'cost' => 0.1 ),
@@ -671,6 +672,7 @@ class binance extends Exchange {
                         'portfolio/redeem' => array( 'cost' => 20 ),
                         'portfolio/earn-asset-transfer' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status' => array( 'cost' => 0.1 ), // Weight(IP) => 1 => cost = 0.1 * 1 = 0.1
@@ -704,6 +706,7 @@ class binance extends Exchange {
                     ),
                     'delete' => array(
                         // 'account/apiRestrictions/ipRestriction/ipList' => 1, discontinued
+                        'portfolio/margin-call-level' => array( 'cost' => 150 ), // Weight(IP) => 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders' => array( 'cost' => 0.1 ),
                         'margin/order' => array( 'cost' => 0.006667 ), // Weight(UID) => 1 => cost = 0.006667
                         'margin/orderList' => array( 'cost' => 0.006667 ),
@@ -1040,6 +1043,7 @@ class binance extends Exchange {
                         'countdownCancelAllHeartBeat' => array( 'cost' => 10 ),
                         'block/order/create' => array( 'cost' => 5 ),
                         'block/order/execute' => array( 'cost' => 5 ),
+                        'stock/contract' => array( 'cost' => 50 ), // Weight(IP) => 50 => cost = 50
                     ),
                     'put' => array(
                         'listenKey' => array( 'cost' => 1 ),
@@ -1072,7 +1076,11 @@ class binance extends Exchange {
                         'ticker/price' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'ticker/bookTicker' => array( 'cost' => 0.4, 'noSymbol' => 0.8 ),
                         'exchangeInfo' => array( 'cost' => 4 ), // Weight(IP) => 20 => cost = 0.2 * 20 = 4
+                        'executionRules' => array( 'cost' => 0.4, 'noSymbol' => 8 ), // Weight(IP) => 2 (symbol) / 40 (none) => cost = 0.2 * weight
                         'avgPrice' => array( 'cost' => 0.4 ),
+                        'referencePrice' => array( 'cost' => 0.4 ), // Weight(IP) => 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation' => array( 'cost' => 0.4 ), // Weight(IP) => 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades' => array( 'cost' => 5 ), // Weight(IP) => 25 => cost = 0.2 * 25 = 5
                     ),
                     'put' => array(
                         'userDataStream' => array( 'cost' => 0.4 ),
@@ -1137,6 +1145,10 @@ class binance extends Exchange {
                         'um/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'um/conditional/orderHistory' => array( 'cost' => 1 ),
                         'um/conditional/allOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
+                        // algo (conditional) orders
+                        'um/algo/algoOrder' => array( 'cost' => 1 ),
+                        'um/algo/openAlgoOrders' => array( 'cost' => 1 ),
+                        'um/algo/allAlgoOrders' => array( 'cost' => 5 ),
                         'cm/conditional/openOrder' => array( 'cost' => 1 ),
                         'cm/conditional/openOrders' => array( 'cost' => 1, 'noSymbol' => 40 ),
                         'cm/conditional/orderHistory' => array( 'cost' => 1 ),
@@ -1195,6 +1207,7 @@ class binance extends Exchange {
                     'post' => array(
                         'um/order' => array( 'cost' => 1 ),
                         'um/conditional/order' => array( 'cost' => 1 ),
+                        'um/algo/order' => array( 'cost' => 1 ),
                         'cm/order' => array( 'cost' => 1 ),
                         'cm/conditional/order' => array( 'cost' => 1 ),
                         'margin/order' => array( 'cost' => 1 ),
@@ -1225,6 +1238,8 @@ class binance extends Exchange {
                         'um/conditional/order' => array( 'cost' => 1 ),
                         'um/allOpenOrders' => array( 'cost' => 1 ),
                         'um/conditional/allOpenOrders' => array( 'cost' => 1 ),
+                        'um/algo/order' => array( 'cost' => 1 ),
+                        'um/algo/allOpenOrders' => array( 'cost' => 1 ),
                         'cm/order' => array( 'cost' => 1 ),
                         'cm/conditional/order' => array( 'cost' => 1 ),
                         'cm/allOpenOrders' => array( 'cost' => 1 ),

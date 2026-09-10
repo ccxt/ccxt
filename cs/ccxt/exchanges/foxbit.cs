@@ -149,6 +149,12 @@ public partial class foxbit : Exchange
                             { "markets/{market}/ticker/24hr", new Dictionary<string, object>() {
                                 { "cost", 15 },
                             } },
+                            { "markets/sparkline/{window}", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "travel_rule/operation_reasons", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -180,6 +186,9 @@ public partial class foxbit : Exchange
                             { "me/fees/trading", new Dictionary<string, object>() {
                                 { "cost", 60 },
                             } },
+                            { "prime_desk/executions/{quote_id}", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
@@ -193,6 +202,9 @@ public partial class foxbit : Exchange
                             } },
                             { "withdrawals", new Dictionary<string, object>() {
                                 { "cost", 10 },
+                            } },
+                            { "deposits/{deposit_sn}/travel_rule", new Dictionary<string, object>() {
+                                { "cost", 30 },
                             } },
                         } },
                         { "put", new Dictionary<string, object>() {
@@ -416,7 +428,7 @@ public partial class foxbit : Exchange
         object networks = this.safeList(rawCurrency, "networks", new List<object>() {});
         string? type = this.safeStringLower(rawCurrency, "type");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "code");
@@ -718,7 +730,7 @@ public partial class foxbit : Exchange
         // ]
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "market_symbol");
@@ -913,7 +925,7 @@ public partial class foxbit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             string? currencyId = this.safeString(account, "currency_symbol");
@@ -1039,7 +1051,7 @@ public partial class foxbit : Exchange
             throw new InvalidOrder ((string)add(add("Invalid order type: ", typeVar), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
         }
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object triggerPrice = this.safeNumber(parameters, "triggerPrice");
         if (isTrue(isEqual(side, null)))
         {
@@ -1118,19 +1130,19 @@ public partial class foxbit : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = this.safeDict(orders, i);
             string? symbol = this.safeString(order, "symbol");
             object market = this.market(symbol);
-            object type = this.safeStringUpper(order, "type");
+            string? type = this.safeStringUpper(order, "type");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
             if (isTrue(isTrue(isTrue(isTrue(isTrue(!isEqual(type, "LIMIT")) && isTrue(!isEqual(type, "MARKET"))) && isTrue(!isEqual(type, "STOP_MARKET"))) && isTrue(!isEqual(type, "STOP_LIMIT"))) && isTrue(!isEqual(type, "INSTANT"))))
             {
                 throw new InvalidOrder ((string)add(add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             string? timeInForce = this.safeStringUpper(orderParams, "timeInForce");
-            object postOnly = this.safeBool(orderParams, "postOnly", false);
+            bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             object triggerPrice = this.safeNumber(orderParams, "triggerPrice");
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "market_symbol", getValue(market, "id") },
@@ -2252,7 +2264,7 @@ public partial class foxbit : Exchange
         object url = add(getValue(getValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
         Int64 timestamp = this.milliseconds();
-        object query = "";
+        string query = "";
         object signatureQuery = "";
         if (isTrue(isEqual(method, "GET")))
         {
@@ -2263,10 +2275,10 @@ public partial class foxbit : Exchange
                 query = this.urlencode(parameters);
                 url = add(url, add("?", query));
             }
-            for (object i = 0; isLessThan(i, getArrayLength(paramKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(paramKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(paramKeys, i);
-                object value = this.safeString(parameters, key);
+                string? value = this.safeString(parameters, key);
                 if (isTrue(!isEqual(value, null)))
                 {
                     signatureQuery = add(signatureQuery, add(add(key, "="), value));
@@ -2317,11 +2329,11 @@ public partial class foxbit : Exchange
         object error = this.safeDict(response, "error");
         string? code = this.safeString(error, "code");
         object details = this.safeList(error, "details");
-        object message = this.safeString(error, "message");
+        string? message = this.safeString(error, "message");
         object detailsString = "";
         if (isTrue(!isEqual(details, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(details)); postFixIncrement(ref i))
             {
                 detailsString = add(add(detailsString, getValue(details, i)), " ");
             }

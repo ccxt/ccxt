@@ -115,6 +115,9 @@ public partial class mudrex : Exchange
                         { "futures/funds", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "futures/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "futures/orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -298,12 +301,12 @@ public partial class mudrex : Exchange
         {
             return null;
         }
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             object errors = this.safeList(response, "errors", new List<object>() {});
             object first = this.safeDict(errors, 0, new Dictionary<string, object>() {});
-            object text = this.safeString(first, "text", this.json(response));
+            string? text = this.safeString(first, "text", this.json(response));
             string? errCode = this.safeString(first, "code");
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), text, add(add(this.id, " "), text));
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errCode, add(add(this.id, " "), text));
@@ -497,7 +500,7 @@ public partial class mudrex : Exchange
         object data = this.safeValue(response, "data", new List<object>() {});
         object rows = ((bool) isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))))) ? data : this.safeList(data, "items", new List<object>() {});
         Dictionary<string, object> resultTickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object t = getValue(rows, i);
             string? sym = this.safeString(t, "symbol");
@@ -521,12 +524,11 @@ public partial class mudrex : Exchange
         string? ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         object symbol = getValue(market, "symbol");
-        Int64 ts = this.milliseconds();
         object pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "timestamp", ts },
-            { "datetime", this.iso8601(ts) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", null },
             { "low", null },
             { "bid", null },
@@ -595,7 +597,7 @@ public partial class mudrex : Exchange
                 paging = false;
                 break;
             }
-            for (object i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, numItems); postFixIncrement(ref i))
             {
                 ((IList<object>)aggregated).Add(getValue(items, i));
             }
@@ -609,7 +611,7 @@ public partial class mudrex : Exchange
             }
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(aggregated)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(aggregated)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseMarket(getValue(aggregated, i)));
         }
@@ -740,11 +742,8 @@ public partial class mudrex : Exchange
     {
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? currency = this.safeString(response, "currency", "USDT");
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
         };
         object account = this.account();
         string? futuresBalance = this.safeString(data, "balance");
@@ -915,10 +914,14 @@ public partial class mudrex : Exchange
         parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"});
         object response = await this.privatePostFuturesAssetIdOrder(this.extend(request, parameters));
         object data = this.safeDict(response, "data", response);
-        // the create response omits the order/trigger type, so restore them from the request
-        ((IDictionary<string,object>)data)["order_type"] = getValue(request, "order_type");
-        ((IDictionary<string,object>)data)["trigger_type"] = getValue(request, "trigger_type");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        Dictionary<string, object> merged = this.extend(data, new Dictionary<string, object>() {
+            { "order_type", getValue(request, "order_type") },
+            { "trigger_type", getValue(request, "trigger_type") },
+        });
+        object order = this.parseOrder(merged, market);
+        ((IDictionary<string,object>)order)["info"] = data;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -995,6 +998,25 @@ public partial class mudrex : Exchange
         {
             side = "sell";
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        bool isRiskOrder = isTrue((isEqual(rawSide, "STOPLOSS"))) || isTrue((isEqual(rawSide, "TAKEPROFIT")));
+        string? priceString = this.safeString2(order, "price", "order_price");
+        object orderPrice = priceString;
+        object triggerPrice = null;
+        object stopLossPrice = null;
+        object takeProfitPrice = null;
+        if (isTrue(isRiskOrder))
+        {
+            triggerPrice = priceString;
+            orderPrice = null;
+            if (isTrue(isEqual(rawSide, "STOPLOSS")))
+            {
+                stopLossPrice = priceString;
+            } else
+            {
+                takeProfitPrice = priceString;
+            }
+        }
         string? trig = this.safeStringUpper(order, "trigger_type");
         string? typ = null;
         if (isTrue(isEqual(trig, "MARKET")))
@@ -1005,10 +1027,6 @@ public partial class mudrex : Exchange
             typ = "limit";
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
-        if (isTrue(isEqual(ts, null)))
-        {
-            ts = this.milliseconds();
-        }
         object status = this.parseOrderStatus(this.safeStringLower(order, "status"));
         object sym = getValue(market, "symbol");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1023,19 +1041,20 @@ public partial class mudrex : Exchange
             { "timeInForce", null },
             { "postOnly", null },
             { "side", side },
-            { "price", this.safeNumber2(order, "price", "order_price") },
-            { "stopPrice", null },
-            { "triggerPrice", null },
-            { "amount", this.safeNumber2(order, "quantity", "amount") },
+            { "price", orderPrice },
+            { "triggerPrice", triggerPrice },
+            { "stopLossPrice", stopLossPrice },
+            { "takeProfitPrice", takeProfitPrice },
+            { "amount", this.safeString2(order, "quantity", "amount") },
             { "cost", null },
-            { "average", null },
-            { "filled", null },
+            { "average", this.safeString(order, "filled_price") },
+            { "filled", this.safeString(order, "filled_quantity") },
             { "remaining", null },
             { "status", status },
             { "fee", null },
             { "trades", new List<object>() {} },
             { "fees", new List<object>() {} },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.parse8601(this.safeString(order, "updated_at")) },
             { "reduceOnly", this.safeBool(order, "reduce_only") },
         }, market);
     }
@@ -1141,7 +1160,7 @@ public partial class mudrex : Exchange
             market = this.market(symbol);
         }
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             ((IList<object>)orders).Add(this.parseOrder(getValue(rows, i), market));
         }
@@ -1225,7 +1244,7 @@ public partial class mudrex : Exchange
         }
         IList<object> rows = this.toArray(data);
         List<object> outPos = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object p = getValue(rows, i);
             string? symRaw = this.safeString(p, "symbol");
@@ -1371,7 +1390,7 @@ public partial class mudrex : Exchange
         {
             object market = this.market(symbol);
             object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (isTrue(isTrue(!isEqual(side, null)) && isTrue(!isEqual(getValue(p, "side"), side))))
@@ -1433,7 +1452,7 @@ public partial class mudrex : Exchange
         if (isTrue(isEqual(positionId, null)))
         {
             object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(new List<object>() {symbol}, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
             {
                 object p = getValue(positions, i);
                 if (isTrue(isEqual(getValue(p, "symbol"), symbol)))
@@ -1535,7 +1554,7 @@ public partial class mudrex : Exchange
         {
             takerOrMaker = "maker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(trade, "fee_amount");
         if (isTrue(!isEqual(feeCost, null)))
         {

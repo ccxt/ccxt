@@ -27,6 +27,8 @@ partial class Examples
     public static bool isGreaterThanOrEqual(object a, object b) => Exchange.isGreaterThanOrEqual(a, b);
     public static bool isLessThanOrEqual(object a, object b) => Exchange.isLessThanOrEqual(a, b);
     public static object postFixIncrement(ref object a) => Exchange.postFixIncrement(ref a);
+    public static int postFixIncrement(ref int a) => Exchange.postFixIncrement(ref a);
+    public static Int64 postFixIncrement(ref Int64 a) => Exchange.postFixIncrement(ref a);
     public static object add(object a, object b) => Exchange.add(a, b);
     public static object multiply(object a, object b) => Exchange.multiply(a, b);
     public static object subtract(object a, object b) => Exchange.subtract(a, b);

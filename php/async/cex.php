@@ -166,6 +166,7 @@ class cex extends Exchange {
                         'do_cancel_my_order' => array( 'cost' => 1 ),
                         'do_cancel_all_orders' => array( 'cost' => 5 ),
                         'get_order_book' => array( 'cost' => 1 ),
+                        'get_ticker' => array( 'cost' => 1 ),
                         'get_candles' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
                         'get_my_transaction_history' => array( 'cost' => 1 ),

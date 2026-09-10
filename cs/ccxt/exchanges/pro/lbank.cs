@@ -98,7 +98,7 @@ public partial class lbank : ccxt.lbank
         object url = getValue(getValue(this.urls, "api"), "ws");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("fetchOHLCV:", getValue(market, "symbol")), ":"), timeframeId);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
@@ -145,7 +145,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchOHLCV");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("ohlcv:", getValue(market, "symbol")), ":"), timeframeId);
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -225,7 +225,7 @@ public partial class lbank : ccxt.lbank
         {
             object rawOHLCV = this.safeValue(records, 0, new List<object>() {});
             List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
-            object timeframeId = this.safeString(message, "kbar");
+            string? timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -241,7 +241,7 @@ public partial class lbank : ccxt.lbank
         } else
         {
             object rawOHLCV = this.safeValue(message, "kbar", new Dictionary<string, object>() {});
-            object timeframeId = this.safeString(rawOHLCV, "slot");
+            string? timeframeId = this.safeString(rawOHLCV, "slot");
             string? datetime = this.safeString(rawOHLCV, "t");
             List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
@@ -513,7 +513,7 @@ public partial class lbank : ccxt.lbank
         }
         object rawTrade = this.safeValue(message, "trade");
         object rawTrades = this.safeValue(message, "trades", new List<object>() {rawTrade});
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseWsTrade(getValue(rawTrades, i), market);
             ((IDictionary<string,object>)trade)["symbol"] = symbol;
@@ -981,7 +981,7 @@ public partial class lbank : ccxt.lbank
         //        TS: '2024-01-16T08:09:43.314'
         //    }
         //
-        object errMsg = this.safeString(message, "message", "");
+        string? errMsg = this.safeString(message, "message", "");
         var error = new ExchangeError(add(add(this.id, " "), errMsg));
         ((WebSocketClient)client).reject(error);
     }
@@ -991,14 +991,8 @@ public partial class lbank : ccxt.lbank
         //
         //  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
         //
-        // lbank drives liveness from its side: the server sends this
-        // application-level ping and closes the socket if it is not answered
-        // within a minute, but it does not reliably answer the RFC 6455 ping
-        // frames the base client sends from onPingInterval. an inbound ping is
-        // proof the connection is alive, so record it as the last pong -
-        // otherwise lastPong never advances past the first onPingInterval and
-        // the keepAlive * maxPingPongMisses check tears down a healthy,
-        // streaming socket every 60 seconds
+        // lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+        // reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         client.lastPong = this.milliseconds();
         string? pingId = this.safeString(message, "ping");
         try
@@ -1044,18 +1038,11 @@ public partial class lbank : ccxt.lbank
 
     public async virtual Task<object> authenticate(object parameters = null)
     {
-        // single-flight leader election, see
-        // https://github.com/ccxt/ccxt/issues/29393: both branches below read
-        // the cache, then fetch, then write it back, so concurrent
-        // watchOrders/watchBalance calls on a cold instance each POST
-        // subscribe/get_key, and concurrent callers past the expiry each POST
-        // subscribe/refresh_key - every loser burns rate limit on a
-        // subscribeKey that is immediately overwritten. the flight is parked
-        // on this exchange's own ws client - the same one that carries
-        // subscriptions['authenticated'] - under a key that is not one of its
-        // messageHashes, registered in client.futures before the first fetch
-        // and settled through client.resolve / ((WebSocketClient)client).reject so that every
-        // write to the futures map goes through the client itself
+        // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        // concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        // subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        // overwritten. the flight lives in client.futures of this exchange's own ws client under
+        // a key that is not a messageHash, and settles via client.resolve / ((WebSocketClient)client).reject only
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         object url = getValue(getValue(this.urls, "api"), "ws");

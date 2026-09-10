@@ -57,6 +57,11 @@ func (this *BitflyerCore) PublicGetGetfundingrate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetfundingrate", args...)
 }
 
+// PublicGetGetfundingratehistory returns a channel that yields a JSON array.
+func (this *BitflyerCore) PublicGetGetfundingratehistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetfundingratehistory", args...)
+}
+
 // PrivateGetGetpermissions returns a channel that yields a JSON array.
 func (this *BitflyerCore) PrivateGetGetpermissions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetGetpermissions", args...)

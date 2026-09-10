@@ -233,6 +233,12 @@ public partial class bitmex : Exchange
                         { "wallet/assets", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "wallet/currencies", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "wallet/haircuts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "wallet/networks", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -243,7 +249,13 @@ public partial class bitmex : Exchange
                         { "address", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "addressConfig", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "apiKey", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "apiKey/self", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "execution", new Dictionary<string, object>() {
@@ -258,6 +270,15 @@ public partial class bitmex : Exchange
                         { "leaderboard/name", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "leagueoftrader/myRankings", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/investor", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/tradingTeam", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -265,6 +286,18 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/check/{code}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/code/{code}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user", new Dictionary<string, object>() {
@@ -285,6 +318,9 @@ public partial class bitmex : Exchange
                         { "user/depositAddress", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "user/depositAddressInformation", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/executionHistory", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -292,6 +328,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "user/margin", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/marginingMode", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/quoteFillRatio", new Dictionary<string, object>() {
@@ -307,6 +346,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "user/staking/tiers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/tradingSettings", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/tradingVolume", new Dictionary<string, object>() {
@@ -328,6 +370,12 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "userEvent", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userStats/volumeRank", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -356,6 +404,24 @@ public partial class bitmex : Exchange
                         { "guild/sharesTrades", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "managedSubAccountBinding/approve", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/cancel", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/createMSA", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/reject", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/toggleTradeHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/unbind", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -363,6 +429,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "order/closePosition", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "position/crossLeverage", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "position/isolate", new Dictionary<string, object>() {
@@ -376,6 +445,9 @@ public partial class bitmex : Exchange
                         } },
                         { "position/transferMargin", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "referralCode", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                         { "user/addSubaccount", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -392,7 +464,16 @@ public partial class bitmex : Exchange
                         { "user/confirmWithdrawal", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "user/createIndependentSubaccount", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/logout", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/marginingMode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/positionMode", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/preferences", new Dictionary<string, object>() {
@@ -410,13 +491,25 @@ public partial class bitmex : Exchange
                         { "user/walletTransfer", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
+                        { "address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "guild", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                     } },
                     { "delete", new Dictionary<string, object>() {
@@ -426,7 +519,19 @@ public partial class bitmex : Exchange
                         { "order/all", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/unstakingRequests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert/{id}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -648,15 +753,15 @@ public partial class bitmex : Exchange
         string? scale = this.safeString(currency, "scale");
         object precisionString = this.parsePrecision(scale);
         object precision = this.parseNumber(precisionString);
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "asset");
             object network = this.networkIdToCode(networkId, code);
             string? withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-            object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
-            object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
+            bool? isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
+            bool? isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
             bool active = (isTrue((isEqual(isDepositEnabled, true))) && isTrue((isEqual(isWithdrawEnabled, true))));
             if (isTrue(isEqual(isDepositEnabled, true)))
             {
@@ -993,7 +1098,7 @@ public partial class bitmex : Exchange
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         string? typ = this.safeString(market, "typ"); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        object type = null;
+        string? type = null;
         bool swap = false;
         bool spot = false;
         bool future = false;
@@ -1181,7 +1286,7 @@ public partial class bitmex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1303,7 +1408,7 @@ public partial class bitmex : Exchange
             { "nonce", null },
         };
         IList<object> orders = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string side = ((bool) isTrue((isEqual(getValue(order, "side"), "Sell")))) ? "asks" : "bids";
@@ -1392,7 +1497,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1493,7 +1598,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(500, limit);
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1639,7 +1744,7 @@ public partial class bitmex : Exchange
             // for unrealized pnl and other transactions without a timestamp
             timestamp = 0; // see comments above
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1925,7 +2030,7 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> rawTickers = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(rawTickers, i));
             string? symbol = this.safeString(ticker, "symbol");
@@ -2080,7 +2185,7 @@ public partial class bitmex : Exchange
             // bitmex returns the candle's close timestamp - https://github.com/ccxt/ccxt/issues/4446
             // we can emulate the open timestamp by shifting all the timestamps one place
             // so the previous close becomes the current open, and we drop the first candle
-            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 ((List<object>)getValue(result, i))[Convert.ToInt32(0)] = subtract(this.parseToInt(getValue(getValue(result, i), 0)), duration);
             }
@@ -2168,7 +2273,7 @@ public partial class bitmex : Exchange
         string? order = this.safeString(trade, "orderID");
         string? side = this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -2385,7 +2490,7 @@ public partial class bitmex : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // api maximum 1000
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2447,7 +2552,7 @@ public partial class bitmex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object orderType = this.capitalize(type);
+        string orderType = this.capitalize(type);
         object capitalizeOrderType = orderType;
         object reduceOnly = this.safeValue(parameters, "reduceOnly");
         if (isTrue(!isEqual(reduceOnly, null)))
@@ -2457,7 +2562,7 @@ public partial class bitmex : Exchange
                 throw new InvalidOrder ((string)add(add(add(this.id, " createOrder() does not support reduceOnly for "), getValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "postOnly"});
         string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
         object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
@@ -2655,7 +2760,7 @@ public partial class bitmex : Exchange
         }
         object response = await this.privateDeleteOrder(this.extend(request, parameters));
         object order = this.safeValue(response, 0, new Dictionary<string, object>() {});
-        object error = this.safeString(order, "error");
+        string? error = this.safeString(order, "error");
         if (isTrue(!isEqual(error, null)))
         {
             if (isTrue(isGreaterThanOrEqual(getIndexOf(error, "Unable to cancel order due to existing state"), 0)))
@@ -3180,12 +3285,12 @@ public partial class bitmex : Exchange
         // same response as under "fetchMarkets"
         List<object> filteredResponse = new List<object>() {};
         IList<object> rawItems = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawItems)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawItems)); postFixIncrement(ref i))
         {
             object item = getValue(rawItems, i);
             string? marketId = this.safeString(item, "symbol");
             object market = this.safeMarket(marketId);
-            object swap = this.safeBool(market, "swap", false);
+            bool? swap = this.safeBool(market, "swap", false);
             if (isTrue(isEqual(swap, true)))
             {
                 ((IList<object>)filteredResponse).Add(item);
@@ -3491,7 +3596,7 @@ public partial class bitmex : Exchange
         {
             string? scale = this.safeString(fee, "scale");
             object precision = this.parsePrecision(scale);
-            for (object i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
             {
                 object network = getValue(networks, i);
                 string? networkId = this.safeString(network, "asset");
@@ -4077,7 +4182,7 @@ public partial class bitmex : Exchange
     public virtual object parseSettlements(object settlements, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }

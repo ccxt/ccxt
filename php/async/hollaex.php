@@ -157,12 +157,14 @@ class hollaex extends Exchange {
                         'user/deposits' => array( 'cost' => 1 ),
                         'user/withdrawals' => array( 'cost' => 1 ),
                         'user/withdrawal/fee' => array( 'cost' => 1 ),
+                        'subaccounts' => array( 'cost' => 1 ),
                         'user/trades' => array( 'cost' => 1 ),
                         'orders' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'user/withdrawal' => array( 'cost' => 1 ),
+                        'subaccount/transfer' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(

@@ -261,6 +261,13 @@ class aster extends Exchange {
                         // builder
                         'v3/agent' => array( 'cost' => 1 ),
                         'v3/builder' => array( 'cost' => 1 ),
+                        'v3/builder/userTrades' => array( 'cost' => 5 ),
+                        'v3/builder/approvedUserList' => array( 'cost' => 5 ),
+                        'v3/stpMode' => array( 'cost' => 30 ),
+                        'v3/asset/migrateUser/history' => array( 'cost' => 50 ),
+                        // strategy
+                        'v3/strategyOpenOrder' => array( 'cost' => 5 ),
+                        'v3/strategyHistoryOrder' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'v1/positionSide/dual' => array( 'cost' => 1 ),
@@ -294,6 +301,13 @@ class aster extends Exchange {
                         'v3/updateAgent' => array( 'cost' => 1 ),
                         'v3/approveBuilder' => array( 'cost' => 1 ),
                         'v3/updateBuilder' => array( 'cost' => 1 ),
+                        'v3/registerAndApproveAgent' => array( 'cost' => 50 ),
+                        'v3/asset/migrateUser' => array( 'cost' => 50 ),
+                        'v3/chase' => array( 'cost' => 1 ),
+                        'v3/stpMode' => array( 'cost' => 1 ),
+                        // strategy
+                        'v3/placeStrategyOrder' => array( 'cost' => 50 ),
+                        'v3/updateStrategyOrder' => array( 'cost' => 50 ),
                     ),
                     'put' => array(
                         'v1/listenKey' => array( 'cost' => 1 ),
@@ -306,6 +320,8 @@ class aster extends Exchange {
                         'v3/allOpenOrders' => array( 'cost' => 1 ),
                         'v1/batchOrders' => array( 'cost' => 1 ),
                         'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v3/guardedCancelOrder' => array( 'cost' => 1 ),
+                        'v3/guardedBatchOrders' => array( 'cost' => 1 ),
                         'v3/mmp' => array( 'cost' => 1 ),
                         'v1/listenKey' => array( 'cost' => 1 ),
                         'v3/listenKey' => array( 'cost' => 1 ),
@@ -2787,20 +2803,11 @@ class aster extends Exchange {
         if ($postOnly) {
             $request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, $price
-        // MARKET quantity or $quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, $price, $stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, $stopPrice
-        // future
-        // LIMIT timeInForce, quantity, $price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, $price, $stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET $stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order $type
+        // additional required fields per order $type
+        // spot => LIMIT timeInForce, quantity, $price; MARKET quantity or $quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, $price, $stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, $stopPrice
+        // future => LIMIT timeInForce, quantity, $price; MARKET quantity; STOP/TAKE_PROFIT quantity, $price, $stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET $stopPrice; TRAILING_STOP_MARKET callbackRate
         $closePosition = $this->safe_bool($params, 'closePosition', false);
         $timeInForceIsRequired = false;
         $priceIsRequired = false;

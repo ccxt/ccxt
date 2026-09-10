@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official btcturk API documentation:** [github.com](https://github.com/BTCTrader/broker-api-docs)
 
-> 16 implicit endpoints across 3 access groups.
+> 22 implicit endpoints across 3 access groups.
 
 ## public
 
@@ -65,6 +65,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetOrderbook` | GET | `orderbook` | 1 |
 | `publicGetTicker` | GET | `ticker` | 0.1 |
+| `publicGetTickerCurrency` | GET | `ticker/currency` | 0.1 |
 | `publicGetTrades` | GET | `trades` | 1 |
 | `publicGetOhlc` | GET | `ohlc` | 1 |
 | `publicGetServerExchangeinfo` | GET | `server/exchangeinfo` | 1 |
@@ -78,11 +79,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUsersBalances` | GET | `users/balances` | 1 |
 | `privateGetOpenOrders` | GET | `openOrders` | 1 |
 | `privateGetAllOrders` | GET | `allOrders` | 1 |
+| `privateGetOrderOrderId` | GET | `order/{orderId}` | 1 |
 | `privateGetUsersTransactionsTrade` | GET | `users/transactions/trade` | 1 |
+| `privateGetUsersTransactionsCrypto` | GET | `users/transactions/crypto` | 1 |
+| `privateGetUsersTransactionsFiat` | GET | `users/transactions/fiat` | 1 |
+| `privateGetCryptoDepositDeclarations` | GET | `crypto-deposit-declarations` | 1 |
 | `privatePostUsersTransactionsCrypto` | POST | `users/transactions/crypto` | 1 |
 | `privatePostUsersTransactionsFiat` | POST | `users/transactions/fiat` | 1 |
 | `privatePostOrder` | POST | `order` | 1 |
 | `privatePostCancelOrder` | POST | `cancelOrder` | 1 |
+| `privatePostCryptoDepositDeclarationsConfirm` | POST | `crypto-deposit-declarations/confirm` | 1 |
 | `privateDeleteOrder` | DELETE | `order` | 1 |
 
 ## graph

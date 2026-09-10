@@ -197,6 +197,8 @@ class coinmate extends Exchange {
                         'solDepositAddresses' => array( 'cost' => 1 ),
                         'unconfirmedSolDeposits' => array( 'cost' => 1 ),
                         'bankWireWithdrawal' => array( 'cost' => 1 ),
+                        'lightningDeposit' => array( 'cost' => 1 ),
+                        'lightningWithdraw' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

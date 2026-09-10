@@ -269,7 +269,13 @@ public partial class coinspot : Exchange
                             { "my/buy/now", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "my/buy/now/coinlist", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "my/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/now/coinlist", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "my/swap/now", new Dictionary<string, object>() {
@@ -291,6 +297,12 @@ public partial class coinspot : Exchange
                                 { "cost", 1 },
                             } },
                             { "my/coin/withdraw/send", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send/async", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send/status", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "ro/status", new Dictionary<string, object>() {
@@ -577,11 +589,11 @@ public partial class coinspot : Exchange
         object balances = this.safeValue2(response, "balance", "balances");
         if (isTrue(((balances is IList<object>) || (balances.GetType().IsGenericType && balances.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object currencies = getValue(balances, i);
                 List<object> currencyIds = new List<object>(((IDictionary<string,object>)currencies).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(currencyIds)); postFixIncrement(ref j))
                 {
                     object currencyId = getValue(currencyIds, j);
                     object balance = getValue(currencies, currencyId);
@@ -597,7 +609,7 @@ public partial class coinspot : Exchange
         } else
         {
             List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencyIds, i);
                 object code = this.safeCurrencyCode(currencyId);
@@ -791,7 +803,7 @@ public partial class coinspot : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object market = this.safeMarket(id);
@@ -896,12 +908,12 @@ public partial class coinspot : Exchange
         //      ]
         // }
         object buyTrades = this.safeList(response, "buyorders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(buyTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(buyTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(buyTrades, i))["side"] = "buy";
         }
         object sellTrades = this.safeList(response, "sellorders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(sellTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(sellTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";
         }
@@ -938,7 +950,7 @@ public partial class coinspot : Exchange
         //     }
         object timestamp = null;
         string? priceString = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? audTotal = this.safeString(trade, "audtotal");
         string? costString = this.safeString(trade, "total", audTotal);
         string? side = this.safeString(trade, "side");

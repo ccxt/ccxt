@@ -403,8 +403,8 @@ public partial class bitopro : Exchange
         object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new List<object>() {});
         string? currencyId = this.safeString(rawCurrency, "currency");
         object code = this.safeCurrencyCode(currencyId);
-        object deposit = this.safeBool(rawCurrency, "deposit");
-        object withdraw = this.safeBool(rawCurrency, "withdraw");
+        bool? deposit = this.safeBool(rawCurrency, "deposit");
+        bool? withdraw = this.safeBool(rawCurrency, "withdraw");
         bool isFiat = this.inArray(code, fiatCurrencies);
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
@@ -741,7 +741,7 @@ public partial class bitopro : Exchange
         string? side = this.safeStringLower(trade, "action");
         if (isTrue(isEqual(side, null)))
         {
-            object isBuyer = this.safeBool(trade, "isBuyer");
+            bool? isBuyer = this.safeBool(trade, "isBuyer");
             if (isTrue(isEqual(isBuyer, true)))
             {
                 side = "buy";
@@ -755,7 +755,7 @@ public partial class bitopro : Exchange
         {
             amount = this.safeString(trade, "baseAmount");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (isTrue(!isEqual(feeAmount, null)))
@@ -766,7 +766,7 @@ public partial class bitopro : Exchange
                 { "rate", null },
             };
         }
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
@@ -917,7 +917,7 @@ public partial class bitopro : Exchange
         object maker = this.safeNumber(first, "makerFee");
         object taker = this.safeNumber(first, "takerFee");
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1067,7 +1067,7 @@ public partial class bitopro : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -1170,7 +1170,7 @@ public partial class bitopro : Exchange
         //         }
         //
         string? id = this.safeString2(order, "id", "orderId");
-        object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
+        Int64? timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
         string? side = this.safeString(order, "action");
         if (isTrue(isEqual(side, null)))
         {
@@ -1194,7 +1194,7 @@ public partial class bitopro : Exchange
         {
             postOnly = true;
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(order, "fee");
         object feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
         if (isTrue(Precise.stringGt(feeAmount, "0")))
@@ -1346,11 +1346,11 @@ public partial class bitopro : Exchange
     {
         List<object> dataKeys = new List<object>(((IDictionary<string,object>)data).Keys);
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(dataKeys)); postFixIncrement(ref i))
         {
             object marketId = getValue(dataKeys, i);
             object orderIds = getValue(data, marketId);
-            for (object j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(orderIds)); postFixIncrement(ref j))
             {
                 ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
                     { "info", getValue(orderIds, j) },
@@ -1964,7 +1964,7 @@ public partial class bitopro : Exchange
         if (isTrue(inOp(parameters, "network")))
         {
             object networks = this.safeDict(this.options, "networks", new Dictionary<string, object>() {});
-            object requestedNetwork = this.safeStringUpper(parameters, "network");
+            string? requestedNetwork = this.safeStringUpper(parameters, "network");
             parameters = this.omit(parameters, new List<object>() {"network"});
             string? networkId = ((bool) isTrue((isEqual(requestedNetwork, null)))) ? null : this.safeString(networks, requestedNetwork);
             if (isTrue(isEqual(networkId, null)))

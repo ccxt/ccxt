@@ -300,6 +300,8 @@ export default class woo extends Exchange {
                             'asset/wallet/withdraw': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
                             'spotMargin/leverage': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
                             'spotMargin/interestRepay': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
+                            'futures/defaultMarginMode/reset': { 'cost': 60 } as Endpoint<Dict>,
+                            'isolatedMargin/margin': { 'cost': 60 } as Endpoint<Dict>,
                             'algo/order': { 'cost': 5 } as Endpoint<Dict>,
                             'convert/rft': { 'cost': 60 } as Endpoint<Dict>,
                         },
@@ -308,6 +310,8 @@ export default class woo extends Exchange {
                             'trade/algoOrder': { 'cost': 2 } as Endpoint<Dict>, // 5/1s
                             'futures/leverage': { 'cost': 60 } as Endpoint<Dict>, // 10/60s
                             'futures/positionMode': { 'cost': 120 } as Endpoint<Dict>, // 5/60s
+                            'futures/defaultMarginMode': { 'cost': 60 } as Endpoint<Dict>,
+                            'futures/defaultMarginMode/{symbol}': { 'cost': 60 } as Endpoint<Dict>,
                             'order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
                             'order/client/{client_order_id}': { 'cost': 2 } as Endpoint<Dict>,
                             'algo/order/{oid}': { 'cost': 2 } as Endpoint<Dict>,
@@ -323,6 +327,7 @@ export default class woo extends Exchange {
                             'algo/orders/pending': { 'cost': 1 } as Endpoint<Dict>,
                             'algo/orders/pending/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                             'orders/pending': { 'cost': 1 } as Endpoint<Dict>,
+                            'asset/wallet/withdraw/{withdrawId}': { 'cost': 60 } as Endpoint<Dict>,
                         },
                     },
                 },

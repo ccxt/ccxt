@@ -293,10 +293,11 @@ func (this *Bingx) FetchFundingRateHistory(options ...FetchFundingRateHistoryOpt
  * @name bingx#fetchFundingHistory
  * @description fetches historical funding received
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
- * @param {string} symbol unified symbol of the market to fetch the funding history for
+ * @param {string} symbol unified symbol of the market to fetch the funding history for, inverse (Coin-M) markets are not supported
  * @param {int} [since] timestamp in ms of the earliest funding to fetch
  * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
  * @param {int} [params.until] timestamp in ms of the latest funding to fetch
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */

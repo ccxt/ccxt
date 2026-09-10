@@ -284,6 +284,9 @@ public partial class cryptocom : Exchange
                             { "private/get-instrument-fee-rate", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "private/get-fee-credit-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                             { "private/fiat/fiat-deposit-info", new Dictionary<string, object>() {
                                 { "cost", divide(10, 3) },
                             } },
@@ -339,6 +342,27 @@ public partial class cryptocom : Exchange
                                 { "cost", divide(10, 3) },
                             } },
                             { "private/change-isolated-margin-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/create-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/update-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/terminate-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/pause-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/resume-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/get-trading-bots", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/get-trading-bot-executions", new Dictionary<string, object>() {
                                 { "cost", divide(10, 3) },
                             } },
                         } },
@@ -856,7 +880,7 @@ public partial class cryptocom : Exchange
         object code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeList(currency, "network_list", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "network_id");
@@ -1004,7 +1028,7 @@ public partial class cryptocom : Exchange
         object resultResponse = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(resultResponse, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? inst_type = this.safeString(market, "inst_type");
@@ -1019,9 +1043,9 @@ public partial class cryptocom : Exchange
             object quote = this.safeCurrencyCode(quoteId);
             object settle = ((bool) isTrue(spot)) ? null : this.safeCurrencyCode(settleId);
             string? optionType = this.safeStringLower(market, "put_call");
-            object strike = this.safeString(market, "strike");
-            object marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
-            object marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
+            string? strike = this.safeString(market, "strike");
+            bool? marginBuyEnabled = this.safeBool(market, "margin_buy_enabled");
+            bool? marginSellEnabled = this.safeBool(market, "margin_sell_enabled");
             object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
             object expiry = ((bool) isTrue((!isEqual(expiryString, null)))) ? parseInt(expiryString) : null;
             object symbol = add(add(bs, "/"), quote);
@@ -1044,7 +1068,7 @@ public partial class cryptocom : Exchange
             } else if (isTrue(isEqual(inst_type, "WARRANT")))
             {
                 type = "option";
-                object symbolOptionType = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
+                string symbolOptionType = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                 contract = true;
             }
@@ -1507,7 +1531,7 @@ public partial class cryptocom : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(positionBalances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positionBalances)); postFixIncrement(ref i))
         {
             object balance = getValue(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
@@ -1704,7 +1728,7 @@ public partial class cryptocom : Exchange
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isTrue((isEqual(postOnly, true))) || isTrue((isEqual(timeInForce, "PO")))))
         {
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
@@ -1852,7 +1876,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -1967,7 +1991,7 @@ public partial class cryptocom : Exchange
                 ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
             }
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isTrue((isEqual(postOnly, true))) || isTrue((isEqual(timeInForce, "PO")))))
         {
             ((IDictionary<string,object>)request)["exec_inst"] = new List<object>() {"POST_ONLY"};
@@ -2233,7 +2257,7 @@ public partial class cryptocom : Exchange
         }
         object market = this.market(symbol);
         List<object> orderRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             Dictionary<string, object> order = new Dictionary<string, object>() {
@@ -2268,7 +2292,7 @@ public partial class cryptocom : Exchange
             await this.loadMarkets();
         }
         List<object> orderRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? id = this.safeString(order, "id");
@@ -2571,7 +2595,7 @@ public partial class cryptocom : Exchange
             throw new ExchangeError ((string)add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, addressesLength); postFixIncrement(ref i))
         {
             object value = this.safeDict(addresses, i);
             string? addressString = this.safeString(value, "address");
@@ -2859,7 +2883,7 @@ public partial class cryptocom : Exchange
         //         "create_time_ns": "1686941992887207066"
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "t", "create_time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "create_time");
         string? marketId = this.safeString2(trade, "i", "instrument_name");
         market = this.safeMarket(marketId, market, "_");
         string? feeCurrency = this.safeString(trade, "fee_instrument_name");
@@ -2987,7 +3011,7 @@ public partial class cryptocom : Exchange
         if (isTrue(!isEqual(execInst, null)))
         {
             postOnly = false;
-            for (object i = 0; isLessThan(i, getArrayLength(execInst)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(execInst)); postFixIncrement(ref i))
             {
                 object inst = getValue(execInst, i);
                 if (isTrue(isEqual(inst, "POST_ONLY")))
@@ -3115,7 +3139,7 @@ public partial class cryptocom : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         Int64? timestamp = this.safeInteger(transaction, "create_time");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -3158,7 +3182,7 @@ public partial class cryptocom : Exchange
         */
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString(this.options, "defaultType");
-        object isMargin = this.safeBool(parameters, "margin", false);
+        bool? isMargin = this.safeBool(parameters, "margin", false);
         parameters = this.omit(parameters, "margin");
         object marginMode = null;
         var marginModeparametersVariable = this.handleMarginModeAndParams(methodName, parameters);
@@ -3214,7 +3238,7 @@ public partial class cryptocom : Exchange
         };
         if (isTrue(!isEqual(networkList, null)))
         {
-            for (object i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, networkListLength); postFixIncrement(ref i))
             {
                 object networkInfo = getValue(networkList, i);
                 string? networkId = this.safeString(networkInfo, "network_id");
@@ -3609,7 +3633,7 @@ public partial class cryptocom : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -3777,7 +3801,7 @@ public partial class cryptocom : Exchange
         object data = this.safeList(result, "data", new List<object>() {});
         string? marketId = this.safeString(result, "instrument_name");
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "t");
@@ -3904,7 +3928,7 @@ public partial class cryptocom : Exchange
         object responseResult = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object positions = this.safeList(responseResult, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object entry = getValue(positions, i);
             string? marketId = this.safeString(entry, "instrument_name");
@@ -3989,7 +4013,7 @@ public partial class cryptocom : Exchange
             List<object> objectKeys = new List<object>(((IDictionary<string,object>)obj).Keys);
             paramsKeys = this.sort(objectKeys);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(paramsKeys)); postFixIncrement(ref i))
         {
             object key = getValue(paramsKeys, i);
             returnString = add(returnString, key);
@@ -3999,7 +4023,7 @@ public partial class cryptocom : Exchange
                 returnString = add(returnString, "null");
             } else if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
-                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     returnString = add(returnString, this.paramsToString(getValue(value, j), add(level, 1)));
                 }
@@ -4152,7 +4176,7 @@ public partial class cryptocom : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["info"] = response;
-        for (object i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(this.symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(this.symbols, i);
             object market = this.market(symbol);

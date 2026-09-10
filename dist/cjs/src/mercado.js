@@ -134,6 +134,7 @@ class mercado extends mercado$1["default"] {
                     'private': 'https://www.mercadobitcoin.net/tapi',
                     'v4Public': 'https://www.mercadobitcoin.com.br/v4',
                     'v4PublicNet': 'https://api.mercadobitcoin.net/api/v4',
+                    'v4Private': 'https://api.mercadobitcoin.net/api/v4',
                 },
                 'www': 'https://www.mercadobitcoin.com.br',
                 'doc': [
@@ -177,6 +178,16 @@ class mercado extends mercado$1["default"] {
                 'v4PublicNet': {
                     'get': {
                         'candles': { 'cost': 1 },
+                    },
+                },
+                'v4Private': {
+                    'post': {
+                        'accounts': { 'cost': 1 },
+                        'accounts/{accountId}/{symbol}/transfers/internal': { 'cost': 1 },
+                        'oauth2/token': { 'cost': 1 },
+                    },
+                    'patch': {
+                        'accounts/{accountId}/wallet/{symbol}/deposits/{depositId}': { 'cost': 1 },
                     },
                 },
             },

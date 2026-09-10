@@ -201,6 +201,12 @@ public partial class extended : Exchange
                             { "info/builder/dashboard", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "interest/info/rate-curves", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/info/latest-rate-curves", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -283,6 +289,39 @@ public partial class extended : Exchange
                             { "portfolio/charts/pnl", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "portfolio/charts/pnl/percentage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl/cumulative", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl/cumulative/percentage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/vault-equities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/max-drawdown", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/health", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/performance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/funding/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/funding/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "vault/public/performance", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -292,9 +331,24 @@ public partial class extended : Exchange
                             { "builder/trades", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "interest/key-metrics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/daily-metrics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/payment-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/payments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order/rfq", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "user/order/massCancel", new Dictionary<string, object>() {
@@ -447,7 +501,7 @@ public partial class extended : Exchange
             return null;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)input).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object item = getValue(input, key);
@@ -795,7 +849,7 @@ public partial class extended : Exchange
         }
         string? name = this.safeString(currency, "name");
         Int64? precision = this.safeInteger(currency, "precision", 0);
-        object isActive = this.safeBool(currency, "isActive");
+        bool? isActive = this.safeBool(currency, "isActive");
         return this.safeCurrencyStructure(new Dictionary<string, object>() {
             { "id", currencyId },
             { "code", code },
@@ -887,7 +941,7 @@ public partial class extended : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             List<object> marketIds = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
                 ((IList<object>)marketIds).Add(getValue(market, "id"));
@@ -914,7 +968,7 @@ public partial class extended : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object marketData = getValue(data, i);
             string? marketId = this.safeString(marketData, "name");
@@ -1152,7 +1206,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -1235,7 +1289,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -1284,7 +1338,7 @@ public partial class extended : Exchange
     public virtual object parseFundingHistories(object histories, object market = null, object since = null, object limit = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(histories)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(histories, i), market));
         }
@@ -1327,7 +1381,7 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString2(trade, "m", "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(trade, "T", "createdTime");
+        Int64? timestamp = this.safeInteger2(trade, "T", "createdTime");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
         string? sideRaw = this.safeString2(trade, "S", "side");
@@ -1337,7 +1391,7 @@ public partial class extended : Exchange
     { "cost", feeCost },
     { "currency", ((bool) isTrue((isEqual(market, null)))) ? null : getValue(market, "settle") },
 };
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isTaker, null)))
         {
@@ -1519,7 +1573,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -1689,7 +1743,7 @@ public partial class extended : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? currencyId = this.safeString(balance, "asset");
@@ -1835,7 +1889,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -1874,7 +1928,7 @@ public partial class extended : Exchange
         {
             direction = ((bool) isTrue(Precise.stringLt(amountString, "0"))) ? "out" : "in";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(item, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1964,7 +2018,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -2112,7 +2166,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -2184,7 +2238,7 @@ public partial class extended : Exchange
         //     }
         //
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object validSignature = this.safeBool(data, "validSignature");
+        bool? validSignature = this.safeBool(data, "validSignature");
         Int64 now = this.milliseconds();
         string status = "pending";
         if (isTrue(!isEqual(validSignature, null)))
@@ -2210,7 +2264,7 @@ public partial class extended : Exchange
             fromAccount = counterpartyAccountId;
             toAccount = accountId;
         }
-        object validSignature = this.safeBool(transfer, "validSignature");
+        bool? validSignature = this.safeBool(transfer, "validSignature");
         object status = null;
         if (isTrue(!isEqual(validSignature, null)))
         {
@@ -2298,7 +2352,7 @@ public partial class extended : Exchange
         object code = this.getExtendedCurrencyCodeById(assetId, currency);
         string? amountString = this.safeString(transaction, "amount");
         object amount = ((bool) isTrue((isEqual(amountString, null)))) ? null : this.parseNumber(Precise.stringAbs(amountString));
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2400,7 +2454,7 @@ public partial class extended : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseTradingFee(fee);
@@ -2658,7 +2712,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -2702,8 +2756,8 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(position, "createdAt", "createdTime");
-        object lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
+        Int64? timestamp = this.safeInteger2(position, "createdAt", "createdTime");
+        Int64? lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
         lastUpdateTimestamp = this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         string? side = this.safeStringLower(position, "side");
         string? margin = this.safeString(position, "margin");
@@ -2913,7 +2967,7 @@ public partial class extended : Exchange
         object amountString = this.amountToPrecision(symbol, amount);
         object priceString = this.priceToPrecision(symbol, price);
         object postOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), null, parameters);
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         if (isTrue(isEqual(timeInForce, null)))
         {
@@ -3193,8 +3247,8 @@ public partial class extended : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an id argument")) ;
         }
         Int64? expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
-        object postOnly = this.safeBool(parameters, "postOnly");
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
         if (isTrue(isTrue(isTrue(isTrue(isTrue(isTrue((isEqual(amountVar, null))) || isTrue((isEqual(priceVar, null)))) || isTrue((isEqual(expiryEpochMillis, null)))) || isTrue((isEqual(postOnly, null)))) || isTrue((isEqual(reduceOnly, null)))) || isTrue((isEqual(cancelId, null)))))
         {
@@ -3600,7 +3654,7 @@ public partial class extended : Exchange
         string? cursor = this.safeString(pagination, "cursor");
         List<object> result = new List<object>() {};
         int dataLength = getArrayLength(data);
-        for (object i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isTrue((!isEqual(cursor, null))) && isTrue((isEqual(i, subtract(dataLength, 1))))))
@@ -3714,7 +3768,7 @@ public partial class extended : Exchange
         //
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "createdTime", "timestamp");
+        Int64? timestamp = this.safeInteger2(order, "createdTime", "timestamp");
         Int64? lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         string? side = this.safeStringLower(order, "side");
@@ -3893,7 +3947,7 @@ public partial class extended : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object version = this.safeString(api, 0);
+        string? version = this.safeString(api, 0);
         string? accessibility = this.safeString(api, 1);
         object endpoint = add("/", this.implodeParams(path, parameters));
         object query = this.omit(parameters, this.extractParams(path));

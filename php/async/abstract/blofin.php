@@ -16,6 +16,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_market_instruments_history($params = array()) {
+        return $this->request('market/instruments-history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_market_tickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -76,6 +82,36 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_spot_market_instruments($params = array()) {
+        return $this->request('spot/market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_spot_market_tickers($params = array()) {
+        return $this->request('spot/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_spot_market_books($params = array()) {
+        return $this->request('spot/market/books', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_spot_market_trades($params = array()) {
+        return $this->request('spot/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_spot_market_candles($params = array()) {
+        return $this->request('spot/market/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_asset_balances($params = array()) {
         return $this->request('asset/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -96,6 +132,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function private_get_asset_deposit_history($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_asset_deposit_address($params = array()) {
+        return $this->request('asset/deposit-address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -126,6 +168,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function private_get_account_positions_history($params = array()) {
         return $this->request('account/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_account_funding_fees($params = array()) {
+        return $this->request('account/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -340,6 +388,42 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_spot_trade_orders_pending($params = array()) {
+        return $this->request('spot/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_spot_trade_order_detail($params = array()) {
+        return $this->request('spot/trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_spot_trade_orders_algo_pending($params = array()) {
+        return $this->request('spot/trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_spot_trade_orders_history($params = array()) {
+        return $this->request('spot/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_spot_trade_orders_algo_history($params = array()) {
+        return $this->request('spot/trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_spot_trade_order_price_range($params = array()) {
+        return $this->request('spot/trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_asset_transfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -348,6 +432,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function private_post_asset_demo_apply_money($params = array()) {
         return $this->request('asset/demo-apply-money', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_asset_withdrawal_apply($params = array()) {
+        return $this->request('asset/withdrawal-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -418,8 +508,68 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_trade_amend_order($params = array()) {
+        return $this->request('trade/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_trade_amend_batch_orders($params = array()) {
+        return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_trade_amend_tpsl($params = array()) {
+        return $this->request('trade/amend-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_trade_amend_algo($params = array()) {
+        return $this->request('trade/amend-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_trade_close_position($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_order($params = array()) {
+        return $this->request('spot/trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_batch_orders($params = array()) {
+        return $this->request('spot/trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_order_algo($params = array()) {
+        return $this->request('spot/trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_cancel_order($params = array()) {
+        return $this->request('spot/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_cancel_batch_orders($params = array()) {
+        return $this->request('spot/trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_spot_trade_cancel_algo($params = array()) {
+        return $this->request('spot/trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -490,6 +640,12 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetMarketInstrumentsHistory($params = array()) {
+        return $this->request('market/instruments-history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetMarketTickers($params = array()) {
         return $this->request('market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -550,6 +706,36 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetSpotMarketInstruments($params = array()) {
+        return $this->request('spot/market/instruments', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetSpotMarketTickers($params = array()) {
+        return $this->request('spot/market/tickers', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetSpotMarketBooks($params = array()) {
+        return $this->request('spot/market/books', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetSpotMarketTrades($params = array()) {
+        return $this->request('spot/market/trades', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetSpotMarketCandles($params = array()) {
+        return $this->request('spot/market/candles', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetAssetBalances($params = array()) {
         return $this->request('asset/balances', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -570,6 +756,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function privateGetAssetDepositHistory($params = array()) {
         return $this->request('asset/deposit-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAssetDepositAddress($params = array()) {
+        return $this->request('asset/deposit-address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -600,6 +792,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function privateGetAccountPositionsHistory($params = array()) {
         return $this->request('account/positions-history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAccountFundingFees($params = array()) {
+        return $this->request('account/funding-fees', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -814,6 +1012,42 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetSpotTradeOrdersPending($params = array()) {
+        return $this->request('spot/trade/orders-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSpotTradeOrderDetail($params = array()) {
+        return $this->request('spot/trade/order-detail', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSpotTradeOrdersAlgoPending($params = array()) {
+        return $this->request('spot/trade/orders-algo-pending', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSpotTradeOrdersHistory($params = array()) {
+        return $this->request('spot/trade/orders-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSpotTradeOrdersAlgoHistory($params = array()) {
+        return $this->request('spot/trade/orders-algo-history', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSpotTradeOrderPriceRange($params = array()) {
+        return $this->request('spot/trade/order/price-range', 'private', 'GET', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostAssetTransfer($params = array()) {
         return $this->request('asset/transfer', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -822,6 +1056,12 @@ abstract class blofin extends \ccxt\async\Exchange {
      */
     public function privatePostAssetDemoApplyMoney($params = array()) {
         return $this->request('asset/demo-apply-money', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostAssetWithdrawalApply($params = array()) {
+        return $this->request('asset/withdrawal-apply', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -892,8 +1132,68 @@ abstract class blofin extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostTradeAmendOrder($params = array()) {
+        return $this->request('trade/amend-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostTradeAmendBatchOrders($params = array()) {
+        return $this->request('trade/amend-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostTradeAmendTpsl($params = array()) {
+        return $this->request('trade/amend-tpsl', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostTradeAmendAlgo($params = array()) {
+        return $this->request('trade/amend-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostTradeClosePosition($params = array()) {
         return $this->request('trade/close-position', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeOrder($params = array()) {
+        return $this->request('spot/trade/order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeBatchOrders($params = array()) {
+        return $this->request('spot/trade/batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeOrderAlgo($params = array()) {
+        return $this->request('spot/trade/order-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeCancelOrder($params = array()) {
+        return $this->request('spot/trade/cancel-order', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeCancelBatchOrders($params = array()) {
+        return $this->request('spot/trade/cancel-batch-orders', 'private', 'POST', $params, null, null, array("cost" => 1.67));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostSpotTradeCancelAlgo($params = array()) {
+        return $this->request('spot/trade/cancel-algo', 'private', 'POST', $params, null, null, array("cost" => 1.67));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

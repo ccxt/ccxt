@@ -310,6 +310,14 @@ public partial class gate : Exchange
                             { "{settle}/risk_limit_tiers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "{settle}/adl_risk_states", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "{settle}/funding_rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "delivery", new Dictionary<string, object>() {
@@ -392,6 +400,15 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "structured/products", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "dual/project-recommend", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fixed-term/product", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fixed-term/product/{asset}/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -483,6 +500,9 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "getLowCapExchangeList", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -588,6 +608,12 @@ public partial class gate : Exchange
                             { "leverage/user_currency_setting", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "delta_neutral", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "estimated_quick_repayment", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                             { "account_mode", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
@@ -603,6 +629,15 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                             { "collateral_currencies", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "delta_neutral", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "leverage/user_setting", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "quick_repayment", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
                             { "account_mode", new Dictionary<string, object>() {
@@ -647,6 +682,12 @@ public partial class gate : Exchange
                             { "price_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "pov_orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "batch_orders", new Dictionary<string, object>() {
@@ -670,6 +711,9 @@ public partial class gate : Exchange
                             { "price_orders", new Dictionary<string, object>() {
                                 { "cost", 0.4 },
                             } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
@@ -682,6 +726,12 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 75) },
                             } },
                             { "price_orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", divide(20, 75) },
+                            } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", divide(20, 75) },
+                            } },
+                            { "pov_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", divide(20, 75) },
                             } },
                         } },
@@ -889,6 +939,21 @@ public partial class gate : Exchange
                             { "{settle}/price_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "{settle}/autoorder/v1/trail/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/change_log", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "{settle}/positions/{contract}/margin", new Dictionary<string, object>() {
@@ -943,6 +1008,27 @@ public partial class gate : Exchange
                                 { "cost", 0.4 },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/create", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/stop", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/stop_all", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/update", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/create", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/stop", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/stop_all", new Dictionary<string, object>() {
                                 { "cost", 0.4 },
                             } },
                         } },
@@ -1087,6 +1173,11 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                         } },
+                        { "put", new Dictionary<string, object>() {
+                            { "orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                        } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
@@ -1143,6 +1234,33 @@ public partial class gate : Exchange
                             { "staking/assets", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "dual/order-refund-preview", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/lend", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/history", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/coins", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/config", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/orders", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/detail", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/list_info", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/records", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                             { "uni/currencies", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
@@ -1164,6 +1282,33 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                             { "staking/swap", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "dual/order-refund", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "dual/modify-order-reinvest", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/lend", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/pre-redeem", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/min_invest_amount", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/add_position", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/create", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/stop", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/update", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
                         } },
@@ -1320,6 +1465,9 @@ public partial class gate : Exchange
                             { "user/sub_relation", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "partner/data/aggregated", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                         } },
                     } },
                     { "otc", new Dictionary<string, object>() {
@@ -1334,6 +1482,12 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/bank_supplement_checklist", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -1351,6 +1505,24 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/delete", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/set_default", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/personal/bank_supplement", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/enterprise/bank_supplement", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "upload/pre_upload", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -1770,7 +1942,7 @@ public partial class gate : Exchange
     public async virtual Task<object> loadUnifiedStatus(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object unifiedAccount = this.safeBool(this.options, "unifiedAccount");
+        bool? unifiedAccount = this.safeBool(this.options, "unifiedAccount");
         if (isTrue(isEqual(unifiedAccount, null)))
         {
             try
@@ -1844,8 +2016,8 @@ public partial class gate : Exchange
             bs = this.safeString(marketIdBase, 0);
             expiry = slice(((string)expiry), 2, 8); // convert 20230728 to 230728
         }
-        object strike = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         return new Dictionary<string, object>() {
@@ -1931,7 +2103,7 @@ public partial class gate : Exchange
         List<object> rawPromises = new List<object>() {};
         object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
         object types = this.safeList(fetchMarketsOptions, "types", new List<object>() {"spot", "swap", "future", "option"});
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
@@ -2002,7 +2174,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(spotMarketsResponse)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(spotMarketsResponse)); postFixIncrement(ref i))
         {
             object spotMarket = this.safeDict(spotMarketsResponse, i, new Dictionary<string, object>() {});
             string? id = this.safeString(spotMarket, "id");
@@ -2087,14 +2259,14 @@ public partial class gate : Exchange
         {
             swapSettlementCurrencies = new List<object>() {"usdt"}; // gate sandbox only has usdt-margined swaps
         }
-        for (object c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; isLessThan(c, getArrayLength(swapSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(swapSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
             object response = await this.publicFuturesGetSettleContracts(this.extend(request, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 object parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2113,14 +2285,14 @@ public partial class gate : Exchange
         }
         List<object> result = new List<object>() {};
         object futureSettlementCurrencies = this.getSettlementCurrencies("future", "fetchMarkets");
-        for (object c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
+        for (int c = 0; isLessThan(c, getArrayLength(futureSettlementCurrencies)); postFixIncrement(ref c))
         {
             object settleId = getValue(futureSettlementCurrencies, c);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "settle", settleId },
             };
             object response = await this.publicDeliveryGetSettleContracts(this.extend(request, parameters));
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object contract = this.safeDict(response, i, new Dictionary<string, object>() {});
                 object parsedMarket = this.parseContractMarket(contract, settleId);
@@ -2326,7 +2498,7 @@ public partial class gate : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> result = new List<object>() {};
         object underlyings = ccxt.BaseExchange.FromStringList(await this.FetchOptionUnderlyings());
-        for (object i = 0; isLessThan(i, getArrayLength(underlyings)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(underlyings)); postFixIncrement(ref i))
         {
             object underlying = getValue(underlyings, i);
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
@@ -2370,7 +2542,7 @@ public partial class gate : Exchange
             //        }
             //    ]
             //
-            for (object j = 0; isLessThan(j, getArrayLength(response)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(response)); postFixIncrement(ref j))
             {
                 object market = this.safeDict(response, j, new Dictionary<string, object>() {});
                 string? id = this.safeString(market, "name");
@@ -2381,9 +2553,9 @@ public partial class gate : Exchange
                 object quote = this.safeCurrencyCode(quoteId);
                 object symbol = add(add(bs, "/"), quote);
                 object expiry = this.safeTimestamp(market, "expiration_time");
-                object strike = this.safeString(market, "strike_price");
+                string? strike = this.safeString(market, "strike_price");
                 object isCall = this.safeValue(market, "is_call");
-                object optionLetter = ((bool) isTrue((isEqual(isCall, true)))) ? "C" : "P";
+                string optionLetter = ((bool) isTrue((isEqual(isCall, true)))) ? "C" : "P";
                 string optionType = ((bool) isTrue((isEqual(isCall, true)))) ? "call" : "put";
                 symbol = add(add(add(add(add(add(add(add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), optionLetter);
                 string? priceDeviate = this.safeString(market, "order_price_deviate");
@@ -2466,7 +2638,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(underlyingsResponse)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(underlyingsResponse)); postFixIncrement(ref i))
         {
             object underlying = this.safeDict(underlyingsResponse, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -2707,7 +2879,7 @@ public partial class gate : Exchange
         string type = ((bool) isTrue(this.isLeveragedCurrency(currencyId))) ? "leveraged" : "crypto";
         object chains = this.safeList(rawCurrency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "name");
@@ -3000,7 +3172,7 @@ public partial class gate : Exchange
         string? currencyId = this.safeString(response, "currency");
         code = ((string)this.safeCurrencyCode(currencyId));
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(addresses)); postFixIncrement(ref i))
         {
             object entry = getValue(addresses, i);
             //
@@ -3184,7 +3356,7 @@ public partial class gate : Exchange
     {
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -3262,7 +3434,7 @@ public partial class gate : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object withdrawFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             withdrawFees = new Dictionary<string, object>() {};
             object entry = this.safeDict(response, i, new Dictionary<string, object>() {});
@@ -3279,7 +3451,7 @@ public partial class gate : Exchange
             } else
             {
                 List<object> networkIds = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
-                for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
                 {
                     object networkId = getValue(networkIds, j);
                     object networkCode = this.networkIdToCode(networkId, code);
@@ -3372,7 +3544,7 @@ public partial class gate : Exchange
         if (isTrue(!isEqual(withdrawFixOnChains, null)))
         {
             List<object> chainKeys = new List<object>(((IDictionary<string,object>)withdrawFixOnChains).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(chainKeys)); postFixIncrement(ref i))
             {
                 object chainKey = getValue(chainKeys, i);
                 string? currencyId = this.safeString(fee, "currency");
@@ -3467,7 +3639,7 @@ public partial class gate : Exchange
     public virtual object parseFundingHistories(object response, object symbol, object since, object limit)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = getValue(response, i);
             object funding = this.parseFundingHistory(entry);
@@ -3691,7 +3863,7 @@ public partial class gate : Exchange
         object ticker = null;
         if (isTrue(isEqual(getValue(market, "option"), true)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object entry = getValue(response, i);
                 if (isTrue(isEqual(getValue(entry, "name"), getValue(market, "id"))))
@@ -4189,7 +4361,7 @@ public partial class gate : Exchange
             // inject currency and create an artificial balance object
             // so it can follow the existent flow
             List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(keys, i);
                 object content = getValue(balances, currencyId);
@@ -4198,7 +4370,7 @@ public partial class gate : Exchange
             }
             data = flatBalances;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             if (isTrue(isolated))
@@ -4403,7 +4575,7 @@ public partial class gate : Exchange
         //     }
         //
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             object timestamp = this.safeTimestamp(entry, "t");
@@ -4511,7 +4683,7 @@ public partial class gate : Exchange
         var requestqueryVariable = this.prepareRequest(market, null, parameters);
         var request = ((IList<object>) requestqueryVariable)[0];
         var query = ((IList<object>) requestqueryVariable)[1];
-        object until = this.safeInteger2(parameters, "to", "until");
+        Int64? until = this.safeInteger2(parameters, "to", "until");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -5448,7 +5620,7 @@ public partial class gate : Exchange
         {
             throw new BadRequest ((string)add(this.id, " createOrders() accepts a maximum of 10 orders at a time")) ;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5586,7 +5758,7 @@ public partial class gate : Exchange
                 amount = parseInt(((string)signedAmount));
             }
         }
-        object request = null;
+        Dictionary<string, object> request = null;
         bool nonTriggerOrder = !isTrue(isTpsl) && isTrue((isEqual(trigger, null)));
         if (isTrue(nonTriggerOrder))
         {
@@ -5671,7 +5843,7 @@ public partial class gate : Exchange
                     ((IDictionary<string,object>)request)["time_in_force"] = timeInForce;
                 }
             }
-            object textIsRequired = this.safeBool(parameters, "textIsRequired", false);
+            bool? textIsRequired = this.safeBool(parameters, "textIsRequired", false);
             if (isTrue(!isEqual(clientOrderId, null)))
             {
                 // user-defined, must follow the rules if not empty
@@ -6185,7 +6357,7 @@ public partial class gate : Exchange
         //         "amend_text": "-"
         //     }
         //
-        object succeeded = this.safeBool(order, "succeeded", true);
+        bool? succeeded = this.safeBool(order, "succeeded", true);
         if (isTrue(!isEqual(succeeded, true)))
         {
             // cancelOrders response
@@ -6326,8 +6498,8 @@ public partial class gate : Exchange
             lastTradeTimestamp = this.parseToInt(lastTradeTimestampStr);
         }
         object initial = this.safeDict(order, "initial", new Dictionary<string, object>() {});
-        object reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
-        object reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
+        bool? reduceOnlyInitial = this.safeBool(initial, "is_reduce_only");
+        bool? reduceOnly = this.safeBool(order, "is_reduce_only", reduceOnlyInitial);
         string? clientOrderId = this.safeString(order, "text");
         if (isTrue(isEqual(clientOrderId, null)))
         {
@@ -6370,7 +6542,7 @@ public partial class gate : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         object clientOrderId = this.safeString2(parameters, "text", "clientOrderId");
         object orderId = id;
@@ -6426,7 +6598,7 @@ public partial class gate : Exchange
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
         object result = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         string? type = this.safeString(result, 0);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"trigger", "is_stop_order", "stop"}, false);
         var requestrequestParamsVariable = this.fetchOrderRequest(id, symbol, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
@@ -6643,7 +6815,7 @@ public partial class gate : Exchange
             symbol = getValue(market, "symbol");
         }
         // don't omit here, omits done in prepareOrdersByStatusRequest
-        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         object res = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         string? type = this.safeString(res, 0);
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbol, since, limit, parameters);
@@ -6843,7 +7015,7 @@ public partial class gate : Exchange
         if (isTrue(openSpotOrders))
         {
             object spotResult = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
             {
                 object responseEntry = this.safeDict(response, i, new Dictionary<string, object>() {});
                 object ordersInner = this.safeValue(responseEntry, "orders");
@@ -6882,7 +7054,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
+        bool? trigger = this.safeBoolN(parameters, new List<object>() {"is_stop_order", "stop", "trigger"}, false);
         parameters = this.omit(parameters, new List<object>() {"is_stop_order", "stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -7049,7 +7221,7 @@ public partial class gate : Exchange
         if (isTrue(isSpot))
         {
             List<object> ordersRequests = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 object id = getValue(ids, i);
                 Dictionary<string, object> orderItem = new Dictionary<string, object>() {
@@ -7064,7 +7236,7 @@ public partial class gate : Exchange
             { "settle", settle },
         };
         List<object> finalList = new List<object>() {request}; // hacky but needs to be done here
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             ((IList<object>)finalList).Add(getValue(ids, i));
         }
@@ -7092,7 +7264,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -7145,7 +7317,7 @@ public partial class gate : Exchange
         }
         await this.loadUnifiedStatus();
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         var type = ((IList<object>) typequeryVariable)[0];
@@ -8029,7 +8201,7 @@ public partial class gate : Exchange
         }
         object minNotional = 0;
         List<object> tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object item = getValue(info, i);
             object maxNotional = this.safeNumber(item, "risk_limit");
@@ -8392,7 +8564,7 @@ public partial class gate : Exchange
             // remove the first element from params
             List<object> newParams = new List<object>() {};
             IList<object> anyParams = this.toArray(parameters);
-            for (object i = 1; isLessThan(i, getArrayLength(anyParams)); postFixIncrement(ref i))
+            for (int i = 1; isLessThan(i, getArrayLength(anyParams)); postFixIncrement(ref i))
             {
                 ((IList<object>)newParams).Add(getValue(parameters, i));
             }
@@ -8430,7 +8602,7 @@ public partial class gate : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object queryString = "";
+            string queryString = "";
             string rawQueryString = "";
             bool requiresURLEncoding = false;
             if (isTrue(isTrue((isTrue((isEqual(type, "futures"))) || isTrue((isEqual(type, "delivery"))))) && isTrue(isEqual(method, "POST"))))
@@ -8953,7 +9125,7 @@ public partial class gate : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -9292,7 +9464,7 @@ public partial class gate : Exchange
         //    ]
         //
         List<object> underlyings = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object underlying = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? name = this.safeString(underlying, "name");
@@ -9586,7 +9758,7 @@ public partial class gate : Exchange
         //     ]
         //
         object marketId = getValue(market, "id");
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object entry = this.safeDict(response, i, new Dictionary<string, object>() {});
             string? entryMarketId = this.safeString(entry, "name");
@@ -9702,7 +9874,7 @@ public partial class gate : Exchange
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         object response = null;
-        object isUnified = this.safeBool(parameters, "unified");
+        bool? isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
         if (isTrue(isEqual(this.safeBool(market, "spot"), true)))
         {
@@ -9743,7 +9915,7 @@ public partial class gate : Exchange
         }
         symbols = this.marketSymbols(symbols);
         object response = null;
-        object isUnified = this.safeBool(parameters, "unified");
+        bool? isUnified = this.safeBool(parameters, "unified");
         parameters = this.omit(parameters, "unified");
         string marketIdRequest = "id";
         if (isTrue(isEqual(isUnified, true)))

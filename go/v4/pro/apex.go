@@ -1271,6 +1271,12 @@ func (this *ApexCore) HandleMessage(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(this.HandleErrorMessage(client, message), true)) {
 		return
 	}
+	var ret_msg any = this.SafeString(message, "ret_msg")
+	var pong any = this.SafeInteger(message, "pong")
+	if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(ret_msg, "pong")) || ccxt.IsTrue(!ccxt.IsEqual(pong, nil))) {
+		this.HandlePong(client, message)
+		return
+	}
 	var topic any = this.SafeString2(message, "topic", "op", "")
 	var methods map[string]any = map[string]any{
 		"ws_zk_accounts_v3": this.HandleAccount,
@@ -1344,11 +1350,11 @@ func (this *ApexCore) pongBody(ch chan any, client any, message any) any {
 			}()
 			// try block:
 
-			retRes106612 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+			retRes107212 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 				"args": []any{ccxt.ToString(timeStamp)},
 				"op":   "pong",
 			}))
-			ccxt.PanicOnError(retRes106612)
+			ccxt.PanicOnError(retRes107212)
 			return nil
 		}(this)
 
@@ -1370,6 +1376,7 @@ func (this *ApexCore) HandlePong(client any, message any) any {
 	return message
 }
 func (this *ApexCore) HandlePing(client any, message any) {
+	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	this.Spawn(this.Pong, client, message)
 }
 func (this *ApexCore) HandleAccount(client any, message any) {

@@ -148,7 +148,7 @@ public partial class toobit : ccxt.toobit
         } else
         {
             // check private streams
-            for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
             {
                 object item = getValue(message, i);
                 string? eventVar = this.safeString(item, "e");
@@ -206,7 +206,7 @@ public partial class toobit : ccxt.toobit
         symbols = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -267,7 +267,7 @@ public partial class toobit : ccxt.toobit
         object stored = getValue(this.trades, symbol);
         object data = this.safeList(message, "data", new List<object>() {});
         object parsed = this.parseWsTrades(data, market);
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
             ((IDictionary<string,object>)trade)["symbol"] = symbol;
@@ -329,13 +329,13 @@ public partial class toobit : ccxt.toobit
         object timeframes = this.safeDict(getValue(this.options, "ws"), "timeframes", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>() {};
         object selectedTimeframe = null;
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
-            object symbolStr = this.safeString(data, 0);
+            string? symbolStr = this.safeString(data, 0);
             object market = this.market(symbolStr);
             object marketId = getValue(market, "id");
-            object unfiedTimeframe = this.safeString(data, 1, "1m");
+            string? unfiedTimeframe = this.safeString(data, 1, "1m");
             string? rawTimeframe = this.safeString(timeframes, unfiedTimeframe, unfiedTimeframe);
             if (isTrue(isTrue(!isEqual(selectedTimeframe, null)) && isTrue(!isEqual(selectedTimeframe, rawTimeframe))))
             {
@@ -412,7 +412,7 @@ public partial class toobit : ccxt.toobit
             }
         }
         object data = this.safeList(message, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
             callDynamically(stored, "append", new object[] {parsed});
@@ -484,7 +484,7 @@ public partial class toobit : ccxt.toobit
         symbols = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -552,7 +552,7 @@ public partial class toobit : ccxt.toobit
             return;
         }
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = getValue(data, i);
             object parsed = this.parseWsTicker(ticker);
@@ -622,7 +622,7 @@ public partial class toobit : ccxt.toobit
         parameters = ((IList<object>)channelparametersVariable)[1];
         List<object> messageHashes = new List<object>() {};
         List<object> subParams = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -664,7 +664,7 @@ public partial class toobit : ccxt.toobit
         //         shared: false
         //     }
         //
-        object isSnapshot = this.safeBool(message, "f", false);
+        bool? isSnapshot = this.safeBool(message, "f", false);
         if (isTrue(isEqual(isSnapshot, true)))
         {
             this.setOrderBookSnapshot(client as WebSocketClient, message, "diffDepth");
@@ -674,7 +674,7 @@ public partial class toobit : ccxt.toobit
         object market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object data = this.safeList(message, "data", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             object messageHash = add(add(add("orderBook::", symbol), "::"), "diffDepth");
@@ -736,7 +736,7 @@ public partial class toobit : ccxt.toobit
         {
             return;
         }
-        for (object i = 0; isLessThan(i, length); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, length); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "s");
@@ -857,7 +857,7 @@ public partial class toobit : ccxt.toobit
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = data;
         ((IDictionary<string,object>)getValue(this.balance, type))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object balance = getValue(data, i);
             string? currencyId = this.safeString(balance, "a");
@@ -991,7 +991,7 @@ public partial class toobit : ccxt.toobit
             orderType = rawOrderType;
         }
         object feeCost = this.safeNumber(order, "n");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1201,7 +1201,7 @@ public partial class toobit : ccxt.toobit
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             callDynamically(cache, "append", new object[] {position});
@@ -1258,7 +1258,7 @@ public partial class toobit : ccxt.toobit
             rawPositions = new List<object>() {message};
         }
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             object position = this.parseWsPosition(rawPosition);
@@ -1273,7 +1273,7 @@ public partial class toobit : ccxt.toobit
         // included, so a local `positions` rewrites the hash prefix below to
         // ':$positions::' and find_message_hashes () matches nothing in PHP
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(accountType, ":positions::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1330,17 +1330,10 @@ public partial class toobit : ccxt.toobit
         {
             this.checkRequiredCredentials();
             // single-flight leader election on a never-dialed client, see
-            // https://github.com/ccxt/ccxt/issues/29393. the election used to
-            // run on this.client (this.getUserStreamUrl ()), but that url
-            // embeds the listenKey it is about to mint, so the client the
-            // flight registers on is not the client the next caller looks at:
-            // the cold call elected on .../ws/undefined and every later call
-            // landed on .../ws/<key> with an empty subscriptions map, found
-            // the key still fresh, skipped the fetch and hung on a future
-            // nobody resolves. client.futures is the registry: client.future ()
-            // is the atomic check-and-insert and client.resolve () /
-            // ((WebSocketClient)client).reject () settle and remove the entry under the same lock
-            // in every port
+            // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+            // so the flight must not live on that client or later callers would look at a different one.
+            // client.futures is the registry: client.future () is the atomic check-and-insert and
+            // client.resolve () / ((WebSocketClient)client).reject () settle and remove the entry under the same lock in every port
             string messageHash = "authenticate";
             var client = this.client("authenticationFlights");
             if (isTrue(inOp(client.futures, messageHash)))
@@ -1400,7 +1393,7 @@ public partial class toobit : ccxt.toobit
             object url = this.getUserStreamUrl();
             var client = this.client(url);
             List<object> messageHashes = new List<object>(((IDictionary<string, ccxt.Exchange.Future>)client.futures).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
                 ((WebSocketClient)client).reject(error, messageHash);
@@ -1419,7 +1412,7 @@ public partial class toobit : ccxt.toobit
         return add(add(getValue(getValue(getValue(this.urls, "api"), "ws"), "common"), "/api/v1/ws/"), getValue(getValue(this.options, "ws"), "listenKey"));
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1427,15 +1420,15 @@ public partial class toobit : ccxt.toobit
         //        "desc": "Invalid Symbols!"
         //    }
         //
-        object code = this.safeString(message, "code");
+        string? code = this.safeString(message, "code");
         if (isTrue(!isEqual(code, null)))
         {
-            object desc = this.safeString(message, "desc");
+            string? desc = this.safeString(message, "desc");
             object msg = add(add(add(add(this.id, " code: "), code), " message: "), desc);
             var exception = new ExchangeError(((string)msg)); // c# fix
             ((WebSocketClient)client).reject(exception);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 }

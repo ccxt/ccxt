@@ -201,6 +201,9 @@ public class CexCore extends CexApi
                         put( "get_order_book", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_ticker", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_candles", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

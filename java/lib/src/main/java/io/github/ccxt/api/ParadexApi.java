@@ -185,6 +185,17 @@ public class ParadexApi extends Exchange
     }
 
     /**
+     * Calls the publicGetStakingBalanceHistoryGlobal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetStakingBalanceHistoryGlobal (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetStakingBalanceHistoryGlobal", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetStakingConfig endpoint.
      *
      * @param optionalArgs the request parameters
@@ -281,6 +292,17 @@ public class ParadexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetVaults (Object... optionalArgs)
     {
         return this.callAsync ("publicGetVaults", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetVaultsAnalytics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetVaultsAnalytics (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetVaultsAnalytics", optionalArgs);
     }
 
     /**
@@ -735,6 +757,61 @@ public class ParadexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetRfqs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqs (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqs", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRfqsDrafts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqsDrafts (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqsDrafts", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRfqsMarkets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqsMarkets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqsMarkets", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetRfqsRfqIdBbo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetRfqsRfqIdBbo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetRfqsRfqIdBbo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetStakingBalanceHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetStakingBalanceHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetStakingBalanceHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetStakingHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -933,6 +1010,28 @@ public class ParadexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostAccountParadigmEnable endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountParadigmEnable (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountParadigmEnable", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAccountTerminalToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAccountTerminalToken (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountTerminalToken", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAccountKeysSubkeysActivate endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1065,6 +1164,39 @@ public class ParadexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostRfqs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqs (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqs", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRfqsDrafts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqsDrafts (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqsDrafts", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostRfqsRfqIdExecute endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostRfqsRfqIdExecute (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostRfqsRfqIdExecute", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostV2Auth endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1128,6 +1260,28 @@ public class ParadexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAccountKeysSubkeysPublicKey (Object... optionalArgs)
     {
         return this.callAsync ("privatePutAccountKeysSubkeysPublicKey", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutAccountKeysSubkeysPublicKeyAllowedCidrs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAccountKeysSubkeysPublicKeyAllowedCidrs (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutAccountKeysSubkeysPublicKeyAllowedCidrs", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutAccountTokensLookupIdAllowedCidrs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAccountTokensLookupIdAllowedCidrs (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutAccountTokensLookupIdAllowedCidrs", optionalArgs);
     }
 
     /**
@@ -1238,6 +1392,28 @@ public class ParadexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteOrdersOrderId (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteOrdersOrderId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteRfqsDraftsDraftId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteRfqsDraftsDraftId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteRfqsDraftsDraftId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteRfqsRfqId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteRfqsRfqId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteRfqsRfqId", optionalArgs);
     }
 
 }

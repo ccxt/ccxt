@@ -162,12 +162,18 @@ public partial class binanceus : binance
                             { "cost", 2 },
                             { "noSymbol", 100 },
                         } },
+                        { "ticker/tradingDay", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "account", new Dictionary<string, object>() {
                             { "cost", 10 },
+                        } },
+                        { "account/commission", new Dictionary<string, object>() {
+                            { "cost", 20 },
                         } },
                         { "rateLimit/order", new Dictionary<string, object>() {
                             { "cost", 20 },
@@ -184,6 +190,9 @@ public partial class binanceus : binance
                         } },
                         { "myPreventedMatches", new Dictionary<string, object>() {
                             { "cost", 10 },
+                        } },
+                        { "myFilters", new Dictionary<string, object>() {
+                            { "cost", 40 },
                         } },
                         { "allOrders", new Dictionary<string, object>() {
                             { "cost", 10 },

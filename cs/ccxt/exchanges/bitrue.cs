@@ -848,7 +848,7 @@ public partial class bitrue : Exchange
         object code = this.safeCurrencyCode(id);
         object networkDetails = this.safeList(rawCurrency, "chainDetail", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkDetails)); postFixIncrement(ref j))
         {
             object entry = getValue(networkDetails, j);
             string? networkId = this.safeString(entry, "chain");
@@ -920,7 +920,7 @@ public partial class bitrue : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
@@ -1184,7 +1184,7 @@ public partial class bitrue : Exchange
         };
         Int64? timestamp = this.safeInteger(response, "updateTime");
         object balances = this.safeValue2(response, "balances", "account", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString2(balance, "asset", "marginCoin");
@@ -1335,7 +1335,7 @@ public partial class bitrue : Exchange
         //         "time": 1699338305000
         //     }
         //
-        object timestamp = this.safeInteger2(response, "time", "lastUpdateId");
+        Int64? timestamp = this.safeInteger2(response, "time", "lastUpdateId");
         object orderbook = this.parseOrderBook(response, symbol, timestamp);
         ((IDictionary<string,object>)orderbook)["nonce"] = this.safeInteger(response, "lastUpdateId");
         return ccxt.BaseExchange.ToOrderBook(orderbook);
@@ -1802,7 +1802,7 @@ public partial class bitrue : Exchange
         // the market ids do not have an underscore, so it has to be removed
         // https://github.com/ccxt/ccxt/issues/13856
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.safeDict(data, i, new Dictionary<string, object>() {});
             // skip entries without a symbol: an undefined market id would become a null
@@ -1868,7 +1868,7 @@ public partial class bitrue : Exchange
         //         "ctime":1678426306000
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "ctime", "time");
+        Int64? timestamp = this.safeInteger2(trade, "ctime", "time");
         string? priceString = this.safeString(trade, "price");
         string? amountString = this.safeString(trade, "qty");
         string? marketId = this.safeString2(trade, "symbol", "contractName");
@@ -1876,8 +1876,8 @@ public partial class bitrue : Exchange
         string? orderId = this.safeString(trade, "orderId");
         string? id = this.safeString2(trade, "id", "tradeId");
         string? side = null;
-        object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(buyerMaker, null)))
         {
             side = ((bool) isTrue(buyerMaker)) ? "sell" : "buy";
@@ -1886,7 +1886,7 @@ public partial class bitrue : Exchange
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell"; // this is a true side
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(trade, "commission")))
         {
             fee = new Dictionary<string, object>() {
@@ -1895,7 +1895,7 @@ public partial class bitrue : Exchange
             };
         }
         string? takerOrMaker = null;
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -3061,7 +3061,7 @@ public partial class bitrue : Exchange
         }
         object code = this.safeCurrencyCode(currencyId, currency);
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -3181,7 +3181,7 @@ public partial class bitrue : Exchange
         };
         if (isTrue(!isEqual(chainDetailLength, 0)))
         {
-            for (object i = 0; isLessThan(i, chainDetailLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, chainDetailLength); postFixIncrement(ref i))
             {
                 object chainDetail = getValue(chainDetails, i);
                 string? networkId = this.safeString(chainDetail, "chain");
@@ -3362,7 +3362,7 @@ public partial class bitrue : Exchange
         object currency = this.currency(code);
         object accountTypes = this.safeDict(this.options, "accountsByType", new Dictionary<string, object>() {});
         object fromId = this.safeString(accountTypes, fromAccount, fromAccount);
-        object toId = this.safeString(accountTypes, toAccount, toAccount);
+        string? toId = this.safeString(accountTypes, toAccount, toAccount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "coinSymbol", getValue(currency, "id") },
             { "amount", this.currencyToPrecision(code, amount) },
@@ -3502,7 +3502,7 @@ public partial class bitrue : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string? type = this.safeString(api, 0);
-        object version = this.safeString(api, 1);
+        string? version = this.safeString(api, 1);
         string? access = this.safeString(api, 2);
         object url = null;
         if (isTrue(isTrue((isTrue(isEqual(type, "api")) && isTrue(isEqual(version, "kline")))) || isTrue((isTrue(isEqual(type, "open")) && isTrue(isGreaterThanOrEqual(getIndexOf(path, "listenKey"), 0))))))
@@ -3626,7 +3626,7 @@ public partial class bitrue : Exchange
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? messageInner = this.safeString(response, "msg");
@@ -3647,7 +3647,7 @@ public partial class bitrue : Exchange
                 }
             }
         }
-        object message = this.safeString(response, "msg");
+        string? message = this.safeString(response, "msg");
         if (isTrue(!isEqual(message, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, add(add(this.id, " "), message));
@@ -3691,7 +3691,7 @@ public partial class bitrue : Exchange
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
                 if (isTrue(isLessThanOrEqual(limit, getValue(entry, 0))))

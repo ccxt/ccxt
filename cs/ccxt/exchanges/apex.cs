@@ -216,6 +216,9 @@ public partial class apex : Exchange
                         { "v3/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/stock/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v3/delete-open-orders", new Dictionary<string, object>() {
@@ -237,6 +240,18 @@ public partial class apex : Exchange
                             { "cost", 1 },
                         } },
                         { "v3/contract-transfer-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/contract-transfer-to", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/submit-withdraw-claim", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stock/register-account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stock/generate-api", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -568,11 +583,11 @@ public partial class apex : Exchange
         string? name = this.safeString(currency, "displayName");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = getValue(this.options, "_temp_currencies_chains");
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             object tokens = this.safeList(chain, "tokens", new List<object>() {});
-            for (object f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
+            for (int f = 0; isLessThan(f, getArrayLength(tokens)); postFixIncrement(ref f))
             {
                 object token = getValue(tokens, f);
                 string? tokenName = this.safeString(token, "token");
@@ -717,7 +732,7 @@ public partial class apex : Exchange
         string? id2 = this.safeString(market, "crossSymbolName");
         string? quoteId = this.safeString(market, "l2PairId");
         object baseId = this.safeString(market, "baseTokenId");
-        object quote = this.safeString(market, "settleAssetId");
+        string? quote = this.safeString(market, "settleAssetId");
         object bs = this.safeCurrencyCode(baseId);
         string? settleId = this.safeString(market, "settleAssetId");
         object settle = this.safeCurrencyCode(settleId);
@@ -1079,7 +1094,7 @@ public partial class apex : Exchange
         string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         string? id = this.safeString2(trade, "i", "id");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "v", "size");
         string? side = this.safeStringLower2(trade, "S", "side");
@@ -1202,7 +1217,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["page"] = page;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -1225,7 +1240,7 @@ public partial class apex : Exchange
         List<object> rates = new List<object>() {};
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object resultList = this.safeList(data, "historyFunds", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
         {
             object entry = getValue(resultList, i);
             Int64? timestamp = this.safeInteger(entry, "fundingTimestamp");
@@ -1637,7 +1652,7 @@ public partial class apex : Exchange
         {
             assets = spotAssets;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(this.safeString(getValue(assets, i), "token", ""), code)))
             {
@@ -1902,7 +1917,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -1986,7 +2001,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             ((IDictionary<string,object>)request)["endTimeExclusive"] = endTimeExclusive;
@@ -2034,7 +2049,7 @@ public partial class apex : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
+        Int64? endTimeExclusive = this.safeIntegerN(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});
         if (isTrue(!isEqual(endTimeExclusive, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"endTime", "endTimeExclusive", "until"});

@@ -17,6 +17,11 @@ func (this *Bit2cCore) PublicGetExchangesPairOrderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairOrderbook", args...)
 }
 
+// PublicGetExchangesPairOrderbookTop returns a channel that yields a JSON object.
+func (this *Bit2cCore) PublicGetExchangesPairOrderbookTop(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExchangesPairOrderbookTop", args...)
+}
+
 // PublicGetExchangesPairTrades returns a channel that yields a JSON array.
 func (this *Bit2cCore) PublicGetExchangesPairTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangesPairTrades", args...)
@@ -35,6 +40,11 @@ func (this *Bit2cCore) PrivatePostMerchantCreateCheckout(args ...any) <-chan any
 // PrivatePostFundsAddCoinFundsRequest returns a channel that yields a JSON object.
 func (this *Bit2cCore) PrivatePostFundsAddCoinFundsRequest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostFundsAddCoinFundsRequest", args...)
+}
+
+// PrivatePostFundsWithdrawCoin returns a channel that yields a JSON object.
+func (this *Bit2cCore) PrivatePostFundsWithdrawCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostFundsWithdrawCoin", args...)
 }
 
 // PrivatePostOrderAddFund returns a channel that yields a JSON object.
@@ -120,4 +130,9 @@ func (this *Bit2cCore) PrivateGetOrderAccountHistory(args ...any) <-chan any {
 // PrivateGetOrderOrderHistory returns a channel that yields a JSON array.
 func (this *Bit2cCore) PrivateGetOrderOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrderOrderHistory", args...)
+}
+
+// PrivateGetOrderHistoryByOrderId returns a channel that yields a JSON array.
+func (this *Bit2cCore) PrivateGetOrderHistoryByOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetOrderHistoryByOrderId", args...)
 }

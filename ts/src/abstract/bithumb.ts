@@ -37,6 +37,8 @@ interface Exchange {
     privateGetV1OrdersChance (params?: {}): Promise<Dict>;
     privateGetV1Order (params?: {}): Promise<Dict>;
     privateGetV1Orders (params?: {}): Promise<List>;
+    privateGetV2OrdersPending (params?: {}): Promise<Dict>;
+    privateGetV2OrdersHistory (params?: {}): Promise<Dict>;
     privateGetV1Twap (params?: {}): Promise<Dict>;
     privateGetV1Withdraws (params?: {}): Promise<List>;
     privateGetV1WithdrawsKrw (params?: {}): Promise<List>;
@@ -68,6 +70,7 @@ interface Exchange {
     privatePostV2Orders (params?: {}): Promise<Dict>;
     privatePostV2OrdersBatch (params?: {}): Promise<Dict>;
     privatePostV2OrdersCancel (params?: {}): Promise<Dict>;
+    privatePostV2OrdersSearch (params?: {}): Promise<List>;
     privatePostV1Twap (params?: {}): Promise<Dict>;
     privatePostV1WithdrawsCoin (params?: {}): Promise<Dict>;
     privatePostV1WithdrawsKrw (params?: {}): Promise<Dict>;

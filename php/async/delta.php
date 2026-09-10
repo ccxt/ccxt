@@ -191,6 +191,7 @@ class delta extends Exchange {
                         'users/update_mmp' => array( 'cost' => 1 ),
                         'users/reset_mmp' => array( 'cost' => 1 ),
                         'users/margin_mode' => array( 'cost' => 1 ),
+                        'users/trading_preferences' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'orders' => array( 'cost' => 1 ),

@@ -928,6 +928,9 @@ public class BinanceCore extends BinanceApi
                         put( "portfolio/delta-mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 150 );
                         }} );
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "staking/productList", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -1401,6 +1404,9 @@ public class BinanceCore extends BinanceApi
                         put( "portfolio/delta-mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 150 );
                         }} );
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "lending/auto-invest/plan/add", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -1477,6 +1483,9 @@ public class BinanceCore extends BinanceApi
                         }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "margin/openOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -2333,6 +2342,9 @@ public class BinanceCore extends BinanceApi
                         put( "block/order/execute", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "stock/contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "listenKey", new java.util.HashMap<String, Object>() {{
@@ -2412,8 +2424,21 @@ public class BinanceCore extends BinanceApi
                         put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "executionRules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                            put( "noSymbol", 8 );
+                        }} );
                         put( "avgPrice", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.4 );
+                        }} );
+                        put( "referencePrice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                        }} );
+                        put( "referencePrice/calculation", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                        }} );
+                        put( "historicalBlockTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
@@ -2563,6 +2588,15 @@ public class BinanceCore extends BinanceApi
                         put( "um/conditional/allOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 40 );
+                        }} );
+                        put( "um/algo/algoOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/openAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/allAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                         put( "cm/conditional/openOrder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -2738,6 +2772,9 @@ public class BinanceCore extends BinanceApi
                         put( "um/conditional/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "um/algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "cm/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -2818,6 +2855,12 @@ public class BinanceCore extends BinanceApi
                             put( "cost", 1 );
                         }} );
                         put( "um/conditional/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/allOpenOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "cm/order", new java.util.HashMap<String, Object>() {{

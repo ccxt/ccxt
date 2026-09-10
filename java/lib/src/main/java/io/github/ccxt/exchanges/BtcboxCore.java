@@ -150,6 +150,9 @@ public class BtcboxCore extends BtcboxApi
                         put( "balance", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "order_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "trade_add", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

@@ -19,6 +19,7 @@ interface Exchange {
     publicGetGetboardstate (params?: {}): Promise<Dict>;
     publicGetGetchats (params?: {}): Promise<List>;
     publicGetGetfundingrate (params?: {}): Promise<Dict>;
+    publicGetGetfundingratehistory (params?: {}): Promise<List>;
     privateGetGetpermissions (params?: {}): Promise<List>;
     privateGetGetbalance (params?: {}): Promise<Dict>;
     privateGetGetbalancehistory (params?: {}): Promise<List>;

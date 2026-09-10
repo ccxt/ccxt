@@ -402,6 +402,11 @@ func (this *PoloniexCore) SwapPublicGetV3MarketFundingRate(args ...any) <-chan a
 	return this.callEndpointAsync("swapPublicGetV3MarketFundingRate", args...)
 }
 
+// SwapPublicGetV3MarketFundingRateHistory returns a channel that yields a JSON object.
+func (this *PoloniexCore) SwapPublicGetV3MarketFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketFundingRateHistory", args...)
+}
+
 // SwapPublicGetV3MarketOpenInterest returns a channel that yields a JSON object.
 func (this *PoloniexCore) SwapPublicGetV3MarketOpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketOpenInterest", args...)
@@ -415,6 +420,11 @@ func (this *PoloniexCore) SwapPublicGetV3MarketInsurance(args ...any) <-chan any
 // SwapPublicGetV3MarketRiskLimit returns a channel that yields a JSON object.
 func (this *PoloniexCore) SwapPublicGetV3MarketRiskLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPublicGetV3MarketRiskLimit", args...)
+}
+
+// SwapPublicGetV3MarketLimitPrice returns a channel that yields a JSON object.
+func (this *PoloniexCore) SwapPublicGetV3MarketLimitPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPublicGetV3MarketLimitPrice", args...)
 }
 
 // SwapPrivateGetV3AccountBalance returns a channel that yields a JSON object.
@@ -442,6 +452,11 @@ func (this *PoloniexCore) SwapPrivateGetV3TradeOrderHistory(args ...any) <-chan 
 	return this.callEndpointAsync("swapPrivateGetV3TradeOrderHistory", args...)
 }
 
+// SwapPrivateGetV3TradeOrderDetails returns a channel that yields a JSON object.
+func (this *PoloniexCore) SwapPrivateGetV3TradeOrderDetails(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3TradeOrderDetails", args...)
+}
+
 // SwapPrivateGetV3TradePositionOpens returns a channel that yields a JSON object.
 func (this *PoloniexCore) SwapPrivateGetV3TradePositionOpens(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPrivateGetV3TradePositionOpens", args...)
@@ -460,6 +475,11 @@ func (this *PoloniexCore) SwapPrivateGetV3PositionLeverages(args ...any) <-chan 
 // SwapPrivateGetV3PositionMode returns a channel that yields a JSON object.
 func (this *PoloniexCore) SwapPrivateGetV3PositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("swapPrivateGetV3PositionMode", args...)
+}
+
+// SwapPrivateGetV3PositionRiskLimit returns a channel that yields a JSON object.
+func (this *PoloniexCore) SwapPrivateGetV3PositionRiskLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("swapPrivateGetV3PositionRiskLimit", args...)
 }
 
 // SwapPrivatePostV3TradeOrder returns a channel that yields a JSON object.

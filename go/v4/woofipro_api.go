@@ -127,6 +127,16 @@ func (this *WoofiproCore) V1PublicGetPublicPointsEpochDates(args ...any) <-chan 
 	return this.callEndpointAsync("v1PublicGetPublicPointsEpochDates", args...)
 }
 
+// V1PublicGetPublicPointsRankings returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetPublicPointsRankings(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetPublicPointsRankings", args...)
+}
+
+// V1PublicGetPublicPointsStages returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetPublicPointsStages(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetPublicPointsStages", args...)
+}
+
 // V1PublicGetPublicReferralCheckRefCode returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PublicGetPublicReferralCheckRefCode(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetPublicReferralCheckRefCode", args...)
@@ -192,6 +202,11 @@ func (this *WoofiproCore) V1PublicGetTvSymbolInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetTvSymbolInfo", args...)
 }
 
+// V1PublicGetTvKlineHistory returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetTvKlineHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetTvKlineHistory", args...)
+}
+
 // V1PublicGetPublicFundingRateHistory returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PublicGetPublicFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetPublicFundingRateHistory", args...)
@@ -235,6 +250,21 @@ func (this *WoofiproCore) V1PublicGetPublicFutures(args ...any) <-chan any {
 // V1PublicGetPublicFuturesSymbol returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PublicGetPublicFuturesSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetPublicFuturesSymbol", args...)
+}
+
+// V1PublicGetStakingValor2BatchInfo returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetStakingValor2BatchInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetStakingValor2BatchInfo", args...)
+}
+
+// V1PublicGetStakingValor2PoolInfo returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetStakingValor2PoolInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetStakingValor2PoolInfo", args...)
+}
+
+// V1PublicGetStakingValor2RevenueBuyback returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PublicGetStakingValor2RevenueBuyback(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetStakingValor2RevenueBuyback", args...)
 }
 
 // V1PublicPostRegisterAccount returns a channel that yields a JSON object.
@@ -327,6 +357,11 @@ func (this *WoofiproCore) V1PrivateGetSettleNonce(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetSettleNonce", args...)
 }
 
+// V1PrivateGetTransferNonce returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetTransferNonce(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetTransferNonce", args...)
+}
+
 // V1PrivateGetPnlSettlementHistory returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivateGetPnlSettlementHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPnlSettlementHistory", args...)
@@ -397,6 +432,11 @@ func (this *WoofiproCore) V1PrivateGetBrokerUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetBrokerUserInfo", args...)
 }
 
+// V1PrivateGetBrokerDailyFeeRevenue returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBrokerDailyFeeRevenue", args...)
+}
+
 // V1PrivateGetOrderbookSymbol returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrderbookSymbol", args...)
@@ -410,6 +450,66 @@ func (this *WoofiproCore) V1PrivateGetKline(args ...any) <-chan any {
 // V1PrivateGetClientMarginModes returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivateGetClientMarginModes(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetClientMarginModes", args...)
+}
+
+// V1PrivateGetClientLeverages returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetClientLeverages(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetClientLeverages", args...)
+}
+
+// V1PrivateGetClientPointsUserStatistics returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetClientPointsUserStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetClientPointsUserStatistics", args...)
+}
+
+// V1PrivateGetStakingValor2Redeem returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetStakingValor2Redeem(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetStakingValor2Redeem", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdmin returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdmin", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminInfo returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminInfo", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminRefereeList returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminRefereeList", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminSummary returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminSummary", args...)
+}
+
+// V1PrivateGetReferralMultiLevelMaxRebateRate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelMaxRebateRate", args...)
+}
+
+// V1PrivateGetReferralMultiLevelRebateInfo returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRebateInfo", args...)
+}
+
+// V1PrivateGetReferralMultiLevelRefereeList returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRefereeList", args...)
+}
+
+// V1PrivateGetReferralMultiLevelStatistics returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelStatistics", args...)
+}
+
+// V1PrivateGetReferralMultiLevelVolumePrerequisite returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelVolumePrerequisite", args...)
 }
 
 // V1PrivatePostOrderlyKey returns a channel that yields a JSON object.
@@ -475,6 +575,11 @@ func (this *WoofiproCore) V1PrivatePostNotificationInboxMarkReadAll(args ...any)
 // V1PrivatePostClientLeverage returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
+}
+
+// V1PrivatePostClientLeverages returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostClientLeverages(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostClientLeverages", args...)
 }
 
 // V1PrivatePostClientMarginMode returns a channel that yields a JSON object.
@@ -547,6 +652,51 @@ func (this *WoofiproCore) V1PrivatePostReferralEditSplit(args ...any) <-chan any
 	return this.callEndpointAsync("v1PrivatePostReferralEditSplit", args...)
 }
 
+// V1PrivatePostReferralEditRefereeDescription returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralEditRefereeDescription", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdmin returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdmin", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminCreateAffiliate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminCreateAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminResetAffiliate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminResetAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminUpdate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminUpdateAffiliate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelClaimCode returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelClaimCode", args...)
+}
+
+// V1PrivatePostReferralMultiLevelRebateRateSetDefault returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateSetDefault", args...)
+}
+
+// V1PrivatePostReferralMultiLevelRebateRateUpdate returns a channel that yields a JSON object.
+func (this *WoofiproCore) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateUpdate", args...)
+}
+
 // V1PrivatePutOrder returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePutOrder", args...)
@@ -595,4 +745,9 @@ func (this *WoofiproCore) V1PrivateDeleteBatchOrder(args ...any) <-chan any {
 // V1PrivateDeleteClientBatchOrder returns a channel that yields a JSON object.
 func (this *WoofiproCore) V1PrivateDeleteClientBatchOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteClientBatchOrder", args...)
+}
+
+// V2PrivatePostInternalTransfer returns a channel that yields a JSON object.
+func (this *WoofiproCore) V2PrivatePostInternalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostInternalTransfer", args...)
 }

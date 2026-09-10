@@ -180,11 +180,17 @@ export default class pacifica extends Exchange {
                         'orders': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/history': { 'cost': 12 } as Endpoint<Dict>,
                         'orders/history_by_id': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/twap': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/twap/history': { 'cost': 12 } as Endpoint<Dict>,
+                        'orders/twap/history_by_id': { 'cost': 1 } as Endpoint<Dict>,
                         'spot_assets': { 'cost': 1 } as Endpoint<Dict>,
                         'spot_assets/bridge/info': { 'cost': 1 } as Endpoint<Dict>,
                         'spot_assets/bridge/parameters/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         'lake/list': { 'cost': 1 } as Endpoint<Dict>,
                         'account/builder_codes/approvals': { 'cost': 1 } as Endpoint<List>,
+                        'builder/overview': { 'cost': 1 } as Endpoint<List>,
+                        'builder/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'leaderboard/builder_code': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
@@ -209,9 +215,20 @@ export default class pacifica extends Exchange {
                         'orders/stop/cancel': { 'cost': 0.5 } as Endpoint<Dict>,
                         'orders/edit': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/batch': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/twap/create': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/twap/cancel': { 'cost': 0.5 } as Endpoint<Dict>,
                         'account/builder_codes/approve': { 'cost': 1 } as Endpoint<Dict>,
                         'account/builder_codes/revoke': { 'cost': 1 } as Endpoint<Dict>,
+                        'builder/update_fee_rate': { 'cost': 1 } as Endpoint<Dict>,
+                        'referral/user/code/claim': { 'cost': 1 } as Endpoint<Dict>,
                         'agent/bind': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/revoke': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/revoke_all': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/ip_whitelist/list': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/ip_whitelist/add': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/ip_whitelist/remove': { 'cost': 1 } as Endpoint<Dict>,
+                        'agent/ip_whitelist/toggle': { 'cost': 1 } as Endpoint<Dict>,
                         'account/api_keys/create': { 'cost': 1 } as Endpoint<Dict>,
                         'account/api_keys/revoke': { 'cost': 1 } as Endpoint<Dict>,
                         'account/api_keys': { 'cost': 1 } as Endpoint<Dict>,
@@ -1423,7 +1440,9 @@ export default class pacifica extends Exchange {
         const timestamp = this.safeInteger (trade, 'created_at');
         const price = this.safeString (trade, 'price');
         const amount = this.safeString (trade, 'amount');
-        const symbol = this.safeSymbol (undefined, market);
+        const marketId = this.safeString (trade, 'symbol');
+        market = this.safeMarket (marketId, market);
+        const symbol = market['symbol'];
         const id = this.safeString (trade, 'history_id');
         let side = this.safeString (trade, 'side');
         if (side === 'open_long') {

@@ -75,6 +75,17 @@ public class BtcboxApi extends Exchange
     }
 
     /**
+     * Calls the privatePostOrderHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostOrderHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOrderHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostTradeAdd endpoint.
      *
      * @param optionalArgs the request parameters

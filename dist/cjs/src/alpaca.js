@@ -156,7 +156,31 @@ class alpaca extends alpaca$1["default"] {
                 'withdraw': true,
             },
             'api': {
-                'broker': {},
+                'broker': {
+                    'private': {
+                        'get': {
+                            'v1/accounts/{account_id}/tokenization/requests': { 'cost': 1 },
+                            'v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}': { 'cost': 1 },
+                            'v1/accounts/{account_id}/tokenization/requests:by_client_request_id': { 'cost': 1 },
+                            'v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id': { 'cost': 1 },
+                            'v1/fpsl/analytics/{account_id}/loans': { 'cost': 1 },
+                            'v1/ipos': { 'cost': 1 },
+                            'v1/ipos/{offering_reference}': { 'cost': 1 },
+                            'v1/wallets/travel-rule/vasps': { 'cost': 1 },
+                            'v1beta1/acats': { 'cost': 1 },
+                            'v1beta1/acats/contrabrokers': { 'cost': 1 },
+                            'v1beta1/acats/{account_id}': { 'cost': 1 },
+                            'v1beta1/acats/{account_id}/{acats_id}': { 'cost': 1 },
+                            'v1beta1/acats/{account_id}/{acats_id}/assets': { 'cost': 1 },
+                        },
+                        'post': {
+                            'v1beta1/acats/{account_id}': { 'cost': 1 },
+                        },
+                        'patch': {
+                            'v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': { 'cost': 1 },
+                        },
+                    },
+                },
                 'trader': {
                     'private': {
                         'get': {
@@ -180,6 +204,13 @@ class alpaca extends alpaca$1["default"] {
                             'v2/corporate_actions/announcements': { 'cost': 1 },
                             'v2/wallets': { 'cost': 1 },
                             'v2/wallets/transfers': { 'cost': 1 },
+                            'v1/locates': { 'cost': 1 },
+                            'v1/locates/{locate_id}': { 'cost': 1 },
+                            'v1/locates/quotes': { 'cost': 1 },
+                            'v2/tokenization/requests': { 'cost': 1 },
+                            'v2/tokenization/requests/{tokenization_request_id}': { 'cost': 1 },
+                            'v2/tokenization/requests:by_client_request_id': { 'cost': 1 },
+                            'v2/wallets/travel-rule/vasps': { 'cost': 1 },
                         },
                         'post': {
                             'v2/orders': { 'cost': 1 },
@@ -187,6 +218,7 @@ class alpaca extends alpaca$1["default"] {
                             'v2/watchlists/{watchlist_id}': { 'cost': 1 },
                             'v2/watchlists:by_name': { 'cost': 1 },
                             'v2/wallets/transfers': { 'cost': 1 },
+                            'v1/locates': { 'cost': 1 },
                         },
                         'put': {
                             'v2/orders/{order_id}': { 'cost': 1 },
@@ -196,6 +228,7 @@ class alpaca extends alpaca$1["default"] {
                         'patch': {
                             'v2/orders/{order_id}': { 'cost': 1 },
                             'v2/account/configurations': { 'cost': 1 },
+                            'v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info': { 'cost': 1 },
                         },
                         'delete': {
                             'v2/orders': { 'cost': 1 },
@@ -224,6 +257,8 @@ class alpaca extends alpaca$1["default"] {
                     'private': {
                         'get': {
                             'v1beta1/corporate-actions': { 'cost': 1 },
+                            'v1beta1/fixed_income/latest/prices': { 'cost': 1 },
+                            'v1beta1/fixed_income/latest/quotes': { 'cost': 1 },
                             'v1beta1/forex/latest/rates': { 'cost': 1 },
                             'v1beta1/forex/rates': { 'cost': 1 },
                             'v1beta1/logos/{symbol}': { 'cost': 1 },

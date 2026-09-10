@@ -124,6 +124,9 @@ public partial class bit2c : Exchange
                         { "Exchanges/{pair}/orderbook", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "Exchanges/{pair}/orderbook-top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "Exchanges/{pair}/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -138,6 +141,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Funds/AddCoinFundsRequest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Funds/WithdrawCoin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "Order/AddFund", new Dictionary<string, object>() {
@@ -191,6 +197,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Order/OrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/HistoryByOrderId", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -336,7 +345,7 @@ public partial class bit2c : Exchange
             { "datetime", null },
         };
         List<object> codes = new List<object>(((IDictionary<string,object>)this.currencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
@@ -446,7 +455,7 @@ public partial class bit2c : Exchange
         object rawAsks = this.safeList(orderbook, "asks", new List<object>() {});
         List<object> bids = new List<object>() {};
         List<object> asks = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawBids)); postFixIncrement(ref i))
         {
             object bidRow = getValue(rawBids, i);
             string? bidAmount = this.safeString(bidRow, 1);
@@ -455,7 +464,7 @@ public partial class bit2c : Exchange
                 ((IList<object>)bids).Add(bidRow);
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawAsks)); postFixIncrement(ref i))
         {
             object askRow = getValue(rawAsks, i);
             string? askAmount = this.safeString(askRow, 1);
@@ -621,7 +630,7 @@ public partial class bit2c : Exchange
         object fees = this.safeValue(response, "Fees", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)fees).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);
             object symbol = this.safeSymbol(marketId);
@@ -996,7 +1005,7 @@ public partial class bit2c : Exchange
     {
         object newString = "";
         List<object> strParts = ((string)str).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
-        for (object i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(strParts)); postFixIncrement(ref i))
         {
             newString = add(newString, getValue(strParts, i));
         }
@@ -1042,7 +1051,7 @@ public partial class bit2c : Exchange
         object price = null;
         string? amount = null;
         object orderId = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object side = null;
         string? makerOrTaker = null;
         string? reference = this.safeString(trade, "reference");
@@ -1192,7 +1201,7 @@ public partial class bit2c : Exchange
             Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters);
-            object auth = this.urlencode(query);
+            string auth = this.urlencode(query);
             if (isTrue(isEqual(method, "GET")))
             {
                 if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

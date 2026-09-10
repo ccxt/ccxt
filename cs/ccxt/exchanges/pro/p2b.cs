@@ -180,7 +180,7 @@ public partial class p2b : ccxt.p2b
         parameters = ((IList<object>)nameparametersVariable)[1];
         List<object> messageHashes = new List<object>() {};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)messageHashes).Add(add(add(name, "::"), getValue(market, "symbol")));
@@ -236,7 +236,7 @@ public partial class p2b : ccxt.p2b
         List<object> messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 ((IList<object>)messageHashes).Add(add("deals::", getValue(symbols, i)));
             }
@@ -320,7 +320,7 @@ public partial class p2b : ccxt.p2b
         object market = this.safeMarket(marketId);
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(channel, timeframes);
-        object symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol");
         object messageHash = add(add(channel, "::"), symbol);
         object parsed = this.parseOHLCV(data, market);
         ((IDictionary<string,object>)this.ohlcvs)[(string)((string)symbol)] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
@@ -364,7 +364,7 @@ public partial class p2b : ccxt.p2b
         object trades = this.safeList(data, 1);
         string? marketId = this.safeString(data, 0);
         object market = this.safeMarket(marketId);
-        object symbol = this.safeString(market, "symbol");
+        string? symbol = this.safeString(market, "symbol");
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
         {
@@ -372,7 +372,7 @@ public partial class p2b : ccxt.p2b
             tradesArray = new ArrayCache(tradesLimit);
             ((IDictionary<string,object>)this.trades)[(string)((string)symbol)] = tradesArray;
         }
-        for (object i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength((IList<object>)(trades))); postFixIncrement(ref i))
         {
             object item = getValue((IList<object>)(trades), i);
             object trade = this.parseTrade(item, market);
@@ -465,7 +465,7 @@ public partial class p2b : ccxt.p2b
         //    }
         //
         object parameters = this.safeList(message, "params", new List<object>() {});
-        object isFullUpdate = this.safeBool(parameters, 0, false);
+        bool? isFullUpdate = this.safeBool(parameters, 0, false);
         object data = this.safeDict(parameters, 1);
         object asks = this.safeList(data, "asks");
         object bids = this.safeList(data, "bids");
@@ -491,7 +491,7 @@ public partial class p2b : ccxt.p2b
         }
         if (isTrue(!isEqual(bids, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(bids)); postFixIncrement(ref i))
             {
                 object bid = this.safeValue(bids, i);
                 object price = this.safeNumber(bid, 0);
@@ -502,7 +502,7 @@ public partial class p2b : ccxt.p2b
         }
         if (isTrue(!isEqual(asks, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(asks)); postFixIncrement(ref i))
             {
                 object ask = this.safeValue(asks, i);
                 object price = this.safeNumber(ask, 0);
@@ -542,14 +542,14 @@ public partial class p2b : ccxt.p2b
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         string? error = this.safeString(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
             throw new ExchangeError ((string)add(add(this.id, " error: "), this.json(error))) ;
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override object ping(WebSocketClient client)
