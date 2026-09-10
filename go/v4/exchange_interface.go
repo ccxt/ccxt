@@ -110,6 +110,8 @@ type IBaseExchange interface {
 	GetLast_request_headers() map[string]any
 	GetLast_response_headers() map[string]any
 	GetLastResponseHeaders() map[string]any
+	SetFetchHistoryCacheSize(size any)
+	GetFetchCacheSize() int
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val any)
 	GetHas() map[string]any
