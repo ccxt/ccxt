@@ -525,7 +525,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         response = await self.limitlessPublicGetMarketsAddressOrSlug(self.extend(request, params))
         # a group response carries its tradeable children in `markets`(each a full market row
         # with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        # and wraps own one-market event, which parseEvent's loop then parses
+        # and wraps as its own one-market event, which parseEvent's loop then parses
         rows = self.expand_group_rows([response])
         wrapped = self.extend(response, {'markets': rows})
         event = self.parse_event(wrapped)
@@ -798,7 +798,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         for i in range(0, len(rawMarkets)):
             rawMarket = rawMarkets[i]
             # an already-parsed ccxt market row carries the unified 'market' handle + outcomes
-            # with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            # with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             marketSymbol = self.safe_string_2(rawMarket, 'market', 'symbol')
             marketOutcomes = self.safe_list(rawMarket, 'outcomes')
             if marketSymbol is not None and marketOutcomes is not None:
@@ -1275,7 +1275,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1430,7 +1430,7 @@ class limitless(PredictionExchange, ImplicitAPI):
         #         }
         #     ]
         #
-        # pass None: parsePredictionOrder sets outcome to the market outcome while the outcome
+        # pass None as market: parsePredictionOrder sets outcome to the market outcome while the outcome
         # lives under 'outcome', so the base outcome filter would drop every order; the per-slug
         # endpoint already scopes results and parsePredictionOrder resolves the outcome via outcomes_by_id
         return self.parse_prediction_orders(self.to_array(response), None, since, limit)
@@ -1962,7 +1962,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'side': sideValue,
             'signatureType': signatureType,
         }
-        # the contract expects expiration uint256; non-zero values are rejected by the API(GTC orders use 0)
+        # the contract expects expiration as a uint256; non-zero values are rejected by the API(GTC orders use 0)
         expirationInt = self.safe_integer(params, 'expiration')
         if expirationInt is not None:
             params = self.omit(params, 'expiration')

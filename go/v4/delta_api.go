@@ -252,6 +252,11 @@ func (this *DeltaCore) PrivatePutUsersMarginMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutUsersMarginMode", args...)
 }
 
+// PrivatePutUsersTradingPreferences returns a channel that yields a JSON object.
+func (this *DeltaCore) PrivatePutUsersTradingPreferences(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUsersTradingPreferences", args...)
+}
+
 // PrivateDeleteOrders returns a channel that yields a JSON object.
 func (this *DeltaCore) PrivateDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrders", args...)

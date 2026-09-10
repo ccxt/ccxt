@@ -94,7 +94,7 @@ public partial class weex : ccxt.weex
         subscription ??= new Dictionary<string, object>();
         object id = this.requestId();
         string method = "SUBSCRIBE";
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
             method = "UNSUBSCRIBE";
@@ -121,7 +121,7 @@ public partial class weex : ccxt.weex
         object url = add(getValue(getValue(getValue(this.urls, "api"), "ws"), type), "/private");
         this.authenticate(url);
         string method = "SUBSCRIBE";
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
             method = "UNSUBSCRIBE";
@@ -145,7 +145,7 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object timestamp = this.nonce();
+        Int64 timestamp = this.nonce();
         object payload = add(((object)timestamp).ToString(), "/v3/ws/private");
         string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256, "base64");
         object originalHeaders = getValue(getValue(getValue(this.options, "ws"), "options"), "headers");
@@ -226,10 +226,10 @@ public partial class weex : ccxt.weex
         string topic = "ticker";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
             object messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -285,13 +285,13 @@ public partial class weex : ccxt.weex
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
             object messageHash = add(add(topic, "::"), symbol);
-            object unSubMessageHash = add("unsubscribe::", messageHash);
+            string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
             ((IList<object>)unSubHashes).Add(unSubMessageHash);
@@ -338,11 +338,11 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object tickers = this.safeList(message, "d", new List<object>() {});
-        object data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
+        List<object> tickers = this.safeList(message, "d", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(tickers, 0, new Dictionary<string, object>() {});
         object ticker = this.parseWsTicker(data, market);
         object symbol = getValue(market, "symbol");
-        object messageHash = add("ticker::", symbol);
+        string messageHash = add("ticker::", symbol);
         ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
         callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.tickers, symbol), messageHash});
     }
@@ -440,10 +440,10 @@ public partial class weex : ccxt.weex
         string topic = "trade";
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
             object messageHash = add(add(topic, "::"), symbol);
             ((IList<object>)messageHashes).Add(messageHash);
@@ -499,13 +499,13 @@ public partial class weex : ccxt.weex
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), topic);
             object messageHash = add(add(topic, "::"), symbol);
-            object unSubMessageHash = add("unsubscribe::", messageHash);
+            string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
             ((IList<object>)unSubHashes).Add(unSubMessageHash);
@@ -545,23 +545,23 @@ public partial class weex : ccxt.weex
             return;
         }
         object symbol = getValue(market, "symbol");
-        object messageHash = add("trade::", symbol);
+        string messageHash = add("trade::", symbol);
         if (!isTrue((inOp(this.trades, symbol))))
         {
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = new ArrayCache(limit);
         }
         object tradesArray = getValue(this.trades, symbol);
-        object data = this.safeList(message, "d", new List<object>() {});
+        List<object> data = this.safeList(message, "d", new List<object>() {});
         List<object> newTrades = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object rawTrade = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> rawTrade = this.safeDict(data, i, new Dictionary<string, object>() {});
             object trade = this.parseWsTrade(rawTrade, market);
             ((IList<object>)newTrades).Add(trade);
         }
         List<object> sorted = this.sortBy(newTrades, "timestamp");
-        for (object j = 0; isLessThan(j, getArrayLength(sorted)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(sorted)); postFixIncrement(ref j))
         {
             object sortedTrade = getValue(sorted, j);
             callDynamically(tradesArray, "append", new object[] {sortedTrade});
@@ -645,35 +645,35 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
+        string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         List<object> channels = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        object firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
+        List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
         string? firstSymbol = this.safeString(firstEntry, 0);
-        object firstMarket = this.market(firstSymbol);
+        Dictionary<string, object> firstMarket = this.market(firstSymbol);
         object isContract = getValue(firstMarket, "contract");
         object priceType = "LAST_PRICE";
         if (isTrue(isEqual(isContract, true)))
         {
-            var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
+            IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
             priceType = ((IList<object>)priceTypeparametersVariable)[0];
             parameters = ((IList<object>)priceTypeparametersVariable)[1];
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
-            object data = this.safeList(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(symbolString);
+            Dictionary<string, object> market = this.market(symbolString);
             if (isTrue(!isEqual(getValue(market, "type"), getValue(firstMarket, "type"))))
             {
                 throw new BadRequest ((string)add(add(add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
             }
             symbolString = getValue(market, "symbol");
-            object unifiedTimeframe = this.safeString(data, 1, "1");
-            object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            string? unifiedTimeframe = this.safeString(data, 1, "1");
+            string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            object messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
+            string messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)messageHashes).Add(messageHash);
         }
@@ -685,8 +685,8 @@ public partial class weex : ccxt.weex
         {
             limit = callDynamically(stored, "getLimit", new object[] {symbol, limit});
         }
-        object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
-        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol, timeframe, filtered));
+        IList<object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+        return ccxt.BaseExchange.ToOHLCVDict(this.createOHLCVObject(symbol,((string)timeframe), filtered));
     }
 
     /**
@@ -700,12 +700,13 @@ public partial class weex : ccxt.weex
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public async override Task<object> unWatchOHLCV(object symbol, object timeframe = null, object parameters = null)
+    public async override Task<object> unWatchOHLCV(object symbol, string timeframe = null, object parameters = null)
     {
-        timeframe ??= "1m";
+        object timeframeVar = timeframe;
+        timeframeVar ??= "1m";
         parameters ??= new Dictionary<string, object>();
         ((IDictionary<string,object>)parameters)["callerMethodName"] = "unWatchOHLCV";
-        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframe}}, parameters);
+        return await this.unWatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, timeframeVar}}, parameters);
     }
 
     /**
@@ -725,37 +726,37 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
+        string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         List<object> channels = new List<object>() {};
         List<object> subHashes = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
-        object firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
+        List<object> firstEntry = this.safeList(symbolsAndTimeframes, 0, new List<object>() {});
         string? firstSymbol = this.safeString(firstEntry, 0);
-        object firstMarket = this.market(firstSymbol);
+        Dictionary<string, object> firstMarket = this.market(firstSymbol);
         object isContract = getValue(firstMarket, "contract");
         object priceType = "LAST_PRICE";
         if (isTrue(isEqual(isContract, true)))
         {
-            var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
+            IList<object> priceTypeparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
             priceType = ((IList<object>)priceTypeparametersVariable)[0];
             parameters = ((IList<object>)priceTypeparametersVariable)[1];
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
-            object data = this.safeList(symbolsAndTimeframes, i);
+            List<object> data = this.safeList(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
-            object market = this.market(symbolString);
+            Dictionary<string, object> market = this.market(symbolString);
             if (isTrue(!isEqual(getValue(market, "type"), getValue(firstMarket, "type"))))
             {
                 throw new BadRequest ((string)add(add(add(this.id, " "), callerMethodName), " market symbols must be of the same type")) ;
             }
             symbolString = getValue(market, "symbol");
-            object unifiedTimeframe = this.safeString(data, 1, "1");
-            object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
+            string? unifiedTimeframe = this.safeString(data, 1, "1");
+            string? interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
             object channel = add(add(add(add(getValue(market, "id"), "@kline_"), interval), "_"), priceType);
-            object messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
-            object unSubMessageHash = add("unsubscribe::", messageHash);
+            string messageHash = add(add(add("ohlcv::", symbolString), "::"), unifiedTimeframe);
+            string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)unSubHashes).Add(unSubMessageHash);
@@ -807,8 +808,8 @@ public partial class weex : ccxt.weex
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
         }
-        object data = this.safeList(message, "d", new List<object>() {});
-        object firstEntry = this.safeDict(data, 0, new Dictionary<string, object>() {});
+        List<object> data = this.safeList(message, "d", new List<object>() {});
+        IDictionary<string, object> firstEntry = this.safeDict(data, 0, new Dictionary<string, object>() {});
         string? interval = this.safeString(firstEntry, "i");
         object timeframe = this.findTimeframe(interval);
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -821,13 +822,13 @@ public partial class weex : ccxt.weex
                 ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object entry = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> entry = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOHLCV(entry);
             callDynamically(stored, "append", new object[] {parsed});
         }
-        object messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
+        string messageHash = add(add(add("ohlcv::", symbol), "::"), timeframe);
         List<object> resolveData = new List<object>() {symbol, timeframe, stored};
         callDynamically(client as WebSocketClient, "resolve", new object[] {resolveData, messageHash});
     }
@@ -898,16 +899,16 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object depth = "200";
-        var depthparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
         depth = ((IList<object>)depthparametersVariable)[0];
         parameters = ((IList<object>)depthparametersVariable)[1];
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
-            object messageHash = add("orderbook::", symbol);
+            Dictionary<string, object> market = this.market(symbol);
+            string messageHash = add("orderbook::", symbol);
             object channel = add(add(getValue(market, "id"), "@depth"), depth);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
@@ -961,19 +962,19 @@ public partial class weex : ccxt.weex
         string? callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
         parameters = this.omit(parameters, "callerMethodName");
         object depth = "200";
-        var depthparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
+        IList<object> depthparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
         depth = ((IList<object>)depthparametersVariable)[0];
         parameters = ((IList<object>)depthparametersVariable)[1];
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
-            object messageHash = add("orderbook::", symbol);
+            Dictionary<string, object> market = this.market(symbol);
+            string messageHash = add("orderbook::", symbol);
             object channel = add(add(getValue(market, "id"), "@depth"), depth);
-            object unSubMessageHash = add("unsubscribe::", messageHash);
+            string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channel);
             ((IList<object>)unSubHashes).Add(unSubMessageHash);
@@ -1009,10 +1010,10 @@ public partial class weex : ccxt.weex
             return;
         }
         object symbol = getValue(market, "symbol");
-        object messageHash = add("orderbook::", symbol);
+        string messageHash = add("orderbook::", symbol);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
-            object subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
+            IDictionary<string, object> subscription = this.safeDict(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
             Int64? limit = this.safeInteger(subscription, "limit");
             if (isTrue(!isEqual(limit, null)))
             {
@@ -1022,7 +1023,7 @@ public partial class weex : ccxt.weex
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
             }
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? timestamp = this.safeInteger(message, "E");
         string? eventVar = this.safeString(message, "e");
         Int64? nonce = this.safeInteger(message, "u");
@@ -1033,8 +1034,8 @@ public partial class weex : ccxt.weex
             (orderbook as IOrderBook).reset(parsed);
         } else
         {
-            object asks = this.safeList(message, "a", new List<object>() {});
-            object bids = this.safeList(message, "b", new List<object>() {});
+            List<object> asks = this.safeList(message, "a", new List<object>() {});
+            List<object> bids = this.safeList(message, "b", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -1074,12 +1075,12 @@ public partial class weex : ccxt.weex
         }
         List<object> messageHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            object messageHash = add("bidask::", symbol);
+            string messageHash = add("bidask::", symbol);
             ((IList<object>)messageHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
         }
@@ -1118,13 +1119,13 @@ public partial class weex : ccxt.weex
         List<object> subHashes = new List<object>() {};
         List<object> channels = new List<object>() {};
         List<object> unSubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object channelName = add(add(getValue(market, "id"), "@"), "bookTicker");
-            object messageHash = add("bidask::", symbol);
-            object unSubMessageHash = add("unsubscribe::", messageHash);
+            string messageHash = add("bidask::", symbol);
+            string unSubMessageHash = add("unsubscribe::", messageHash);
             ((IList<object>)subHashes).Add(messageHash);
             ((IList<object>)channels).Add(channelName);
             ((IList<object>)unSubHashes).Add(unSubMessageHash);
@@ -1164,7 +1165,7 @@ public partial class weex : ccxt.weex
         {
             ((IDictionary<string,object>)this.bidsasks)[(string)symbol] = ticker;
         }
-        object messageHash = add("bidask::", symbol);
+        string messageHash = add("bidask::", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {ticker, messageHash});
     }
 
@@ -1207,18 +1208,18 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         object marketType = null;
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
         }
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object messageHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
-        object subscriptionHash = messageHash;
+        string messageHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
+        string subscriptionHash = messageHash;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             messageHash = add(messageHash, add("::", symbolVar));
@@ -1251,12 +1252,12 @@ public partial class weex : ccxt.weex
             throw new NotSupported ((string)add(this.id, " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
+        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object subHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
-        object unSubHash = add("unsubscribe::", subHash);
+        string subHash = ((bool) isTrue(isContract)) ? "myContractTrades" : "myTrades";
+        string unSubHash = add("unsubscribe::", subHash);
         string channel = "fill";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -1322,11 +1323,11 @@ public partial class weex : ccxt.weex
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
         object trades = this.myTrades;
-        object data = this.safeList(message, "d", new List<object>() {});
+        List<object> data = this.safeList(message, "d", new List<object>() {});
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object trade = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> trade = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsMyTrade(trade);
             object symbol = getValue(parsed, "symbol");
             if (isTrue(!isEqual(symbol, null)))
@@ -1342,7 +1343,7 @@ public partial class weex : ccxt.weex
         {
             messageHash = "myContractTrades";
         }
-        for (object j = 0; isLessThan(j, getArrayLength(symbolKeys)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(symbolKeys)); postFixIncrement(ref j))
         {
             object symbol = getValue(symbolKeys, j);
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
@@ -1378,10 +1379,10 @@ public partial class weex : ccxt.weex
         {
             marketType = "swap";
         }
-        object marketResolved = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
         string? side = this.safeStringLower(trade, "orderSide");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "fillFee");
         if (isTrue(!isEqual(commission, null)))
         {
@@ -1441,19 +1442,19 @@ public partial class weex : ccxt.weex
         {
             await this.loadMarkets();
         }
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object messageHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
-        object subscriptionHash = messageHash;
+        string messageHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
+        string subscriptionHash = messageHash;
         if (isTrue(!isEqual(symbolVar, null)))
         {
             messageHash = add(messageHash, add("::", symbolVar));
@@ -1485,12 +1486,12 @@ public partial class weex : ccxt.weex
             throw new NotSupported ((string)add(this.id, " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
         }
         object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
+        IList<object> marketTypeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
         bool isContract = (!isEqual(marketType, "spot"));
-        object subHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
-        object unSubHash = add("unsubscribe::", subHash);
+        string subHash = ((bool) isTrue(isContract)) ? "contractOrders" : "orders";
+        string unSubHash = add("unsubscribe::", subHash);
         string channel = "orders";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -1551,7 +1552,7 @@ public partial class weex : ccxt.weex
         //         ]
         //     }
         //
-        object data = this.safeList(message, "d", new List<object>() {});
+        List<object> data = this.safeList(message, "d", new List<object>() {});
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1559,9 +1560,9 @@ public partial class weex : ccxt.weex
             this.orders = new ArrayCacheBySymbolById(limit);
         }
         object orders = this.orders;
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> rawOrder = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOrder(rawOrder);
             callDynamically(orders, "append", new object[] {parsed});
             object symbol = getValue(parsed, "symbol");
@@ -1577,7 +1578,7 @@ public partial class weex : ccxt.weex
         {
             messageHash = "contractOrders";
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbolKeys, i);
             object symbolMessageHash = add(add(messageHash, "::"), symbol);
@@ -1681,10 +1682,10 @@ public partial class weex : ccxt.weex
         {
             marketType = "swap";
         }
-        object marketResolved = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> marketResolved = this.safeMarket(marketId, null, null, marketType);
         market = marketResolved;
         string? side = this.safeStringLower(order, "orderSide");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(order, "cumFillFee");
         if (isTrue(!isEqual(commission, null)))
         {
@@ -1764,7 +1765,7 @@ public partial class weex : ccxt.weex
             await this.loadMarkets();
         }
         object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+        IList<object> typeparametersVariable = (IList<object>)this.handleMarketTypeAndParams("watchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         bool isContract = (!isEqual(type, "spot"));
@@ -1773,9 +1774,9 @@ public partial class weex : ccxt.weex
         this.authenticate(url);
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, type);
-        object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(type, ":fetchBalanceSnapshot"));
@@ -1790,8 +1791,8 @@ public partial class weex : ccxt.weex
         {
             return;
         }
-        object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        IDictionary<string, object> options = this.safeDict(this.options, "watchBalance");
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -1893,12 +1894,12 @@ public partial class weex : ccxt.weex
             ((IDictionary<string,object>)this.balance)[(string)accountType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.balance, accountType))["info"] = message;
-        object balanceUpdates = this.safeList(message, "d", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balanceUpdates)); postFixIncrement(ref i))
+        List<object> balanceUpdates = this.safeList(message, "d", new List<object>() {});
+        for (int i = 0; isLessThan(i, getArrayLength(balanceUpdates)); postFixIncrement(ref i))
         {
-            object entry = this.safeDict(balanceUpdates, i);
+            IDictionary<string, object> entry = this.safeDict(balanceUpdates, i);
             string? currencyId = this.safeString(entry, "coin");
-            object code = this.safeCurrencyCode(currencyId);
+            string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(entry, "available", "amount");
             ((IDictionary<string,object>)account)["used"] = this.safeString(entry, "frozen");
@@ -1938,8 +1939,8 @@ public partial class weex : ccxt.weex
         this.authenticate(url);
         var client = this.client(url);
         symbols = this.marketSymbols(symbols, "swap", true);
-        object messageHash = "positions";
-        object subscriptionHash = messageHash;
+        string messageHash = "positions";
+        string subscriptionHash = messageHash;
         if (isTrue(!isEqual(symbols, null)))
         {
             messageHash = add(messageHash, add("::", String.Join(",", ((IList<object>)symbols).ToArray())));
@@ -1984,7 +1985,7 @@ public partial class weex : ccxt.weex
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, parameters));
         this.positions = new ArrayCacheBySymbolById();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             callDynamically(cache, "append", new object[] {position});
@@ -2012,7 +2013,7 @@ public partial class weex : ccxt.weex
             throw new NotSupported ((string)add(this.id, " unWatchPositions does not support a symbols argument. Unsubscribing from positions is global for all symbols.")) ;
         }
         string subHash = "positions";
-        object unSubHash = add("unsubscribe::", subHash);
+        string unSubHash = add("unsubscribe::", subHash);
         string channel = "positions";
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "unsubscribe", true },
@@ -2070,20 +2071,20 @@ public partial class weex : ccxt.weex
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        object data = this.safeList(message, "d", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        List<object> data = this.safeList(message, "d", new List<object>() {});
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
-            object rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
+            IDictionary<string, object> rawPosition = this.safeDict(data, i, new Dictionary<string, object>() {});
             object position = this.parseWsPosition(rawPosition);
             callDynamically(cache, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
-            object symbolsString = getValue(parts, 1);
+            string? symbolsString = ((string)getValue(parts, 1));
             List<object> symbols = ((string)symbolsString).Split(new [] {((string)",")}, StringSplitOptions.None).ToList<object>();
             object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!isTrue(this.isEmpty(positions)))
@@ -2109,7 +2110,7 @@ public partial class weex : ccxt.weex
             marketType = "swap";
         }
         string? marketId = this.safeString(message, "s");
-        object market = this.safeMarket(marketId, null, null, marketType);
+        Dictionary<string, object> market = this.safeMarket(marketId, null, null, marketType);
         return market;
     }
 
@@ -2139,14 +2140,14 @@ public partial class weex : ccxt.weex
         //
         string? id = this.safeString(message, "id");
         Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
-        object subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
-        object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        IDictionary<string, object> subscription = this.safeDict(subscriptionsById, id, new Dictionary<string, object>() {});
+        bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(unsubscribe, true)))
         {
-            object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
-            object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
-            object subHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            bool? subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
+            List<object> messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
+            List<object> subHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
+            for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 string? unSubHash = this.safeString(messageHashes, i);
                 string? subHash = this.safeString(subHashes, i);
@@ -2166,11 +2167,11 @@ public partial class weex : ccxt.weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        object result = this.safeBool(message, "result", true);
+        bool? result = this.safeBool(message, "result", true);
         if (isTrue(!isEqual(result, true)))
         {
             string? msg = this.safeString(message, "msg", "");
-            object feedback = add(add(this.id, " "), this.json(message));
+            string feedback = add(add(this.id, " "), this.json(message));
             try
             {
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), msg, feedback);

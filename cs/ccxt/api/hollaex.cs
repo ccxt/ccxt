@@ -165,6 +165,13 @@ public partial class hollaex : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetUserWithdrawalFee",parameters);
     }
 
+    /// <summary>Calls the privateGetSubaccounts endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSubaccounts (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSubaccounts",parameters);
+    }
+
     /// <summary>Calls the privateGetUserTrades endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetUserTrades (object parameters = null)
@@ -191,6 +198,13 @@ public partial class hollaex : Exchange
     public async Task<Dictionary<string, object>> privatePostUserWithdrawal (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostUserWithdrawal",parameters);
+    }
+
+    /// <summary>Calls the privatePostSubaccountTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSubaccountTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSubaccountTransfer",parameters);
     }
 
     /// <summary>Calls the privatePostOrder endpoint.</summary>

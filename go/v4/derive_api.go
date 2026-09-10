@@ -27,6 +27,11 @@ func (this *DeriveCore) PublicPostDeregisterSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostDeregisterSessionKey", args...)
 }
 
+// PublicPostGetWalletsFromSessionKey returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetWalletsFromSessionKey(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetWalletsFromSessionKey", args...)
+}
+
 // PublicPostLogin returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostLogin", args...)
@@ -37,6 +42,21 @@ func (this *DeriveCore) PublicPostStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostStatistics", args...)
 }
 
+// PublicPostAllStatistics returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostAllStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostAllStatistics", args...)
+}
+
+// PublicPostUserStatistics returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostUserStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostUserStatistics", args...)
+}
+
+// PublicPostAllUserStatistics returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostAllUserStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostAllUserStatistics", args...)
+}
+
 // PublicPostGetAllCurrencies returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetAllCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetAllCurrencies", args...)
@@ -45,6 +65,16 @@ func (this *DeriveCore) PublicPostGetAllCurrencies(args ...any) <-chan any {
 // PublicPostGetCurrency returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetCurrency", args...)
+}
+
+// PublicPostGetAsset returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetAsset(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetAsset", args...)
+}
+
+// PublicPostGetAssets returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetAssets", args...)
 }
 
 // PublicPostGetInstrument returns a channel that yields a JSON object.
@@ -67,6 +97,11 @@ func (this *DeriveCore) PublicPostGetTicker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTicker", args...)
 }
 
+// PublicPostGetTickers returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetTickers", args...)
+}
+
 // PublicPostGetLatestSignedFeeds returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetLatestSignedFeeds(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetLatestSignedFeeds", args...)
@@ -85,6 +120,16 @@ func (this *DeriveCore) PublicPostGetSpotFeedHistory(args ...any) <-chan any {
 // PublicPostGetSpotFeedHistoryCandles returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetSpotFeedHistoryCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetSpotFeedHistoryCandles", args...)
+}
+
+// PublicPostGetIndexChartData returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetIndexChartData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetIndexChartData", args...)
+}
+
+// PublicPostGetTradingviewChartData returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetTradingviewChartData(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetTradingviewChartData", args...)
 }
 
 // PublicPostGetFundingRateHistory returns a channel that yields a JSON object.
@@ -112,6 +157,11 @@ func (this *DeriveCore) PublicPostGetInterestRateHistory(args ...any) <-chan any
 	return this.callEndpointAsync("publicPostGetInterestRateHistory", args...)
 }
 
+// PublicPostGetPerpImpactTwap returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetPerpImpactTwap(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetPerpImpactTwap", args...)
+}
+
 // PublicPostGetTransaction returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetTransaction(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTransaction", args...)
@@ -125,6 +175,11 @@ func (this *DeriveCore) PublicPostGetMargin(args ...any) <-chan any {
 // PublicPostMarginWatch returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostMarginWatch(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostMarginWatch", args...)
+}
+
+// PublicPostOrderQuote returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostOrderQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostOrderQuote", args...)
 }
 
 // PublicPostValidateInviteCode returns a channel that yields a JSON object.
@@ -160,6 +215,11 @@ func (this *DeriveCore) PublicPostGetTreeRoots(args ...any) <-chan any {
 // PublicPostGetSwellPercentPoints returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetSwellPercentPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetSwellPercentPoints", args...)
+}
+
+// PublicPostGetStdrvSnapshots returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetStdrvSnapshots(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetStdrvSnapshots", args...)
 }
 
 // PublicPostGetVaultAssets returns a channel that yields a JSON object.
@@ -202,6 +262,16 @@ func (this *DeriveCore) PublicPostGetVaultBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetVaultBalances", args...)
 }
 
+// PublicPostGetVaultPools returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetVaultPools(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetVaultPools", args...)
+}
+
+// PublicPostGetVaultRates returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetVaultRates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetVaultRates", args...)
+}
+
 // PublicPostEstimateIntegratorPoints returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostEstimateIntegratorPoints(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostEstimateIntegratorPoints", args...)
@@ -210,6 +280,11 @@ func (this *DeriveCore) PublicPostEstimateIntegratorPoints(args ...any) <-chan a
 // PublicPostCreateSubaccountDebug returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostCreateSubaccountDebug(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostCreateSubaccountDebug", args...)
+}
+
+// PublicPostCreateAccountWithSecret returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostCreateAccountWithSecret(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostCreateAccountWithSecret", args...)
 }
 
 // PublicPostDepositDebug returns a channel that yields a JSON object.
@@ -242,6 +317,16 @@ func (this *DeriveCore) PublicPostRegisterInvite(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostRegisterInvite", args...)
 }
 
+// PublicPostGetAllReferralCodes returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetAllReferralCodes(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetAllReferralCodes", args...)
+}
+
+// PublicPostGetReferralPerformance returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetReferralPerformance(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetReferralPerformance", args...)
+}
+
 // PublicPostGetTime returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetTime", args...)
@@ -260,6 +345,16 @@ func (this *DeriveCore) PublicPostGetMakerPrograms(args ...any) <-chan any {
 // PublicPostGetMakerProgramScores returns a channel that yields a JSON object.
 func (this *DeriveCore) PublicPostGetMakerProgramScores(args ...any) <-chan any {
 	return this.callEndpointAsync("publicPostGetMakerProgramScores", args...)
+}
+
+// PublicPostGetDetailedMakerSnapshotHistory returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetDetailedMakerSnapshotHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetDetailedMakerSnapshotHistory", args...)
+}
+
+// PublicPostGetRateLimits returns a channel that yields a JSON object.
+func (this *DeriveCore) PublicPostGetRateLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("publicPostGetRateLimits", args...)
 }
 
 // PrivatePostGetAccount returns a channel that yields a JSON object.
@@ -295,6 +390,11 @@ func (this *DeriveCore) PrivatePostChangeSubaccountLabel(args ...any) <-chan any
 // PrivatePostGetNotificationsv returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostGetNotificationsv(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetNotificationsv", args...)
+}
+
+// PrivatePostGetNotifications returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostGetNotifications(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetNotifications", args...)
 }
 
 // PrivatePostUpdateNotifications returns a channel that yields a JSON object.
@@ -357,6 +457,16 @@ func (this *DeriveCore) PrivatePostGetOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOpenOrders", args...)
 }
 
+// PrivatePostGetTriggerOrders returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostGetTriggerOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetTriggerOrders", args...)
+}
+
+// PrivatePostGetAlgoOrders returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostGetAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetAlgoOrders", args...)
+}
+
 // PrivatePostCancel returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancel", args...)
@@ -385,6 +495,21 @@ func (this *DeriveCore) PrivatePostCancelAll(args ...any) <-chan any {
 // PrivatePostCancelTriggerOrder returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostCancelTriggerOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelTriggerOrder", args...)
+}
+
+// PrivatePostCancelAlgoOrder returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostCancelAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAlgoOrder", args...)
+}
+
+// PrivatePostCancelAllAlgoOrders returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostCancelAllAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAllAlgoOrders", args...)
+}
+
+// PrivatePostCancelAllTriggerOrders returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostCancelAllTriggerOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelAllTriggerOrders", args...)
 }
 
 // PrivatePostGetOrderHistory returns a channel that yields a JSON object.
@@ -462,6 +587,16 @@ func (this *DeriveCore) PrivatePostExecuteQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostExecuteQuote", args...)
 }
 
+// PrivatePostOrderQuote returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostOrderQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderQuote", args...)
+}
+
+// PrivatePostReplaceQuote returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostReplaceQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReplaceQuote", args...)
+}
+
 // PrivatePostRfqGetBestQuote returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostRfqGetBestQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRfqGetBestQuote", args...)
@@ -537,6 +672,11 @@ func (this *DeriveCore) PrivatePostEditSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostEditSessionKey", args...)
 }
 
+// PrivatePostChangeSessionKeyLabel returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostChangeSessionKeyLabel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostChangeSessionKeyLabel", args...)
+}
+
 // PrivatePostRegisterScopedSessionKey returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostRegisterScopedSessionKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRegisterScopedSessionKey", args...)
@@ -570,4 +710,24 @@ func (this *DeriveCore) PrivatePostGetInviteCode(args ...any) <-chan any {
 // PrivatePostRegisterInvite returns a channel that yields a JSON object.
 func (this *DeriveCore) PrivatePostRegisterInvite(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostRegisterInvite", args...)
+}
+
+// PrivatePostGetContactInfo returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostGetContactInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetContactInfo", args...)
+}
+
+// PrivatePostCreateContactInfo returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostCreateContactInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCreateContactInfo", args...)
+}
+
+// PrivatePostUpdateContactInfo returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostUpdateContactInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUpdateContactInfo", args...)
+}
+
+// PrivatePostDeleteContactInfo returns a channel that yields a JSON object.
+func (this *DeriveCore) PrivatePostDeleteContactInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeleteContactInfo", args...)
 }

@@ -295,7 +295,7 @@ class btse(Exchange, ImplicitAPI):
                     },
                     'post': {
                         'spot/api/v3.3/order': 1,  # done
-                        'spot/api/v3.3/order/peg': 1,  # same
+                        'spot/api/v3.3/order/peg': 1,  # same as above
                         'spot/api/v3.3/order/cancelAllAfter': {'cost': 1},  # done
                         'spot/api/v3.3/invest/deposit': 5,
                         'spot/api/v3.3/invest/renew': 5,
@@ -529,11 +529,8 @@ class btse(Exchange, ImplicitAPI):
                     # when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     # {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     # {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    # code -1 is ambiguous across the api surfaces, the official api status
-                    # enum defines it while the legacy error envelope uses it
-                    # generic failure whose message varies, observed live both not
-                    # found and plain Failed on a malformed request against an existing
-                    # order, so it is classified by message in the broad map instead
+                    # code -1 is ambiguous(TIMEOUT in the official status enum, generic failure with a
+                    # varying message in the legacy envelope), so it is classified by message in the broad map
                     '-2': BadRequest,  # INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError,  # {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
                     '-7006': BadSymbol,  # {"status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null} observed live for a full contract id sent to the unified futures api
@@ -818,7 +815,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the bitteam api endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         self.load_markets()
         maxLimit = 300
@@ -1290,7 +1287,7 @@ class btse(Exchange, ImplicitAPI):
         #         "time": 1786602644221
         #     }
         #
-        # a single-symbol query returns data object, a multi-symbol or bare query returns an array
+        # a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
         data = self.safe_dict(response, 'data')
         if data is None:
             rows = self.safe_list(response, 'data', [])
@@ -1477,7 +1474,7 @@ class btse(Exchange, ImplicitAPI):
         marketId = self.safe_string(contract, 'symbol')
         market = self.safe_market(marketId, market)
         timestamp = self.safe_timestamp(contract, 'closeTime')
-        # dated futures carry a zero nextFundingTime only applies to
+        # dated futures carry a zero nextFundingTime as funding only applies to
         # perpetuals, observed live, the zero means no next funding and is omitted
         nextFundingTimestamp = self.safe_integer_omit_zero(contract, 'nextFundingTime')
         fundingIntervalMinutes = self.safe_integer(contract, 'fundingIntervalMinutes')
@@ -1816,7 +1813,7 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately(default is False)
         :param str [params.timeInForce]: 'GTC', 'IOC', 'FOK', 'PO', 'HALFMIN', 'FIVEMIN', 'HOUR', 'TWELVEHOUR', 'DAY', 'WEEK' or 'MONTH'
-        :param float [params.triggerPrice]: the price that a trigger order is triggered at(same)
+        :param float [params.triggerPrice]: the price that a trigger order is triggered at(same as takeProfitPrice)
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.triggerPriceType]: 'INDEX_PRICE' or 'LAST_PRICE', default is 'LAST_PRICE'
@@ -1858,8 +1855,8 @@ class btse(Exchange, ImplicitAPI):
         :param str [params.clientOrderId]: a unique id for the order
         :param bool [params.postOnly]: if True, the order will only be posted to the order book and not executed immediately, default is False
         :param str [params.timeInForce]: 'GTC', 'IOC' or 'FOK'
-        :param float [params.cost]: *market buy and trailing buy orders only* the quote quantity that can be used alternative for the amount
-        :param float [params.triggerPrice]: the price that a trigger order is triggered at, same
+        :param float [params.cost]: *market buy and trailing buy orders only* the quote quantity that can be used as an alternative for the amount
+        :param float [params.triggerPrice]: the price that a trigger order is triggered at, same as takeProfitPrice
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.triggerPriceType]: 'last', 'mark' or 'index', default is 'last'
@@ -1885,7 +1882,7 @@ class btse(Exchange, ImplicitAPI):
         isMarketOrder = (type == 'MARKET')
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
-        # exchange-specific postOnly is the same unified one
+        # exchange-specific postOnly is the same as the unified one
         postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
@@ -2037,7 +2034,7 @@ class btse(Exchange, ImplicitAPI):
         :param bool [params.hedged]: True for hedged mode, False for one way mode, default is False
         :param str [params.marginMode]: 'cross' or 'isolated', default is 'cross' - the exchange does not have cross/isolated margin modes but instead has 'ONE_WAY', 'HEDGE' and 'ISOLATED' position modes, so self param will be converted to the appropriate position mode
         :param str [params.positionMode]: 'ONE_WAY', 'HEDGE' or 'ISOLATED' - if not provided, it will be derived from the marginMode and hedged params
-        :param float [params.triggerPrice]: the price that a trigger order is triggered at, same
+        :param float [params.triggerPrice]: the price that a trigger order is triggered at, same as takeProfitPrice
         :param float [params.stopLossPrice]: the price that a stop loss order is triggered at
         :param float [params.takeProfitPrice]: the price that a take profit order is triggered at
         :param str [params.triggerPriceType]: 'last', 'mark' or 'index', default is 'mark'
@@ -2068,7 +2065,7 @@ class btse(Exchange, ImplicitAPI):
             params = self.omit(params, 'clientOrderId')
         # handle positionMode
         positionMode = self.safe_string(params, 'positionMode')
-        # if positionMode is provided, we will get it from params and send it
+        # if positionMode is provided, we will get it from params and send it as is
         if positionMode is None:
             hedged = False
             hedged, params = self.handle_option_and_params(params, 'createOrder', 'hedged', hedged)
@@ -2084,7 +2081,7 @@ class btse(Exchange, ImplicitAPI):
         isMarketOrder = (type == 'MARKET')
         isLimitOrder = (type == 'LIMIT')
         postOnly = False
-        # exchange-specific postOnly is the same unified one
+        # exchange-specific postOnly is the same as the unified one
         postOnly, params = self.handle_post_only(isMarketOrder, postOnly, params)  # self will remove PO from params.timeInForce if present
         if postOnly:
             request['postOnly'] = True
@@ -2250,7 +2247,7 @@ class btse(Exchange, ImplicitAPI):
         if marketType == 'spot':
             response = self.privateGetSpotApiV4TradeOrder(self.extend(request, params))
         else:
-            # the futures endpoint doubles single order lookup when an
+            # the futures endpoint doubles as the single order lookup when an
             # order id is sent and responds with a bare array
             response = self.privateGetFuturesApiV3TradeOrders(self.extend(request, params))
         # accept a bare order dict, a data envelope and a one element array
@@ -2275,7 +2272,7 @@ class btse(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.clientOrderId]: a unique id for the order, required if id is not provided
         :param float [params.triggerPrice]: the price that a trigger order is triggered at
-        :param bool [params.totalAmountMode]: if True, the amount is treated new total order quantity including the already filled portion, default is False
+        :param bool [params.totalAmountMode]: if True, the amount is treated as the new total order quantity including the already filled portion, default is False
         :param bool [params.slide]: *contract markets only* if True and only the price is amended, the price slides to the best available price
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -2679,7 +2676,7 @@ class btse(Exchange, ImplicitAPI):
 
     def request_wallet_history_rows(self, methodName: str, historyTypes: list[str], code: Str = None, since: Int = None, limit: Int = None, params={}):
         # the helper always receives a non empty history type list, the list is
-        # rebuilt through safeList so the transpilers treat it array in
+        # rebuilt through safeList so the transpilers treat it as an array in
         # every runtime
         typesList = self.safe_list({'types': historyTypes}, 'types', [])
         self.load_markets()
@@ -2687,7 +2684,7 @@ class btse(Exchange, ImplicitAPI):
         request = {
             'walletType': walletType,
         }
-        # the endpoint applies a server side history type filter sent
+        # the endpoint applies a server side history type filter sent as a
         # json encoded array in the query string, verified live
         request['historyTypes'] = self.json(typesList)
         params = self.omit(params, 'walletType')
@@ -2736,7 +2733,7 @@ class btse(Exchange, ImplicitAPI):
         #
         rawRows = self.safe_list(response, 'data', response)
         # the requested types are also filtered client side over both the legacy
-        # and the unified enum vocabularies legacy endpoint ignored the
+        # and the unified enum vocabularies as the legacy endpoint ignored the
         # filter and returned the whole mixed ledger
         allowed = {}
         for i in range(0, len(typesList)):
@@ -3511,7 +3508,7 @@ class btse(Exchange, ImplicitAPI):
         #
         #     {"symbol":"ETH-PERP","timestamp":1770892916507,"status":135,"type":93,"message":"{\"msgKey\":\"trade.error.invalid.position_id\",\"params\":[\"ETH-PERP-USDT\"] ,\"default_msg\":\"User is in ISOLATE_HEDGE in market: ETH-PERP-USDT, but positionId is empty in the request.\"}"}
         #
-        # success statuses such ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
+        # success statuses such as 2 ORDER_INSERTED, 4 ORDER_FULLY_TRANSACTED, 5 ORDER_PARTIALLY_TRANSACTED, 6 ORDER_CANCELLED, 9 TRIGGER_INSERTED, 10 TRIGGER_ACTIVATED and 20 SUCCESS fall through without matching
         #
         # the legacy error envelope documented on the error codes page carries
         # the numeric api status enum in the code field beside the http status
@@ -3589,7 +3586,7 @@ class btse(Exchange, ImplicitAPI):
     def futures_request_id(self, market: object):
         # the futures v3 trading api identifies contracts by the short trade-currency
         # form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read
-        # from the raw market info so that cached markets resolve it
+        # from the raw market info so that cached markets resolve it as well
         return self.safe_string(market['info'], 'tradeCurrency', market['id'])
 
     def clean_path(self, path: str):

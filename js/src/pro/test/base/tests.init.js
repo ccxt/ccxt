@@ -10,6 +10,8 @@ import testWsCacheNative from "./test.cacheNative.js";
 import testWsSingleFlight from "./test.singleFlight.js";
 import testWsSingleFlightWiring from "./test.singleFlightWiring.js";
 import testLbankServerPingLivenessWiring from "./test.serverPingLiveness.lbank.js";
+import testWsKeepAliveTimeout from "./test.keepAliveTimeout.js";
+import testDeepcoinHeartbeatWiring from "./test.heartbeat.deepcoin.js";
 async function testBaseWs() {
     testWsOrderBook();
     testWsCache();
@@ -18,5 +20,7 @@ async function testBaseWs() {
     await testWsSingleFlight();
     await testWsSingleFlightWiring();
     await testLbankServerPingLivenessWiring();
+    await testWsKeepAliveTimeout();
+    await testDeepcoinHeartbeatWiring();
 }
 export default testBaseWs;

@@ -483,13 +483,28 @@ class krakenfutures extends \ccxt\async\krakenfutures {
          * @param {int} [$since] not used by krakenfutures watchOrders
          * @param {int} [$limit] not used by krakenfutures watchOrders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {boolean} [$params->verbose] whether to subscribe to the open_orders_verbose $feed
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
+        $verbose = false;
+        list($verbose, $params) = $this->handle_option_and_params($params, 'watchOrders', 'verbose', false);
         $name = 'open_orders';
         $messageHash = 'orders';
+        if ($verbose) {
+            $name = 'open_orders_verbose';
+            $messageHash = 'orders:verbose';
+        }
+        $feed = $this->safe_string($params, 'feed');
+        if ($feed !== null) {
+            $name = $feed;
+            $messageHash = 'orders';
+            if ($feed === 'open_orders_verbose') {
+                $messageHash = 'orders:verbose';
+            }
+        }
         if ($symbol !== null) {
             $market = $this->market($symbol);
             $messageHash .= ':' . $market['symbol'];
@@ -811,7 +826,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $order = $this->safe_value($message, 'order');
         if ($order !== null) {
             $marketId = $this->safe_string($order, 'instrument');
+            $feed = $this->safe_string($message, 'feed');
             $messageHash = 'orders';
+            if ($feed === 'open_orders_verbose') {
+                $messageHash = 'orders:verbose';
+            }
             $symbol = $this->safe_symbol($marketId);
             $orderId = $this->safe_string($order, 'order_id');
             $previousOrders = $this->safe_value($orders->hashmap, $symbol, array());
@@ -877,6 +896,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                 if ($reason === 'full_fill') {
                     $status = 'closed';
                 }
+                $feed = $this->safe_string($message, 'feed');
+                $messageHash = 'orders';
+                if ($feed === 'open_orders_verbose') {
+                    $messageHash = 'orders:verbose';
+                }
                 // get $order without $symbol
                 for ($i = 0; $i < count($orders); $i++) {
                     $currentOrder = $orders[$i];
@@ -888,8 +912,8 @@ class krakenfutures extends \ccxt\async\krakenfutures {
                             'status' => $status,
                             'info' => $info,
                         ));
-                        $client->resolve($orders, 'orders');
-                        $client->resolve($orders, 'orders:' . $currentOrder['symbol']);
+                        $client->resolve($orders, $messageHash);
+                        $client->resolve($orders, $messageHash . ':' . $currentOrder['symbol']);
                         break;
                     }
                 }
@@ -949,6 +973,11 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         $orders = $this->safe_value($message, 'orders', array());
         $limit = $this->safe_integer($this->options, 'ordersLimit');
         $this->orders = new ArrayCacheBySymbolById($limit);
+        $feed = $this->safe_string($message, 'feed');
+        $messageHash = 'orders';
+        if ($feed === 'open_orders_verbose_snapshot') {
+            $messageHash = 'orders:verbose';
+        }
         $symbols = array();
         $cachedOrders = $this->orders;
         for ($i = 0; $i < count($orders); $i++) {
@@ -962,12 +991,12 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         }
         $length = count($this->orders);
         if ($length > 0) {
-            $client->resolve($this->orders, 'orders');
+            $client->resolve($this->orders, $messageHash);
             $keys = is_array($symbols) ? array_keys($symbols) : array();
             for ($i = 0; $i < count($keys); $i++) {
                 $symbol = $keys[$i];
-                $messageHash = 'orders:' . $symbol;
-                $client->resolve($this->orders, $messageHash);
+                $symbolMessageHash = $messageHash . ':' . $symbol;
+                $client->resolve($this->orders, $symbolMessageHash);
             }
         }
     }

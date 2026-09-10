@@ -16,6 +16,7 @@ interface Exchange {
     publicGetL2Symbol (params?: {}): Promise<Dict>;
     publicGetL3Symbol (params?: {}): Promise<Dict>;
     privateGetFees (params?: {}): Promise<Dict>;
+    privateGetInternalOrders (params?: {}): Promise<Dict>;
     privateGetOrders (params?: {}): Promise<List>;
     privateGetOrdersOrderId (params?: {}): Promise<Dict>;
     privateGetTrades (params?: {}): Promise<List>;

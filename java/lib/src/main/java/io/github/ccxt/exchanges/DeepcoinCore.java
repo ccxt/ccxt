@@ -177,6 +177,18 @@ public class DeepcoinCore extends DeepcoinApi
                         put( "deepcoin/market/mark-price-candles", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "deepcoin/market/mark-price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/open-interest-volume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/long-short-ratio", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "deepcoin/market/taker-volume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "deepcoin/market/step-margin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -196,16 +208,31 @@ public class DeepcoinCore extends DeepcoinApi
                         put( "deepcoin/account/balances", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "deepcoin/account/all-balances", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "deepcoin/account/bills", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/account/positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "deepcoin/account/trade-fee", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/account/leverage-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/account/positions-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "deepcoin/trade/fills", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/trade/orderByID", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/trade/finishOrderByID", new java.util.HashMap<String, Object>() {{
@@ -271,6 +298,9 @@ public class DeepcoinCore extends DeepcoinApi
                         put( "deepcoin/listenkey/extend", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "deepcoin/sub-account/sub-account-apikey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "deepcoin/account/set-leverage", new java.util.HashMap<String, Object>() {{
@@ -297,6 +327,9 @@ public class DeepcoinCore extends DeepcoinApi
                         put( "deepcoin/trade/trigger-order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "deepcoin/trade/amend-trigger-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "deepcoin/trade/batch-close-position", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -304,6 +337,12 @@ public class DeepcoinCore extends DeepcoinApi
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/trade/close-position-by-ids", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/increase-position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/trade/merge-positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/copytrading/leader-settings", new java.util.HashMap<String, Object>() {{
@@ -319,6 +358,15 @@ public class DeepcoinCore extends DeepcoinApi
                             put( "cost", 5 );
                         }} );
                         put( "deepcoin/asset/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/sub-account/create-sub-account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/sub-account/sub-account-apikey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "deepcoin/sub-account/delete-sub-account-apikey", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
@@ -3262,16 +3310,16 @@ public class DeepcoinCore extends DeepcoinApi
             put( "contractSize", null );
             put( "side", DeepcoinCore.this.safeString(position, "posSide") );
             put( "notional", null );
-            put( "leverage", DeepcoinCore.this.omitZero(((String)DeepcoinCore.this.safeString(position, "lever"))) );
+            put( "leverage", DeepcoinCore.this.parseNumber(DeepcoinCore.this.omitZero(((String)DeepcoinCore.this.safeString(position, "lever")))) );
             put( "unrealizedPnl", null );
             put( "realizedPnl", null );
             put( "collateral", null );
             put( "entryPrice", DeepcoinCore.this.safeNumber(position, "avgPx") );
             put( "markPrice", null );
-            put( "liquidationPrice", DeepcoinCore.this.safeString(position, "liqPx") );
+            put( "liquidationPrice", DeepcoinCore.this.safeNumber(position, "liqPx") );
             put( "marginMode", DeepcoinCore.this.safeString(position, "mgnMode") );
             put( "hedged", true );
-            put( "maintenanceMargin", DeepcoinCore.this.safeString(position, "useMargin") );
+            put( "maintenanceMargin", DeepcoinCore.this.safeNumber(position, "useMargin") );
             put( "maintenanceMarginPercentage", null );
             put( "initialMargin", null );
             put( "initialMarginPercentage", null );

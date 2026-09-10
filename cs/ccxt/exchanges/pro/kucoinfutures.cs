@@ -72,14 +72,14 @@ public partial class kucoinfutures : kucoin
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        object amountToPrecision = this.currencyToPrecision(code, amount);
+        Dictionary<string, object> currency = this.currency(((string)code));
+        object amountToPrecision = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", this.safeString(currency, "id") },
             { "amount", amountToPrecision },
         };
-        object toAccountString = this.parseTransferType(toAccount);
-        object response = null;
+        string? toAccountString = this.parseTransferType(toAccount);
+        Dictionary<string, object> response = null;
         if (isTrue(isTrue(isEqual(toAccountString, "TRADE")) || isTrue(isEqual(toAccountString, "MAIN"))))
         {
             ((IDictionary<string,object>)request)["recAccountType"] = toAccountString;
@@ -96,7 +96,7 @@ public partial class kucoinfutures : kucoin
         return ccxt.BaseExchange.ToTransferEntry(this.extend(this.parseTransfer(data, currency), new Dictionary<string, object>() {             { "amount", this.parseNumber(amountToPrecision) },             { "fromAccount", fromAccount },             { "toAccount", toAccount },         }));
     }
 
-    public virtual object parseTransferType(object transferType)
+    public virtual string? parseTransferType(object transferType)
     {
         Dictionary<string, object> transferTypes = new Dictionary<string, object>() {
             { "spot", "TRADE" },

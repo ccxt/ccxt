@@ -226,6 +226,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function public_futures_get_settle_adl_risk_states($params = array()) {
+        return $this->request('{settle}/adl_risk_states', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_futures_post_settle_funding_rates($params = array()) {
+        return $this->request('{settle}/funding_rates', array('public', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function public_delivery_get_settle_contracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'delivery'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -366,6 +378,24 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function public_earn_get_structured_products($params = array()) {
         return $this->request('structured/products', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_earn_get_dual_project_recommend($params = array()) {
+        return $this->request('dual/project-recommend', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_earn_get_fixed_term_product($params = array()) {
+        return $this->request('fixed-term/product', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function public_earn_get_fixed_term_product_asset_list($params = array()) {
+        return $this->request('fixed-term/product/{asset}/list', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -516,6 +546,12 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_wallet_get_getlowcapexchangelist($params = array()) {
         return $this->request('getLowCapExchangeList', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_wallet_get_transfers($params = array()) {
+        return $this->request('transfers', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -694,6 +730,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_unified_get_delta_neutral($params = array()) {
+        return $this->request('delta_neutral', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_unified_get_estimated_quick_repayment($params = array()) {
+        return $this->request('estimated_quick_repayment', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_unified_get_account_mode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -720,6 +768,24 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_unified_post_collateral_currencies($params = array()) {
         return $this->request('collateral_currencies', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_unified_post_delta_neutral($params = array()) {
+        return $this->request('delta_neutral', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_unified_post_leverage_user_setting($params = array()) {
+        return $this->request('leverage/user_setting', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_unified_post_quick_repayment($params = array()) {
+        return $this->request('quick_repayment', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
      * @return array<string, mixed>
@@ -796,6 +862,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function private_spot_get_pov_orders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_spot_get_pov_orders_order_id($params = array()) {
+        return $this->request('pov_orders/{order_id}', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function private_spot_post_batch_orders($params = array()) {
         return $this->request('batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
@@ -836,6 +914,12 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_spot_post_pov_orders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_spot_delete_orders($params = array()) {
@@ -858,6 +942,18 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_spot_delete_price_orders_order_id($params = array()) {
         return $this->request('price_orders/{order_id}', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_spot_delete_pov_orders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_spot_delete_pov_orders_order_id($params = array()) {
+        return $this->request('pov_orders/{order_id}', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
     }
     /**
      * @return array<string, mixed>
@@ -1226,6 +1322,36 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_futures_get_settle_autoorder_v1_trail_list($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/list', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_get_settle_autoorder_v1_trail_detail($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/detail', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_futures_get_settle_autoorder_v1_trail_change_log($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/change_log', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_futures_get_settle_autoorder_v1_chase_list($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/list', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_get_settle_autoorder_v1_chase_detail($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/detail', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function private_futures_post_settle_positions_contract_margin($params = array()) {
@@ -1332,6 +1458,48 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_futures_post_settle_price_orders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_trail_create($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/create', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_trail_stop($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/stop', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_trail_stop_all($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/stop_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_trail_update($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/update', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_chase_create($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/create', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_chase_stop($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/stop', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_futures_post_settle_autoorder_v1_chase_stop_all($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/stop_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     /**
      * @return array<string, mixed>
@@ -1580,6 +1748,12 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('mmp/reset', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_options_put_orders_order_id($params = array()) {
+        return $this->request('orders/{order_id}', array('private', 'options'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_options_delete_orders($params = array()) {
@@ -1682,6 +1856,60 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('staking/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_dual_order_refund_preview($params = array()) {
+        return $this->request('dual/order-refund-preview', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_fixed_term_user_lend($params = array()) {
+        return $this->request('fixed-term/user/lend', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_fixed_term_user_history($params = array()) {
+        return $this->request('fixed-term/user/history', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_autoinvest_coins($params = array()) {
+        return $this->request('autoinvest/coins', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_autoinvest_config($params = array()) {
+        return $this->request('autoinvest/config', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_autoinvest_orders($params = array()) {
+        return $this->request('autoinvest/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_get_autoinvest_plans_detail($params = array()) {
+        return $this->request('autoinvest/plans/detail', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_autoinvest_plans_list_info($params = array()) {
+        return $this->request('autoinvest/plans/list_info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_earn_get_autoinvest_plans_records($params = array()) {
+        return $this->request('autoinvest/plans/records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
      * @return list<mixed>
      */
     public function private_earn_get_uni_currencies($params = array()) {
@@ -1722,6 +1950,60 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_earn_post_staking_swap($params = array()) {
         return $this->request('staking/swap', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_dual_order_refund($params = array()) {
+        return $this->request('dual/order-refund', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_dual_modify_order_reinvest($params = array()) {
+        return $this->request('dual/modify-order-reinvest', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_fixed_term_user_lend($params = array()) {
+        return $this->request('fixed-term/user/lend', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_fixed_term_user_pre_redeem($params = array()) {
+        return $this->request('fixed-term/user/pre-redeem', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_autoinvest_min_invest_amount($params = array()) {
+        return $this->request('autoinvest/min_invest_amount', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_autoinvest_plans_add_position($params = array()) {
+        return $this->request('autoinvest/plans/add_position', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_autoinvest_plans_create($params = array()) {
+        return $this->request('autoinvest/plans/create', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_autoinvest_plans_stop($params = array()) {
+        return $this->request('autoinvest/plans/stop', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_earn_post_autoinvest_plans_update($params = array()) {
+        return $this->request('autoinvest/plans/update', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
      * @return array<string, mixed>
@@ -1990,6 +2272,12 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_rebate_get_partner_data_aggregated($params = array()) {
+        return $this->request('partner/data/aggregated', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_otc_get_get_user_def_bank($params = array()) {
         return $this->request('get_user_def_bank', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2010,6 +2298,18 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_otc_get_order_detail($params = array()) {
         return $this->request('order/detail', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function private_otc_get_bank_list($params = array()) {
+        return $this->request('bank/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_get_bank_bank_supplement_checklist($params = array()) {
+        return $this->request('bank/bank_supplement_checklist', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -2040,6 +2340,42 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function private_otc_post_order_cancel($params = array()) {
         return $this->request('order/cancel', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_bank_create($params = array()) {
+        return $this->request('bank/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_bank_delete($params = array()) {
+        return $this->request('bank/delete', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_bank_set_default($params = array()) {
+        return $this->request('bank/set_default', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_bank_personal_bank_supplement($params = array()) {
+        return $this->request('bank/personal/bank_supplement', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_bank_enterprise_bank_supplement($params = array()) {
+        return $this->request('bank/enterprise/bank_supplement', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_otc_post_upload_pre_upload($params = array()) {
+        return $this->request('upload/pre_upload', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -2260,6 +2596,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function publicFuturesGetSettleAdlRiskStates($params = array()) {
+        return $this->request('{settle}/adl_risk_states', array('public', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicFuturesPostSettleFundingRates($params = array()) {
+        return $this->request('{settle}/funding_rates', array('public', 'futures'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function publicDeliveryGetSettleContracts($params = array()) {
         return $this->request('{settle}/contracts', array('public', 'delivery'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -2400,6 +2748,24 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function publicEarnGetStructuredProducts($params = array()) {
         return $this->request('structured/products', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicEarnGetDualProjectRecommend($params = array()) {
+        return $this->request('dual/project-recommend', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicEarnGetFixedTermProduct($params = array()) {
+        return $this->request('fixed-term/product', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function publicEarnGetFixedTermProductAssetList($params = array()) {
+        return $this->request('fixed-term/product/{asset}/list', array('public', 'earn'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -2550,6 +2916,12 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateWalletGetGetLowCapExchangeList($params = array()) {
         return $this->request('getLowCapExchangeList', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateWalletGetTransfers($params = array()) {
+        return $this->request('transfers', array('private', 'wallet'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -2728,6 +3100,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateUnifiedGetDeltaNeutral($params = array()) {
+        return $this->request('delta_neutral', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUnifiedGetEstimatedQuickRepayment($params = array()) {
+        return $this->request('estimated_quick_repayment', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateUnifiedGetAccountMode($params = array()) {
         return $this->request('account_mode', array('private', 'unified'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
@@ -2754,6 +3138,24 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateUnifiedPostCollateralCurrencies($params = array()) {
         return $this->request('collateral_currencies', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUnifiedPostDeltaNeutral($params = array()) {
+        return $this->request('delta_neutral', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUnifiedPostLeverageUserSetting($params = array()) {
+        return $this->request('leverage/user_setting', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateUnifiedPostQuickRepayment($params = array()) {
+        return $this->request('quick_repayment', array('private', 'unified'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
      * @return array<string, mixed>
@@ -2830,6 +3232,18 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return list<mixed>
      */
+    public function privateSpotGetPovOrders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateSpotGetPovOrdersOrderId($params = array()) {
+        return $this->request('pov_orders/{order_id}', array('private', 'spot'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
     public function privateSpotPostBatchOrders($params = array()) {
         return $this->request('batch_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
@@ -2870,6 +3284,12 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('price_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privateSpotPostPovOrders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateSpotDeleteOrders($params = array()) {
@@ -2892,6 +3312,18 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateSpotDeletePriceOrdersOrderId($params = array()) {
         return $this->request('price_orders/{order_id}', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateSpotDeletePovOrders($params = array()) {
+        return $this->request('pov_orders', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateSpotDeletePovOrdersOrderId($params = array()) {
+        return $this->request('pov_orders/{order_id}', array('private', 'spot'), 'DELETE', $params, null, null, array("cost" => 0.26666666666666666));
     }
     /**
      * @return array<string, mixed>
@@ -3260,6 +3692,36 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('{settle}/price_orders/{order_id}', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function privateFuturesGetSettleAutoorderV1TrailList($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/list', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesGetSettleAutoorderV1TrailDetail($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/detail', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateFuturesGetSettleAutoorderV1TrailChangeLog($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/change_log', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateFuturesGetSettleAutoorderV1ChaseList($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/list', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesGetSettleAutoorderV1ChaseDetail($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/detail', array('private', 'futures'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function privateFuturesPostSettlePositionsContractMargin($params = array()) {
@@ -3366,6 +3828,48 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateFuturesPostSettlePriceOrders($params = array()) {
         return $this->request('{settle}/price_orders', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1TrailCreate($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/create', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1TrailStop($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/stop', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1TrailStopAll($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/stop_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1TrailUpdate($params = array()) {
+        return $this->request('{settle}/autoorder/v1/trail/update', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1ChaseCreate($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/create', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1ChaseStop($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/stop', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateFuturesPostSettleAutoorderV1ChaseStopAll($params = array()) {
+        return $this->request('{settle}/autoorder/v1/chase/stop_all', array('private', 'futures'), 'POST', $params, null, null, array("cost" => 0.4));
     }
     /**
      * @return array<string, mixed>
@@ -3614,6 +4118,12 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('mmp/reset', array('private', 'options'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privateOptionsPutOrdersOrderId($params = array()) {
+        return $this->request('orders/{order_id}', array('private', 'options'), 'PUT', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateOptionsDeleteOrders($params = array()) {
@@ -3716,6 +4226,60 @@ abstract class gate extends \ccxt\Exchange {
         return $this->request('staking/assets', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetDualOrderRefundPreview($params = array()) {
+        return $this->request('dual/order-refund-preview', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetFixedTermUserLend($params = array()) {
+        return $this->request('fixed-term/user/lend', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetFixedTermUserHistory($params = array()) {
+        return $this->request('fixed-term/user/history', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetAutoinvestCoins($params = array()) {
+        return $this->request('autoinvest/coins', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetAutoinvestConfig($params = array()) {
+        return $this->request('autoinvest/config', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetAutoinvestOrders($params = array()) {
+        return $this->request('autoinvest/orders', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnGetAutoinvestPlansDetail($params = array()) {
+        return $this->request('autoinvest/plans/detail', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetAutoinvestPlansListInfo($params = array()) {
+        return $this->request('autoinvest/plans/list_info', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateEarnGetAutoinvestPlansRecords($params = array()) {
+        return $this->request('autoinvest/plans/records', array('private', 'earn'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
      * @return list<mixed>
      */
     public function privateEarnGetUniCurrencies($params = array()) {
@@ -3756,6 +4320,60 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateEarnPostStakingSwap($params = array()) {
         return $this->request('staking/swap', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostDualOrderRefund($params = array()) {
+        return $this->request('dual/order-refund', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostDualModifyOrderReinvest($params = array()) {
+        return $this->request('dual/modify-order-reinvest', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostFixedTermUserLend($params = array()) {
+        return $this->request('fixed-term/user/lend', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostFixedTermUserPreRedeem($params = array()) {
+        return $this->request('fixed-term/user/pre-redeem', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostAutoinvestMinInvestAmount($params = array()) {
+        return $this->request('autoinvest/min_invest_amount', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostAutoinvestPlansAddPosition($params = array()) {
+        return $this->request('autoinvest/plans/add_position', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostAutoinvestPlansCreate($params = array()) {
+        return $this->request('autoinvest/plans/create', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostAutoinvestPlansStop($params = array()) {
+        return $this->request('autoinvest/plans/stop', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateEarnPostAutoinvestPlansUpdate($params = array()) {
+        return $this->request('autoinvest/plans/update', array('private', 'earn'), 'POST', $params, null, null, array("cost" => 1.3333333333333333));
     }
     /**
      * @return array<string, mixed>
@@ -4024,6 +4642,12 @@ abstract class gate extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function privateRebateGetPartnerDataAggregated($params = array()) {
+        return $this->request('partner/data/aggregated', array('private', 'rebate'), 'GET', $params, null, null, array("cost" => 1.3333333333333333));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function privateOtcGetGetUserDefBank($params = array()) {
         return $this->request('get_user_def_bank', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
     }
@@ -4044,6 +4668,18 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateOtcGetOrderDetail($params = array()) {
         return $this->request('order/detail', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateOtcGetBankList($params = array()) {
+        return $this->request('bank/list', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcGetBankBankSupplementChecklist($params = array()) {
+        return $this->request('bank/bank_supplement_checklist', array('private', 'otc'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -4074,5 +4710,41 @@ abstract class gate extends \ccxt\Exchange {
      */
     public function privateOtcPostOrderCancel($params = array()) {
         return $this->request('order/cancel', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostBankCreate($params = array()) {
+        return $this->request('bank/create', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostBankDelete($params = array()) {
+        return $this->request('bank/delete', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostBankSetDefault($params = array()) {
+        return $this->request('bank/set_default', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostBankPersonalBankSupplement($params = array()) {
+        return $this->request('bank/personal/bank_supplement', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostBankEnterpriseBankSupplement($params = array()) {
+        return $this->request('bank/enterprise/bank_supplement', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateOtcPostUploadPreUpload($params = array()) {
+        return $this->request('upload/pre_upload', array('private', 'otc'), 'POST', $params, null, null, array("cost" => 1));
     }
 }

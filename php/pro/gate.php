@@ -177,10 +177,10 @@ class gate extends \ccxt\async\gate {
          * @param {bool} [$params->auto_borrow] *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient $amount if balance is not enough
          * @param {string} [$params->settle] *contract only* Unified Currency Code for settle currency
          * @param {bool} [$params->reduceOnly] *contract only* Indicates if this $order is to reduce the size of a position
-         * @param {bool} [$params->close] *contract only* Set to close the position, with size set to 0
+         * @param {bool} [$params->close] *contract only* Set as true to close the position, with size set to 0
          * @param {bool} [$params->auto_size] *contract only* Set $side to close dual-mode position, close_long closes the long $side, while close_short the short one, size also needs to be set to 0
          * @param {int} [$params->price_type] *contract only* 0 latest deal $price, 1 mark $price, 2 index $price
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @return {array|null} ~@link https://docs.ccxt.com/?id=$order-structure An $order structure~
          */
         if ($this->markets === null) {
@@ -1092,7 +1092,7 @@ class gate extends \ccxt\async\gate {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2248,7 +2248,7 @@ class gate extends \ccxt\async\gate {
         }
         if ($requestId !== null) {
             $data = $this->safe_dict($message, 'data');
-            // use safeValue may be Array or an Object
+            // use safeValue as $result may be Array or an Object
             $result = $this->safe_value($data, 'result');
             $ack = $this->safe_bool($message, 'ack');
             if ($ack !== true) {

@@ -47,6 +47,26 @@ impl DeepcoinCore {
         self.call_method(Value::Str("public_get_deepcoin_market_mark_price_candles".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetDeepcoinMarketMarkPrice` implicit endpoint.
+    pub async fn public_get_deepcoin_market_mark_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_deepcoin_market_mark_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetDeepcoinMarketOpenInterestVolume` implicit endpoint.
+    pub async fn public_get_deepcoin_market_open_interest_volume(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_deepcoin_market_open_interest_volume".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetDeepcoinMarketLongShortRatio` implicit endpoint.
+    pub async fn public_get_deepcoin_market_long_short_ratio(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_deepcoin_market_long_short_ratio".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetDeepcoinMarketTakerVolume` implicit endpoint.
+    pub async fn public_get_deepcoin_market_taker_volume(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_deepcoin_market_taker_volume".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetDeepcoinMarketStepMargin` implicit endpoint.
     pub async fn public_get_deepcoin_market_step_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_deepcoin_market_step_margin".to_string()), optional_args).await
@@ -72,6 +92,11 @@ impl DeepcoinCore {
         self.call_method(Value::Str("private_get_deepcoin_account_balances".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetDeepcoinAccountAllBalances` implicit endpoint.
+    pub async fn private_get_deepcoin_account_all_balances(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_account_all_balances".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetDeepcoinAccountBills` implicit endpoint.
     pub async fn private_get_deepcoin_account_bills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_deepcoin_account_bills".to_string()), optional_args).await
@@ -82,6 +107,21 @@ impl DeepcoinCore {
         self.call_method(Value::Str("private_get_deepcoin_account_positions".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetDeepcoinAccountTradeFee` implicit endpoint.
+    pub async fn private_get_deepcoin_account_trade_fee(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_account_trade_fee".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetDeepcoinAccountLeverageInfo` implicit endpoint.
+    pub async fn private_get_deepcoin_account_leverage_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_account_leverage_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetDeepcoinAccountPositionsHistory` implicit endpoint.
+    pub async fn private_get_deepcoin_account_positions_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_account_positions_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeFills` implicit endpoint.
     pub async fn private_get_deepcoin_trade_fills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_deepcoin_trade_fills".to_string()), optional_args).await
@@ -90,6 +130,11 @@ impl DeepcoinCore {
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeOrderByID` implicit endpoint.
     pub async fn private_get_deepcoin_trade_order_by_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_deepcoin_trade_order_by_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetDeepcoinTradeOrder` implicit endpoint.
+    pub async fn private_get_deepcoin_trade_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_trade_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetDeepcoinTradeFinishOrderByID` implicit endpoint.
@@ -197,6 +242,11 @@ impl DeepcoinCore {
         self.call_method(Value::Str("private_get_deepcoin_listenkey_extend".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetDeepcoinSubAccountSubAccountApikey` implicit endpoint.
+    pub async fn private_get_deepcoin_sub_account_sub_account_apikey(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_deepcoin_sub_account_sub_account_apikey".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostDeepcoinAccountSetLeverage` implicit endpoint.
     pub async fn private_post_deepcoin_account_set_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_deepcoin_account_set_leverage".to_string()), optional_args).await
@@ -237,6 +287,11 @@ impl DeepcoinCore {
         self.call_method(Value::Str("private_post_deepcoin_trade_trigger_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostDeepcoinTradeAmendTriggerOrder` implicit endpoint.
+    pub async fn private_post_deepcoin_trade_amend_trigger_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_trade_amend_trigger_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeBatchClosePosition` implicit endpoint.
     pub async fn private_post_deepcoin_trade_batch_close_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_deepcoin_trade_batch_close_position".to_string()), optional_args).await
@@ -250,6 +305,16 @@ impl DeepcoinCore {
     /// Auto-generated wrapper for the `privatePostDeepcoinTradeClosePositionByIds` implicit endpoint.
     pub async fn private_post_deepcoin_trade_close_position_by_ids(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_deepcoin_trade_close_position_by_ids".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDeepcoinTradeIncreasePosition` implicit endpoint.
+    pub async fn private_post_deepcoin_trade_increase_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_trade_increase_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDeepcoinTradeMergePositions` implicit endpoint.
+    pub async fn private_post_deepcoin_trade_merge_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_trade_merge_positions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostDeepcoinCopytradingLeaderSettings` implicit endpoint.
@@ -275,6 +340,21 @@ impl DeepcoinCore {
     /// Auto-generated wrapper for the `privatePostDeepcoinAssetTransfer` implicit endpoint.
     pub async fn private_post_deepcoin_asset_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_deepcoin_asset_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDeepcoinSubAccountCreateSubAccount` implicit endpoint.
+    pub async fn private_post_deepcoin_sub_account_create_sub_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_sub_account_create_sub_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDeepcoinSubAccountSubAccountApikey` implicit endpoint.
+    pub async fn private_post_deepcoin_sub_account_sub_account_apikey(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_sub_account_sub_account_apikey".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostDeepcoinSubAccountDeleteSubAccountApikey` implicit endpoint.
+    pub async fn private_post_deepcoin_sub_account_delete_sub_account_apikey(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_deepcoin_sub_account_delete_sub_account_apikey".to_string()), optional_args).await
     }
 
 }

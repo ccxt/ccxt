@@ -105,6 +105,9 @@ public class NadoCore extends NadoApi
                             put( "query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "edge/query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -147,6 +150,9 @@ public class NadoCore extends NadoApi
                                 put( "cost", 1 );
                             }} );
                             put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "symbols", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -211,6 +217,7 @@ public class NadoCore extends NadoApi
                     put( "1002", RestrictedLocation.class );
                     put( "1003", RestrictedLocation.class );
                     put( "1004", OnMaintenance.class );
+                    put( "1005", BadRequest.class );
                     put( "2000", InvalidOrder.class );
                     put( "2001", InvalidOrder.class );
                     put( "2002", InvalidOrder.class );
@@ -334,6 +341,7 @@ public class NadoCore extends NadoApi
                     put( "2123", BadRequest.class );
                     put( "2124", InvalidOrder.class );
                     put( "2125", OperationRejected.class );
+                    put( "2126", OrderNotFound.class );
                     put( "3000", BadRequest.class );
                     put( "3001", BadRequest.class );
                     put( "3002", ArgumentsRequired.class );
@@ -374,7 +382,7 @@ public class NadoCore extends NadoApi
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-     * @param {string} [params.triggerDirection] trigger direction, above, below
+     * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -503,14 +511,14 @@ public class NadoCore extends NadoApi
             Object isTriggerOrder = Helpers.isTrue(Helpers.isTrue(isStopOrder) || Helpers.isTrue(isStopLossOrder)) || Helpers.isTrue(isTakeProfitOrder);
             if (Helpers.isTrue(isStopOrder))
             {
-                String triggerDirection = (String)this.safeStringLower(parameters, "triggerDirection");
-                if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
-                {
-                    throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
-                }
+                Object triggerDirection = null;
+                var triggerDirectionparametersVariable = this.handleTriggerDirectionAndParams(parameters);
+                triggerDirection = ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
+                parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
+                Object directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
                 Object triggerPriceX18 = this.convertToX18(triggerPrice);
                 Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
-                Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", triggerDirection), triggerPriceX18);
+                Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
                 Object trigger = new java.util.HashMap<String, Object>() {{
                     put( "price_trigger", new java.util.HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
@@ -579,6 +587,7 @@ public class NadoCore extends NadoApi
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
      * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
@@ -641,6 +650,11 @@ public class NadoCore extends NadoApi
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() supports limit orders only")) ;
+            }
+            String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice")));
+            if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
+            {
+                throw new NotSupported((String)Helpers.add(this.id, " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")) ;
             }
             if (Helpers.isTrue(Helpers.isEqual(amount, null)))
             {
@@ -1067,7 +1081,7 @@ public class NadoCore extends NadoApi
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1116,7 +1130,7 @@ public class NadoCore extends NadoApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 500));
             }
             Object contracts = (this.queryContracts()).join();
             String chainId = this.safeString(contracts, "chain_id");
@@ -1196,7 +1210,7 @@ public class NadoCore extends NadoApi
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("waiting_price", "waiting_dependency")) );
                 }}))).join();
             }
@@ -1289,7 +1303,7 @@ public class NadoCore extends NadoApi
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
-                return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("triggered", "triggering", "twap_executing", "twap_completed")) );
                 }}))).join();
             }
@@ -1351,13 +1365,12 @@ public class NadoCore extends NadoApi
     /**
      * @method
      * @name nado#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
@@ -1369,7 +1382,8 @@ public class NadoCore extends NadoApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "trigger", true );
                 put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("cancelled", "internal_error")) );
             }}))).join();
         });
@@ -1379,13 +1393,12 @@ public class NadoCore extends NadoApi
     /**
      * @method
      * @name nado#fetchCanceledAndClosedOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchCanceledAndClosedOrders(Object... optionalArgs)
@@ -1397,7 +1410,8 @@ public class NadoCore extends NadoApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            return (this.fetchOrders(symbol, since, null, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            return (this.fetchOrders(symbol, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                put( "trigger", true );
                 put( "status_types", new java.util.ArrayList<Object>(java.util.Arrays.asList("cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed")) );
             }}))).join();
         });
@@ -2149,21 +2163,22 @@ public class NadoCore extends NadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol2, Object... optionalArgs)
     {
-
+        final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
-
+            Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
+            symbol = Helpers.GetValue(market, "symbol");
             Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             Object ticker = this.safeDict(tickers, symbol);
             if (Helpers.isTrue(Helpers.isEqual(ticker, null)))
             {
                 throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
             }
-            return this.safeTicker(ticker, market);
+            return ticker;
         });
 
     }
@@ -2567,7 +2582,7 @@ public class NadoCore extends NadoApi
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2593,7 +2608,7 @@ public class NadoCore extends NadoApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(Helpers.GetValue(request, "candlesticks"), "limit", limit);
+                Helpers.addElementToObject(Helpers.GetValue(request, "candlesticks"), "limit", Helpers.mathMin(limit, 500));
             }
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -3440,7 +3455,12 @@ public class NadoCore extends NadoApi
     public Object createOrderNonce(Object recvWindow)
     {
         Object expires = this.sum(this.milliseconds(), recvWindow);
-        return Precise.stringMul(this.numberToString(expires), "1048576");
+        Object highBits = Precise.stringMul(this.numberToString(expires), "1048576");
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        Object entropy = this.randNumber(6);
+        return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
     public Object createOrderAppendix(Object isTriggerOrder, Object... optionalArgs)

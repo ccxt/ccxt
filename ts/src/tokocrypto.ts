@@ -184,6 +184,7 @@ export default class tokocrypto extends Exchange {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 } as Endpoint<Dict>,
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 10 } as Endpoint<Dict>,
+                        'executionRules': { 'cost': 2, 'noSymbol': 40 } as Endpoint<Dict>,
                     },
                     'put': {
                         'userDataStream': { 'cost': 1 } as Endpoint<Dict>,
@@ -223,6 +224,7 @@ export default class tokocrypto extends Exchange {
                         'open/v1/orders/oco': { 'cost': 1 } as Endpoint<Dict>,
                         'open/v1/withdraws': { 'cost': 1 } as Endpoint<Dict>,
                         'open/v1/user-data-stream': { 'cost': 1 } as Endpoint<Dict>,
+                        'open/v1/user-listen-token': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

@@ -421,6 +421,12 @@ class htx extends Exchange {
                             'v2/etp/transactions' => array( 'cost' => 5 ),
                             'v2/etp/transaction' => array( 'cost' => 5 ),
                             'v2/etp/limit' => array( 'cost' => 1 ),
+                            // Referral
+                            'v2/invitee/rebate/referrals' => array( 'cost' => 10 ), // 1 request per second
+                            'v2/invitee/rebate/detail' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/history' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/all_rebate/detail' => array( 'cost' => 1 ),
+                            'v2/invitee/rebate/batcher_rebate/detail' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             // Account
@@ -471,6 +477,8 @@ class htx extends Exchange {
                             'v2/etp/redemption' => array( 'cost' => 5 ),
                             'v2/etp/{transactId}/cancel' => array( 'cost' => 10 ),
                             'v2/etp/batch-cancel' => array( 'cost' => 50 ),
+                            // Universal Transfer
+                            'v5/account/universal_transfer' => array( 'cost' => 4 ), // 5 requests per 2 seconds
                         ),
                     ),
                 ),
@@ -610,6 +618,13 @@ class htx extends Exchange {
                             'v5/algo/order/opens' => array( 'cost' => 0.41679 ),
                             'v5/algo/order' => array( 'cost' => 0.41679 ),
                             'v5/algo/order/history' => array( 'cost' => 0.41679 ),
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/instruments' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/statistics' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/profit-sharing-history' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/followers' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
                             // Future Account Interface
@@ -744,6 +759,12 @@ class htx extends Exchange {
                             'v5/account/fee_deduction_currency' => array( 'cost' => 0.20834 ),
                             'v5/algo/order' => array( 'cost' => 0.41679 ),
                             'v5/algo/cancel_orders' => array( 'cost' => 0.41679 ),
+                            // Copy Trading
+                            'api/v6/copyTrading/trader/follower' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/transfer' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/follower-settings' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/config' => array( 'cost' => 2 ),
+                            'api/v6/copyTrading/trader/apikey' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -781,7 +802,7 @@ class htx extends Exchange {
                     '1066' => '\\ccxt\\BadSymbol', // array("status":"error","err_code":1066,"err_msg":"The symbol field cannot be empty. Please re-enter.","ts":1640550819147)
                     '1067' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1067,"err_msg":"The client_order_id field is invalid. Please re-enter.","ts":1643802119413)
                     '1094' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1094,"err_msg":"The leverage cannot be empty, please switch the leverage or contact customer service","ts":1640496946243)
-                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission have not opened contracts trading.","ts":1645096660718)
+                    '1220' => '\\ccxt\\AccountNotEnabled', // array("status":"error","err_code":1220,"err_msg":"You don’t have access permission as you have not opened contracts trading.","ts":1645096660718)
                     '1303' => '\\ccxt\\BadRequest', // array("code":1303,"data":null,"message":"Each transfer-out cannot be less than 5USDT.","success":false,"print-log":true)
                     '1461' => '\\ccxt\\InvalidOrder', // array("status":"error","err_code":1461,"err_msg":"Current positions have triggered position limits (5000USDT). Please modify.","ts":1652554651234)
                     '4007' => '\\ccxt\\BadRequest', // array("code":"4007","msg":"Unified account special interface, non - one account is not available","data":null,"ts":"1698413427651")'
@@ -1322,7 +1343,7 @@ class htx extends Exchange {
             //             "linear_swap_heartbeat" => 1,
             //             "linear_swap_estimated_recovery_time" => null
             //         ),
-            //         "ts" => 1557714418033 // stale on the exchange side, do not trust update time
+            //         "ts" => 1557714418033 // stale on the exchange side, do not trust as an update time
             //     }
             //
             $data = $this->safe_dict($response, 'data', array());
@@ -3042,7 +3063,7 @@ class htx extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->useHistoricalEndpointForSpot] true/false - whether use the historical candles endpoint for spot markets or default klines endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -3410,7 +3431,7 @@ class htx extends Exchange {
     }
 
     public function network_id_to_code(?string $networkId = null, ?string $currencyCode = null) {
-        // here network-id is provided pair of currency & chain (i.e. trc20usdt)
+        // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         $keys = is_array($this->options['networkNamesByChainIds']) ? array_keys($this->options['networkNamesByChainIds']) : array();
         $keysLength = count($keys);
         if ($keysLength === 0) {
@@ -5195,7 +5216,7 @@ class htx extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount for $market buy orders
          * @return {array} $request to be sent to the exchange
          */
         if ($type === null) {
@@ -5535,7 +5556,7 @@ class htx extends Exchange {
          * @param {bool} [$params->postOnly] *contract only* true or false
          * @param {int} [$params->leverRate] *contract only* required for all contract orders except tpsl, leverage greater than 20x requires prior approval of high-leverage agreement
          * @param {string} [$params->timeInForce] supports 'IOC' and 'FOK'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {float} [$params->trailingPercent] *contract only* the percent to trail away from the current $market $price
          * @param {float} [$params->trailingTriggerPrice] *contract only* the $price to trigger a trailing order, default uses the $price argument
          * @param {bool} [$params->hedged] *contract only* true for hedged mode, false for one way mode, default is false
@@ -9995,7 +10016,7 @@ class htx extends Exchange {
          * @see https://huobiapi.github.io/docs/dm/v1/en/#place-flash-close-order                      // Coin-M futures
          *
          * @param {string} $symbol unified CCXT $market $symbol
-         * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side side
+         * @param {string} $side 'buy' or 'sell', the $side of the closing order, opposite $side as position $side
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->clientOrderId] client needs to provide unique API and have to maintain the API themselves afterwards. [1, 9223372036854775807]
          * @param {array} [$params->marginMode] 'cross' or 'isolated', required for linear markets

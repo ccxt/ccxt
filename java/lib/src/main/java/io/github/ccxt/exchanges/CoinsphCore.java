@@ -398,6 +398,12 @@ public class CoinsphCore extends CoinsphApi
                         put( "openapi/fiat/v1/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "openapi/fiat/v2/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "openapi/fiat/v1/cancel_qr_code", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "openapi/migration/v4/sellorder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

@@ -723,6 +723,21 @@ public class HtxCore extends HtxApi
                             put( "v2/etp/limit", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "v2/invitee/rebate/referrals", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v2/invitee/rebate/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/invitee/rebate/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/invitee/rebate/all_rebate/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/invitee/rebate/batcher_rebate/detail", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "v1/account/transfer", new java.util.HashMap<String, Object>() {{
@@ -844,6 +859,9 @@ public class HtxCore extends HtxApi
                             }} );
                             put( "v2/etp/batch-cancel", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 50 );
+                            }} );
+                            put( "v5/account/universal_transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 4 );
                             }} );
                         }} );
                     }} );
@@ -1224,6 +1242,24 @@ public class HtxCore extends HtxApi
                             put( "v5/algo/order/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 0.41679 );
                             }} );
+                            put( "api/v6/copyTrading/trader/instruments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/profit-sharing-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/profit-sharing-history-summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/unrealized-profit-sharing-summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/followers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "api/v1/contract_balance_valuation", new java.util.HashMap<String, Object>() {{
@@ -1600,6 +1636,21 @@ public class HtxCore extends HtxApi
                             }} );
                             put( "v5/algo/cancel_orders", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 0.41679 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/follower", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/follower-settings", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/config", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
+                            }} );
+                            put( "api/v6/copyTrading/trader/apikey", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 2 );
                             }} );
                         }} );
                     }} );

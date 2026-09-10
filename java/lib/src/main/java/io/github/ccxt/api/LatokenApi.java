@@ -218,6 +218,17 @@ public class LatokenApi extends Exchange
     }
 
     /**
+     * Calls the privateGetAuthAccountFiltered endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthAccountFiltered (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAuthAccountFiltered", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAuthOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -226,6 +237,17 @@ public class LatokenApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrder (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAuthOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAuthOrderActive endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAuthOrderActive (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAuthOrderActive", optionalArgs);
     }
 
     /**
@@ -427,6 +449,17 @@ public class LatokenApi extends Exchange
     }
 
     /**
+     * Calls the privatePostAuthOrderCancelBulk endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderCancelBulk (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthOrderCancelBulk", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAuthOrderPlace endpoint.
      *
      * @param optionalArgs the request parameters
@@ -435,6 +468,17 @@ public class LatokenApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderPlace (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAuthOrderPlace", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAuthOrderPlaceBulk endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAuthOrderPlaceBulk (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAuthOrderPlaceBulk", optionalArgs);
     }
 
     /**

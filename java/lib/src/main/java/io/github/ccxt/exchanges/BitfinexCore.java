@@ -385,6 +385,9 @@ public class BitfinexCore extends BitfinexApi
                         put( "auth/r/orders/hist", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
+                        put( "auth/r/orders/otc/{symbol}/hist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
                         put( "auth/r/order/{symbol}:{id}/trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
@@ -428,6 +431,9 @@ public class BitfinexCore extends BitfinexApi
                             put( "cost", 2.7 );
                         }} );
                         put( "auth/r/positions/snap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
+                        put( "auth/w/position/update/funding/type", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
                         put( "auth/w/deriv/collateral/set", new java.util.HashMap<String, Object>() {{
@@ -523,8 +529,14 @@ public class BitfinexCore extends BitfinexApi
                         put( "auth/w/deposit/address", new java.util.HashMap<String, Object>() {{
                             put( "cost", 24 );
                         }} );
+                        put( "auth/r/deposit/address/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 24 );
+                        }} );
                         put( "auth/w/deposit/invoice", new java.util.HashMap<String, Object>() {{
                             put( "cost", 24 );
+                        }} );
+                        put( "auth/r/ext/invoice/payments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
                         }} );
                         put( "auth/w/withdraw", new java.util.HashMap<String, Object>() {{
                             put( "cost", 24 );
@@ -533,6 +545,9 @@ public class BitfinexCore extends BitfinexApi
                             put( "cost", 2.7 );
                         }} );
                         put( "auth/r/movements/hist", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
+                        put( "auth/r/movements/info", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
                         put( "auth/r/alerts", new java.util.HashMap<String, Object>() {{
@@ -566,6 +581,15 @@ public class BitfinexCore extends BitfinexApi
                             put( "cost", 16 );
                         }} );
                         put( "auth/w/pulse/del", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
+                        put( "auth/w/ext/wallets/deposits/request", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
+                        put( "auth/w/ext/wallets/withdrawals/request", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2.7 );
+                        }} );
+                        put( "auth/r/ext/wallets/transfers/free/count", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2.7 );
                         }} );
                     }} );
@@ -2020,7 +2044,7 @@ public class BitfinexCore extends BitfinexApi
     {
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
-            return status;
+            return null;
         }
         Object parts = Helpers.split(status, " ");
         String state = this.safeString(parts, 0);

@@ -757,6 +757,61 @@ public class BybitApi extends Exchange
     }
 
     /**
+     * Calls the publicGetV5SpotXLaunchpoolProjectList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXLaunchpoolProjectList (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5SpotXLaunchpoolProjectList", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV5SpotXPuzzleProjectList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXPuzzleProjectList (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5SpotXPuzzleProjectList", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV5SpotXTokenSplashProjectList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5SpotXTokenSplashProjectList (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5SpotXTokenSplashProjectList", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV5EventInstrumentsInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5EventInstrumentsInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5EventInstrumentsInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetV5EventOrderbook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetV5EventOrderbook (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetV5EventOrderbook", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV5MarketInstrumentsInfo endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2231,6 +2286,17 @@ public class BybitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV5UserInvitationCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5UserInvitationCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5UserInvitationCode", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV5AffiliateAffUserList endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2272,6 +2338,17 @@ public class BybitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFlexibleAvailableInventory (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5SpotMarginTradeFlexibleAvailableInventory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5SpotMarginTradeFixedAvailableInventory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotMarginTradeFixedAvailableInventory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotMarginTradeFixedAvailableInventory", optionalArgs);
     }
 
     /**
@@ -2649,6 +2726,28 @@ public class BybitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV5CryptoLoanFixedAvailableInventory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFixedAvailableInventory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5CryptoLoanFixedAvailableInventory", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5CryptoLoanFlexibleAvailableInventory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5CryptoLoanFlexibleAvailableInventory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5CryptoLoanFlexibleAvailableInventory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV5InsLoanProductInfos endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2866,6 +2965,127 @@ public class BybitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EarnHourlyYield (Object... optionalArgs)
     {
         return this.callAsync ("privateGetV5EarnHourlyYield", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5EventOrderRealtime endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventOrderRealtime (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5EventOrderRealtime", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5EventOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventOrderList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5EventOrderList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5EventPositions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventPositions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5EventPositions", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5EventTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5EventTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5EventSettlements endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5EventSettlements (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5EventSettlements", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5SpotXLaunchpoolUserCurrentStaking endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotXLaunchpoolUserCurrentStaking (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotXLaunchpoolUserCurrentStaking", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5SpotXTokenSplashUserActivityParams endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5SpotXTokenSplashUserActivityParams (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5SpotXTokenSplashUserActivityParams", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5RfqRfqDetailList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5RfqRfqDetailList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5RfqRfqDetailList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5AlphaPredictionEngineStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionEngineStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AlphaPredictionEngineStatus", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5AlphaPredictionPayTokenList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionPayTokenList (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AlphaPredictionPayTokenList", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV5AlphaPredictionSportsTimelineStages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV5AlphaPredictionSportsTimelineStages (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV5AlphaPredictionSportsTimelineStages", optionalArgs);
     }
 
     /**
@@ -4461,6 +4681,204 @@ public class BybitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EarnPlaceOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV5EarnPlaceOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5EventQuotes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EventQuotes (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5EventQuotes", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5EventCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5EventCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5EventCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5SpotXLaunchpoolUserActivityLog endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotXLaunchpoolUserActivityLog (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5SpotXLaunchpoolUserActivityLog", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5SpotXLaunchpoolUserHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5SpotXLaunchpoolUserHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5SpotXLaunchpoolUserHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionEventDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionEventDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionEventDetail", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionOrderEstimate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderEstimate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionOrderEstimate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionBuy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionBuy (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionBuy", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionSell endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSell (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionSell", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionOrderList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionOrderList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionOrderBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionOrderBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionOrderBook", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionTokenPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionTokenPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionTokenPrice", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionPriceHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPriceHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionPriceHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionPositionList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPositionList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionPositionList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionPositionHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPositionHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionPositionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionPortfolioSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionPortfolioSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionPortfolioSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionSideMarketList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSideMarketList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionSideMarketList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionSportsMatchList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSportsMatchList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionSportsMatchList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV5AlphaPredictionSportsGroupStageDetail endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV5AlphaPredictionSportsGroupStageDetail (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV5AlphaPredictionSportsGroupStageDetail", optionalArgs);
     }
 
 }

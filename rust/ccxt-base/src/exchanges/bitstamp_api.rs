@@ -77,6 +77,16 @@ impl BitstampCore {
         self.call_method(Value::Str("public_get_funding_rate_history_pair".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetDerivativesMarketHours` implicit endpoint.
+    pub async fn public_get_derivatives_market_hours(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_derivatives_market_hours".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetDerivativesMarketHoursMarketSymbol` implicit endpoint.
+    pub async fn public_get_derivatives_market_hours_market_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_derivatives_market_hours_market_symbol".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetTravelRuleContacts` implicit endpoint.
     pub async fn private_get_travel_rule_contacts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_travel_rule_contacts".to_string()), optional_args).await
@@ -85,6 +95,26 @@ impl BitstampCore {
     /// Auto-generated wrapper for the `privateGetContactsContactUuid` implicit endpoint.
     pub async fn private_get_contacts_contact_uuid(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_contacts_contact_uuid".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTravelRuleUtxoXpubRegistrations` implicit endpoint.
+    pub async fn private_get_travel_rule_utxo_xpub_registrations(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_travel_rule_utxo_xpub_registrations".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTravelRuleUtxoXpubRegistrationsRegistrationId` implicit endpoint.
+    pub async fn private_get_travel_rule_utxo_xpub_registrations_registration_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_travel_rule_utxo_xpub_registrations_registration_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetTravelRuleAddressVerification` implicit endpoint.
+    pub async fn private_get_travel_rule_address_verification(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_travel_rule_address_verification".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetCryptoTransactionsDeposits` implicit endpoint.
+    pub async fn private_get_crypto_transactions_deposits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_crypto_transactions_deposits".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetEarnSubscriptions` implicit endpoint.
@@ -150,6 +180,11 @@ impl BitstampCore {
     /// Auto-generated wrapper for the `privatePostCryptoTransactions` implicit endpoint.
     pub async fn private_post_crypto_transactions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_crypto_transactions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCryptoTransactionsDepositsDepositIdReject` implicit endpoint.
+    pub async fn private_post_crypto_transactions_deposits_deposit_id_reject(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_crypto_transactions_deposits_deposit_id_reject".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostOpenOrder` implicit endpoint.
@@ -305,6 +340,16 @@ impl BitstampCore {
     /// Auto-generated wrapper for the `privatePostGetMaxOrderAmount` implicit endpoint.
     pub async fn private_post_get_max_order_amount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_max_order_amount".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOrderData` implicit endpoint.
+    pub async fn private_post_order_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_order_data".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAccountOrderData` implicit endpoint.
+    pub async fn private_post_account_order_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_account_order_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostBtcWithdrawal` implicit endpoint.
@@ -1120,6 +1165,16 @@ impl BitstampCore {
     /// Auto-generated wrapper for the `privatePostTravelRuleContacts` implicit endpoint.
     pub async fn private_post_travel_rule_contacts(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_travel_rule_contacts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTravelRuleUtxoXpubRegistrations` implicit endpoint.
+    pub async fn private_post_travel_rule_utxo_xpub_registrations(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_travel_rule_utxo_xpub_registrations".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke` implicit endpoint.
+    pub async fn private_post_travel_rule_utxo_xpub_registrations_registration_id_revoke(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_travel_rule_utxo_xpub_registrations_registration_id_revoke".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostEarnSubscribe` implicit endpoint.

@@ -232,6 +232,21 @@ public class UpbitCore extends UpbitApi
                         put( "api_keys", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.67 );
                         }} );
+                        put( "pockets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/api_keys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/universal_transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "orders", new java.util.HashMap<String, Object>() {{
@@ -259,6 +274,12 @@ public class UpbitCore extends UpbitApi
                             put( "cost", 0.67 );
                         }} );
                         put( "travel_rule/deposit/txid", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/universal_transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.67 );
+                        }} );
+                        put( "pockets/transfers", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.67 );
                         }} );
                     }} );

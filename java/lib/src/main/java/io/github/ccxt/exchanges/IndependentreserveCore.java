@@ -172,6 +172,12 @@ public class IndependentreserveCore extends IndependentreserveApi
                         put( "GetOrderMinimumVolumes", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "GetDepositFees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetFiatWithdrawalFees", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "GetCryptoWithdrawalFees", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -224,10 +230,22 @@ public class IndependentreserveCore extends IndependentreserveApi
                         put( "GetTrades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "GetTradesByOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "GetBrokerageFees", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "GetDigitalCurrencyWithdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetFiatWithdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetDepositLimits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "GetWithdrawalLimits", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "PlaceLimitOrder", new java.util.HashMap<String, Object>() {{
@@ -237,6 +255,9 @@ public class IndependentreserveCore extends IndependentreserveApi
                             put( "cost", 1 );
                         }} );
                         put( "CancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "CancelOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "SynchDigitalCurrencyDepositAddressWithBlockchain", new java.util.HashMap<String, Object>() {{

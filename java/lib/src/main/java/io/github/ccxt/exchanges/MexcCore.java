@@ -229,6 +229,9 @@ public class MexcCore extends MexcApi
                             put( "uid", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "apiKeyInfo", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "order", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
                             }} );
@@ -409,6 +412,9 @@ public class MexcCore extends MexcApi
                                 put( "cost", 10 );
                             }} );
                             put( "strategy/group", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "strategy/group/uid", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 20 );
                             }} );
                             put( "capital/withdraw/apply", new java.util.HashMap<String, Object>() {{

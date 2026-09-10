@@ -76,7 +76,7 @@ class whitebit(ccxt.async_support.whitebit):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -899,18 +899,11 @@ class whitebit(ccxt.async_support.whitebit):
         # the authorized sentinel authenticate() has always returned - every
         # path below hands back that same value
         authorized = 1
-        # single-flight leader election, see
-        # https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        # subscriptions['authenticated'], which watch() only registers once
-        # the awaited v4PrivatePostProfileWebsocketToken() has resolved, so
-        # every concurrent cold caller used to pass that gate, burn a
-        # rate-limited private REST call for its own websocket_token and push
-        # its own authorize frame down the shared socket. the flight is
-        # registered in client.futures on the very client that carries the
-        # handshake, under a key that is not one of the exchange's own
-        # messageHashes, and is settled through client.resolve() /
-        # client.reject() so every write to that map goes through the
-        # client's own accessors
+        # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        # the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        # token fetch, so concurrent cold callers would each burn a private REST call and push
+        # their own authorize frame. the flight lives in client.futures of the handshake client
+        # under a non-messageHash key and settles only via client.resolve() / client.reject()
         messageHash = 'authenticateFlight'
         if messageHash in client.futures:
             # a flight is already in progress - wake when the leader settles
@@ -1044,7 +1037,7 @@ class whitebit(ccxt.async_support.whitebit):
 
     def handle_subscription_status(self, client: Client, message: object, id: object):
         # not every method stores its subscription
-        # object so we can't do indeById here
+        # as an object so we can't do indeById here
         subs = client.subscriptions
         values = list(subs.values())
         for i in range(0, len(values)):

@@ -89,6 +89,7 @@ func (this *RevolutxCore) Describe() any {
 					"1.0/orders/{venue_order_id}":       1,
 					"1.0/orders/fills/{venue_order_id}": 1,
 					"1.0/trades/private/{symbol}":       1,
+					"1.0/transactions":                  1,
 				},
 				"post": map[string]any{
 					"1.0/orders": 1,
@@ -592,8 +593,8 @@ func (this *RevolutxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53612 := (<-this.LoadMarkets())
-		PanicOnError(retRes53612)
+		retRes53712 := (<-this.LoadMarkets())
+		PanicOnError(retRes53712)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -675,8 +676,8 @@ func (this *RevolutxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60212 := (<-this.LoadMarkets())
-		PanicOnError(retRes60212)
+		retRes60312 := (<-this.LoadMarkets())
+		PanicOnError(retRes60312)
 	}
 
 	tickers := (<-this.FetchTickers([]any{symbol}, params))
@@ -715,8 +716,8 @@ func (this *RevolutxCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes62512 := (<-this.LoadMarkets())
-		PanicOnError(retRes62512)
+		retRes62612 := (<-this.LoadMarkets())
+		PanicOnError(retRes62612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -802,8 +803,8 @@ func (this *RevolutxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68912 := (<-this.LoadMarkets())
-		PanicOnError(retRes68912)
+		retRes69012 := (<-this.LoadMarkets())
+		PanicOnError(retRes69012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -911,8 +912,8 @@ func (this *RevolutxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes77712 := (<-this.LoadMarkets())
-		PanicOnError(retRes77712)
+		retRes77812 := (<-this.LoadMarkets())
+		PanicOnError(retRes77812)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -932,7 +933,7 @@ func (this *RevolutxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 		AddElementToObject(request, "end_date", this.Milliseconds())
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "limit", limit)
+		AddElementToObject(request, "limit", mathMin(limit, 1900))
 	}
 	var cursor any = this.SafeString(params, "cursor")
 	if IsTrue(!IsEqual(cursor, nil)) {
@@ -981,8 +982,8 @@ func (this *RevolutxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes83212 := (<-this.LoadMarkets())
-		PanicOnError(retRes83212)
+		retRes83312 := (<-this.LoadMarkets())
+		PanicOnError(retRes83312)
 	}
 
 	response := (<-this.PrivateGet10Balances(params))
@@ -1149,8 +1150,8 @@ func (this *RevolutxCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97912 := (<-this.LoadMarkets())
-		PanicOnError(retRes97912)
+		retRes98012 := (<-this.LoadMarkets())
+		PanicOnError(retRes98012)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())
@@ -1246,8 +1247,8 @@ func (this *RevolutxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes105912 := (<-this.LoadMarkets())
-		PanicOnError(retRes105912)
+		retRes106012 := (<-this.LoadMarkets())
+		PanicOnError(retRes106012)
 	}
 	var request map[string]any = map[string]any{
 		"venue_order_id": id,
@@ -1287,12 +1288,12 @@ func (this *RevolutxCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes108312 := (<-this.LoadMarkets())
-		PanicOnError(retRes108312)
+		retRes108412 := (<-this.LoadMarkets())
+		PanicOnError(retRes108412)
 	}
 
-	retRes10858 := (<-this.PrivateDelete10Orders(params))
-	PanicOnError(retRes10858)
+	retRes10868 := (<-this.PrivateDelete10Orders(params))
+	PanicOnError(retRes10868)
 
 	ch <- []any{}
 	return nil
@@ -1322,8 +1323,8 @@ func (this *RevolutxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes110112 := (<-this.LoadMarkets())
-		PanicOnError(retRes110112)
+		retRes110212 := (<-this.LoadMarkets())
+		PanicOnError(retRes110212)
 	}
 	var request map[string]any = map[string]any{
 		"venue_order_id": id,
@@ -1387,8 +1388,8 @@ func (this *RevolutxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes114512 := (<-this.LoadMarkets())
-		PanicOnError(retRes114512)
+		retRes114612 := (<-this.LoadMarkets())
+		PanicOnError(retRes114612)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1467,8 +1468,8 @@ func (this *RevolutxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes120412 := (<-this.LoadMarkets())
-		PanicOnError(retRes120412)
+		retRes120512 := (<-this.LoadMarkets())
+		PanicOnError(retRes120512)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1550,9 +1551,9 @@ func (this *RevolutxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 		"order_states": orderStates,
 	})
 
-	retRes126615 := (<-this.FetchOrders(symbol, since, limit, requestParams))
-	PanicOnError(retRes126615)
-	ch <- retRes126615
+	retRes126715 := (<-this.FetchOrders(symbol, since, limit, requestParams))
+	PanicOnError(retRes126715)
+	ch <- retRes126715
 	return nil
 }
 
@@ -1630,8 +1631,8 @@ func (this *RevolutxCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes132512 := (<-this.LoadMarkets())
-		PanicOnError(retRes132512)
+		retRes132612 := (<-this.LoadMarkets())
+		PanicOnError(retRes132612)
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires a symbol parameter")))
@@ -1720,8 +1721,8 @@ func (this *RevolutxCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes139612 := (<-this.LoadMarkets())
-		PanicOnError(retRes139612)
+		retRes139712 := (<-this.LoadMarkets())
+		PanicOnError(retRes139712)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "client_order_id", this.Uuid())

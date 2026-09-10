@@ -84,7 +84,7 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -120,7 +120,7 @@ class lbank(ccxt.async_support.lbank):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -884,14 +884,8 @@ class lbank(ccxt.async_support.lbank):
         #
         #  {ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping'}
         #
-        # lbank drives liveness from its side: the server sends self
-        # application-level ping and closes the socket if it is not answered
-        # within a minute, but it does not reliably answer the RFC 6455 ping
-        # frames the base client sends from onPingInterval. an inbound ping is
-        # proof the connection is alive, so record it last pong -
-        # otherwise lastPong never advances past the first onPingInterval and
-        # the keepAlive * maxPingPongMisses check tears down a healthy,
-        # streaming socket every 60 seconds
+        # lbank closes the socket if self app-level ping is unanswered within a minute, but does not
+        # reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
         client.lastPong = self.milliseconds()
         pingId = self.safe_string(message, 'ping')
         try:
@@ -924,18 +918,11 @@ class lbank(ccxt.async_support.lbank):
             handler(client, message)
 
     async def authenticate(self, params={}):
-        # single-flight leader election, see
-        # https://github.com/ccxt/ccxt/issues/29393: both branches below read
-        # the cache, then fetch, then write it back, so concurrent
-        # watchOrders/watchBalance calls on a cold instance each POST
-        # subscribe/get_key, and concurrent callers past the expiry each POST
-        # subscribe/refresh_key - every loser burns rate limit on a
-        # subscribeKey that is immediately overwritten. the flight is parked
-        # on self exchange's own ws client - the same one that carries
-        # subscriptions['authenticated'] - under a key that is not one of its
-        # messageHashes, registered in client.futures before the first fetch
-        # and settled through client.resolve / client.reject so that every
-        # write to the futures map goes through the client itself
+        # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        # concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+        # subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+        # overwritten. the flight lives in client.futures of self exchange's own ws client under
+        # a key that is not a messageHash, and settles via client.resolve / client.reject only
         self.check_required_credentials()
         url = self.urls['api']['ws']
         client = self.client(url)

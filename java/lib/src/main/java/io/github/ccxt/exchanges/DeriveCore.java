@@ -169,16 +169,34 @@ public class DeriveCore extends DeriveApi
                         put( "deregister_session_key", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_wallets_from_session_key", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "login", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "statistics", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "all_statistics", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "user_statistics", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "all_user_statistics", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_all_currencies", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_asset", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_assets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_instrument", new java.util.HashMap<String, Object>() {{
@@ -193,6 +211,9 @@ public class DeriveCore extends DeriveApi
                         put( "get_ticker", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_latest_signed_feeds", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -203,6 +224,12 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "get_spot_feed_history_candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_chart_data", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_tradingview_chart_data", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_funding_rate_history", new java.util.HashMap<String, Object>() {{
@@ -220,6 +247,9 @@ public class DeriveCore extends DeriveApi
                         put( "get_interest_rate_history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_perp_impact_twap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_transaction", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -227,6 +257,9 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "margin_watch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order_quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "validate_invite_code", new java.util.HashMap<String, Object>() {{
@@ -248,6 +281,9 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "get_swell_percent_points", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_stdrv_snapshots", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_vault_assets", new java.util.HashMap<String, Object>() {{
@@ -274,10 +310,19 @@ public class DeriveCore extends DeriveApi
                         put( "get_vault_balances", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_vault_pools", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_vault_rates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "estimate_integrator_points", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "create_subaccount_debug", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_account_with_secret", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "deposit_debug", new java.util.HashMap<String, Object>() {{
@@ -298,6 +343,12 @@ public class DeriveCore extends DeriveApi
                         put( "register_invite", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_all_referral_codes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_referral_performance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_time", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -308,6 +359,12 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "get_maker_program_scores", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_detailed_maker_snapshot_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "getRateLimits", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -333,6 +390,9 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "get_notificationsv", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_notifications", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "update_notifications", new java.util.HashMap<String, Object>() {{
@@ -371,6 +431,12 @@ public class DeriveCore extends DeriveApi
                         put( "get_open_orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_trigger_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_algo_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "cancel", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -387,6 +453,15 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "cancel_trigger_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_algo_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_algo_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancel_all_trigger_orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_order_history", new java.util.HashMap<String, Object>() {{
@@ -434,6 +509,12 @@ public class DeriveCore extends DeriveApi
                         put( "execute_quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "order_quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "replace_quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "rfq_get_best_quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -479,6 +560,9 @@ public class DeriveCore extends DeriveApi
                         put( "edit_session_key", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "change_session_key_label", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "register_scoped_session_key", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -498,6 +582,18 @@ public class DeriveCore extends DeriveApi
                             put( "cost", 1 );
                         }} );
                         put( "register_invite", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_contact_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "create_contact_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "update_contact_info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "delete_contact_info", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -2376,7 +2472,7 @@ public class DeriveCore extends DeriveApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrder(Object rawOrder, Object... optionalArgs)

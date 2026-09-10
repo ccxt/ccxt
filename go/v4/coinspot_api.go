@@ -242,9 +242,19 @@ func (this *CoinspotCore) V2PrivatePostMyBuyNow(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostMyBuyNow", args...)
 }
 
+// V2PrivatePostMyBuyNowCoinlist returns a channel that yields a JSON object.
+func (this *CoinspotCore) V2PrivatePostMyBuyNowCoinlist(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyBuyNowCoinlist", args...)
+}
+
 // V2PrivatePostMySellNow returns a channel that yields a JSON object.
 func (this *CoinspotCore) V2PrivatePostMySellNow(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostMySellNow", args...)
+}
+
+// V2PrivatePostMySellNowCoinlist returns a channel that yields a JSON object.
+func (this *CoinspotCore) V2PrivatePostMySellNowCoinlist(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMySellNowCoinlist", args...)
 }
 
 // V2PrivatePostMySwapNow returns a channel that yields a JSON object.
@@ -280,6 +290,16 @@ func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSenddetails(args ...any) <-
 // V2PrivatePostMyCoinWithdrawSend returns a channel that yields a JSON object.
 func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSend(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSend", args...)
+}
+
+// V2PrivatePostMyCoinWithdrawSendAsync returns a channel that yields a JSON object.
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSendAsync(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSendAsync", args...)
+}
+
+// V2PrivatePostMyCoinWithdrawSendStatus returns a channel that yields a JSON object.
+func (this *CoinspotCore) V2PrivatePostMyCoinWithdrawSendStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostMyCoinWithdrawSendStatus", args...)
 }
 
 // V2PrivatePostRoStatus returns a channel that yields a JSON object.

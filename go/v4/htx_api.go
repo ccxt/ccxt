@@ -867,6 +867,31 @@ func (this *HtxCore) SpotPrivateGetV2EtpLimit(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetV2EtpLimit", args...)
 }
 
+// SpotPrivateGetV2InviteeRebateReferrals returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivateGetV2InviteeRebateReferrals(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateReferrals", args...)
+}
+
+// SpotPrivateGetV2InviteeRebateDetail returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivateGetV2InviteeRebateDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateDetail", args...)
+}
+
+// SpotPrivateGetV2InviteeRebateHistory returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivateGetV2InviteeRebateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateHistory", args...)
+}
+
+// SpotPrivateGetV2InviteeRebateAllRebateDetail returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivateGetV2InviteeRebateAllRebateDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateAllRebateDetail", args...)
+}
+
+// SpotPrivateGetV2InviteeRebateBatcherRebateDetail returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivateGetV2InviteeRebateBatcherRebateDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetV2InviteeRebateBatcherRebateDetail", args...)
+}
+
 // SpotPrivatePostV1AccountTransfer returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV1AccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV1AccountTransfer", args...)
@@ -1065,6 +1090,11 @@ func (this *HtxCore) SpotPrivatePostV2EtpTransactIdCancel(args ...any) <-chan an
 // SpotPrivatePostV2EtpBatchCancel returns a channel that yields a JSON object.
 func (this *HtxCore) SpotPrivatePostV2EtpBatchCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostV2EtpBatchCancel", args...)
+}
+
+// SpotPrivatePostV5AccountUniversalTransfer returns a channel that yields a JSON object.
+func (this *HtxCore) SpotPrivatePostV5AccountUniversalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostV5AccountUniversalTransfer", args...)
 }
 
 // ContractPublicGetApiV1Timestamp returns a channel that yields a JSON object.
@@ -1680,6 +1710,36 @@ func (this *HtxCore) ContractPrivateGetV5AlgoOrder(args ...any) <-chan any {
 // ContractPrivateGetV5AlgoOrderHistory returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivateGetV5AlgoOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivateGetV5AlgoOrderHistory", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderInstruments returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderInstruments", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderStatistics returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderStatistics", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistory returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary", args...)
+}
+
+// ContractPrivateGetApiV6CopyTradingTraderFollowers returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivateGetApiV6CopyTradingTraderFollowers(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetApiV6CopyTradingTraderFollowers", args...)
 }
 
 // ContractPrivatePostApiV1ContractBalanceValuation returns a channel that yields a JSON object.
@@ -2305,4 +2365,29 @@ func (this *HtxCore) ContractPrivatePostV5AlgoOrder(args ...any) <-chan any {
 // ContractPrivatePostV5AlgoCancelOrders returns a channel that yields a JSON object.
 func (this *HtxCore) ContractPrivatePostV5AlgoCancelOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostV5AlgoCancelOrders", args...)
+}
+
+// ContractPrivatePostApiV6CopyTradingTraderFollower returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivatePostApiV6CopyTradingTraderFollower(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderFollower", args...)
+}
+
+// ContractPrivatePostApiV6CopyTradingTraderTransfer returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivatePostApiV6CopyTradingTraderTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderTransfer", args...)
+}
+
+// ContractPrivatePostApiV6CopyTradingTraderFollowerSettings returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivatePostApiV6CopyTradingTraderFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderFollowerSettings", args...)
+}
+
+// ContractPrivatePostApiV6CopyTradingTraderConfig returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivatePostApiV6CopyTradingTraderConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderConfig", args...)
+}
+
+// ContractPrivatePostApiV6CopyTradingTraderApikey returns a channel that yields a JSON object.
+func (this *HtxCore) ContractPrivatePostApiV6CopyTradingTraderApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostApiV6CopyTradingTraderApikey", args...)
 }

@@ -187,6 +187,7 @@ class phemex extends phemex$1["default"] {
                     'get': {
                         'public/products': { 'cost': 5 },
                         'public/products-plus': { 'cost': 5 },
+                        'public/index-sources': { 'cost': 5 }, // ?symbol=<symbol>&pageNum=<pageNum>&pageSize=<pageSize>
                         'md/v2/orderbook': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/trade': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
                         'md/v2/ticker/24hr': { 'cost': 5 }, // ?symbol=<symbol>&id=<id>
@@ -255,6 +256,16 @@ class phemex extends phemex$1["default"] {
                         'assets/futures/sub-accounts/transfer': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&limit=<limit>&offset=<offset>
                         'assets/quote': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&amountEv=<amount>
                         // deposit/withdraw
+                        // copy trade
+                        'phemex-lb/public/api/trader/performance-info': { 'cost': 5 }, // ?strategyIds=<strategyIds>&pageNum=<pageNum>&pageSize=<pageSize>
+                        // uta
+                        'uta-api/risk/risk-mode': { 'cost': 5 },
+                        'uta-api/risk/risk-units': { 'cost': 5 }, // ?currency=<currency>&riskType=<riskType>
+                        'uta-biz/assets': { 'cost': 5 }, // ?currency=<currency>
+                        'uta-funds/contract/borrow': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-funds/contract/borrow/interests': { 'cost': 5 }, // ?currency=<currency>&start=<start>&end=<end>&pageNum=<pageNum>&pageSize=<pageSize>
+                        'uta-exchanger/assets/convert': { 'cost': 5 }, // ?fromCurrency=<currency>&toCurrency=<currency>&start=<start>&end=<end>&offset=<offset>&limit=<limit>
                     },
                     'post': {
                         // spot
@@ -278,6 +289,9 @@ class phemex extends phemex$1["default"] {
                         // withdraw
                         'phemex-withdraw/wallets/api/createWithdraw': { 'cost': 5 }, // ?currency=<currency>&address=<address>&amount=<amount>&addressTag=<addressTag>&chainName=<chainName>
                         'phemex-withdraw/wallets/api/cancelWithdraw': { 'cost': 5 }, // ?id=<id>
+                        // uta
+                        'uta-account/switch-mode': { 'cost': 5 }, // ?riskMode=<riskMode>
+                        'uta-funds/contract/payback': { 'cost': 5 }, // body: currency, amountRv
                     },
                     'put': {
                         // spot

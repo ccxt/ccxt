@@ -74,8 +74,8 @@ func (this *IndependentreserveCore) watchTradesBody(ch chan any, symbol any, opt
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes5412 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes5412)
+		retRes5512 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes5512)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -179,8 +179,8 @@ func (this *IndependentreserveCore) watchOrderBookBody(ch chan any, symbol any, 
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes14212 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes14212)
+		retRes14312 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes14312)
 	}
 	var market any = this.Market(symbol)
 	symbol = ccxt.GetValue(market, "symbol")
@@ -248,7 +248,11 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(event, "OrderBookSnapshot")) {
 		var snapshot any = this.ParseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume")
 		orderbook.(ccxt.OrderBookInterface).Reset(snapshot)
-		ccxt.AddElementToObject(subscription, "receivedSnapshot", true)
+		// write through the parent index: php copies arrays by value, so
+		// mutating the local bind would not persist the flag
+		ccxt.AddElementToObject(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash, this.Extend(subscription, map[string]any{
+			"receivedSnapshot": true,
+		}))
 	} else {
 		var asks any = this.SafeList(orderBook, "Offers", []any{})
 		var bids any = this.SafeList(orderBook, "Bids", []any{})
@@ -274,7 +278,7 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 				payload = ccxt.Add(ccxt.Add(payload, this.ValueToChecksum(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 0))), this.ValueToChecksum(ccxt.GetValue(ccxt.GetValue(storedAsks, i), 1)))
 			}
 		}
-		var calculatedChecksum int64 = this.Crc32(payload, true)
+		var calculatedChecksum int64 = this.Crc32(payload, false)
 		var responseChecksum any = this.SafeInteger(orderBook, "Crc32")
 		if ccxt.IsTrue(!ccxt.IsEqual(calculatedChecksum, responseChecksum)) {
 			error := ccxt.ChecksumError(ccxt.Add(ccxt.Add(this.Id, " "), this.OrderbookChecksumMessage(symbol)))
@@ -289,7 +293,10 @@ func (this *IndependentreserveCore) HandleOrderBook(client any, message any) {
 	}
 }
 func (this *IndependentreserveCore) ValueToChecksum(value any) any {
-	var result any = ccxt.ToFixed(value, 8)
+	// ccxt.ToFixed returns a zero-padded *string* in js but a *number* in
+	// go/c#/java, dropping trailing zeros. decimalToPrecision with
+	// ccxt.PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+	var result any = this.DecimalToPrecision(value, ccxt.ROUND, 8, ccxt.DECIMAL_PLACES, ccxt.PAD_WITH_ZERO)
 	result = ccxt.Replace(result, ".", "")
 	// remove leading zeros
 	result = this.ParseNumber(result)

@@ -333,7 +333,7 @@ class kalshi extends Exchange {
          * @return {array} the resolved outcome object
          */
         // a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
-        // sending a unified handle (EVENT_MARKET:LABEL) ticker is a guaranteed 404.
+        // sending a unified handle (EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         // the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
         // inline form to mb_strpos's `=== false`; assigned to a variable first, absence (false)
         // never satisfies `< 0` and id-form inputs take the wrong branch
@@ -1169,7 +1169,7 @@ class kalshi extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
          * @param {int} [$limit] the maximum number of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1266,7 +1266,7 @@ class kalshi extends Exchange {
          * parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
          * @param {array} $ohlcv the raw candlestick object
          * @param {array} [$market] the outcome object the candle belongs to
-         * @return {int[]} a candle ordered, open, high, low, close, volume
+         * @return {int[]} a candle ordered as $timestamp, open, high, low, close, volume
          */
         //
         //     {
@@ -1698,7 +1698,7 @@ class kalshi extends Exchange {
         // which leg $won; market_result is yes or no
         $marketResult = $this->safe_string_upper($settlement, 'market_result');
         $won = ($marketResult === $heldLabel);
-        // kalshi reports money keys on V2, else cents
+        // kalshi reports money as dollar keys on V2, else cents
         $payout = $this->safe_number($settlement, 'revenue_dollars');
         if ($payout === null) {
             $revenueCents = $this->safe_number($settlement, 'revenue');
@@ -2076,7 +2076,7 @@ class kalshi extends Exchange {
         $order['side'] = $side;
         $order['amount'] = $amount;
         $order['price'] = $price;
-        // the minimal create $response reports fills/remaining_count (not the *_fp keys
+        // the minimal create $response reports fills as fill_count/remaining_count (not the *_fp keys
         // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         // otherwise a fully-filled $order would return status 'closed' with filled 0
         $remainingCount = $this->safe_number($response, 'remaining_count');

@@ -391,6 +391,21 @@ public class BybitCore extends BybitApi
                         put( "v5/earn/product", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "v5/spot-x/launchpool/project/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/puzzle/project/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/token-splash/project/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/instruments-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/orderbook", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
@@ -797,6 +812,9 @@ public class BybitCore extends BybitApi
                         put( "v5/user/invitation/referrals", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "v5/user/invitation/code", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "v5/affiliate/aff-user-list", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -807,6 +825,9 @@ public class BybitCore extends BybitApi
                             put( "cost", 1 );
                         }} );
                         put( "v5/spot-margin-trade/flexible-available-inventory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-margin-trade/fixed-available-inventory", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "v5/spot-margin-trade/interest-rate-history", new java.util.HashMap<String, Object>() {{
@@ -911,6 +932,12 @@ public class BybitCore extends BybitApi
                         put( "v5/crypto-loan-fixed/repayment-history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "v5/crypto-loan-fixed/available-inventory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "v5/crypto-loan-flexible/available-inventory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                         put( "v5/ins-loan/product-infos", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -969,6 +996,39 @@ public class BybitCore extends BybitApi
                             put( "cost", 5 );
                         }} );
                         put( "v5/earn/hourly-yield", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/order-realtime", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/order-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/settlements", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/launchpool/user/current-staking", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/token-splash/user/activity-params", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/rfq/rfq-detail-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/engine-status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/pay-token-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/sports/timeline-stages", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
@@ -1406,6 +1466,60 @@ public class BybitCore extends BybitApi
                             put( "cost", 5 );
                         }} );
                         put( "v5/earn/place-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/quotes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/event/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/launchpool/user/activity-log", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/spot-x/launchpool/user/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/event-detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/order-estimate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/buy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/sell", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/order-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/order-book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/token-price", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/price-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/position-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/position-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/portfolio-summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/side-market-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/sports/match-list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v5/alpha/prediction/sports/group-stage-detail", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );

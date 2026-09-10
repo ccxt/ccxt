@@ -32,6 +32,11 @@ impl MyokxCore {
         self.call_method(Value::Str("public_get_market_books_full".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarketBooksRpi` implicit endpoint.
+    pub async fn public_get_market_books_rpi(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_books_rpi".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetMarketCandles` implicit endpoint.
     pub async fn public_get_market_candles(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_candles".to_string()), optional_args).await
@@ -285,6 +290,16 @@ impl MyokxCore {
     /// Auto-generated wrapper for the `publicGetPublicVipInterestRateLoanQuota` implicit endpoint.
     pub async fn public_get_public_vip_interest_rate_loan_quota(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_public_vip_interest_rate_loan_quota".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetPublicMmInstrumentTypes` implicit endpoint.
+    pub async fn public_get_public_mm_instrument_types(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_public_mm_instrument_types".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetPublicDeltaHedgeCurrencies` implicit endpoint.
+    pub async fn public_get_public_delta_hedge_currencies(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_public_delta_hedge_currencies".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetRubikStatTradingDataSupportCoin` implicit endpoint.
@@ -1232,6 +1247,66 @@ impl MyokxCore {
         self.call_method(Value::Str("private_get_finance_flexible_loan_interest_accrued".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetFinanceFlexibleLoanEmodeInfo` implicit endpoint.
+    pub async fn private_get_finance_flexible_loan_emode_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_flexible_loan_emode_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdLimits` implicit endpoint.
+    pub async fn private_get_finance_okusd_limits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_limits".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdAccount` implicit endpoint.
+    pub async fn private_get_finance_okusd_account(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_account".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdSubscribeHistory` implicit endpoint.
+    pub async fn private_get_finance_okusd_subscribe_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_subscribe_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdRedeemHistory` implicit endpoint.
+    pub async fn private_get_finance_okusd_redeem_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_redeem_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdRewardsHistory` implicit endpoint.
+    pub async fn private_get_finance_okusd_rewards_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_rewards_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceOkusdRateHistory` implicit endpoint.
+    pub async fn private_get_finance_okusd_rate_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_okusd_rate_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceStableRewardsProductInfo` implicit endpoint.
+    pub async fn private_get_finance_stable_rewards_product_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_stable_rewards_product_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceStableRewardsBalance` implicit endpoint.
+    pub async fn private_get_finance_stable_rewards_balance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_stable_rewards_balance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetFinanceStableRewardsApyHistory` implicit endpoint.
+    pub async fn private_get_finance_stable_rewards_apy_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_finance_stable_rewards_apy_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersGlpTodayperformance` implicit endpoint.
+    pub async fn private_get_users_glp_todayperformance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_glp_todayperformance".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersGlpHistoricalperformance` implicit endpoint.
+    pub async fn private_get_users_glp_historicalperformance(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_glp_historicalperformance".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetCopytradingCurrentSubpositions` implicit endpoint.
     pub async fn private_get_copytrading_current_subpositions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_copytrading_current_subpositions".to_string()), optional_args).await
@@ -1390,6 +1465,31 @@ impl MyokxCore {
     /// Auto-generated wrapper for the `privateGetAffiliateInviteeDetail` implicit endpoint.
     pub async fn private_get_affiliate_invitee_detail(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_affiliate_invitee_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliatePerformanceSummary` implicit endpoint.
+    pub async fn private_get_affiliate_performance_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_performance_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateInviteeList` implicit endpoint.
+    pub async fn private_get_affiliate_invitee_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_invitee_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateLinkList` implicit endpoint.
+    pub async fn private_get_affiliate_link_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_link_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateCoInviterList` implicit endpoint.
+    pub async fn private_get_affiliate_co_inviter_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_co_inviter_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAffiliateSubAffiliateList` implicit endpoint.
+    pub async fn private_get_affiliate_sub_affiliate_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_affiliate_sub_affiliate_list".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetUsersPartnerIfRebate` implicit endpoint.
@@ -2100,6 +2200,26 @@ impl MyokxCore {
     /// Auto-generated wrapper for the `privatePostFinanceFlexibleLoanAdjustCollateral` implicit endpoint.
     pub async fn private_post_finance_flexible_loan_adjust_collateral(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_finance_flexible_loan_adjust_collateral".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFinanceFlexibleLoanBorrow` implicit endpoint.
+    pub async fn private_post_finance_flexible_loan_borrow(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_finance_flexible_loan_borrow".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFinanceFlexibleLoanRepay` implicit endpoint.
+    pub async fn private_post_finance_flexible_loan_repay(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_finance_flexible_loan_repay".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFinanceOkusdSubscribe` implicit endpoint.
+    pub async fn private_post_finance_okusd_subscribe(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_finance_okusd_subscribe".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostFinanceOkusdRedeem` implicit endpoint.
+    pub async fn private_post_finance_okusd_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_finance_okusd_redeem".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostCopytradingAlgoOrder` implicit endpoint.

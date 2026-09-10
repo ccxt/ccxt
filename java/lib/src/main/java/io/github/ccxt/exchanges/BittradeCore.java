@@ -317,6 +317,9 @@ public class BittradeCore extends BittradeApi
                         put( "settings/currencys", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "retail/maintain/time", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
@@ -393,6 +396,9 @@ public class BittradeCore extends BittradeApi
                         put( "stable-coin/quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "retail/order/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "account/transfer", new java.util.HashMap<String, Object>() {{
@@ -454,6 +460,9 @@ public class BittradeCore extends BittradeApi
                         }} );
                         put( "subuser/transfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
+                        }} );
+                        put( "retail/order/place", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
                         }} );
                     }} );
                 }} );

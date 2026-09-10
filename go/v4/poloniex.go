@@ -381,6 +381,9 @@ func (this *PoloniexCore) Describe() any {
 					"v3/market/fundingRate": map[string]any{
 						"cost": Divide(2, 3),
 					},
+					"v3/market/fundingRate/history": map[string]any{
+						"cost": Divide(2, 3),
+					},
 					"v3/market/openInterest": map[string]any{
 						"cost": Divide(2, 3),
 					},
@@ -388,6 +391,9 @@ func (this *PoloniexCore) Describe() any {
 						"cost": Divide(2, 3),
 					},
 					"v3/market/riskLimit": map[string]any{
+						"cost": Divide(2, 3),
+					},
+					"v3/market/limitPrice": map[string]any{
 						"cost": Divide(2, 3),
 					},
 				},
@@ -409,6 +415,9 @@ func (this *PoloniexCore) Describe() any {
 					"v3/trade/order/history": map[string]any{
 						"cost": 20,
 					},
+					"v3/trade/order/details": map[string]any{
+						"cost": 20,
+					},
 					"v3/trade/position/opens": map[string]any{
 						"cost": 20,
 					},
@@ -419,6 +428,9 @@ func (this *PoloniexCore) Describe() any {
 						"cost": 20,
 					},
 					"v3/position/mode": map[string]any{
+						"cost": 20,
+					},
+					"v3/position/riskLimit": map[string]any{
 						"cost": 20,
 					},
 				},
@@ -864,17 +876,17 @@ func (this *PoloniexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs .
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes6848 := (<-this.LoadMarkets())
-	PanicOnError(retRes6848)
+	retRes6888 := (<-this.LoadMarkets())
+	PanicOnError(retRes6888)
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate", false)
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes68819 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
-		PanicOnError(retRes68819)
-		ch <- retRes68819
+		retRes69219 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 500))
+		PanicOnError(retRes69219)
+		ch <- retRes69219
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -1407,8 +1419,8 @@ func (this *PoloniexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes11368 := (<-this.LoadMarkets())
-	PanicOnError(retRes11368)
+	retRes11408 := (<-this.LoadMarkets())
+	PanicOnError(retRes11408)
 	var market any = nil
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -1619,8 +1631,8 @@ func (this *PoloniexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes13158 := (<-this.LoadMarkets())
-	PanicOnError(retRes13158)
+	retRes13198 := (<-this.LoadMarkets())
+	PanicOnError(retRes13198)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -1825,8 +1837,8 @@ func (this *PoloniexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes14978 := (<-this.LoadMarkets())
-	PanicOnError(retRes14978)
+	retRes15018 := (<-this.LoadMarkets())
+	PanicOnError(retRes15018)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -1909,17 +1921,17 @@ func (this *PoloniexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes15568 := (<-this.LoadMarkets())
-	PanicOnError(retRes15568)
+	retRes15608 := (<-this.LoadMarkets())
+	PanicOnError(retRes15608)
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes156019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-		PanicOnError(retRes156019)
-		ch <- retRes156019
+		retRes156419 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes156419)
+		ch <- retRes156419
 		return nil
 	}
 	var market any = nil
@@ -2256,8 +2268,8 @@ func (this *PoloniexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes18738 := (<-this.LoadMarkets())
-	PanicOnError(retRes18738)
+	retRes18778 := (<-this.LoadMarkets())
+	PanicOnError(retRes18778)
 	var market any = nil
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2388,8 +2400,8 @@ func (this *PoloniexCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes19768 := (<-this.LoadMarkets())
-	PanicOnError(retRes19768)
+	retRes19808 := (<-this.LoadMarkets())
+	PanicOnError(retRes19808)
 	var market any = nil
 	var request any = map[string]any{}
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2491,8 +2503,8 @@ func (this *PoloniexCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes20588 := (<-this.LoadMarkets())
-	PanicOnError(retRes20588)
+	retRes20628 := (<-this.LoadMarkets())
+	PanicOnError(retRes20628)
 	var market any = this.Market(symbol)
 	var request any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -2651,8 +2663,8 @@ func (this *PoloniexCore) editOrderBody(ch chan any, id any, symbol any, typeVar
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes21878 := (<-this.LoadMarkets())
-	PanicOnError(retRes21878)
+	retRes21918 := (<-this.LoadMarkets())
+	PanicOnError(retRes21918)
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "spot"), true)) {
 		panic(NotSupported(Add(Add(Add(this.Id, " editOrder() does not support "), GetValue(market, "type")), " orders, only spot orders are accepted")))
@@ -2713,8 +2725,8 @@ func (this *PoloniexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes22308 := (<-this.LoadMarkets())
-	PanicOnError(retRes22308)
+	retRes22348 := (<-this.LoadMarkets())
+	PanicOnError(retRes22348)
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrder() requires a symbol argument")))
 	}
@@ -2796,8 +2808,8 @@ func (this *PoloniexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes22908 := (<-this.LoadMarkets())
-	PanicOnError(retRes22908)
+	retRes22948 := (<-this.LoadMarkets())
+	PanicOnError(retRes22948)
 	var request map[string]any = map[string]any{
 		"symbols": []any{},
 	}
@@ -2892,8 +2904,8 @@ func (this *PoloniexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes23648 := (<-this.LoadMarkets())
-	PanicOnError(retRes23648)
+	retRes23688 := (<-this.LoadMarkets())
+	PanicOnError(retRes23688)
 	id = ToString(id)
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -2963,8 +2975,8 @@ func (this *PoloniexCore) fetchOrderStatusBody(ch chan any, id any, optionalArgs
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes24158 := (<-this.LoadMarkets())
-	PanicOnError(retRes24158)
+	retRes24198 := (<-this.LoadMarkets())
+	PanicOnError(retRes24198)
 
 	orders := (<-this.FetchOpenOrders(symbol, nil, nil, params))
 	PanicOnError(orders)
@@ -3003,8 +3015,8 @@ func (this *PoloniexCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes24348 := (<-this.LoadMarkets())
-	PanicOnError(retRes24348)
+	retRes24388 := (<-this.LoadMarkets())
+	PanicOnError(retRes24388)
 	var request map[string]any = map[string]any{
 		"id": id,
 	}
@@ -3100,8 +3112,8 @@ func (this *PoloniexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes25178 := (<-this.LoadMarkets())
-	PanicOnError(retRes25178)
+	retRes25218 := (<-this.LoadMarkets())
+	PanicOnError(retRes25218)
 	var marketType any = nil
 	marketTypeparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
 	marketType = GetValue(marketTypeparamsVariable, 0)
@@ -3198,8 +3210,8 @@ func (this *PoloniexCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any)
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes25948 := (<-this.LoadMarkets())
-	PanicOnError(retRes25948)
+	retRes25988 := (<-this.LoadMarkets())
+	PanicOnError(retRes25988)
 
 	response := (<-this.PrivateGetFeeinfo(params))
 	PanicOnError(response)
@@ -3253,8 +3265,8 @@ func (this *PoloniexCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes26328 := (<-this.LoadMarkets())
-	PanicOnError(retRes26328)
+	retRes26368 := (<-this.LoadMarkets())
+	PanicOnError(retRes26368)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -3350,8 +3362,8 @@ func (this *PoloniexCore) createDepositAddressBody(ch chan any, code any, option
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes27108 := (<-this.LoadMarkets())
-	PanicOnError(retRes27108)
+	retRes27148 := (<-this.LoadMarkets())
+	PanicOnError(retRes27148)
 	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
 	request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
 	extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
@@ -3391,8 +3403,8 @@ func (this *PoloniexCore) fetchDepositAddressBody(ch chan any, code any, optiona
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes27328 := (<-this.LoadMarkets())
-	PanicOnError(retRes27328)
+	retRes27368 := (<-this.LoadMarkets())
+	PanicOnError(retRes27368)
 	requestextraParamscurrencynetworkEntryVariable := this.PrepareRequestForDepositAddress(code, params)
 	request := GetValue(requestextraParamscurrencynetworkEntryVariable, 0)
 	extraParams := GetValue(requestextraParamscurrencynetworkEntryVariable, 1)
@@ -3489,8 +3501,8 @@ func (this *PoloniexCore) transferBody(ch chan any, code any, amount any, fromAc
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes28108 := (<-this.LoadMarkets())
-	PanicOnError(retRes28108)
+	retRes28148 := (<-this.LoadMarkets())
+	PanicOnError(retRes28148)
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
 	var fromId any = this.SafeString(accountsByType, fromAccount, fromAccount)
@@ -3610,8 +3622,8 @@ func (this *PoloniexCore) fetchTransactionsHelperBody(ch chan any, optionalArgs 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes28928 := (<-this.LoadMarkets())
-	PanicOnError(retRes28928)
+	retRes28968 := (<-this.LoadMarkets())
+	PanicOnError(retRes28968)
 	var year int = 31104000 // 60 * 60 * 24 * 30 * 12 = one year of history, why not
 	var now int64 = this.Seconds()
 	var start any = Ternary(IsTrue((!IsEqual(since, nil))), this.ParseToInt(Divide(since, 1000)), Subtract(now, Multiply(10, year)))
@@ -3726,8 +3738,8 @@ func (this *PoloniexCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes29878 := (<-this.LoadMarkets())
-	PanicOnError(retRes29878)
+	retRes29918 := (<-this.LoadMarkets())
+	PanicOnError(retRes29918)
 
 	response := (<-this.FetchTransactionsHelper(code, since, limit, params))
 	PanicOnError(response)
@@ -3808,8 +3820,8 @@ func (this *PoloniexCore) fetchDepositWithdrawFeesBody(ch chan any, optionalArgs
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes30338 := (<-this.LoadMarkets())
-	PanicOnError(retRes30338)
+	retRes30378 := (<-this.LoadMarkets())
+	PanicOnError(retRes30378)
 
 	response := (<-this.PublicGetCurrencies(this.Extend(params, map[string]any{
 		"includeMultiChainCurrencies": true,
@@ -4111,8 +4123,8 @@ func (this *PoloniexCore) setLeverageBody(ch chan any, leverage any, optionalArg
 		panic(ArgumentsRequired(Add(this.Id, " setLeverage() requires a symbol argument")))
 	}
 
-	retRes32948 := (<-this.LoadMarkets())
-	PanicOnError(retRes32948)
+	retRes32988 := (<-this.LoadMarkets())
+	PanicOnError(retRes32988)
 	var market any = this.Market(symbol)
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("setLeverage", params)
@@ -4163,8 +4175,8 @@ func (this *PoloniexCore) fetchLeverageBody(ch chan any, symbol any, optionalArg
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes33278 := (<-this.LoadMarkets())
-	PanicOnError(retRes33278)
+	retRes33318 := (<-this.LoadMarkets())
+	PanicOnError(retRes33318)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"symbol": GetValue(market, "id"),
@@ -4363,8 +4375,8 @@ func (this *PoloniexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes34778 := (<-this.LoadMarkets())
-	PanicOnError(retRes34778)
+	retRes34818 := (<-this.LoadMarkets())
+	PanicOnError(retRes34818)
 	symbols = this.MarketSymbols(symbols)
 
 	response := (<-this.SwapPrivateGetV3TradePositionOpens(params))
@@ -4493,8 +4505,8 @@ func (this *PoloniexCore) modifyMarginHelperBody(ch chan any, symbol any, amount
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes35928 := (<-this.LoadMarkets())
-	PanicOnError(retRes35928)
+	retRes35968 := (<-this.LoadMarkets())
+	PanicOnError(retRes35968)
 	var market any = this.Market(symbol)
 	amount = this.AmountToPrecision(symbol, amount)
 	var request map[string]any = map[string]any{
@@ -4571,9 +4583,9 @@ func (this *PoloniexCore) reduceMarginBody(ch chan any, symbol any, amount any, 
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes365415 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
-	PanicOnError(retRes365415)
-	ch <- retRes365415
+	retRes365815 := (<-this.ModifyMarginHelper(symbol, OpNeg(amount), "reduce", params))
+	PanicOnError(retRes365815)
+	ch <- retRes365815
 	return nil
 }
 
@@ -4597,9 +4609,9 @@ func (this *PoloniexCore) addMarginBody(ch chan any, symbol any, amount any, opt
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes366715 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
-	PanicOnError(retRes366715)
-	ch <- retRes366715
+	retRes367115 := (<-this.ModifyMarginHelper(symbol, amount, "add", params))
+	PanicOnError(retRes367115)
+	ch <- retRes367115
 	return nil
 }
 func (this *PoloniexCore) Nonce() any {

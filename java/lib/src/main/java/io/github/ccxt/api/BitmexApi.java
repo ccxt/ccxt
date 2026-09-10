@@ -361,6 +361,28 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the publicGetWalletCurrencies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetWalletCurrencies (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetWalletCurrencies", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetWalletHaircuts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetWalletHaircuts (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetWalletHaircuts", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetWalletNetworks endpoint.
      *
      * @param optionalArgs the request parameters
@@ -383,6 +405,17 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetAddressConfig endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetAddressConfig (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAddressConfig", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetApiKey endpoint.
      *
      * @param optionalArgs the request parameters
@@ -391,6 +424,17 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiKey (Object... optionalArgs)
     {
         return this.callAsync ("privateGetApiKey", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiKeySelf endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiKeySelf (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiKeySelf", optionalArgs);
     }
 
     /**
@@ -438,6 +482,39 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetLeagueoftraderMyRankings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetLeagueoftraderMyRankings (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetLeagueoftraderMyRankings", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetManagedSubAccountBindingInvestor endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetManagedSubAccountBindingInvestor (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetManagedSubAccountBindingInvestor", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetManagedSubAccountBindingTradingTeam endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetManagedSubAccountBindingTradingTeam (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetManagedSubAccountBindingTradingTeam", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -468,6 +545,50 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPosition (Object... optionalArgs)
     {
         return this.callAsync ("privateGetPosition", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetReferralCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetReferralCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetReferralCode", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetReferralCodeCheckCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetReferralCodeCheckCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetReferralCodeCheckCode", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetReferralCodeCodeCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetReferralCodeCodeCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetReferralCodeCodeCode", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetReferralCodeId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetReferralCodeId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetReferralCodeId", optionalArgs);
     }
 
     /**
@@ -537,6 +658,17 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetUserDepositAddressInformation endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserDepositAddressInformation (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserDepositAddressInformation", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetUserExecutionHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -567,6 +699,17 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserMargin (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserMargin", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUserMarginingMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserMarginingMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserMarginingMode", optionalArgs);
     }
 
     /**
@@ -622,6 +765,17 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserStakingTiers (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserStakingTiers", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUserTradingSettings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserTradingSettings (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserTradingSettings", optionalArgs);
     }
 
     /**
@@ -699,6 +853,28 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserEvent (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUserEvent", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUserPriceAlert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetUserPriceAlert (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserPriceAlert", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUserStatsVolumeRank endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserStatsVolumeRank (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserStatsVolumeRank", optionalArgs);
     }
 
     /**
@@ -790,6 +966,72 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostManagedSubAccountBindingApprove endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingApprove (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingApprove", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostManagedSubAccountBindingCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostManagedSubAccountBindingCreateMSA endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingCreateMSA (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingCreateMSA", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostManagedSubAccountBindingReject endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingReject (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingReject", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostManagedSubAccountBindingToggleTradeHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingToggleTradeHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingToggleTradeHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostManagedSubAccountBindingUnbind endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostManagedSubAccountBindingUnbind (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostManagedSubAccountBindingUnbind", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -820,6 +1062,17 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrderClosePosition (Object... optionalArgs)
     {
         return this.callAsync ("privatePostOrderClosePosition", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostPositionCrossLeverage endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionCrossLeverage (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostPositionCrossLeverage", optionalArgs);
     }
 
     /**
@@ -864,6 +1117,17 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPositionTransferMargin (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPositionTransferMargin", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostReferralCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReferralCode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostReferralCode", optionalArgs);
     }
 
     /**
@@ -922,6 +1186,17 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostUserCreateIndependentSubaccount endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserCreateIndependentSubaccount (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUserCreateIndependentSubaccount", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostUserLogout endpoint.
      *
      * @param optionalArgs the request parameters
@@ -930,6 +1205,28 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<String>  privatePostUserLogout (Object... optionalArgs)
     {
         return this.callAsync ("privatePostUserLogout", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUserMarginingMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserMarginingMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUserMarginingMode", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUserPositionMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserPositionMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUserPositionMode", optionalArgs);
     }
 
     /**
@@ -988,6 +1285,28 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostUserPriceAlert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUserPriceAlert (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUserPriceAlert", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAddress (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutAddress", optionalArgs);
+    }
+
+    /**
      * Calls the privatePutGuild endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1007,6 +1326,28 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePutOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutReferralCodeId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutReferralCodeId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutReferralCodeId", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutUserPriceAlertId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUserPriceAlertId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutUserPriceAlertId", optionalArgs);
     }
 
     /**
@@ -1032,6 +1373,17 @@ public class BitmexApi extends Exchange
     }
 
     /**
+     * Calls the privateDeleteReferralCodeId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteReferralCodeId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteReferralCodeId", optionalArgs);
+    }
+
+    /**
      * Calls the privateDeleteUserUnstakingRequests endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1040,6 +1392,39 @@ public class BitmexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserUnstakingRequests (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteUserUnstakingRequests", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteUserWithdrawal endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserWithdrawal (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteUserWithdrawal", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteUserPriceAlert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserPriceAlert (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteUserPriceAlert", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteUserPriceAlertId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteUserPriceAlertId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteUserPriceAlertId", optionalArgs);
     }
 
 }

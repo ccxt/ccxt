@@ -212,6 +212,10 @@ public class TokocryptoCore extends TokocryptoApi
                         put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "executionRules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                            put( "noSymbol", 40 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "userDataStream", new java.util.HashMap<String, Object>() {{
@@ -292,6 +296,9 @@ public class TokocryptoCore extends TokocryptoApi
                             put( "cost", 1 );
                         }} );
                         put( "open/v1/user-data-stream", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "open/v1/user-listen-token", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

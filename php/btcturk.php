@@ -133,6 +133,7 @@ class btcturk extends Exchange {
                     'get' => array(
                         'orderbook' => array( 'cost' => 1 ),
                         'ticker' => array( 'cost' => 0.1 ),
+                        'ticker/currency' => array( 'cost' => 0.1 ),
                         'trades' => array( 'cost' => 1 ),   // ?last=COUNT (max 50)
                         'ohlc' => array( 'cost' => 1 ),
                         'server/exchangeinfo' => array( 'cost' => 1 ),
@@ -143,13 +144,18 @@ class btcturk extends Exchange {
                         'users/balances' => array( 'cost' => 1 ),
                         'openOrders' => array( 'cost' => 1 ),
                         'allOrders' => array( 'cost' => 1 ),
+                        'order/{orderId}' => array( 'cost' => 1 ),
                         'users/transactions/trade' => array( 'cost' => 1 ),
+                        'users/transactions/crypto' => array( 'cost' => 1 ),
+                        'users/transactions/fiat' => array( 'cost' => 1 ),
+                        'crypto-deposit-declarations' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'users/transactions/crypto' => array( 'cost' => 1 ),
                         'users/transactions/fiat' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                         'cancelOrder' => array( 'cost' => 1 ),
+                        'crypto-deposit-declarations/confirm' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 1 ),
@@ -695,7 +701,7 @@ class btcturk extends Exchange {
          * @param {int} [$limit] the maximum amount of candles $to fetch
          * @param {array} [$params] extra parameters specific $to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle $to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

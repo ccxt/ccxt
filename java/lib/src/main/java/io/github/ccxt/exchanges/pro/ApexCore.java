@@ -1224,6 +1224,13 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             return;
         }
+        Object ret_msg = this.safeString(message, "ret_msg");
+        Object pong = this.safeInteger(message, "pong");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ret_msg, "pong")) || Helpers.isTrue(!Helpers.isEqual(pong, null))))
+        {
+            this.handlePong(client, message);
+            return;
+        }
         Object topic = this.safeString2(message, "topic", "op", "");
         Object methods = new java.util.HashMap<String, Object>() {{
             put( "ws_zk_accounts_v3", "handleAccount");
@@ -1317,6 +1324,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
     public void handlePing(Client client, Object message)
     {
+        client.lastPong = ((Number)this.milliseconds()).longValue();
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 

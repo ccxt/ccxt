@@ -47,6 +47,26 @@ func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsInstrumentCandles(a
 	return this.callEndpointAsync("v1PublicGetInstrumentsInstrumentCandles", args...)
 }
 
+// V1PublicGetInstrumentsVolumesDaily returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PublicGetInstrumentsVolumesDaily(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetInstrumentsVolumesDaily", args...)
+}
+
+// V1PublicGetPositionOffsets returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PublicGetPositionOffsets(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetPositionOffsets", args...)
+}
+
+// V1PublicGetFeeRateTiers returns a channel that yields a JSON array.
+func (this *CoinbaseinternationalCore) V1PublicGetFeeRateTiers(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetFeeRateTiers", args...)
+}
+
+// V1PrivateGetAddressBook returns a channel that yields a JSON array.
+func (this *CoinbaseinternationalCore) V1PrivateGetAddressBook(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetAddressBook", args...)
+}
+
 // V1PrivateGetOrders returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrders", args...)
@@ -55,6 +75,26 @@ func (this *CoinbaseinternationalCore) V1PrivateGetOrders(args ...any) <-chan an
 // V1PrivateGetOrdersId returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateGetOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrdersId", args...)
+}
+
+// V1PrivateGetIndexIndexComposition returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetIndexIndexComposition(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetIndexIndexComposition", args...)
+}
+
+// V1PrivateGetIndexIndexCompositionHistory returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetIndexIndexCompositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetIndexIndexCompositionHistory", args...)
+}
+
+// V1PrivateGetIndexIndexPrice returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetIndexIndexPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetIndexIndexPrice", args...)
+}
+
+// V1PrivateGetIndexIndexCandles returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetIndexIndexCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetIndexIndexCandles", args...)
 }
 
 // V1PrivateGetPortfolios returns a channel that yields a JSON array.
@@ -97,6 +137,21 @@ func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositionsI
 	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositionsInstrument", args...)
 }
 
+// V1PrivateGetPortfoliosPortfolioPositionLimits returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositionLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositionLimits", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioPositionLimitsPositions returns a channel that yields a JSON array.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositionLimitsPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositionLimitsPositions", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument", args...)
+}
+
 // V1PrivateGetPortfoliosFills returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosFills(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetPortfoliosFills", args...)
@@ -107,6 +162,31 @@ func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioFills(args
 	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioFills", args...)
 }
 
+// V1PrivateGetPortfoliosFeeRates returns a channel that yields a JSON array.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosFeeRates(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosFeeRates", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioLoans returns a channel that yields a JSON array.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioLoans(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioLoans", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioLoansAsset returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioLoansAsset(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioLoansAsset", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioLoansAssetAvailability returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioLoansAssetAvailability(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioLoansAssetAvailability", args...)
+}
+
+// V1PrivateGetPortfoliosPortfolioMarginCallStatus returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetPortfoliosPortfolioMarginCallStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfoliosPortfolioMarginCallStatus", args...)
+}
+
 // V1PrivateGetTransfers returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateGetTransfers(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetTransfers", args...)
@@ -115,6 +195,11 @@ func (this *CoinbaseinternationalCore) V1PrivateGetTransfers(args ...any) <-chan
 // V1PrivateGetTransfersTransferUuid returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateGetTransfersTransferUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetTransfersTransferUuid", args...)
+}
+
+// V1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit", args...)
 }
 
 // V1PrivatePostOrders returns a channel that yields a JSON object.
@@ -132,9 +217,34 @@ func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosMargin(args ...any
 	return this.callEndpointAsync("v1PrivatePostPortfoliosMargin", args...)
 }
 
+// V1PrivatePostPortfoliosPortfolioCrossCollateralEnabled returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosPortfolioCrossCollateralEnabled(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled", args...)
+}
+
+// V1PrivatePostPortfoliosPortfolioAutoMarginEnabled returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosPortfolioAutoMarginEnabled(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPortfoliosPortfolioAutoMarginEnabled", args...)
+}
+
+// V1PrivatePostPortfoliosPortfolioLoansAsset returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosPortfolioLoansAsset(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPortfoliosPortfolioLoansAsset", args...)
+}
+
+// V1PrivatePostPortfoliosPortfolioLoansAssetPreview returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosPortfolioLoansAssetPreview(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPortfoliosPortfolioLoansAssetPreview", args...)
+}
+
 // V1PrivatePostPortfoliosTransfer returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostPortfoliosTransfer", args...)
+}
+
+// V1PrivatePostPortfoliosTransferPosition returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePostPortfoliosTransferPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPortfoliosTransferPosition", args...)
 }
 
 // V1PrivatePostTransfersWithdraw returns a channel that yields a JSON object.
@@ -180,4 +290,9 @@ func (this *CoinbaseinternationalCore) V1PrivateDeleteOrders(args ...any) <-chan
 // V1PrivateDeleteOrdersId returns a channel that yields a JSON object.
 func (this *CoinbaseinternationalCore) V1PrivateDeleteOrdersId(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateDeleteOrdersId", args...)
+}
+
+// V1PrivatePatchPortfoliosPortfolio returns a channel that yields a JSON object.
+func (this *CoinbaseinternationalCore) V1PrivatePatchPortfoliosPortfolio(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePatchPortfoliosPortfolio", args...)
 }

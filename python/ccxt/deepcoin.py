@@ -166,6 +166,10 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/market/index-candles': {'cost': 1},
                         'deepcoin/market/trades': {'cost': 1},
                         'deepcoin/market/mark-price-candles': {'cost': 1},
+                        'deepcoin/market/mark-price': {'cost': 1},
+                        'deepcoin/market/open-interest-volume': {'cost': 1},
+                        'deepcoin/market/long-short-ratio': {'cost': 1},
+                        'deepcoin/market/taker-volume': {'cost': 1},
                         'deepcoin/market/step-margin': {'cost': 5},
                         'deepcoin/trade/funding-rate': {'cost': 5},
                         'deepcoin/trade/fund-rate/current-funding-rate': {'cost': 5},
@@ -175,10 +179,15 @@ class deepcoin(Exchange, ImplicitAPI):
                 'private': {
                     'get': {
                         'deepcoin/account/balances': {'cost': 5},
+                        'deepcoin/account/all-balances': {'cost': 5},
                         'deepcoin/account/bills': {'cost': 5},
                         'deepcoin/account/positions': {'cost': 5},
+                        'deepcoin/account/trade-fee': {'cost': 5},
+                        'deepcoin/account/leverage-info': {'cost': 5},
+                        'deepcoin/account/positions-history': {'cost': 5},
                         'deepcoin/trade/fills': {'cost': 5},
                         'deepcoin/trade/orderByID': {'cost': 5},
+                        'deepcoin/trade/order': {'cost': 5},
                         'deepcoin/trade/finishOrderByID': {'cost': 5},
                         'deepcoin/trade/orders-history': {'cost': 5},
                         'deepcoin/trade/v2/orders-pending': {'cost': 5},
@@ -200,6 +209,7 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/asset/recharge-chain-list': {'cost': 5},
                         'deepcoin/listenkey/acquire': {'cost': 5},
                         'deepcoin/listenkey/extend': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
                     },
                     'post': {
                         'deepcoin/account/set-leverage': {'cost': 5},
@@ -210,14 +220,20 @@ class deepcoin(Exchange, ImplicitAPI):
                         'deepcoin/trade/cancel-trigger-order': {'cost': 1 / 6},
                         'deepcoin/trade/swap/cancel-all': {'cost': 5},
                         'deepcoin/trade/trigger-order': {'cost': 5},
+                        'deepcoin/trade/amend-trigger-order': {'cost': 5},
                         'deepcoin/trade/batch-close-position': {'cost': 5},
                         'deepcoin/trade/replace-order-sltp': {'cost': 5},
                         'deepcoin/trade/close-position-by-ids': {'cost': 5},
+                        'deepcoin/trade/increase-position': {'cost': 5},
+                        'deepcoin/trade/merge-positions': {'cost': 5},
                         'deepcoin/copytrading/leader-settings': {'cost': 5},
                         'deepcoin/copytrading/set-contracts': {'cost': 5},
                         'deepcoin/internal-transfer': {'cost': 5},
                         'deepcoin/rebate/config': {'cost': 5},
                         'deepcoin/asset/transfer': {'cost': 5},
+                        'deepcoin/sub-account/create-sub-account': {'cost': 5},
+                        'deepcoin/sub-account/sub-account-apikey': {'cost': 5},
+                        'deepcoin/sub-account/delete-sub-account-apikey': {'cost': 5},
                     },
                 },
             },
@@ -575,7 +591,7 @@ class deepcoin(Exchange, ImplicitAPI):
             if (market is not None) and (market['swap'] is True):
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
-                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -634,7 +650,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2454,16 +2470,16 @@ class deepcoin(Exchange, ImplicitAPI):
             'contractSize': None,
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'lever')),
+            'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
-            'liquidationPrice': self.safe_string(position, 'liqPx'),
+            'liquidationPrice': self.safe_number(position, 'liqPx'),
             'marginMode': self.safe_string(position, 'mgnMode'),
             'hedged': True,
-            'maintenanceMargin': self.safe_string(position, 'useMargin'),
+            'maintenanceMargin': self.safe_number(position, 'useMargin'),
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,

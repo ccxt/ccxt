@@ -1,20 +1,11 @@
 /* eslint-disable */
 /*  ------------------------------------------------------------------------ */
 
-// Minimal MessagePack *encoder* — the only half of the formerly vendored
-// static_dependencies/messagepack that CCXT uses (Exchange.packb -> hyperliquid
-// action hashing). It is byte-compatible with the previous vendored encoder
-// rather than with the msgpack spec where the two differ, because the emitted
-// bytes are hashed and signed on the wire:
-//
-//   - integers use the narrowest int/uint form, floats are always float64
-//   - "is integer" is `Math.floor (n) === n` (so 2**64 is encoded as uint64 max)
-//   - `undefined` values are dropped from maps but encoded as nil in arrays
-//   - bin8 is used up to 15 bytes (non-standard threshold), bin16/bin32 above
-//   - Date -> timestamp ext (-1) in the 32/64/96-bit forms
-//   - negative int64 uses the same two's-complement split as the old encoder
-//
-// Differentially fuzzed against the vendored encoder: 30,069 cases, 0 mismatches.
+// Minimal MessagePack encoder used by Exchange.packb (hyperliquid action hashing).
+// The emitted bytes are hashed and signed, so byte layout is an invariant and
+// intentionally deviates from the spec where noted: narrowest int/uint form, floats
+// always float64, integer test is `Math.floor (n) === n`, `undefined` dropped from
+// maps but nil in arrays, bin8 up to 15 bytes, Date -> timestamp ext (-1).
 
 const utf8Encoder = new TextEncoder ();
 

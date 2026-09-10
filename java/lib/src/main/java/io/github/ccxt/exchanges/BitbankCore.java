@@ -183,6 +183,9 @@ public class BitbankCore extends BitbankApi
                         put( "user/spot/active_orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "user/margin/status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "user/margin/positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

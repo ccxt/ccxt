@@ -169,6 +169,7 @@ class cex(Exchange, ImplicitAPI):
                         'do_cancel_my_order': {'cost': 1},
                         'do_cancel_all_orders': {'cost': 5},
                         'get_order_book': {'cost': 1},
+                        'get_ticker': {'cost': 1},
                         'get_candles': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_my_transaction_history': {'cost': 1},
@@ -762,7 +763,7 @@ class cex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         dataType = None
         dataType, params = self.handle_option_and_params(params, 'fetchOHLCV', 'dataType')

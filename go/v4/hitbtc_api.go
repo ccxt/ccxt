@@ -247,6 +247,11 @@ func (this *HitbtcCore) PrivateGetMarginHistoryClearing(args ...any) <-chan any 
 	return this.callEndpointAsync("privateGetMarginHistoryClearing", args...)
 }
 
+// PrivateGetMarginSettings returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivateGetMarginSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginSettings", args...)
+}
+
 // PrivateGetFuturesBalance returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivateGetFuturesBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFuturesBalance", args...)
@@ -312,6 +317,11 @@ func (this *HitbtcCore) PrivateGetFuturesHistoryClearing(args ...any) <-chan any
 	return this.callEndpointAsync("privateGetFuturesHistoryClearing", args...)
 }
 
+// PrivateGetUserApiKeys returns a channel that yields a JSON array.
+func (this *HitbtcCore) PrivateGetUserApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserApiKeys", args...)
+}
+
 // PrivateGetWalletBalance returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivateGetWalletBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletBalance", args...)
@@ -320,6 +330,11 @@ func (this *HitbtcCore) PrivateGetWalletBalance(args ...any) <-chan any {
 // PrivateGetWalletBalanceCurrency returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivateGetWalletBalanceCurrency(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletBalanceCurrency", args...)
+}
+
+// PrivateGetWalletCryptoAddressWhiteList returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivateGetWalletCryptoAddressWhiteList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoAddressWhiteList", args...)
 }
 
 // PrivateGetWalletCryptoAddress returns a channel that yields a JSON array.
@@ -355,6 +370,11 @@ func (this *HitbtcCore) PrivateGetWalletTransactionsTxId(args ...any) <-chan any
 // PrivateGetWalletCryptoFeeEstimate returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivateGetWalletCryptoFeeEstimate(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWalletCryptoFeeEstimate", args...)
+}
+
+// PrivateGetWalletCryptoFeeWithdrawHash returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivateGetWalletCryptoFeeWithdrawHash(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetWalletCryptoFeeWithdrawHash", args...)
 }
 
 // PrivateGetWalletAirdrops returns a channel that yields a JSON array.
@@ -452,6 +472,11 @@ func (this *HitbtcCore) PrivatePostWalletCryptoFeesEstimate(args ...any) <-chan 
 	return this.callEndpointAsync("privatePostWalletCryptoFeesEstimate", args...)
 }
 
+// PrivatePostWalletCryptoFeeEstimateBulk returns a channel that yields a JSON array.
+func (this *HitbtcCore) PrivatePostWalletCryptoFeeEstimateBulk(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostWalletCryptoFeeEstimateBulk", args...)
+}
+
 // PrivatePostWalletAirdropsIdClaim returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivatePostWalletAirdropsIdClaim(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWalletAirdropsIdClaim", args...)
@@ -470,6 +495,16 @@ func (this *HitbtcCore) PrivatePostSubAccountActivate(args ...any) <-chan any {
 // PrivatePostSubAccountTransfer returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivatePostSubAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubAccountTransfer", args...)
+}
+
+// PrivatePostSubAccountTransferSubToSuper returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivatePostSubAccountTransferSubToSuper(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountTransferSubToSuper", args...)
+}
+
+// PrivatePostSubAccountTransferSubToSub returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivatePostSubAccountTransferSubToSub(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubAccountTransferSubToSub", args...)
 }
 
 // PrivatePostSubAccountAcl returns a channel that yields a JSON array.
@@ -552,9 +587,24 @@ func (this *HitbtcCore) PrivatePutMarginAccountIsolatedSymbol(args ...any) <-cha
 	return this.callEndpointAsync("privatePutMarginAccountIsolatedSymbol", args...)
 }
 
+// PrivatePutMarginSettingsAmm returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivatePutMarginSettingsAmm(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutMarginSettingsAmm", args...)
+}
+
+// PrivatePutMarginMarginSettingsAmr returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivatePutMarginMarginSettingsAmr(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutMarginMarginSettingsAmr", args...)
+}
+
 // PrivatePutFuturesAccountIsolatedSymbol returns a channel that yields a JSON object.
 func (this *HitbtcCore) PrivatePutFuturesAccountIsolatedSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutFuturesAccountIsolatedSymbol", args...)
+}
+
+// PrivatePutFuturesMarginSettingsAmr returns a channel that yields a JSON object.
+func (this *HitbtcCore) PrivatePutFuturesMarginSettingsAmr(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutFuturesMarginSettingsAmr", args...)
 }
 
 // PrivatePutWalletCryptoWithdrawId returns a channel that yields a JSON object.

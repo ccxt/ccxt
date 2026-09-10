@@ -222,7 +222,7 @@ class woo extends Exchange {
                             'order' => array( 'cost' => 1 ),
                             'client/order' => array( 'cost' => 1 ),
                             'orders' => array( 'cost' => 1 ),
-                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive 2026-08
+                            'asset/withdraw' => array( 'cost' => 120 ), // cancel a pending withdrawal, undocumented but alive as of 2026-08
                         ),
                     ),
                 ),
@@ -294,6 +294,8 @@ class woo extends Exchange {
                             'asset/wallet/withdraw' => array( 'cost' => 60 ), // 10/60s
                             'spotMargin/leverage' => array( 'cost' => 120 ), // 5/60s
                             'spotMargin/interestRepay' => array( 'cost' => 60 ), // 10/60s
+                            'futures/defaultMarginMode/reset' => array( 'cost' => 60 ),
+                            'isolatedMargin/margin' => array( 'cost' => 60 ),
                             'algo/order' => array( 'cost' => 5 ),
                             'convert/rft' => array( 'cost' => 60 ),
                         ),
@@ -302,6 +304,8 @@ class woo extends Exchange {
                             'trade/algoOrder' => array( 'cost' => 2 ), // 5/1s
                             'futures/leverage' => array( 'cost' => 60 ), // 10/60s
                             'futures/positionMode' => array( 'cost' => 120 ), // 5/60s
+                            'futures/defaultMarginMode' => array( 'cost' => 60 ),
+                            'futures/defaultMarginMode/{symbol}' => array( 'cost' => 60 ),
                             'order/{oid}' => array( 'cost' => 2 ),
                             'order/client/{client_order_id}' => array( 'cost' => 2 ),
                             'algo/order/{oid}' => array( 'cost' => 2 ),
@@ -317,6 +321,7 @@ class woo extends Exchange {
                             'algo/orders/pending' => array( 'cost' => 1 ),
                             'algo/orders/pending/{symbol}' => array( 'cost' => 1 ),
                             'orders/pending' => array( 'cost' => 1 ),
+                            'asset/wallet/withdraw/{withdrawId}' => array( 'cost' => 60 ),
                         ),
                     ),
                 ),
@@ -517,7 +522,7 @@ class woo extends Exchange {
                     '317176' => '\\ccxt\\InvalidOrder', // The trigger after should from 0 to `${maxTriggerAfter}`
                     '317177' => '\\ccxt\\InvalidOrder', // Order has terminated
                     '317178' => '\\ccxt\\BadRequest', // The receive window is invalid.
-                    '317179' => '\\ccxt\\BadRequest', // Request has failed receive window => `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317179' => '\\ccxt\\BadRequest', // Request has failed as the receive window => `${recv_window}` millisecond is exceeded from `${api_timestamp}`
                     '317184' => '\\ccxt\\OrderNotFound', // The order cannot be found, or it is already completed.
                     '317206' => '\\ccxt\\InvalidOrder', // Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
                     '317207' => '\\ccxt\\InsufficientFunds', // Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
@@ -534,7 +539,7 @@ class woo extends Exchange {
                     '302110' => '\\ccxt\\ExchangeError', // application is lock now
                     '302111' => '\\ccxt\\InvalidOrder', // Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
                     '302112' => '\\ccxt\\InvalidOrder', // Remaining order quantity is smaller than transaction quantity
-                    '302113' => '\\ccxt\\InvalidOrder', // Order side is not same side
+                    '302113' => '\\ccxt\\InvalidOrder', // Order side is not same as transaction side
                     '302114' => '\\ccxt\\InvalidOrder', // Order price too small
                     '302115' => '\\ccxt\\InvalidOrder', // Order quantity too small
                     '302117' => '\\ccxt\\DuplicateOrderId', // The client_order_id is repeated.
@@ -563,7 +568,7 @@ class woo extends Exchange {
                     '302142' => '\\ccxt\\InvalidOrder', // The order quantity must bigger than the executed quantity.
                     '302143' => '\\ccxt\\ExchangeError', // Application not found.
                     '302144' => '\\ccxt\\InvalidOrder', // There isn’t a positive amount to repay the interest balance.
-                    '302145' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after disabling this token.
+                    '302145' => '\\ccxt\\InsufficientFunds', // Your margin will be insufficient after disabling this token as collateral.
                     '302147' => '\\ccxt\\InvalidOrder', // Amount is required for buy market orders when margin disabled.
                     '302148' => '\\ccxt\\InvalidOrder', // Amount is required for ASK buy order when margin disabled.
                     '302149' => '\\ccxt\\InvalidOrder', // Amount is required for BID buy order when margin disabled.
@@ -588,7 +593,7 @@ class woo extends Exchange {
                     '302171' => '\\ccxt\\InvalidOrder', // Buy or sell orders by amount are not supported under Reduce Only trading mode.
                     '302172' => '\\ccxt\\InvalidOrder', // `${token}` max position size of `${maxPosition}` is exceeded.
                     '302177' => '\\ccxt\\InvalidOrder', // Pending new orders cannot be edited.
-                    '302178' => '\\ccxt\\InvalidOrder', // Order is rejected have an existing market close order.
+                    '302178' => '\\ccxt\\InvalidOrder', // Order is rejected as you have an existing market close order.
                     '302185' => '\\ccxt\\InvalidOrder', // Your order request cannot be processed at this moment because the position mode is currently being switched.
                     '302186' => '\\ccxt\\InvalidOrder', // The position side you’ve used is not compatible with your current position mode.
                     '302188' => '\\ccxt\\InvalidOrder', // exceed max open notional
@@ -1369,7 +1374,7 @@ class woo extends Exchange {
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->trailingAmount] the quote $amount to trail away from the current $market $price
          * @param {string} [$params->trailingPercent] the percent to trail away from the current $market $price
          * @param {string} [$params->trailingTriggerPrice] the $price to trigger a trailing order, default uses the $price argument
@@ -2274,7 +2279,7 @@ class woo extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -2337,7 +2342,7 @@ class woo extends Exchange {
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

@@ -166,12 +166,18 @@ class bitstamp extends Exchange {
                         'travel_rule/vasps/' => array( 'cost' => 1 ),
                         'funding_rate/{market_symbol}/' => array( 'cost' => 1 ),
                         'funding_rate_history/{pair}/' => array( 'cost' => 1 ),
+                        'derivatives/market_hours/' => array( 'cost' => 1 ),
+                        'derivatives/market_hours/{market_symbol}/' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'travel_rule/contacts/' => array( 'cost' => 1 ),
                         'contacts/{contact_uuid}/' => array( 'cost' => 1 ),
+                        'travel_rule/utxo/xpub_registrations/' => array( 'cost' => 1 ),
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/' => array( 'cost' => 1 ),
+                        'travel_rule/address_verification/' => array( 'cost' => 1 ),
+                        'crypto-transactions/deposits/' => array( 'cost' => 1 ),
                         'earn/subscriptions/' => array( 'cost' => 1 ),
                         'earn/transactions/' => array( 'cost' => 1 ),
                         'trade_history/' => array( 'cost' => 1 ),
@@ -187,6 +193,7 @@ class bitstamp extends Exchange {
                         'user_transactions/' => array( 'cost' => 1 ),
                         'user_transactions/{pair}/' => array( 'cost' => 1 ),
                         'crypto-transactions/' => array( 'cost' => 1 ),
+                        'crypto-transactions/deposits/{deposit_id}/reject/' => array( 'cost' => 1 ),
                         'open_order' => array( 'cost' => 1 ),
                         'open_orders/all/' => array( 'cost' => 1 ),
                         'open_orders/{pair}/' => array( 'cost' => 1 ),
@@ -218,6 +225,8 @@ class bitstamp extends Exchange {
                         'websockets_token/' => array( 'cost' => 1 ),
                         'revoke_all_api_keys/' => array( 'cost' => 1 ),
                         'get_max_order_amount/' => array( 'cost' => 1 ),
+                        'order_data/' => array( 'cost' => 1 ),
+                        'account_order_data/' => array( 'cost' => 1 ),
                         // individual coins
                         'btc_withdrawal/' => array( 'cost' => 1 ),
                         'btc_address/' => array( 'cost' => 1 ),
@@ -382,6 +391,8 @@ class bitstamp extends Exchange {
                         'ldo_withdrawal/' => array( 'cost' => 1 ),
                         'ldo_address/' => array( 'cost' => 1 ),
                         'travel_rule/contacts/' => array( 'cost' => 1 ),
+                        'travel_rule/utxo/xpub_registrations/' => array( 'cost' => 1 ),
+                        'travel_rule/utxo/xpub_registrations/{registration_id}/revoke/' => array( 'cost' => 1 ),
                         'earn/subscribe/' => array( 'cost' => 1 ),
                         'earn/subscriptions/setting/' => array( 'cost' => 1 ),
                         'earn/unsubscribe' => array( 'cost' => 1 ),
@@ -1315,7 +1326,7 @@ class bitstamp extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

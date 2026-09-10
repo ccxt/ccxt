@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchFundingRateHistory";
         object fundingRatesHistory = await invokeExchangeDynamically(exchange, "fetchFundingRateHistory", symbol);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, fundingRatesHistory, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(fundingRatesHistory)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fundingRatesHistory)); postFixIncrement(ref i))
         {
             testFundingRateHistory(exchange, skippedProperties, method, getValue(fundingRatesHistory, i), symbol);
         }

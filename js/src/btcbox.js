@@ -139,6 +139,7 @@ export default class btcbox extends Exchange {
                 'private': {
                     'post': {
                         'balance': { 'cost': 1 },
+                        'order_history': { 'cost': 1 },
                         'trade_add': { 'cost': 1 },
                         'trade_cancel': { 'cost': 1 },
                         'trade_list': { 'cost': 1 },

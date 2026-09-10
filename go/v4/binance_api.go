@@ -1117,6 +1117,11 @@ func (this *BinanceCore) SapiGetPortfolioDeltaMode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetPortfolioDeltaMode", args...)
 }
 
+// SapiGetPortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiGetPortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiGetPortfolioMarginCallLevel", args...)
+}
+
 // SapiGetStakingProductList returns a channel that yields a JSON array.
 func (this *BinanceCore) SapiGetStakingProductList(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiGetStakingProductList", args...)
@@ -1902,6 +1907,11 @@ func (this *BinanceCore) SapiPostPortfolioDeltaMode(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostPortfolioDeltaMode", args...)
 }
 
+// SapiPostPortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiPostPortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiPostPortfolioMarginCallLevel", args...)
+}
+
 // SapiPostLendingAutoInvestPlanAdd returns a channel that yields a JSON object.
 func (this *BinanceCore) SapiPostLendingAutoInvestPlanAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPostLendingAutoInvestPlanAdd", args...)
@@ -2020,6 +2030,11 @@ func (this *BinanceCore) SapiPutUserDataStream(args ...any) <-chan any {
 // SapiPutUserDataStreamIsolated returns a channel that yields a JSON object.
 func (this *BinanceCore) SapiPutUserDataStreamIsolated(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiPutUserDataStreamIsolated", args...)
+}
+
+// SapiDeletePortfolioMarginCallLevel returns a channel that yields a JSON object.
+func (this *BinanceCore) SapiDeletePortfolioMarginCallLevel(args ...any) <-chan any {
+	return this.callEndpointAsync("sapiDeletePortfolioMarginCallLevel", args...)
 }
 
 // SapiDeleteMarginOpenOrders returns a channel that yields a JSON array.
@@ -3267,6 +3282,11 @@ func (this *BinanceCore) EapiPrivatePostBlockOrderExecute(args ...any) <-chan an
 	return this.callEndpointAsync("eapiPrivatePostBlockOrderExecute", args...)
 }
 
+// EapiPrivatePostStockContract returns a channel that yields a JSON object.
+func (this *BinanceCore) EapiPrivatePostStockContract(args ...any) <-chan any {
+	return this.callEndpointAsync("eapiPrivatePostStockContract", args...)
+}
+
 // EapiPrivatePutListenKey returns a channel that yields a JSON object.
 func (this *BinanceCore) EapiPrivatePutListenKey(args ...any) <-chan any {
 	return this.callEndpointAsync("eapiPrivatePutListenKey", args...)
@@ -3377,9 +3397,29 @@ func (this *BinanceCore) PublicGetExchangeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetExchangeInfo", args...)
 }
 
+// PublicGetExecutionRules returns a channel that yields a JSON object.
+func (this *BinanceCore) PublicGetExecutionRules(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetExecutionRules", args...)
+}
+
 // PublicGetAvgPrice returns a channel that yields a JSON object.
 func (this *BinanceCore) PublicGetAvgPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAvgPrice", args...)
+}
+
+// PublicGetReferencePrice returns a channel that yields a JSON object.
+func (this *BinanceCore) PublicGetReferencePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReferencePrice", args...)
+}
+
+// PublicGetReferencePriceCalculation returns a channel that yields a JSON object.
+func (this *BinanceCore) PublicGetReferencePriceCalculation(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetReferencePriceCalculation", args...)
+}
+
+// PublicGetHistoricalBlockTrades returns a channel that yields a JSON array.
+func (this *BinanceCore) PublicGetHistoricalBlockTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetHistoricalBlockTrades", args...)
 }
 
 // PublicPutUserDataStream returns a channel that yields a JSON object.
@@ -3590,6 +3630,21 @@ func (this *BinanceCore) PapiGetUmConditionalOrderHistory(args ...any) <-chan an
 // PapiGetUmConditionalAllOrders returns a channel that yields a JSON array.
 func (this *BinanceCore) PapiGetUmConditionalAllOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiGetUmConditionalAllOrders", args...)
+}
+
+// PapiGetUmAlgoAlgoOrder returns a channel that yields a JSON object.
+func (this *BinanceCore) PapiGetUmAlgoAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("papiGetUmAlgoAlgoOrder", args...)
+}
+
+// PapiGetUmAlgoOpenAlgoOrders returns a channel that yields a JSON array.
+func (this *BinanceCore) PapiGetUmAlgoOpenAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("papiGetUmAlgoOpenAlgoOrders", args...)
+}
+
+// PapiGetUmAlgoAllAlgoOrders returns a channel that yields a JSON array.
+func (this *BinanceCore) PapiGetUmAlgoAllAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("papiGetUmAlgoAllAlgoOrders", args...)
 }
 
 // PapiGetCmConditionalOpenOrder returns a channel that yields a JSON object.
@@ -3872,6 +3927,11 @@ func (this *BinanceCore) PapiPostUmConditionalOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostUmConditionalOrder", args...)
 }
 
+// PapiPostUmAlgoOrder returns a channel that yields a JSON object.
+func (this *BinanceCore) PapiPostUmAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("papiPostUmAlgoOrder", args...)
+}
+
 // PapiPostCmOrder returns a channel that yields a JSON object.
 func (this *BinanceCore) PapiPostCmOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("papiPostCmOrder", args...)
@@ -4000,6 +4060,16 @@ func (this *BinanceCore) PapiDeleteUmAllOpenOrders(args ...any) <-chan any {
 // PapiDeleteUmConditionalAllOpenOrders returns a channel that yields a JSON array.
 func (this *BinanceCore) PapiDeleteUmConditionalAllOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("papiDeleteUmConditionalAllOpenOrders", args...)
+}
+
+// PapiDeleteUmAlgoOrder returns a channel that yields a JSON object.
+func (this *BinanceCore) PapiDeleteUmAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("papiDeleteUmAlgoOrder", args...)
+}
+
+// PapiDeleteUmAlgoAllOpenOrders returns a channel that yields a JSON array.
+func (this *BinanceCore) PapiDeleteUmAlgoAllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("papiDeleteUmAlgoAllOpenOrders", args...)
 }
 
 // PapiDeleteCmOrder returns a channel that yields a JSON object.

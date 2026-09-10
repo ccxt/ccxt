@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official bit2c API documentation:** [bit2c.co.il](https://www.bit2c.co.il/home/api) · [github.com](https://github.com/OferE/bit2c)
 
-> 23 implicit endpoints across 2 access groups.
+> 26 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -63,6 +63,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `publicGetExchangesPairTicker` | GET | `Exchanges/{pair}/Ticker` | 1 |
 | `publicGetExchangesPairOrderbook` | GET | `Exchanges/{pair}/orderbook` | 1 |
+| `publicGetExchangesPairOrderbookTop` | GET | `Exchanges/{pair}/orderbook-top` | 1 |
 | `publicGetExchangesPairTrades` | GET | `Exchanges/{pair}/trades` | 1 |
 | `publicGetExchangesPairLasttrades` | GET | `Exchanges/{pair}/lasttrades` | 1 |
 
@@ -72,6 +73,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | --- | --- | --- | --- |
 | `privatePostMerchantCreateCheckout` | POST | `Merchant/CreateCheckout` | 1 |
 | `privatePostFundsAddCoinFundsRequest` | POST | `Funds/AddCoinFundsRequest` | 1 |
+| `privatePostFundsWithdrawCoin` | POST | `Funds/WithdrawCoin` | 1 |
 | `privatePostOrderAddFund` | POST | `Order/AddFund` | 1 |
 | `privatePostOrderAddOrder` | POST | `Order/AddOrder` | 1 |
 | `privatePostOrderGetById` | POST | `Order/GetById` | 1 |
@@ -89,4 +91,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetOrderGetById` | GET | `Order/GetById` | 1 |
 | `privateGetOrderAccountHistory` | GET | `Order/AccountHistory` | 1 |
 | `privateGetOrderOrderHistory` | GET | `Order/OrderHistory` | 1 |
+| `privateGetOrderHistoryByOrderId` | GET | `Order/HistoryByOrderId` | 1 |
 

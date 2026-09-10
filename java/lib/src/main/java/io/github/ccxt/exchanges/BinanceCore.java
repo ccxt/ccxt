@@ -928,6 +928,9 @@ public class BinanceCore extends BinanceApi
                         put( "portfolio/delta-mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 150 );
                         }} );
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "staking/productList", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -1401,6 +1404,9 @@ public class BinanceCore extends BinanceApi
                         put( "portfolio/delta-mode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 150 );
                         }} );
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "lending/auto-invest/plan/add", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -1477,6 +1483,9 @@ public class BinanceCore extends BinanceApi
                         }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
+                        put( "portfolio/margin-call-level", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 150 );
+                        }} );
                         put( "margin/openOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
@@ -2333,6 +2342,9 @@ public class BinanceCore extends BinanceApi
                         put( "block/order/execute", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "stock/contract", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "listenKey", new java.util.HashMap<String, Object>() {{
@@ -2412,8 +2424,21 @@ public class BinanceCore extends BinanceApi
                         put( "exchangeInfo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "executionRules", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                            put( "noSymbol", 8 );
+                        }} );
                         put( "avgPrice", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.4 );
+                        }} );
+                        put( "referencePrice", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                        }} );
+                        put( "referencePrice/calculation", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.4 );
+                        }} );
+                        put( "historicalBlockTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
@@ -2563,6 +2588,15 @@ public class BinanceCore extends BinanceApi
                         put( "um/conditional/allOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                             put( "noSymbol", 40 );
+                        }} );
+                        put( "um/algo/algoOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/openAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/allAlgoOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                         put( "cm/conditional/openOrder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -2738,6 +2772,9 @@ public class BinanceCore extends BinanceApi
                         put( "um/conditional/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "um/algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "cm/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -2818,6 +2855,12 @@ public class BinanceCore extends BinanceApi
                             put( "cost", 1 );
                         }} );
                         put( "um/conditional/allOpenOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "um/algo/allOpenOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "cm/order", new java.util.HashMap<String, Object>() {{
@@ -6424,6 +6467,23 @@ public class BinanceCore extends BinanceApi
 
     }
 
+    public void checkNoStockSymbols(Object symbols, Object methodName)
+    {
+        if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
+        {
+            return;
+        }
+        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
+        {
+            Object symbolMarket = this.market(Helpers.GetValue(symbols, i));
+            Object stock = this.safeBool(symbolMarket, "stock", false);
+            if (Helpers.isTrue(Helpers.isEqual(stock, true)))
+            {
+                throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), Helpers.GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+            }
+        }
+    }
+
     /**
      * @method
      * @name binance#fetchBidsAsks
@@ -6435,7 +6495,7 @@ public class BinanceCore extends BinanceApi
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
     {
@@ -6449,6 +6509,7 @@ public class BinanceCore extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
+            this.checkNoStockSymbols(symbols, "fetchBidsAsks");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
@@ -6606,7 +6667,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
@@ -6620,6 +6681,7 @@ public class BinanceCore extends BinanceApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
+            this.checkNoStockSymbols(symbols, "fetchTickers");
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);

@@ -166,6 +166,8 @@ type ICoreExchange interface {
 	GetLast_request_url() any
 	GetLast_request_body() any
 	GetLast_request_headers() map[string]any
+	SetFetchHistoryCacheSize(size any)
+	GetFetchCache() []any
 	GetReturnResponseHeaders() bool
 	SetReturnResponseHeaders(val any)
 	GetHas() map[string]any

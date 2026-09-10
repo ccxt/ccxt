@@ -110,6 +110,9 @@ public class PaymiumCore extends PaymiumApi
                         put( "user/price_alerts", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "user/withdrawals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "merchant/get_payment/{uuid}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

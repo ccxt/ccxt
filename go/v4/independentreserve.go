@@ -167,6 +167,12 @@ func (this *IndependentreserveCore) Describe() any {
 					"GetOrderMinimumVolumes": map[string]any{
 						"cost": 1,
 					},
+					"GetDepositFees": map[string]any{
+						"cost": 1,
+					},
+					"GetFiatWithdrawalFees": map[string]any{
+						"cost": 1,
+					},
 					"GetCryptoWithdrawalFees": map[string]any{
 						"cost": 1,
 					},
@@ -219,10 +225,22 @@ func (this *IndependentreserveCore) Describe() any {
 					"GetTrades": map[string]any{
 						"cost": 1,
 					},
+					"GetTradesByOrder": map[string]any{
+						"cost": 1,
+					},
 					"GetBrokerageFees": map[string]any{
 						"cost": 1,
 					},
 					"GetDigitalCurrencyWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"GetFiatWithdrawal": map[string]any{
+						"cost": 1,
+					},
+					"GetDepositLimits": map[string]any{
+						"cost": 1,
+					},
+					"GetWithdrawalLimits": map[string]any{
 						"cost": 1,
 					},
 					"PlaceLimitOrder": map[string]any{
@@ -232,6 +250,9 @@ func (this *IndependentreserveCore) Describe() any {
 						"cost": 1,
 					},
 					"CancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"CancelOrders": map[string]any{
 						"cost": 1,
 					},
 					"SynchDigitalCurrencyDepositAddressWithBlockchain": map[string]any{
@@ -527,8 +548,8 @@ func (this *IndependentreserveCore) fetchBalanceBody(ch chan any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes42812 := (<-this.LoadMarkets())
-		PanicOnError(retRes42812)
+		retRes43512 := (<-this.LoadMarkets())
+		PanicOnError(retRes43512)
 	}
 
 	response := (<-this.PrivatePostGetAccounts(params))
@@ -561,8 +582,8 @@ func (this *IndependentreserveCore) fetchOrderBookBody(ch chan any, symbol any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44512 := (<-this.LoadMarkets())
-		PanicOnError(retRes44512)
+		retRes45212 := (<-this.LoadMarkets())
+		PanicOnError(retRes45212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -647,8 +668,8 @@ func (this *IndependentreserveCore) fetchTickerBody(ch chan any, symbol any, opt
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51512 := (<-this.LoadMarkets())
-		PanicOnError(retRes51512)
+		retRes52212 := (<-this.LoadMarkets())
+		PanicOnError(retRes52212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -836,8 +857,8 @@ func (this *IndependentreserveCore) fetchOrderBody(ch chan any, id any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68812 := (<-this.LoadMarkets())
-		PanicOnError(retRes68812)
+		retRes69512 := (<-this.LoadMarkets())
+		PanicOnError(retRes69512)
 	}
 
 	response := (<-this.PrivatePostGetOrderDetails(this.Extend(map[string]any{
@@ -881,8 +902,8 @@ func (this *IndependentreserveCore) fetchOpenOrdersBody(ch chan any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes71212 := (<-this.LoadMarkets())
-		PanicOnError(retRes71212)
+		retRes71912 := (<-this.LoadMarkets())
+		PanicOnError(retRes71912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -933,8 +954,8 @@ func (this *IndependentreserveCore) fetchClosedOrdersBody(ch chan any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes74312 := (<-this.LoadMarkets())
-		PanicOnError(retRes74312)
+		retRes75012 := (<-this.LoadMarkets())
+		PanicOnError(retRes75012)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -985,8 +1006,8 @@ func (this *IndependentreserveCore) fetchMyTradesBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes77412 := (<-this.LoadMarkets())
-		PanicOnError(retRes77412)
+		retRes78112 := (<-this.LoadMarkets())
+		PanicOnError(retRes78112)
 	}
 	var pageIndex any = this.SafeInteger(params, "pageIndex", 1)
 	if IsTrue(IsEqual(limit, nil)) {
@@ -1077,8 +1098,8 @@ func (this *IndependentreserveCore) fetchTradesBody(ch chan any, symbol any, opt
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84612 := (<-this.LoadMarkets())
-		PanicOnError(retRes84612)
+		retRes85312 := (<-this.LoadMarkets())
+		PanicOnError(retRes85312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1114,8 +1135,8 @@ func (this *IndependentreserveCore) fetchTradingFeesBody(ch chan any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes86812 := (<-this.LoadMarkets())
-		PanicOnError(retRes86812)
+		retRes87512 := (<-this.LoadMarkets())
+		PanicOnError(retRes87512)
 	}
 
 	response := (<-this.PrivatePostGetBrokerageFees(params))
@@ -1189,8 +1210,8 @@ func (this *IndependentreserveCore) createOrderBody(ch chan any, symbol any, typ
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92612 := (<-this.LoadMarkets())
-		PanicOnError(retRes92612)
+		retRes93312 := (<-this.LoadMarkets())
+		PanicOnError(retRes93312)
 	}
 	var market any = this.Market(symbol)
 	var orderType any = this.Capitalize(typeVar)
@@ -1244,8 +1265,8 @@ func (this *IndependentreserveCore) cancelOrderBody(ch chan any, id any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96212 := (<-this.LoadMarkets())
-		PanicOnError(retRes96212)
+		retRes96912 := (<-this.LoadMarkets())
+		PanicOnError(retRes96912)
 	}
 	var request map[string]any = map[string]any{
 		"orderGuid": id,
@@ -1294,8 +1315,8 @@ func (this *IndependentreserveCore) fetchDepositAddressBody(ch chan any, code an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99712 := (<-this.LoadMarkets())
-		PanicOnError(retRes99712)
+		retRes100412 := (<-this.LoadMarkets())
+		PanicOnError(retRes100412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -1370,8 +1391,8 @@ func (this *IndependentreserveCore) withdrawBody(ch chan any, code any, amount a
 	params = GetValue(tagparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes105312 := (<-this.LoadMarkets())
-		PanicOnError(retRes105312)
+		retRes106012 := (<-this.LoadMarkets())
+		PanicOnError(retRes106012)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{

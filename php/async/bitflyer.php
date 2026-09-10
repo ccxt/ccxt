@@ -102,6 +102,7 @@ class bitflyer extends Exchange {
                         'getboardstate' => array( 'cost' => 1 ),
                         'getchats' => array( 'cost' => 1 ),
                         'getfundingrate' => array( 'cost' => 1 ),
+                        'getfundingratehistory' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(

@@ -162,6 +162,46 @@ impl BingxCore {
         self.call_method(Value::Str("spot_v2_public_get_ticker_price".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteBookTicker` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_book_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_book_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteDepth` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_depth(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_depth".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteHistoricalKlines` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_historical_klines(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_historical_klines".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteHistoricalTrades` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_historical_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_historical_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteKlines` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_klines(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_klines".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuotePrice` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteTicker` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_ticker(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_ticker".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotV2PublicGetQuoteTrades` implicit endpoint.
+    pub async fn spot_v2_public_get_quote_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_v2_public_get_quote_trades".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotV3PrivateGetGetAssetTransfer` implicit endpoint.
     pub async fn spot_v3_private_get_get_asset_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_v3_private_get_get_asset_transfer".to_string()), optional_args).await
@@ -437,6 +477,11 @@ impl BingxCore {
         self.call_method(Value::Str("swap_v2_private_get_trade_fill_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `swapV2PrivateGetTradePositionHistory` implicit endpoint.
+    pub async fn swap_v2_private_get_trade_position_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("swap_v2_private_get_trade_position_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `swapV2PrivateGetUserIncomeExport` implicit endpoint.
     pub async fn swap_v2_private_get_user_income_export(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("swap_v2_private_get_user_income_export".to_string()), optional_args).await
@@ -640,6 +685,11 @@ impl BingxCore {
     /// Auto-generated wrapper for the `cswapV1PrivateDeleteTradeCancelOrder` implicit endpoint.
     pub async fn cswap_v1_private_delete_trade_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("cswap_v1_private_delete_trade_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `cswapV2PrivatePostTradeOrder` implicit endpoint.
+    pub async fn cswap_v2_private_post_trade_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("cswap_v2_private_post_trade_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractV1PrivateGetAllPosition` implicit endpoint.
@@ -950,6 +1000,31 @@ impl BingxCore {
     /// Auto-generated wrapper for the `agentV1PrivateGetAccountSuperiorCheck` implicit endpoint.
     pub async fn agent_v1_private_get_account_superior_check(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("agent_v1_private_get_account_superior_check".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `wealthV1PrivateGetProductDualCurrencyPreOrder` implicit endpoint.
+    pub async fn wealth_v1_private_get_product_dual_currency_pre_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("wealth_v1_private_get_product_dual_currency_pre_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `wealthV1PrivateGetProductDualCurrencyPosition` implicit endpoint.
+    pub async fn wealth_v1_private_get_product_dual_currency_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("wealth_v1_private_get_product_dual_currency_position".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `wealthV1PrivateGetProductDualCurrencyOrderRecords` implicit endpoint.
+    pub async fn wealth_v1_private_get_product_dual_currency_order_records(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("wealth_v1_private_get_product_dual_currency_order_records".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `wealthV1PrivatePostProductDualCurrencyInvestAssetList` implicit endpoint.
+    pub async fn wealth_v1_private_post_product_dual_currency_invest_asset_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("wealth_v1_private_post_product_dual_currency_invest_asset_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `wealthV1PrivatePostProductDualCurrencyOrder` implicit endpoint.
+    pub async fn wealth_v1_private_post_product_dual_currency_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("wealth_v1_private_post_product_dual_currency_order".to_string()), optional_args).await
     }
 
 }

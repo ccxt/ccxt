@@ -147,6 +147,16 @@ func (this *BithumbCore) PrivateGetV1Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1Orders", args...)
 }
 
+// PrivateGetV2OrdersPending returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV2OrdersPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2OrdersPending", args...)
+}
+
+// PrivateGetV2OrdersHistory returns a channel that yields a JSON object.
+func (this *BithumbCore) PrivateGetV2OrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2OrdersHistory", args...)
+}
+
 // PrivateGetV1Twap returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivateGetV1Twap(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1Twap", args...)
@@ -300,6 +310,11 @@ func (this *BithumbCore) PrivatePostV2OrdersBatch(args ...any) <-chan any {
 // PrivatePostV2OrdersCancel returns a channel that yields a JSON object.
 func (this *BithumbCore) PrivatePostV2OrdersCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2OrdersCancel", args...)
+}
+
+// PrivatePostV2OrdersSearch returns a channel that yields a JSON array.
+func (this *BithumbCore) PrivatePostV2OrdersSearch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2OrdersSearch", args...)
 }
 
 // PrivatePostV1Twap returns a channel that yields a JSON object.

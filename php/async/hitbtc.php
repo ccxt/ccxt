@@ -194,6 +194,7 @@ class hitbtc extends Exchange {
                         'margin/history/trade' => array( 'cost' => 15 ),
                         'margin/history/positions' => array( 'cost' => 15 ),
                         'margin/history/clearing' => array( 'cost' => 15 ),
+                        'margin-settings' => array( 'cost' => 15 ),
                         'futures/balance' => array( 'cost' => 15 ),
                         'futures/balance/{currency}' => array( 'cost' => 15 ),
                         'futures/account' => array( 'cost' => 1 ),
@@ -207,8 +208,10 @@ class hitbtc extends Exchange {
                         'futures/history/trade' => array( 'cost' => 15 ),
                         'futures/history/positions' => array( 'cost' => 15 ),
                         'futures/history/clearing' => array( 'cost' => 15 ),
+                        'user/api-keys' => array( 'cost' => 15 ),
                         'wallet/balance' => array( 'cost' => 30 ),
                         'wallet/balance/{currency}' => array( 'cost' => 30 ),
+                        'wallet/crypto/address/white-list' => array( 'cost' => 30 ),
                         'wallet/crypto/address' => array( 'cost' => 30 ),
                         'wallet/crypto/address/recent-deposit' => array( 'cost' => 30 ),
                         'wallet/crypto/address/recent-withdraw' => array( 'cost' => 30 ),
@@ -216,6 +219,7 @@ class hitbtc extends Exchange {
                         'wallet/transactions' => array( 'cost' => 30 ),
                         'wallet/transactions/{tx_id}' => array( 'cost' => 30 ),
                         'wallet/crypto/fee/estimate' => array( 'cost' => 30 ),
+                        'wallet/crypto/fee/withdraw/hash' => array( 'cost' => 30 ),
                         'wallet/airdrops' => array( 'cost' => 30 ),
                         'wallet/amount-locks' => array( 'cost' => 30 ),
                         'sub-account' => array( 'cost' => 15 ),
@@ -237,10 +241,13 @@ class hitbtc extends Exchange {
                         'wallet/internal/withdraw' => array( 'cost' => 30 ),
                         'wallet/crypto/check-offchain-available' => array( 'cost' => 30 ),
                         'wallet/crypto/fees/estimate' => array( 'cost' => 30 ),
+                        'wallet/crypto/fee/estimate/bulk' => array( 'cost' => 30 ),
                         'wallet/airdrops/{id}/claim' => array( 'cost' => 30 ),
                         'sub-account/freeze' => array( 'cost' => 15 ),
                         'sub-account/activate' => array( 'cost' => 15 ),
                         'sub-account/transfer' => array( 'cost' => 15 ),
+                        'sub-account/transfer/sub-to-super' => array( 'cost' => 15 ),
+                        'sub-account/transfer/sub-to-sub' => array( 'cost' => 15 ),
                         'sub-account/acl' => array( 'cost' => 15 ),
                     ),
                     'patch' => array(
@@ -263,7 +270,10 @@ class hitbtc extends Exchange {
                     ),
                     'put' => array(
                         'margin/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'margin-settings/amm' => array( 'cost' => 15 ),
+                        'margin/margin-settings/amr' => array( 'cost' => 15 ),
                         'futures/account/isolated/{symbol}' => array( 'cost' => 1 ),
+                        'futures/margin-settings/amr' => array( 'cost' => 15 ),
                         'wallet/crypto/withdraw/{id}' => array( 'cost' => 30 ),
                     ),
                 ),
@@ -992,7 +1002,7 @@ class hitbtc extends Exchange {
             $rawNetwork = $rawNetworks[$j];
             $networkId = $this->safe_string_2($rawNetwork, 'protocol', 'network');
             $networkCode = $this->network_id_to_code($networkId, $code);
-            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // is white label, ensure we safeguard from possible bugs
+            $networkCode = ($networkCode !== null) ? strtoupper($networkCode) : $code; // as hitbtc is white label, ensure we safeguard from possible bugs
             if ($networkCode !== null) {
                 $networks[$networkCode] = array(
                     'info' => $rawNetwork,
@@ -1499,7 +1509,7 @@ class hitbtc extends Exchange {
                 'currency' => $feeCurrencyCode,
             );
         }
-        // we use clientOrderId order $id with this exchange intentionally
+        // we use clientOrderId as the order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $orderId = $this->safe_string_2($trade, 'clientOrderId', 'client_order_id');
@@ -1933,7 +1943,7 @@ class hitbtc extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest funding rate
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2188,7 +2198,7 @@ class hitbtc extends Exchange {
             $market = $this->market($symbol);
         }
         $request = array(
-            'order_id' => $id, // exchange assigned order $id to the client order $id
+            'order_id' => $id, // exchange assigned order $id as oppose to the client order $id
         );
         $marketType = null;
         $marginMode = null;
@@ -2706,7 +2716,7 @@ class hitbtc extends Exchange {
         //     }
         //
         $id = $this->safe_string($order, 'client_order_id');
-        // we use clientOrderId $order $id with this exchange intentionally
+        // we use clientOrderId as the $order $id with this exchange intentionally
         // because most of their endpoints will require clientOrderId
         // explained here => https://github.com/ccxt/ccxt/issues/5674
         $side = $this->safe_string($order, 'side');
@@ -2921,7 +2931,7 @@ class hitbtc extends Exchange {
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
         $toNetwork = $this->safe_string($networks, $toNetwork); // handle ETH>ERC20 alias
         if ($fromNetwork === $toNetwork) {
-            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same');
+            throw new BadRequest($this->id . ' convertCurrencyNetwork() $fromNetwork cannot be the same as toNetwork');
         }
         if (($fromNetwork === null) || ($toNetwork === null)) {
             $keys = is_array($networks) ? array_keys($networks) : array();

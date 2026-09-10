@@ -97,9 +97,22 @@ class grvt extends Exchange {
             'api' => array(
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge' => array(
+                    'get' => array(
+                        'api/v1/deposit/addresses' => array( 'cost' => $rlOthers ),
+                        'api/v1/bridge/withdrawal-info' => array( 'cost' => $rlOthers ),
+                        'api/v1/bridge/withdrawal-status' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/epochs' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/points' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/data' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/indirect_data' => array( 'cost' => $rlOthers ),
+                    ),
                     'post' => array(
                         'auth/api_key/login' => array( 'cost' => 100 ),
                         'auth/wallet/login' => array( 'cost' => 100 ),
+                        'auth/builder/authorize' => array( 'cost' => 100 ),
+                        'api/v1/deposit/generate-address' => array( 'cost' => 100 ),
+                        'api/v1/bridge/withdrawal-quote' => array( 'cost' => 100 ),
+                        'api/v1/bridge/withdraw' => array( 'cost' => 100 ),
                     ),
                 ),
                 'publicMarket' => array(
@@ -116,6 +129,8 @@ class grvt extends Exchange {
                         'full/v1/trade_history' => array( 'cost' => 12 ),
                         'full/v1/kline' => array( 'cost' => 12 ),
                         'full/v1/funding' => array( 'cost' => 12 ),
+                        'full/v1/supported_assets' => array( 'cost' => 12 ),
+                        'full/v1/get_all_collateral_asset_info' => array( 'cost' => 12 ),
                     ),
                 ),
                 'privateTrading' => array(
@@ -156,6 +171,16 @@ class grvt extends Exchange {
                         'full/v1/authorize_builder' => array( 'cost' => $rlOthers ), // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders' => array( 'cost' => $rlOthers ),
                         'full/v1/builder_fill_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/create_rfq' => array( 'cost' => 5 ),
+                        'full/v1/cancel_rfq' => array( 'cost' => 5 ),
+                        'full/v1/ecn_from_broker' => array( 'cost' => $rlOthers ),
+                        'full/v2/bulk_orders' => array( 'cost' => 50 ),
+                        'full/v1/position_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/interest_payment_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_collateral_preference' => array( 'cost' => $rlOthers ),
+                        'full/v1/spot_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_indicative_prices' => array( 'cost' => $rlOthers ),
+                        'full/v1/withdrawal_fee' => array( 'cost' => 100 ),
                     ),
                 ),
             ),
@@ -1128,7 +1153,7 @@ class grvt extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms for the ending date filter, default is the current time
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $maxLimit = 1000;
         if ($this->markets === null) {
@@ -1774,7 +1799,7 @@ class grvt extends Exchange {
             $fundingAccountId = null;
             list($fundingAccountId, $params) = $this->handle_option_and_params($params, 'transfer', 'fundingAccountId');
             if ($tradingAccountId === null || $fundingAccountId === null) {
-                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" main funding account id)');
+                throw new ArgumentsRequired($this->id . ' transfer() => you should set (in the options or $params) "tradingAccountId" and "fundingAccountId" (you can use "0" as a main funding account id)');
             }
             $fromAccount = ($fromAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
             $toAccount = ($toAccount === 'trading') ? $tradingAccountId : $fundingAccountId;
@@ -3282,7 +3307,7 @@ class grvt extends Exchange {
             $headers = array(
                 'Content-Type' => 'application/json',
             );
-            // an empty $params dict must serialize empty json object, not an empty json array,
+            // an empty $params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce array() here which the venue rejects with the same 1003 error
             $paramsKeys = is_array($params) ? array_keys($params) : array();
             $paramsKeysLength = count($paramsKeys);

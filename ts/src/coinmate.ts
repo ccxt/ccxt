@@ -203,6 +203,8 @@ export default class coinmate extends Exchange {
                         'solDepositAddresses': { 'cost': 1 } as Endpoint<Dict>,
                         'unconfirmedSolDeposits': { 'cost': 1 } as Endpoint<Dict>,
                         'bankWireWithdrawal': { 'cost': 1 } as Endpoint<Dict>,
+                        'lightningDeposit': { 'cost': 1 } as Endpoint<Dict>,
+                        'lightningWithdraw': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
             },

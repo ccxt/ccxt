@@ -46,6 +46,12 @@ abstract class mudrex extends \ccxt\Exchange {
     /**
      * @return array<string, mixed>
      */
+    public function private_get_futures_transactions($params = array()) {
+        return $this->request('futures/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function private_get_futures_orders($params = array()) {
         return $this->request('futures/orders', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -198,6 +204,12 @@ abstract class mudrex extends \ccxt\Exchange {
      */
     public function privateGetFuturesFunds($params = array()) {
         return $this->request('futures/funds', 'private', 'GET', $params, null, null, array("cost" => 5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privateGetFuturesTransactions($params = array()) {
+        return $this->request('futures/transactions', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>

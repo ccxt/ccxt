@@ -344,6 +344,12 @@ public class CoinoneCore extends CoinoneApi
                         put( "transaction/coin/withdrawal/limit", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "event/order-reward/programs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "event/order-reward/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
             }} );

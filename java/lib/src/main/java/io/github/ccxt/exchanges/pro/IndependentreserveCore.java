@@ -241,7 +241,11 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         {
             Object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-            Helpers.addElementToObject(subscription, "receivedSnapshot", true);
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            Helpers.addElementToObject(client.subscriptions, messageHash, this.extend(subscription, new java.util.HashMap<String, Object>() {{
+    put( "receivedSnapshot", true );
+}}));
         } else
         {
             Object asks = this.safeList(orderBook, "Offers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -273,7 +277,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
                     payload = Helpers.add(Helpers.add(payload, this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 0))), this.valueToChecksum(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 1)));
                 }
             }
-            Object calculatedChecksum = this.crc32(payload, true);
+            Object calculatedChecksum = this.crc32(payload, false);
             Object responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
             {
@@ -292,7 +296,10 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public Object valueToChecksum(Object value)
     {
-        Object result = toFixed(value, 8);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        Object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = Helpers.replace((String)result, (String)".", (String)"");
         // remove leading zeros
         result = this.parseNumber(result);

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official coinmate API documentation:** [coinmate.docs.apiary.io](https://coinmate.docs.apiary.io) · [coinmate.io](https://coinmate.io/developers)
 
-> 64 implicit endpoints across 2 access groups.
+> 66 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -130,4 +130,6 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostSolDepositAddresses` | POST | `solDepositAddresses` | 1 |
 | `privatePostUnconfirmedSolDeposits` | POST | `unconfirmedSolDeposits` | 1 |
 | `privatePostBankWireWithdrawal` | POST | `bankWireWithdrawal` | 1 |
+| `privatePostLightningDeposit` | POST | `lightningDeposit` | 1 |
+| `privatePostLightningWithdraw` | POST | `lightningWithdraw` | 1 |
 

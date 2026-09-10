@@ -73,6 +73,8 @@ interface Exchange {
     privatePostSolDepositAddresses (params?: {}): Promise<Dict>;
     privatePostUnconfirmedSolDeposits (params?: {}): Promise<Dict>;
     privatePostBankWireWithdrawal (params?: {}): Promise<Dict>;
+    privatePostLightningDeposit (params?: {}): Promise<Dict>;
+    privatePostLightningWithdraw (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

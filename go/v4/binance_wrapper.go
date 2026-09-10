@@ -203,7 +203,7 @@ func (this *Binance) FetchTicker(symbol string, options ...FetchTickerOptions) (
  * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
  */
 func (this *Binance) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
 
@@ -265,7 +265,7 @@ func (this *Binance) FetchLastPrices(options ...FetchLastPricesOptions) (LastPri
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.subType] "linear" or "inverse"
  * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
- * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+ * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
  */
 func (this *Binance) FetchTickers(options ...FetchTickersOptions) (Tickers, error) {
 

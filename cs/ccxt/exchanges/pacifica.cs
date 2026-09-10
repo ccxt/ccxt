@@ -218,6 +218,15 @@ public partial class pacifica : Exchange
                         { "orders/history_by_id", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "orders/twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/twap/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "orders/twap/history_by_id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "spot_assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -231,6 +240,15 @@ public partial class pacifica : Exchange
                             { "cost", 1 },
                         } },
                         { "account/builder_codes/approvals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "builder/overview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "builder/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "leaderboard/builder_code", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -297,13 +315,46 @@ public partial class pacifica : Exchange
                         { "orders/batch", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "orders/twap/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/twap/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
                         { "account/builder_codes/approve", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/builder_codes/revoke", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "builder/update_fee_rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referral/user/code/claim", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "agent/bind", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/revoke_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/remove", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/toggle", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/api_keys/create", new Dictionary<string, object>() {
@@ -673,12 +724,12 @@ public partial class pacifica : Exchange
         {
             return false;
         }
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(!isEqual(buildFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -707,7 +758,7 @@ public partial class pacifica : Exchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetInfo(parameters); // meta
+        Dictionary<string, object> response = await this.publicGetInfo(parameters); // meta
         // {
         //   "success": true,
         //   "data": [
@@ -747,7 +798,7 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        object markets = this.safeList(response, "data", new List<object>() {});
+        List<object> markets = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
@@ -805,12 +856,12 @@ public partial class pacifica : Exchange
         string? instrumentType = this.safeString(market, "instrument_type");
         bool isSpot = (isEqual(instrumentType, "spot"));
         bool isSwap = !isTrue(isSpot);
-        object quoteId = "USDC";
-        object settleId = null;
+        string? quoteId = "USDC";
+        string? settleId = null;
         string type = "spot";
         bool? linear = null;
         bool? inverse = null;
-        object contractSize = null;
+        double? contractSize = null;
         object minLeverage = null;
         Int64? maxLeverage = null;
         bool? crossMargin = null;
@@ -824,7 +875,7 @@ public partial class pacifica : Exchange
             List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             quoteId = this.safeString(idParts, 1, quoteId);
         }
-        object isolatedOnly = this.safeBool(market, "isolated_only", false);
+        bool? isolatedOnly = this.safeBool(market, "isolated_only", false);
         if (isTrue(isSwap))
         {
             settleId = quoteId;
@@ -838,18 +889,18 @@ public partial class pacifica : Exchange
             isolatedMargin = true;
         }
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object settle = this.safeCurrencyCode(settleId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(isSwap))
         {
             symbol = add(add(symbol, ":"), settle);
         }
-        object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
-        object taker = this.safeNumber(fees, "taker");
-        object maker = this.safeNumber(fees, "maker");
-        object amountPrecision = this.safeNumber(market, "lot_size");
-        object pricePrecision = this.safeNumber(market, "tick_size");
+        IDictionary<string, object> fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
+        double? taker = this.safeNumber(fees, "taker");
+        double? maker = this.safeNumber(fees, "maker");
+        double? amountPrecision = this.safeNumber(market, "lot_size");
+        double? pricePrecision = this.safeNumber(market, "tick_size");
         bool active = true; // there is no non-active markets comes from endpoint market info
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -921,13 +972,13 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object userAccount = null;
-        var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchBalance", parameters);
+        IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchBalance", parameters);
         userAccount = ((IList<object>)userAccountparametersVariable)[0];
         parameters = ((IList<object>)userAccountparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAccount },
         };
-        object response = await this.publicGetAccount(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetAccount(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": {
@@ -950,16 +1001,16 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", data },
         };
         ((IDictionary<string,object>)result)["free"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["used"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)result)["total"] = new Dictionary<string, object>() {};
-        object totalBalance = this.safeNumber(data, "account_equity");
-        object usedMargin = this.safeNumber(data, "total_margin_used");
-        object freeBalance = this.safeNumber(data, "available_to_spend");
+        double? totalBalance = this.safeNumber(data, "account_equity");
+        double? usedMargin = this.safeNumber(data, "total_margin_used");
+        double? freeBalance = this.safeNumber(data, "available_to_spend");
         ((IDictionary<string,object>)getValue(result, "total"))["USDC"] = totalBalance;
         ((IDictionary<string,object>)getValue(result, "used"))["USDC"] = usedMargin;
         ((IDictionary<string,object>)getValue(result, "free"))["USDC"] = freeBalance;
@@ -987,9 +1038,9 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object userAccount = null;
-        var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchLeverage", parameters);
+        IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLeverage", parameters);
         userAccount = ((IList<object>)userAccountparametersVariable)[0];
         parameters = ((IList<object>)userAccountparametersVariable)[1];
         object cacheAddress = this.walletAddress;
@@ -1004,7 +1055,7 @@ public partial class pacifica : Exchange
             };
             settings = ccxt.BaseExchange.FromDict(await this.FetchAccountSettings(this.extend(request, parameters)));
         }
-        object setting = this.safeDict(settings, symbol);
+        IDictionary<string, object> setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1027,7 +1078,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object isIsolated = this.safeBool(setting, "isolated", false);
+        bool? isIsolated = this.safeBool(setting, "isolated", false);
         Int64? leverage = this.safeInteger(setting, "leverage");
         string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
@@ -1041,8 +1092,8 @@ public partial class pacifica : Exchange
 
     public virtual object parseLeverageFromMarket(object market)
     {
-        object marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
-        object leverageLimits = this.safeDict(marketLimits, "leverage", new Dictionary<string, object>() {});
+        IDictionary<string, object> marketLimits = this.safeDict(market, "limits", new Dictionary<string, object>() {});
+        IDictionary<string, object> leverageLimits = this.safeDict(marketLimits, "leverage", new Dictionary<string, object>() {});
         return new Dictionary<string, object>() {
             { "info", market },
             { "symbol", this.safeString(market, "symbol") },
@@ -1065,13 +1116,13 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object userAccount = null;
-        var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchAccountSettings", parameters);
+        IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchAccountSettings", parameters);
         userAccount = ((IList<object>)userAccountparametersVariable)[0];
         parameters = ((IList<object>)userAccountparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAccount },
         };
-        object response = await this.publicGetAccountSettings(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetAccountSettings(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": [
@@ -1110,10 +1161,10 @@ public partial class pacifica : Exchange
             return new Dictionary<string, object>() {};
         }
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
         {
             object marketId = getValue(getValue(settings, i), "symbol");
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             ((IDictionary<string,object>)settingsBySymbol)[(string)symbol] = getValue(settings, i);
         }
@@ -1135,7 +1186,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         await this.loadAccountSettings();
         object userAccount = null;
-        var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
+        IList<object> userAccountparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
         userAccount = ((IList<object>)userAccountparametersVariable)[0];
         parameters = ((IList<object>)userAccountparametersVariable)[1];
         object cacheAddress = this.walletAddress;
@@ -1159,7 +1210,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object setting = this.safeDict(settings, symbol);
+        IDictionary<string, object> setting = this.safeDict(settings, symbol);
         if (isTrue(isEqual(setting, null)))
         {
             // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1181,7 +1232,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //
         // }
-        object isIsolated = this.safeBool(setting, "isolated", false);
+        bool? isIsolated = this.safeBool(setting, "isolated", false);
         string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1208,16 +1259,16 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object aggLevel = null;
-        var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+        IList<object> aggLevelparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
         aggLevel = ((IList<object>)aggLevelparametersVariable)[0];
         parameters = ((IList<object>)aggLevelparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "agg_level", aggLevel },
         };
-        object response = await this.publicGetBook(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetBook(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": {
@@ -1253,8 +1304,8 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object levels = this.safeList(data, "l", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> levels = this.safeList(data, "l", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "bids", this.safeList(levels, 0, new List<object>() {}) },
             { "asks", this.safeList(levels, 1, new List<object>() {}) },
@@ -1275,7 +1326,7 @@ public partial class pacifica : Exchange
     public async override Task<ccxt.FundingRates> FetchFundingRates(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object response = await this.publicGetInfoPrices(parameters);
+        Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
         //     "success": true,
@@ -1297,7 +1348,7 @@ public partial class pacifica : Exchange
         //     "code": null
         //   }
         //
-        object result = this.safeList(response, "data", new List<object>() {});
+        List<object> result = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToFundingRates(this.parseFundingRates(result, symbols));
     }
 
@@ -1320,10 +1371,10 @@ public partial class pacifica : Exchange
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object funding = this.safeNumber(info, "funding");
-        object markPx = this.safeNumber(info, "mark");
-        object oraclePx = this.safeNumber(info, "oracle");
-        object nextFundingRate = this.safeNumber(info, "next_funding");
+        double? funding = this.safeNumber(info, "funding");
+        double? markPx = this.safeNumber(info, "mark");
+        double? oraclePx = this.safeNumber(info, "oracle");
+        double? nextFundingRate = this.safeNumber(info, "next_funding");
         Int64? timestamp = this.safeInteger(info, "timestamp");
         object fundingTimestamp = multiply(multiply(multiply((add((Math.Floor(Double.Parse((divide(divide(divide(this.milliseconds(), 60), 60), 1000)).ToString()))), 1)), 60), 60), 1000);
         return new Dictionary<string, object>() {
@@ -1380,23 +1431,23 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         if (isTrue(paginate))
         {
-            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframeVar, parameters, defaultMaxLimit));
+            return ccxt.BaseExchange.ToOHLCVList(await this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit,((string)timeframeVar), parameters, defaultMaxLimit));
         }
         string? tf = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "interval", tf },
             { "start_time", since },
         };
-        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         Int64 nowMillis = this.milliseconds();
         object until = this.safeInteger(request, "end_time");
@@ -1416,7 +1467,7 @@ public partial class pacifica : Exchange
             }
             ((IDictionary<string,object>)request)["end_time"] = until;
         }
-        object response = await this.publicGetKline(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetKline(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -1438,8 +1489,8 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
-        object candles = this.safeList(response, "data", new List<object>() {});
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market, timeframeVar, since, limit));
+        List<object> candles = this.safeList(response, "data", new List<object>() {});
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), since, limit));
     }
 
     public override object parseOHLCV(object ohlcv, object market = null)
@@ -1479,11 +1530,11 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetTrades(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetTrades(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -1502,7 +1553,7 @@ public partial class pacifica : Exchange
         //   "last_order_id": 1557404170
         // }
         //
-        object recentTrades = this.safeList(response, "data", new List<object>() {});
+        List<object> recentTrades = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(recentTrades, market, since, limit));
     }
 
@@ -1528,17 +1579,17 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchMyTrades", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchMyTrades", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
@@ -1546,9 +1597,9 @@ public partial class pacifica : Exchange
         {
             return ccxt.BaseExchange.ToTradeList(await this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
-        object request = new Dictionary<string, object>() {};
-        var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
-        request = ((IList<object>)requestparametersVariable)[0];
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        IList<object> requestparametersVariable = (IList<object>)this.handleUntilOption("end_time", request, parameters);
+        request = (Dictionary<string, object>)((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
         ((IDictionary<string,object>)request)["account"] = userAddress;
         if (isTrue(!isEqual(symbol, null)))
@@ -1563,7 +1614,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["start_time"] = since;
         }
-        object response = await this.publicGetTradesHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetTradesHistory(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -1626,7 +1677,9 @@ public partial class pacifica : Exchange
         Int64? timestamp = this.safeInteger(trade, "created_at");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        object symbol = this.safeSymbol(null, market);
+        string? marketId = this.safeString(trade, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
         if (isTrue(isEqual(side, "open_long")))
@@ -1710,7 +1763,7 @@ public partial class pacifica : Exchange
         var request = ((IList<object>) requestoperationTypeVariable)[0];
         var operationType = ((IList<object>) requestoperationTypeVariable)[1];
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow"});
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isTrue(isEqual(operationType, "create_market_order")))
         {
             response = await this.privatePostOrdersCreateMarket(this.extend(request, parameters));
@@ -1732,7 +1785,7 @@ public partial class pacifica : Exchange
         //    },
         // }
         //
-        object success = this.safeBool(response, "success", false);
+        bool? success = this.safeBool(response, "success", false);
         string? status = null;
         if (isTrue(!isEqual(success, true)))
         {
@@ -1741,7 +1794,7 @@ public partial class pacifica : Exchange
         {
             status = "open";
         }
-        object order = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> order = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(order, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
@@ -1781,13 +1834,13 @@ public partial class pacifica : Exchange
          * @param {int} [params.expiryWindow] time to live in milliseconds
          * @returns {object} an [order structure]
          */
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "side", this.mapSide(side) },
         };
         string? operationType = null;
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string orderType = ((string)type).ToUpper();
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1797,7 +1850,7 @@ public partial class pacifica : Exchange
         bool isTakeProfitOrder = (!isEqual(takeProfitPrice, null));
         bool isStopLossOrder = (!isEqual(stopLossPrice, null));
         bool isStopOrder = (!isEqual(triggerPrice, null));
-        object timeInForce = this.mapTimeInForce(tifRaw);
+        string? timeInForce = this.mapTimeInForce(tifRaw);
         if (isTrue(isMarket))
         {
             operationType = "create_market_order";
@@ -1933,18 +1986,18 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
         Int64 timestamp = this.milliseconds(); // unified sequence
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
             string? side = this.safeString(order, "side");
             string? price = this.safeString(order, "price");
-            object type = this.safeString(order, "type", "limit");
-            object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
+            string? type = this.safeString(order, "type", "limit");
+            IDictionary<string, object> orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)orderParams)["timestamp"] = timestamp;
             string? amount = this.safeString(order, "amount");
-            object amountNumber = this.parseNumber(amount);
-            object priceNumber = this.parseNumber(price);
+            double? amountNumber = this.parseNumber(amount);
+            double? priceNumber = this.parseNumber(price);
             if (isTrue(!isEqual(type, "limit")))
             {
                 throw new NotSupported ((string)add(add(this.id, " createOrders() supports only type = \"limit\"! Your value type="), type)) ;
@@ -1977,7 +2030,7 @@ public partial class pacifica : Exchange
         }
         await this.initializeClient();
         object request = this.createOrdersRequest(orders);
-        object response = await this.privatePostOrdersBatch(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrdersBatch(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": {
@@ -1996,14 +2049,14 @@ public partial class pacifica : Exchange
         //     "code": null
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object results = this.safeList(data, "results", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
-            object success = this.safeBool(order, "success", false);
+            bool? success = this.safeBool(order, "success", false);
             string? status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isEqual(success, true)))))
             {
@@ -2048,7 +2101,7 @@ public partial class pacifica : Exchange
         }
         object request = this.cancelOrdersRequest(ids, symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow", "clientOrderIds"});
-        object response = await this.privatePostOrdersBatch(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrdersBatch(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -2068,14 +2121,14 @@ public partial class pacifica : Exchange
         //     "code": null
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-        object results = this.safeList(data, "results", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        List<object> results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
-            object success = this.safeBool(order, "success", false);
+            bool? success = this.safeBool(order, "success", false);
             string? status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isEqual(success, true)))))
             {
@@ -2097,7 +2150,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object request = this.cancelOrderRequest(id, symbol, parameters);
@@ -2107,9 +2160,9 @@ public partial class pacifica : Exchange
             };
             ((IList<object>)actions).Add(action);
         }
-        object clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
+        List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         parameters = this.omit(parameters, "clientOrderIds");
-        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
         {
             object cloid = getValue(clientOrderIds, i);
             Dictionary<string, object> cloidParams = new Dictionary<string, object>() {
@@ -2146,7 +2199,7 @@ public partial class pacifica : Exchange
         await this.initializeClient();
         object request = this.cancelAllOrdersRequest(symbol, parameters);
         parameters = this.omit(parameters, new List<object>() {"excludeReduceOnly", "expiryWindow"});
-        object response = await this.privatePostOrdersCancelAll(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrdersCancelAll(this.extend(request, parameters));
         //
         // {
         //   success: true,
@@ -2165,11 +2218,11 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         string operationType = "cancel_all_orders";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {};
-        object excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
+        bool? excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
         ((IDictionary<string,object>)sigPayload)["exclude_reduce_only"] = excludeReduceOnly;
         if (isTrue(!isEqual(symbol, null)))
         {
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             ((IDictionary<string,object>)sigPayload)["all_symbols"] = false;
             ((IDictionary<string,object>)sigPayload)["symbol"] = getValue(market, "id");
         } else
@@ -2207,9 +2260,9 @@ public partial class pacifica : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         object request = this.cancelOrderRequest(id, symbol, parameters);
-        object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow", "trigger", "stop", "clientOrderId"});
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isTrue(isEqual(isStopOrder, true)))
         {
             response = await this.privatePostOrdersStopCancel(this.extend(request, parameters));
@@ -2224,7 +2277,7 @@ public partial class pacifica : Exchange
         //   "data": null
         // }
         //
-        object success = this.safeBool(response, "success", false);
+        bool? success = this.safeBool(response, "success", false);
         string status = ((bool) isTrue((isEqual(success, true)))) ? "canceled" : "closed";
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
@@ -2232,8 +2285,8 @@ public partial class pacifica : Exchange
     public virtual object cancelOrderRequest(object id, object symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object market = this.market(symbol);
-        object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+        Dictionary<string, object> market = this.market(symbol);
+        bool? isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         string? operationType = null;
         if (isTrue(isEqual(isStopOrder, true)))
         {
@@ -2281,10 +2334,10 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         await this.initializeClient();
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow", "clientOrderId"});
-        object response = await this.privatePostOrdersEdit(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrdersEdit(this.extend(request, parameters));
         //
         // {
         //     'data': {
@@ -2292,7 +2345,7 @@ public partial class pacifica : Exchange
         //     }
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? orderId = this.safeString(data, "order_id");
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", orderId },             { "info", response },             { "symbol", symbol },         }));
     }
@@ -2314,8 +2367,8 @@ public partial class pacifica : Exchange
         }
         string operationType = "edit_order";
         string? clientOrderId = this.safeString(parameters, "clientOrderId");
-        object priceNormalized = this.priceToPrecision(symbol, price);
-        object amountNormalized = this.amountToPrecision(symbol, amount);
+        string? priceNormalized = this.priceToPrecision(symbol, price);
+        string? amountNormalized = this.amountToPrecision(symbol, amount);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", this.safeString(market, "id") },
             { "price", priceNormalized },
@@ -2360,9 +2413,9 @@ public partial class pacifica : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
@@ -2377,7 +2430,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetFundingRateHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetFundingRateHistory(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -2398,7 +2451,7 @@ public partial class pacifica : Exchange
         //
         object data = this.addPaginationCursorToResult(response);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -2431,7 +2484,7 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object response = await this.publicGetInfoPrices(parameters);
+        Dictionary<string, object> response = await this.publicGetInfoPrices(parameters);
         //
         //  {
         //   "success": true,
@@ -2453,9 +2506,9 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
@@ -2593,18 +2646,18 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
-        object response = await this.publicGetOrders(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetOrders(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -2631,7 +2684,7 @@ public partial class pacifica : Exchange
         //   "last_order_id": 1557370337
         // }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -2657,7 +2710,7 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         int defaultLimit = 100; // max default 100
@@ -2666,10 +2719,10 @@ public partial class pacifica : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOrders", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchOrders", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -2681,7 +2734,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetOrdersHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetOrdersHistory(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -2711,15 +2764,15 @@ public partial class pacifica : Exchange
         // }
         //
         object data = this.addPaginationCursorToResult(response);
-        object orders = this.parseOrders(data, market, since, limit);
+        IList<object> orders = this.parseOrders(data, market, since, limit);
         return ccxt.BaseExchange.ToOrderList(orders);
     }
 
     public virtual object addPaginationCursorToResult(object response)
     {
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         string? paginationCursor = this.safeString(response, "next_cursor");
-        object hasMore = this.safeBool(response, "has_more", false);
+        bool? hasMore = this.safeBool(response, "has_more", false);
         int dataLength = getArrayLength(data);
         if (isTrue(isEqual(hasMore, true)))
         {
@@ -2751,7 +2804,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -2759,7 +2812,7 @@ public partial class pacifica : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object response = await this.publicGetOrdersHistoryById(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetOrdersHistoryById(this.extend(request, parameters));
         //
         // {
         //   "success": true,
@@ -2805,7 +2858,7 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         // return last state
         List<object> sorted = this.sortBy(data, "created_at", true);
         int lastIdx = getArrayLength(sorted);
@@ -2817,7 +2870,7 @@ public partial class pacifica : Exchange
         return ccxt.BaseExchange.ToOrder(this.parseOrder(lastInfo, market));
     }
 
-    public virtual object parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "open", "open" },
@@ -2829,7 +2882,7 @@ public partial class pacifica : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object mapTimeInForce(object tifRaw)
+    public virtual string? mapTimeInForce(object tifRaw)
     {
         Dictionary<string, object> tifMap = new Dictionary<string, object>() {
             { "GTC", "GTC" },
@@ -2848,7 +2901,7 @@ public partial class pacifica : Exchange
         return this.safeString(tifMap, tif);
     }
 
-    public virtual object mapSide(object sideRaw)
+    public virtual string? mapSide(object sideRaw)
     {
         Dictionary<string, object> sideMap = new Dictionary<string, object>() {
             { "sell", "ask" },
@@ -2857,7 +2910,7 @@ public partial class pacifica : Exchange
         return this.safeString(sideMap, sideRaw, sideRaw);
     }
 
-    public virtual object parseOrderType(object status)
+    public virtual string? parseOrderType(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "stop_limit", "limit" },
@@ -2961,7 +3014,7 @@ public partial class pacifica : Exchange
         string? marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "created_at", "ct");
+        Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         string? side = this.safeString(order, "side", "d");
         if (isTrue(!isEqual(side, null)))
@@ -3033,14 +3086,14 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchPositions", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchPositions", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         symbols = this.marketSymbols(symbols);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        object response = await this.publicGetPositions(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetPositions(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": [
@@ -3060,9 +3113,9 @@ public partial class pacifica : Exchange
         //   "code": null,
         //   "last_order_id": 1557431179
         // }
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
         }
@@ -3146,7 +3199,7 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         bool isIsolated = (isEqual(marginMode, "isolated"));
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
@@ -3154,7 +3207,7 @@ public partial class pacifica : Exchange
         };
         object request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
-        object response = await this.privatePostAccountMargin(request);
+        Dictionary<string, object> response = await this.privatePostAccountMargin(request);
         // {
         //     "success": true
         // }
@@ -3184,14 +3237,14 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
             { "leverage", leverage },
         };
         object request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
-        object response = await this.privatePostAccountLeverage(request);
+        Dictionary<string, object> response = await this.privatePostAccountLeverage(request);
         // {
         //     "success": true
         // }
@@ -3225,7 +3278,7 @@ public partial class pacifica : Exchange
         };
         object request = this.postActionRequest(operationType, sigPayload, parameters);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow"});
-        object response = await this.privatePostAccountWithdraw(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostAccountWithdraw(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTransaction(new Dictionary<string, object>() {             { "info", response },         });
     }
 
@@ -3247,14 +3300,14 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "account", userAddress },
         };
-        object response = await this.publicGetAccount(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetAccount(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": {
@@ -3277,7 +3330,7 @@ public partial class pacifica : Exchange
         //   "error": null,
         //   "code": null
         // }
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTradingFeeInterface(this.parseTradingFee(data, market));
     }
 
@@ -3303,7 +3356,7 @@ public partial class pacifica : Exchange
         //   }
         //
         //
-        object symbol = this.safeSymbol(null, market);
+        string? symbol = this.safeSymbol(null, market);
         return new Dictionary<string, object>() {
             { "info", fee },
             { "symbol", symbol },
@@ -3420,11 +3473,11 @@ public partial class pacifica : Exchange
             await this.loadMarkets();
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchLedger", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchLedger", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         int defaultLimit = 100; // Default max limit
@@ -3439,7 +3492,7 @@ public partial class pacifica : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object response = await this.publicGetAccountBalanceHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetAccountBalanceHistory(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": [
@@ -3536,17 +3589,17 @@ public partial class pacifica : Exchange
         {
             await this.loadMarkets();
         }
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
         object paginate = false;
-        var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
+        IList<object> paginateparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
         parameters = ((IList<object>)paginateparametersVariable)[1];
         object userAddress = null;
-        var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchFundingHistory", parameters);
+        IList<object> userAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("fetchFundingHistory", parameters);
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -3561,7 +3614,7 @@ public partial class pacifica : Exchange
         {
             return ccxt.BaseExchange.ToFundingHistoryList(await this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit));
         }
-        object response = await this.publicGetFundingHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetFundingHistory(this.extend(request, parameters));
         // {
         //   "success": true,
         //   "data": [
@@ -3602,8 +3655,8 @@ public partial class pacifica : Exchange
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
         string? amount = this.safeString(income, "amount");
-        object code = this.safeCurrencyCode("USDC");
-        object rate = this.safeNumber(income, "rate");
+        string? code = this.safeCurrencyCode("USDC");
+        double? rate = this.safeNumber(income, "rate");
         return new Dictionary<string, object>() {
             { "info", income },
             { "symbol", symbol },
@@ -3651,7 +3704,7 @@ public partial class pacifica : Exchange
         //   "code": null
         // }
         //
-        object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransferEntry(this.parseTransfer(data));
     }
 
@@ -3698,11 +3751,11 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
+        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOption("createSubAccount", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
-        var originAddressparametersVariable = this.handleOriginAndSingleAddress("createSubAccount", parameters);
+        IList<object> originAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("createSubAccount", parameters);
         originAddress = ((IList<object>)originAddressparametersVariable)[0];
         parameters = ((IList<object>)originAddressparametersVariable)[1];
         if (isTrue(isEqual(originAddress, null)))
@@ -3714,11 +3767,11 @@ public partial class pacifica : Exchange
             ((IDictionary<string,object>)finalHeaders)["agent_wallet"] = agentAddress;
         }
         object subAccountAddress = null;
-        var subAccountAddressparametersVariable = this.handleOptionAndParams(parameters, "createSubAccount", "subAccountAddress");
+        IList<object> subAccountAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "subAccountAddress");
         subAccountAddress = ((IList<object>)subAccountAddressparametersVariable)[0];
         parameters = ((IList<object>)subAccountAddressparametersVariable)[1];
         object subAccountPrivateKey = null;
-        var subAccountPrivateKeyparametersVariable = this.handleOptionAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
+        IList<object> subAccountPrivateKeyparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
         subAccountPrivateKey = ((IList<object>)subAccountPrivateKeyparametersVariable)[0];
         parameters = ((IList<object>)subAccountPrivateKeyparametersVariable)[1];
         if (isTrue(isEqual(subAccountAddress, null)))
@@ -3731,7 +3784,7 @@ public partial class pacifica : Exchange
         }
         Int64 timestamp = this.milliseconds();
         object expiryWindow = null;
-        var expiryWindowparametersVariable = this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
         expiryWindow = ((IList<object>)expiryWindowparametersVariable)[0];
         parameters = ((IList<object>)expiryWindowparametersVariable)[1];
         Dictionary<string, object> subaccountSignatureHeader = new Dictionary<string, object>() {
@@ -3758,8 +3811,8 @@ public partial class pacifica : Exchange
         ((IDictionary<string,object>)finalHeaders)["main_signature"] = main_signature;
         ((IDictionary<string,object>)finalHeaders)["timestamp"] = timestamp;
         ((IDictionary<string,object>)finalHeaders)["expiry_window"] = expiryWindow;
-        object request = finalHeaders;
-        object response = await this.privatePostAccountSubaccountCreate(request);
+        Dictionary<string, object> request = finalHeaders;
+        Dictionary<string, object> response = await this.privatePostAccountSubaccountCreate(request);
         //
         // {
         //   "success": true,
@@ -3845,7 +3898,7 @@ public partial class pacifica : Exchange
     public virtual object handleOriginAndSingleAddress(object methodName, object parameters)
     {
         object address = null;
-        var addressparametersVariable = this.handleParamString2(parameters, "account", "address", null);
+        IList<object> addressparametersVariable = (IList<object>)this.handleParamString2(parameters, "account", "address", null);
         address = ((IList<object>)addressparametersVariable)[0];
         parameters = ((IList<object>)addressparametersVariable)[1]; // this is for get endpoints that accept account or address
         if (isTrue(!isEqual(address, null)))
@@ -3884,7 +3937,7 @@ public partial class pacifica : Exchange
         bool nonEmptyMessage = (isTrue((!isEqual(message, null))) && isTrue((!isEqual(message, ""))));
         if (isTrue(isTrue(error) || isTrue(nonEmptyMessage)))
         {
-            object feedback = add(add(this.id, " "), body);
+            string feedback = add(add(this.id, " "), body);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback); // Try deeper catch first
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), inCode, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
@@ -3900,7 +3953,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         object isTestnet = this.isSandboxModeEnabled;
         string urlKey = ((bool) isTrue((isTestnet))) ? "test" : "api";
-        object host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
+        string host = this.implodeHostname(getValue(getValue(this.urls, urlKey), api));
         object url = add(add(add(add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         int paramsLen = getArrayLength(new List<object>(((IDictionary<string,object>)parameters).Keys));
@@ -3932,7 +3985,7 @@ public partial class pacifica : Exchange
     {
         config ??= new Dictionary<string, object>();
         string? cost = this.safeString(config, "cost", "1");
-        object costNumber = this.parseNumber(cost);
+        double? costNumber = this.parseNumber(cost);
         // 1 is normal POST/GET, 0.5 is cancels, 3-12 is heavy GET
         if (isTrue(isGreaterThan(costNumber, 1)))
         {
@@ -3952,7 +4005,7 @@ public partial class pacifica : Exchange
             object result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (object i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));
@@ -3961,7 +4014,7 @@ public partial class pacifica : Exchange
         } else if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> result = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
             {
                 ((IList<object>)result).Add(this.sortJsonKeys(getValue(value, i)));
             }
@@ -3988,10 +4041,10 @@ public partial class pacifica : Exchange
     public virtual object signMessage(object header, object payload, object privateKey)
     {
         object message = this.prepareMessage(header, payload);
-        object messageBytes = this.encode(message);
+        string? messageBytes = this.encode(message);
         object secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
-        object signatureBase64 = eddsa(messageBytes, seed, ed25519);
+        string signatureBase64 = eddsa(messageBytes, seed, ed25519);
         object signatureBinary = this.base64ToBinary(signatureBase64);
         object signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;
@@ -4014,7 +4067,7 @@ public partial class pacifica : Exchange
             }
             if (isTrue(!isEqual(builderCode, null)))
             {
-                object isOperationSupportBuilder = this.safeBool(getValue(this.options, "builderSupportOperations"), operationType, false);
+                bool? isOperationSupportBuilder = this.safeBool(getValue(this.options, "builderSupportOperations"), operationType, false);
                 if (isTrue(isEqual(isOperationSupportBuilder, true)))
                 {
                     ((IDictionary<string,object>)sigPayload)["builder_code"] = builderCode;
@@ -4022,7 +4075,7 @@ public partial class pacifica : Exchange
             }
         }
         object expiryWindow = null;
-        var expiryWindowparametersVariable = this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+        IList<object> expiryWindowparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
         expiryWindow = ((IList<object>)expiryWindowparametersVariable)[0];
         parameters = ((IList<object>)expiryWindowparametersVariable)[1];
         Int64? timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
@@ -4034,11 +4087,11 @@ public partial class pacifica : Exchange
         object signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         Dictionary<string, object> finalHeaders = new Dictionary<string, object>() {};
         object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");
+        IList<object> agentAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");
         agentAddress = ((IList<object>)agentAddressparametersVariable)[0];
         parameters = ((IList<object>)agentAddressparametersVariable)[1];
         object originAddress = null;
-        var originAddressparametersVariable = this.handleOriginAndSingleAddress("postActionRequest", parameters);
+        IList<object> originAddressparametersVariable = (IList<object>)this.handleOriginAndSingleAddress("postActionRequest", parameters);
         originAddress = ((IList<object>)originAddressparametersVariable)[0];
         parameters = ((IList<object>)originAddressparametersVariable)[1];
         if (isTrue(isEqual(originAddress, null)))

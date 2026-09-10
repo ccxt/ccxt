@@ -202,6 +202,14 @@ class dydx(Exchange, ImplicitAPI):
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': {'cost': 1},
                         'fills/parentSubaccount': {'cost': 1},
                         'historical-pnl/parentSubaccount': {'cost': 1},
+                        'pnl': {'cost': 1},
+                        'pnl/parentSubaccountNumber': {'cost': 1},
+                        'tradeHistory': {'cost': 1},
+                        'tradeHistory/parentSubaccountNumber': {'cost': 1},
+                    },
+                    'post': {
+                        'turnkey/signin': {'cost': 1},
+                        'turnkey/uploadAddress': {'cost': 1},
                     },
                 },
                 'nodeRpc': {
@@ -509,7 +517,7 @@ class dydx(Exchange, ImplicitAPI):
             raise ExchangeError(self.id + ' parseMarket() missing marketId')
         parts = marketId.split('-')
         baseName = self.safe_string(parts, 0)
-        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving
+        baseId = self.safe_string(market, 'baseId', baseName)  # idk where 'baseId' comes from, but leaving as is
         base = self.safe_currency_code(baseId)
         quote = self.safe_currency_code(quoteId)
         settleId = 'USDC'
@@ -735,7 +743,7 @@ class dydx(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

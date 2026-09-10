@@ -142,6 +142,42 @@ abstract class bydfi extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_v2_fapi_trade_open_order($params = array()) {
+        return $this->request('v2/fapi/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_fapi_trade_plan_order($params = array()) {
+        return $this->request('v2/fapi/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_fapi_trade_history_order($params = array()) {
+        return $this->request('v2/fapi/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_fapi_trade_history_trade($params = array()) {
+        return $this->request('v2/fapi/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_fapi_trade_position_history($params = array()) {
+        return $this->request('v2/fapi/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_fapi_trade_positions($params = array()) {
+        return $this->request('v2/fapi/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_v1_fapi_account_balance($params = array()) {
         return $this->request('v1/fapi/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -258,6 +294,48 @@ abstract class bydfi extends \ccxt\async\Exchange {
      */
     public function private_post_v1_fapi_trade_batch_leverage_margin($params = array()) {
         return $this->request('v1/fapi/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_place_order($params = array()) {
+        return $this->request('v2/fapi/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_batch_place_order($params = array()) {
+        return $this->request('v2/fapi/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_edit_order($params = array()) {
+        return $this->request('v2/fapi/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_batch_edit_order($params = array()) {
+        return $this->request('v2/fapi/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_cancel_order($params = array()) {
+        return $this->request('v2/fapi/trade/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_batch_cancel_order($params = array()) {
+        return $this->request('v2/fapi/trade/batch_cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_fapi_trade_cancel_all_order($params = array()) {
+        return $this->request('v2/fapi/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -412,6 +490,42 @@ abstract class bydfi extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetV2FapiTradeOpenOrder($params = array()) {
+        return $this->request('v2/fapi/trade/open_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2FapiTradePlanOrder($params = array()) {
+        return $this->request('v2/fapi/trade/plan_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2FapiTradeHistoryOrder($params = array()) {
+        return $this->request('v2/fapi/trade/history_order', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2FapiTradeHistoryTrade($params = array()) {
+        return $this->request('v2/fapi/trade/history_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2FapiTradePositionHistory($params = array()) {
+        return $this->request('v2/fapi/trade/position_history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2FapiTradePositions($params = array()) {
+        return $this->request('v2/fapi/trade/positions', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetV1FapiAccountBalance($params = array()) {
         return $this->request('v1/fapi/account/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -528,6 +642,48 @@ abstract class bydfi extends \ccxt\async\Exchange {
      */
     public function privatePostV1FapiTradeBatchLeverageMargin($params = array()) {
         return $this->request('v1/fapi/trade/batch_leverage_margin', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradePlaceOrder($params = array()) {
+        return $this->request('v2/fapi/trade/place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeBatchPlaceOrder($params = array()) {
+        return $this->request('v2/fapi/trade/batch_place_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeEditOrder($params = array()) {
+        return $this->request('v2/fapi/trade/edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeBatchEditOrder($params = array()) {
+        return $this->request('v2/fapi/trade/batch_edit_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeCancelOrder($params = array()) {
+        return $this->request('v2/fapi/trade/cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeBatchCancelOrder($params = array()) {
+        return $this->request('v2/fapi/trade/batch_cancel_order', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2FapiTradeCancelAllOrder($params = array()) {
+        return $this->request('v2/fapi/trade/cancel_all_order', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

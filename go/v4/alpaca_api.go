@@ -7,6 +7,81 @@
 
 package ccxt
 
+// BrokerPrivateGetV1AccountsAccountIdTokenizationRequests returns a channel that yields a JSON array.
+func (this *AlpacaCore) BrokerPrivateGetV1AccountsAccountIdTokenizationRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequests", args...)
+}
+
+// BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId", args...)
+}
+
+// BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId", args...)
+}
+
+// BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId", args...)
+}
+
+// BrokerPrivateGetV1FpslAnalyticsAccountIdLoans returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1FpslAnalyticsAccountIdLoans(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1FpslAnalyticsAccountIdLoans", args...)
+}
+
+// BrokerPrivateGetV1Ipos returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1Ipos(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1Ipos", args...)
+}
+
+// BrokerPrivateGetV1IposOfferingReference returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1IposOfferingReference(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1IposOfferingReference", args...)
+}
+
+// BrokerPrivateGetV1WalletsTravelRuleVasps returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1WalletsTravelRuleVasps(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1WalletsTravelRuleVasps", args...)
+}
+
+// BrokerPrivateGetV1beta1Acats returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1beta1Acats(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1beta1Acats", args...)
+}
+
+// BrokerPrivateGetV1beta1AcatsContrabrokers returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1beta1AcatsContrabrokers(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsContrabrokers", args...)
+}
+
+// BrokerPrivateGetV1beta1AcatsAccountId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1beta1AcatsAccountId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountId", args...)
+}
+
+// BrokerPrivateGetV1beta1AcatsAccountIdAcatsId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivateGetV1beta1AcatsAccountIdAcatsId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountIdAcatsId", args...)
+}
+
+// BrokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets returns a channel that yields a JSON array.
+func (this *AlpacaCore) BrokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets", args...)
+}
+
+// BrokerPrivatePostV1beta1AcatsAccountId returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivatePostV1beta1AcatsAccountId(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivatePostV1beta1AcatsAccountId", args...)
+}
+
+// BrokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo returns a channel that yields a JSON object.
+func (this *AlpacaCore) BrokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", args...)
+}
+
 // TraderPrivateGetV2Account returns a channel that yields a JSON object.
 func (this *AlpacaCore) TraderPrivateGetV2Account(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivateGetV2Account", args...)
@@ -107,6 +182,41 @@ func (this *AlpacaCore) TraderPrivateGetV2WalletsTransfers(args ...any) <-chan a
 	return this.callEndpointAsync("traderPrivateGetV2WalletsTransfers", args...)
 }
 
+// TraderPrivateGetV1Locates returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV1Locates(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV1Locates", args...)
+}
+
+// TraderPrivateGetV1LocatesLocateId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV1LocatesLocateId(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV1LocatesLocateId", args...)
+}
+
+// TraderPrivateGetV1LocatesQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV1LocatesQuotes(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV1LocatesQuotes", args...)
+}
+
+// TraderPrivateGetV2TokenizationRequests returns a channel that yields a JSON array.
+func (this *AlpacaCore) TraderPrivateGetV2TokenizationRequests(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequests", args...)
+}
+
+// TraderPrivateGetV2TokenizationRequestsTokenizationRequestId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2TokenizationRequestsTokenizationRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequestsTokenizationRequestId", args...)
+}
+
+// TraderPrivateGetV2TokenizationRequestsByClientRequestId returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2TokenizationRequestsByClientRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV2TokenizationRequestsByClientRequestId", args...)
+}
+
+// TraderPrivateGetV2WalletsTravelRuleVasps returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivateGetV2WalletsTravelRuleVasps(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivateGetV2WalletsTravelRuleVasps", args...)
+}
+
 // TraderPrivatePostV2Orders returns a channel that yields a JSON object.
 func (this *AlpacaCore) TraderPrivatePostV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePostV2Orders", args...)
@@ -132,6 +242,11 @@ func (this *AlpacaCore) TraderPrivatePostV2WalletsTransfers(args ...any) <-chan 
 	return this.callEndpointAsync("traderPrivatePostV2WalletsTransfers", args...)
 }
 
+// TraderPrivatePostV1Locates returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePostV1Locates(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivatePostV1Locates", args...)
+}
+
 // TraderPrivatePutV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *AlpacaCore) TraderPrivatePutV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePutV2OrdersOrderId", args...)
@@ -155,6 +270,11 @@ func (this *AlpacaCore) TraderPrivatePatchV2OrdersOrderId(args ...any) <-chan an
 // TraderPrivatePatchV2AccountConfigurations returns a channel that yields a JSON object.
 func (this *AlpacaCore) TraderPrivatePatchV2AccountConfigurations(args ...any) <-chan any {
 	return this.callEndpointAsync("traderPrivatePatchV2AccountConfigurations", args...)
+}
+
+// TraderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo returns a channel that yields a JSON object.
+func (this *AlpacaCore) TraderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo", args...)
 }
 
 // TraderPrivateDeleteV2Orders returns a channel that yields a JSON array.
@@ -235,6 +355,16 @@ func (this *AlpacaCore) MarketPublicGetV1beta3CryptoLocTrades(args ...any) <-cha
 // MarketPrivateGetV1beta1CorporateActions returns a channel that yields a JSON object.
 func (this *AlpacaCore) MarketPrivateGetV1beta1CorporateActions(args ...any) <-chan any {
 	return this.callEndpointAsync("marketPrivateGetV1beta1CorporateActions", args...)
+}
+
+// MarketPrivateGetV1beta1FixedIncomeLatestPrices returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1FixedIncomeLatestPrices(args ...any) <-chan any {
+	return this.callEndpointAsync("marketPrivateGetV1beta1FixedIncomeLatestPrices", args...)
+}
+
+// MarketPrivateGetV1beta1FixedIncomeLatestQuotes returns a channel that yields a JSON object.
+func (this *AlpacaCore) MarketPrivateGetV1beta1FixedIncomeLatestQuotes(args ...any) <-chan any {
+	return this.callEndpointAsync("marketPrivateGetV1beta1FixedIncomeLatestQuotes", args...)
 }
 
 // MarketPrivateGetV1beta1ForexLatestRates returns a channel that yields a JSON object.

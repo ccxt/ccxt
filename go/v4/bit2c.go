@@ -131,6 +131,9 @@ func (this *Bit2cCore) Describe() any {
 					"Exchanges/{pair}/orderbook": map[string]any{
 						"cost": 1,
 					},
+					"Exchanges/{pair}/orderbook-top": map[string]any{
+						"cost": 1,
+					},
 					"Exchanges/{pair}/trades": map[string]any{
 						"cost": 1,
 					},
@@ -145,6 +148,9 @@ func (this *Bit2cCore) Describe() any {
 						"cost": 1,
 					},
 					"Funds/AddCoinFundsRequest": map[string]any{
+						"cost": 1,
+					},
+					"Funds/WithdrawCoin": map[string]any{
 						"cost": 1,
 					},
 					"Order/AddFund": map[string]any{
@@ -198,6 +204,9 @@ func (this *Bit2cCore) Describe() any {
 						"cost": 1,
 					},
 					"Order/OrderHistory": map[string]any{
+						"cost": 1,
+					},
+					"Order/HistoryByOrderId": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -375,8 +384,8 @@ func (this *Bit2cCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes32112 := (<-this.LoadMarkets())
-		PanicOnError(retRes32112)
+		retRes32412 := (<-this.LoadMarkets())
+		PanicOnError(retRes32412)
 	}
 
 	response := (<-this.PrivateGetAccountBalanceV2(params))
@@ -452,8 +461,8 @@ func (this *Bit2cCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38112 := (<-this.LoadMarkets())
-		PanicOnError(retRes38112)
+		retRes38412 := (<-this.LoadMarkets())
+		PanicOnError(retRes38412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -547,8 +556,8 @@ func (this *Bit2cCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45712 := (<-this.LoadMarkets())
-		PanicOnError(retRes45712)
+		retRes46012 := (<-this.LoadMarkets())
+		PanicOnError(retRes46012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -590,8 +599,8 @@ func (this *Bit2cCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes48112 := (<-this.LoadMarkets())
-		PanicOnError(retRes48112)
+		retRes48412 := (<-this.LoadMarkets())
+		PanicOnError(retRes48412)
 	}
 	var market any = this.Market(symbol)
 	var optionValue any = this.SafeString(this.Options, "fetchTradesMethod") // kept here for backward compatibility #29154
@@ -655,8 +664,8 @@ func (this *Bit2cCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52912 := (<-this.LoadMarkets())
-		PanicOnError(retRes52912)
+		retRes53212 := (<-this.LoadMarkets())
+		PanicOnError(retRes53212)
 	}
 
 	response := (<-this.PrivateGetAccountBalance(params))
@@ -729,8 +738,8 @@ func (this *Bit2cCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58612 := (<-this.LoadMarkets())
-		PanicOnError(retRes58612)
+		retRes58912 := (<-this.LoadMarkets())
+		PanicOnError(retRes58912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -828,8 +837,8 @@ func (this *Bit2cCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64512 := (<-this.LoadMarkets())
-		PanicOnError(retRes64512)
+		retRes64812 := (<-this.LoadMarkets())
+		PanicOnError(retRes64812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -870,8 +879,8 @@ func (this *Bit2cCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes67012 := (<-this.LoadMarkets())
-		PanicOnError(retRes67012)
+		retRes67312 := (<-this.LoadMarkets())
+		PanicOnError(retRes67312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1043,8 +1052,8 @@ func (this *Bit2cCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes82112 := (<-this.LoadMarkets())
-		PanicOnError(retRes82112)
+		retRes82412 := (<-this.LoadMarkets())
+		PanicOnError(retRes82412)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1243,8 +1252,8 @@ func (this *Bit2cCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100712 := (<-this.LoadMarkets())
-		PanicOnError(retRes100712)
+		retRes101012 := (<-this.LoadMarkets())
+		PanicOnError(retRes101012)
 	}
 	var currency any = this.Currency(code)
 	if IsTrue(this.IsFiat(code)) {

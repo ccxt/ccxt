@@ -559,6 +559,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> watchOrders(Object... optionalArgs)
@@ -574,8 +575,27 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             {
                 (this.loadMarkets()).join();
             }
+            Object verbose = false;
+            var verboseparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
+            verbose = ((java.util.List<Object>) verboseparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) verboseparametersVariable).get(1);
             Object name = "open_orders";
             Object messageHash = "orders";
+            if (Helpers.isTrue(verbose))
+            {
+                name = "open_orders_verbose";
+                messageHash = "orders:verbose";
+            }
+            Object feed = this.safeString(parameters, "feed");
+            if (Helpers.isTrue(!Helpers.isEqual(feed, null)))
+            {
+                name = feed;
+                messageHash = "orders";
+                if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+                {
+                    messageHash = "orders:verbose";
+                }
+            }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Object market = this.market(symbol);
@@ -932,7 +952,12 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         if (Helpers.isTrue(!Helpers.isEqual(order, null)))
         {
             Object marketId = this.safeString(order, "instrument");
+            Object feed = this.safeString(message, "feed");
             Object messageHash = "orders";
+            if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+            {
+                messageHash = "orders:verbose";
+            }
             Object symbol = this.safeSymbol(marketId);
             Object orderId = this.safeString(order, "order_id");
             Object previousOrders = this.safeValue(((io.github.ccxt.ws.ArrayCache)orders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
@@ -1008,6 +1033,12 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 {
                     status = "closed";
                 }
+                Object feed = this.safeString(message, "feed");
+                Object messageHash = "orders";
+                if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose")))
+                {
+                    messageHash = "orders:verbose";
+                }
                 // get order without symbol
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                 {
@@ -1023,8 +1054,8 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
     put( "status", finalStatus );
     put( "info", info );
 }}));
-                        client.resolve(orders, "orders");
-                        client.resolve(orders, Helpers.add("orders:", Helpers.GetValue(currentOrder, "symbol")));
+                        client.resolve(orders, messageHash);
+                        client.resolve(orders, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(currentOrder, "symbol")));
                         break;
                     }
                 }
@@ -1085,6 +1116,12 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object orders = this.safeValue(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object limit = this.safeInteger(this.options, "ordersLimit");
         this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
+        Object feed = this.safeString(message, "feed");
+        Object messageHash = "orders";
+        if (Helpers.isTrue(Helpers.isEqual(feed, "open_orders_verbose_snapshot")))
+        {
+            messageHash = "orders:verbose";
+        }
         Object symbols = new java.util.HashMap<String, Object>() {{}};
         Object cachedOrders = this.orders;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -1101,13 +1138,13 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object length = Helpers.getArrayLength(this.orders);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
         {
-            client.resolve(this.orders, "orders");
+            client.resolve(this.orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
-                Object messageHash = Helpers.add("orders:", symbol);
-                client.resolve(this.orders, messageHash);
+                Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
+                client.resolve(this.orders, symbolMessageHash);
             }
         }
     }

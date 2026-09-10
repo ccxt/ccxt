@@ -158,6 +158,13 @@ public partial class lighter : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetCandles",parameters);
     }
 
+    /// <summary>Calls the publicGetMarkPriceCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarkPriceCandles (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarkPriceCandles",parameters);
+    }
+
     /// <summary>Calls the publicGetFundings endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetFundings (object parameters = null)
@@ -184,6 +191,27 @@ public partial class lighter : Exchange
     public async Task<Dictionary<string, object>> publicGetWithdrawalDelay (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("publicGetWithdrawalDelay",parameters);
+    }
+
+    /// <summary>Calls the publicGetPartnerStats endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetPartnerStats (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetPartnerStats",parameters);
+    }
+
+    /// <summary>Calls the publicGetSyntheticSpotInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSyntheticSpotInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSyntheticSpotInfo",parameters);
+    }
+
+    /// <summary>Calls the publicGetTokenlist endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetTokenlist (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetTokenlist",parameters);
     }
 
     /// <summary>Calls the publicPostSendTx endpoint.</summary>
@@ -249,6 +277,13 @@ public partial class lighter : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetPublicPoolsMetadata",parameters);
     }
 
+    /// <summary>Calls the privateGetGetMakerOnlyApiKeys endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetGetMakerOnlyApiKeys (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetGetMakerOnlyApiKeys",parameters);
+    }
+
     /// <summary>Calls the privateGetAccountActiveOrders endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetAccountActiveOrders (object parameters = null)
@@ -263,11 +298,25 @@ public partial class lighter : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetAccountInactiveOrders",parameters);
     }
 
+    /// <summary>Calls the privateGetAccountOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountOrders",parameters);
+    }
+
     /// <summary>Calls the privateGetExport endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetExport (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetExport",parameters);
+    }
+
+    /// <summary>Calls the privateGetExportHistoricalTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetExportHistoricalTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetExportHistoricalTrades",parameters);
     }
 
     /// <summary>Calls the privateGetTrades endpoint.</summary>
@@ -319,6 +368,20 @@ public partial class lighter : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetTransferFeeInfo",parameters);
     }
 
+    /// <summary>Calls the privateGetRfqGet endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqGet (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqGet",parameters);
+    }
+
+    /// <summary>Calls the privateGetRfqList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetRfqList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetRfqList",parameters);
+    }
+
     /// <summary>Calls the privatePostChangeAccountTier endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostChangeAccountTier (object parameters = null)
@@ -326,11 +389,39 @@ public partial class lighter : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostChangeAccountTier",parameters);
     }
 
+    /// <summary>Calls the privatePostSetMakerOnlyApiKeys endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSetMakerOnlyApiKeys (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSetMakerOnlyApiKeys",parameters);
+    }
+
     /// <summary>Calls the privatePostNotificationAck endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostNotificationAck (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostNotificationAck",parameters);
+    }
+
+    /// <summary>Calls the privatePostRfqCreate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqCreate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqCreate",parameters);
+    }
+
+    /// <summary>Calls the privatePostRfqRespond endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqRespond (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqRespond",parameters);
+    }
+
+    /// <summary>Calls the privatePostRfqUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostRfqUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostRfqUpdate",parameters);
     }
 
 }

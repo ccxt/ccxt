@@ -134,6 +134,7 @@ func (this *ModetradeCore) Describe() any {
 				"private": "https://testnet-api-evm.orderly.org",
 			},
 			"www": "https://trade.mode.network",
+			"doc": []any{"https://orderly.network/docs/build-on-omnichain/building-on-omnichain"},
 			"referral": map[string]any{
 				"url":      "https://trade.mode.network?ref=MODETRADE",
 				"discount": 0.2,
@@ -254,6 +255,9 @@ func (this *ModetradeCore) Describe() any {
 						"tv/symbol_info": map[string]any{
 							"cost": 1,
 						},
+						"tv/kline_history": map[string]any{
+							"cost": 20,
+						},
 						"public/funding_rate_history": map[string]any{
 							"cost": 1,
 						},
@@ -284,6 +288,9 @@ func (this *ModetradeCore) Describe() any {
 					},
 					"post": map[string]any{
 						"register_account": map[string]any{
+							"cost": 1,
+						},
+						"public/query": map[string]any{
 							"cost": 1,
 						},
 					},
@@ -344,6 +351,9 @@ func (this *ModetradeCore) Describe() any {
 						"pnl_settlement/history": map[string]any{
 							"cost": 1,
 						},
+						"internal_transfer_history": map[string]any{
+							"cost": 1,
+						},
 						"volume/user/daily": map[string]any{
 							"cost": 60,
 						},
@@ -383,10 +393,46 @@ func (this *ModetradeCore) Describe() any {
 						"broker/user_info": map[string]any{
 							"cost": 10,
 						},
+						"broker/daily_fee_revenue": map[string]any{
+							"cost": 1,
+						},
 						"orderbook/{symbol}": map[string]any{
 							"cost": 1,
 						},
 						"kline": map[string]any{
+							"cost": 1,
+						},
+						"client/leverages": map[string]any{
+							"cost": 1,
+						},
+						"client/margin_modes": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/referee_list": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/max_rebate_rate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_info": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/referee_list": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/statistics": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/volume_prerequisite": map[string]any{
 							"cost": 1,
 						},
 					},
@@ -421,6 +467,9 @@ func (this *ModetradeCore) Describe() any {
 						"settle_pnl": map[string]any{
 							"cost": 1,
 						},
+						"internal_transfer": map[string]any{
+							"cost": 1,
+						},
 						"notification/inbox/mark_read": map[string]any{
 							"cost": 60,
 						},
@@ -429,6 +478,15 @@ func (this *ModetradeCore) Describe() any {
 						},
 						"client/leverage": map[string]any{
 							"cost": 120,
+						},
+						"client/leverages": map[string]any{
+							"cost": 120,
+						},
+						"client/margin_mode": map[string]any{
+							"cost": 1,
+						},
+						"position_margin": map[string]any{
+							"cost": 1,
 						},
 						"client/maintenance_config": map[string]any{
 							"cost": 60,
@@ -464,6 +522,33 @@ func (this *ModetradeCore) Describe() any {
 							"cost": 10,
 						},
 						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_referee_description": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/create/affiliate": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/reset/affiliate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/update/affiliate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/claim_code": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_rate/update": map[string]any{
 							"cost": 10,
 						},
 					},
@@ -541,12 +626,12 @@ func (this *ModetradeCore) Describe() any {
 						"GTD": false,
 					},
 					"hedged":                 false,
-					"trailing":               true,
-					"leverage":               true,
+					"trailing":               false,
+					"leverage":               false,
 					"marketBuyByCost":        false,
 					"marketBuyRequiresPrice": false,
 					"selfTradePrevention":    false,
-					"iceberg":                true,
+					"iceberg":                false,
 				},
 				"createOrders": map[string]any{
 					"max": 10,
@@ -571,7 +656,15 @@ func (this *ModetradeCore) Describe() any {
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": nil,
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          500,
+					"daysBack":       nil,
+					"untilDays":      100000,
+					"trigger":        true,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            500,
@@ -586,9 +679,7 @@ func (this *ModetradeCore) Describe() any {
 					"limit": 1000,
 				},
 			},
-			"spot": map[string]any{
-				"extends": "default",
-			},
+			"spot": nil,
 			"forDerivatives": map[string]any{
 				"extends": "default",
 				"createOrder": map[string]any{
@@ -652,7 +743,7 @@ func (this *ModetradeCore) SetSandboxMode(enable any) {
  * @method
  * @name modetrade#fetchStatus
  * @description the latest known information on the availability of the exchange API
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [status structure]{@link https://docs.ccxt.com/?id=exchange-status-structure}
  */
@@ -703,7 +794,7 @@ func (this *ModetradeCore) fetchStatusBody(ch chan any, optionalArgs ...any) any
  * @method
  * @name modetrade#fetchTime
  * @description fetches the current integer timestamp in milliseconds from the exchange server
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-system-maintenance-status
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-system-maintenance-status
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {int} the current integer timestamp in milliseconds from the exchange server
  */
@@ -827,7 +918,7 @@ func (this *ModetradeCore) ParseMarket(market any) any {
  * @method
  * @name modetrade#fetchMarkets
  * @description retrieves data on all markets for modetrade
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-available-symbols
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-available-symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of objects representing market data
  */
@@ -890,7 +981,7 @@ func (this *ModetradeCore) fetchMarketsBody(ch chan any, optionalArgs ...any) an
  * @method
  * @name modetrade#fetchCurrencies
  * @description fetches all available currencies on an exchange
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-token-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-supported-collateral-info
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an associative dictionary of currencies
  */
@@ -1078,7 +1169,7 @@ func (this *ModetradeCore) ParseTrade(trade any, optionalArgs ...any) any {
  * @method
  * @name modetrade#fetchTrades
  * @description get the list of most recent trades for a particular symbol
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-market-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-market-trades
  * @param {string} symbol unified symbol of the market to fetch trades for
  * @param {int} [since] timestamp in ms of the earliest trade to fetch
  * @param {int} [limit] the maximum amount of trades to fetch
@@ -1101,8 +1192,8 @@ func (this *ModetradeCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes81812 := (<-this.LoadMarkets())
-		PanicOnError(retRes81812)
+		retRes85512 := (<-this.LoadMarkets())
+		PanicOnError(retRes85512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1194,7 +1285,7 @@ func (this *ModetradeCore) ParseFundingInterval(interval any) any {
  * @method
  * @name modetrade#fetchFundingInterval
  * @description fetch the current funding rate interval
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1210,9 +1301,9 @@ func (this *ModetradeCore) fetchFundingIntervalBody(ch chan any, symbol any, opt
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes91215 := (<-this.FetchFundingRate(symbol, params))
-	PanicOnError(retRes91215)
-	ch <- retRes91215
+	retRes94915 := (<-this.FetchFundingRate(symbol, params))
+	PanicOnError(retRes94915)
+	ch <- retRes94915
 	return nil
 }
 
@@ -1220,7 +1311,7 @@ func (this *ModetradeCore) fetchFundingIntervalBody(ch chan any, symbol any, opt
  * @method
  * @name modetrade#fetchFundingRate
  * @description fetch the current funding rate
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rate-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rate-for-one-market
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1237,8 +1328,8 @@ func (this *ModetradeCore) fetchFundingRateBody(ch chan any, symbol any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92612 := (<-this.LoadMarkets())
-		PanicOnError(retRes92612)
+		retRes96312 := (<-this.LoadMarkets())
+		PanicOnError(retRes96312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1272,7 +1363,7 @@ func (this *ModetradeCore) fetchFundingRateBody(ch chan any, symbol any, optiona
  * @method
  * @name modetrade#fetchFundingRates
  * @description fetch the current funding rate for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-predicted-funding-rates-for-all-markets
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-predicted-funding-rates-for-all-markets
  * @param {string[]} symbols unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
@@ -1291,8 +1382,8 @@ func (this *ModetradeCore) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96312 := (<-this.LoadMarkets())
-		PanicOnError(retRes96312)
+		retRes100012 := (<-this.LoadMarkets())
+		PanicOnError(retRes100012)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1326,7 +1417,7 @@ func (this *ModetradeCore) fetchFundingRatesBody(ch chan any, optionalArgs ...an
  * @method
  * @name modetrade#fetchFundingRateHistory
  * @description fetches historical funding rate prices
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/public/get-funding-rate-history-for-one-market
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-funding-rate-history-for-one-market
  * @param {string} symbol unified symbol of the market to fetch the funding rate history for
  * @param {int} [since] timestamp in ms of the earliest funding rate to fetch
  * @param {int} [limit] the maximum amount of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-history-structure} to fetch
@@ -1353,8 +1444,8 @@ func (this *ModetradeCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100412 := (<-this.LoadMarkets())
-		PanicOnError(retRes100412)
+		retRes104112 := (<-this.LoadMarkets())
+		PanicOnError(retRes104112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1362,9 +1453,9 @@ func (this *ModetradeCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes100919 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes100919)
-		ch <- retRes100919
+		retRes104619 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+		PanicOnError(retRes104619)
+		ch <- retRes104619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -1460,7 +1551,7 @@ func (this *ModetradeCore) ParseIncome(income any, optionalArgs ...any) any {
  * @method
  * @name modetrade#fetchFundingHistory
  * @description fetch the history of funding payments paid and received on this account
- * @see https://orderly.network/docs/build-on-omnichain/evm-api/restful-api/private/get-funding-fee-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-funding-fee-history
  * @param {string} [symbol] unified market symbol
  * @param {int} [since] the earliest time in ms to fetch funding history for
  * @param {int} [limit] the maximum number of funding history structures to retrieve
@@ -1486,8 +1577,8 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes110712 := (<-this.LoadMarkets())
-		PanicOnError(retRes110712)
+		retRes114412 := (<-this.LoadMarkets())
+		PanicOnError(retRes114412)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -1495,9 +1586,9 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes111219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes111219)
-		ch <- retRes111219
+		retRes114919 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes114919)
+		ch <- retRes114919
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -1554,7 +1645,7 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
  * @method
  * @name modetrade#fetchTradingFees
  * @description fetch the trading fees for multiple markets
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
  */
@@ -1570,8 +1661,8 @@ func (this *ModetradeCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes117012 := (<-this.LoadMarkets())
-		PanicOnError(retRes117012)
+		retRes120712 := (<-this.LoadMarkets())
+		PanicOnError(retRes120712)
 	}
 
 	response := (<-this.V1PrivateGetClientInfo(params))
@@ -1630,7 +1721,7 @@ func (this *ModetradeCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
  * @method
  * @name modetrade#fetchOrderBook
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/orderbook-snapshot
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/orderbook-snapshot
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -1650,8 +1741,8 @@ func (this *ModetradeCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123312 := (<-this.LoadMarkets())
-		PanicOnError(retRes123312)
+		retRes127012 := (<-this.LoadMarkets())
+		PanicOnError(retRes127012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1696,7 +1787,7 @@ func (this *ModetradeCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 /**
  * @method
  * @name modetrade#fetchOHLCV
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-kline
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/public/get-kline
  * @description fetches historical candlestick data containing the open, high, low, and close price, and the volume of a market
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
@@ -1723,8 +1814,8 @@ func (this *ModetradeCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129112 := (<-this.LoadMarkets())
-		PanicOnError(retRes129112)
+		retRes132812 := (<-this.LoadMarkets())
+		PanicOnError(retRes132812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1909,7 +2000,7 @@ func (this *ModetradeCore) ParseOrderStatus(status any) any {
 		}
 		return this.SafeString(statuses, status, status)
 	}
-	return status
+	return nil
 }
 func (this *ModetradeCore) ParseOrderType(typeVar any) any {
 	var types map[string]any = map[string]any{
@@ -2040,8 +2131,8 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
  * @method
  * @name modetrade#createOrder
  * @description create a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
  * @param {string} side 'buy' or 'sell'
@@ -2053,8 +2144,11 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
- * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
- * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+ * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2072,8 +2166,8 @@ func (this *ModetradeCore) createOrderBody(ch chan any, symbol any, typeVar any,
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes162212 := (<-this.LoadMarkets())
-		PanicOnError(retRes162212)
+		retRes166212 := (<-this.LoadMarkets())
+		PanicOnError(retRes166212)
 	}
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2104,7 +2198,7 @@ func (this *ModetradeCore) createOrderBody(ch chan any, symbol any, typeVar any,
  * @method
  * @name modetrade#createOrders
  * @description *contract only* create a list of trade orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-create-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-create-order
  * @param {Array} orders list of orders to create, each object should contain the parameters required by createOrder, namely symbol, type, side, amount, price and params
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
@@ -2121,8 +2215,8 @@ func (this *ModetradeCore) createOrdersBody(ch chan any, orders any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes168112 := (<-this.LoadMarkets())
-		PanicOnError(retRes168112)
+		retRes172112 := (<-this.LoadMarkets())
+		PanicOnError(retRes172112)
 	}
 	var ordersRequests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2180,8 +2274,8 @@ func (this *ModetradeCore) createOrdersBody(ch chan any, orders any, optionalArg
  * @method
  * @name modetrade#editOrder
  * @description edit a trade order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/edit-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/edit-algo-order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market to create an order in
  * @param {string} type 'market' or 'limit'
@@ -2210,8 +2304,8 @@ func (this *ModetradeCore) editOrderBody(ch chan any, id any, symbol any, typeVa
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes175112 := (<-this.LoadMarkets())
-		PanicOnError(retRes175112)
+		retRes179112 := (<-this.LoadMarkets())
+		PanicOnError(retRes179112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2284,10 +2378,10 @@ func (this *ModetradeCore) editOrderBody(ch chan any, id any, symbol any, typeVa
 /**
  * @method
  * @name modetrade#cancelOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-algo-order-by-client_order_id
  * @description cancels an open order
  * @param {string} id order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2315,8 +2409,8 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes183712 := (<-this.LoadMarkets())
-		PanicOnError(retRes183712)
+		retRes187712 := (<-this.LoadMarkets())
+		PanicOnError(retRes187712)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2394,8 +2488,8 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
  * @method
  * @name modetrade#cancelOrders
  * @description cancel multiple orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/batch-cancel-orders-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/batch-cancel-orders-by-client_order_id
  * @param {string[]} ids order ids
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2416,8 +2510,8 @@ func (this *ModetradeCore) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes191112 := (<-this.LoadMarkets())
-		PanicOnError(retRes191112)
+		retRes195112 := (<-this.LoadMarkets())
+		PanicOnError(retRes195112)
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -2453,8 +2547,8 @@ func (this *ModetradeCore) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 /**
  * @method
  * @name modetrade#cancelAllOrders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-all-pending-algo-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/cancel-orders-in-bulk
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/cancel-all-pending-orders
  * @description cancel all open orders in a market
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -2475,8 +2569,8 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes195112 := (<-this.LoadMarkets())
-		PanicOnError(retRes195112)
+		retRes199112 := (<-this.LoadMarkets())
+		PanicOnError(retRes199112)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -2520,10 +2614,10 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 /**
  * @method
  * @name modetrade#fetchOrder
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-order-by-client_order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-order_id
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-order-by-client_order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-order_id
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-order-by-client_order_id
  * @description fetches information on an order made by the user
  * @param {string} id the order id
  * @param {string} symbol unified symbol of the market the order was made in
@@ -2546,8 +2640,8 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes200512 := (<-this.LoadMarkets())
-		PanicOnError(retRes200512)
+		retRes204512 := (<-this.LoadMarkets())
+		PanicOnError(retRes204512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2620,11 +2714,11 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
  * @method
  * @name modetrade#fetchOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2651,8 +2745,8 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes208312 := (<-this.LoadMarkets())
-		PanicOnError(retRes208312)
+		retRes212312 := (<-this.LoadMarkets())
+		PanicOnError(retRes212312)
 	}
 	var paginate any = false
 	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
@@ -2662,9 +2756,9 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes209019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes209019)
-		ch <- retRes209019
+		retRes213019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+		PanicOnError(retRes213019)
+		ch <- retRes213019
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2678,7 +2772,7 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(request, "start_t", since)
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "size", limit)
+		AddElementToObject(request, "size", mathMin(limit, maxLimit))
 	} else {
 		AddElementToObject(request, "size", maxLimit)
 	}
@@ -2743,11 +2837,11 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
  * @method
  * @name modetrade#fetchOpenOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2774,16 +2868,16 @@ func (this *ModetradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes217512 := (<-this.LoadMarkets())
-		PanicOnError(retRes217512)
+		retRes221512 := (<-this.LoadMarkets())
+		PanicOnError(retRes221512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
-	retRes217815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes217815)
-	ch <- retRes217815
+	retRes221815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes221815)
+	ch <- retRes221815
 	return nil
 }
 
@@ -2791,11 +2885,11 @@ func (this *ModetradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
  * @method
  * @name modetrade#fetchClosedOrders
  * @description fetches information on multiple orders made by the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-algo-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-orders
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2822,16 +2916,16 @@ func (this *ModetradeCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes220012 := (<-this.LoadMarkets())
-		PanicOnError(retRes220012)
+		retRes224012 := (<-this.LoadMarkets())
+		PanicOnError(retRes224012)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
-	retRes220315 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes220315)
-	ch <- retRes220315
+	retRes224315 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes224315)
+	ch <- retRes224315
 	return nil
 }
 
@@ -2839,7 +2933,7 @@ func (this *ModetradeCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
  * @method
  * @name modetrade#fetchOrderTrades
  * @description fetch all the trades made from a single order
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-trades-of-specific-order
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-trades-of-specific-order
  * @param {string} id order id
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2865,8 +2959,8 @@ func (this *ModetradeCore) fetchOrderTradesBody(ch chan any, id any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes222012 := (<-this.LoadMarkets())
-		PanicOnError(retRes222012)
+		retRes226012 := (<-this.LoadMarkets())
+		PanicOnError(retRes226012)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2909,7 +3003,7 @@ func (this *ModetradeCore) fetchOrderTradesBody(ch chan any, id any, optionalArg
 /**
  * @method
  * @name modetrade#fetchMyTrades
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-trades
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-trades
  * @description fetch all trades made by the user
  * @param {string} symbol unified market symbol
  * @param {int} [since] the earliest time in ms to fetch trades for
@@ -2937,8 +3031,8 @@ func (this *ModetradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes227112 := (<-this.LoadMarkets())
-		PanicOnError(retRes227112)
+		retRes231112 := (<-this.LoadMarkets())
+		PanicOnError(retRes231112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2946,9 +3040,9 @@ func (this *ModetradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes227619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes227619)
-		ch <- retRes227619
+		retRes231619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes231619)
+		ch <- retRes231619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -3025,7 +3119,7 @@ func (this *ModetradeCore) ParseBalance(response any) any {
  * @method
  * @name modetrade#fetchBalance
  * @description query for balance and get the amount of funds available for trading or funds locked in orders
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-current-holding
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-current-holding
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
  */
@@ -3041,8 +3135,8 @@ func (this *ModetradeCore) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes235312 := (<-this.LoadMarkets())
-		PanicOnError(retRes235312)
+		retRes239312 := (<-this.LoadMarkets())
+		PanicOnError(retRes239312)
 	}
 
 	response := (<-this.V1PrivateGetClientHolding(params))
@@ -3085,8 +3179,8 @@ func (this *ModetradeCore) getAssetHistoryRowsBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes237712 := (<-this.LoadMarkets())
-		PanicOnError(retRes237712)
+		retRes241712 := (<-this.LoadMarkets())
+		PanicOnError(retRes241712)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -3179,7 +3273,7 @@ func (this *ModetradeCore) ParseLedgerEntryType(typeVar any) any {
  * @method
  * @name modetrade#fetchLedger
  * @description fetch the history of changes, actions done by the user or operations that altered the balance of the user
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code, default is undefined
  * @param {int} [since] timestamp in ms of the earliest ledger entry, default is undefined
  * @param {int} [limit] max number of ledger entries to return, default is undefined
@@ -3265,7 +3359,7 @@ func (this *ModetradeCore) ParseTransactionStatus(status any) any {
  * @method
  * @name modetrade#fetchDeposits
  * @description fetch all deposits made to an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch deposits for
  * @param {int} [limit] the maximum number of deposits structures to retrieve
@@ -3292,9 +3386,9 @@ func (this *ModetradeCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		"side": "DEPOSIT",
 	}
 
-	retRes254415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes254415)
-	ch <- retRes254415
+	retRes258415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes258415)
+	ch <- retRes258415
 	return nil
 }
 
@@ -3302,7 +3396,7 @@ func (this *ModetradeCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
  * @method
  * @name modetrade#fetchWithdrawals
  * @description fetch all withdrawals made from an account
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} code unified currency code
  * @param {int} [since] the earliest time in ms to fetch withdrawals for
  * @param {int} [limit] the maximum number of withdrawals structures to retrieve
@@ -3329,9 +3423,9 @@ func (this *ModetradeCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 		"side": "WITHDRAW",
 	}
 
-	retRes256215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes256215)
-	ch <- retRes256215
+	retRes260215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes260215)
+	ch <- retRes260215
 	return nil
 }
 
@@ -3339,7 +3433,7 @@ func (this *ModetradeCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
  * @method
  * @name modetrade#fetchDepositsWithdrawals
  * @description fetch history of deposits and withdrawals
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-asset-history
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-asset-history
  * @param {string} [code] unified currency code for the currency of the deposit/withdrawals, default is undefined
  * @param {int} [since] timestamp in ms of the earliest deposit/withdrawal, default is undefined
  * @param {int} [limit] max number of deposit/withdrawals to return, default is undefined
@@ -3428,7 +3522,7 @@ func (this *ModetradeCore) SignMessage(message any, privateKey any) any {
  * @method
  * @name modetrade#withdraw
  * @description make a withdrawal
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/create-withdraw-request
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/create-withdraw-request
  * @param {string} code unified currency code
  * @param {float} amount the amount to withdraw
  * @param {string} address the address to withdraw to
@@ -3450,8 +3544,8 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes264012 := (<-this.LoadMarkets())
-		PanicOnError(retRes264012)
+		retRes268012 := (<-this.LoadMarkets())
+		PanicOnError(retRes268012)
 	}
 	this.CheckAddress(address)
 	if IsTrue(!IsEqual(code, nil)) {
@@ -3555,7 +3649,7 @@ func (this *ModetradeCore) ParseLeverage(leverage any, optionalArgs ...any) any 
  * @method
  * @name modetrade#fetchLeverage
  * @description fetch the set leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-account-information
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-account-information
  * @param {string} symbol unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
@@ -3572,8 +3666,8 @@ func (this *ModetradeCore) fetchLeverageBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes273112 := (<-this.LoadMarkets())
-		PanicOnError(retRes273112)
+		retRes277112 := (<-this.LoadMarkets())
+		PanicOnError(retRes277112)
 	}
 	var market any = this.Market(symbol)
 
@@ -3616,7 +3710,7 @@ func (this *ModetradeCore) fetchLeverageBody(ch chan any, symbol any, optionalAr
  * @method
  * @name modetrade#setLeverage
  * @description set the level of leverage for a market
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/update-leverage-setting
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/update-leverage-setting
  * @param {int} [leverage] the rate of leverage
  * @param {string} [symbol] unified market symbol
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3636,8 +3730,8 @@ func (this *ModetradeCore) setLeverageBody(ch chan any, leverage any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes277812 := (<-this.LoadMarkets())
-		PanicOnError(retRes277812)
+		retRes281812 := (<-this.LoadMarkets())
+		PanicOnError(retRes281812)
 	}
 	var isMinLeverage bool = IsLessThan(leverage, 1)
 	var isMaxLeverage bool = IsGreaterThan(leverage, 50)
@@ -3648,9 +3742,9 @@ func (this *ModetradeCore) setLeverageBody(ch chan any, leverage any, optionalAr
 		"leverage": leverage,
 	}
 
-	retRes278815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-	PanicOnError(retRes278815)
-	ch <- retRes278815
+	retRes282815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	PanicOnError(retRes282815)
+	ch <- retRes282815
 	return nil
 }
 func (this *ModetradeCore) ParsePosition(position any, optionalArgs ...any) any {
@@ -3729,7 +3823,7 @@ func (this *ModetradeCore) ParsePosition(position any, optionalArgs ...any) any 
 /**
  * @method
  * @name modetrade#fetchPosition
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-one-position-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-one-position-info
  * @description fetch data on an open position
  * @param {string} symbol unified market symbol of the market the position is held in
  * @param {object} [params] extra parameters specific to the exchange API endpoint
@@ -3747,8 +3841,8 @@ func (this *ModetradeCore) fetchPositionBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes287312 := (<-this.LoadMarkets())
-		PanicOnError(retRes287312)
+		retRes291312 := (<-this.LoadMarkets())
+		PanicOnError(retRes291312)
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
@@ -3796,7 +3890,7 @@ func (this *ModetradeCore) fetchPositionBody(ch chan any, symbol any, optionalAr
  * @method
  * @name modetrade#fetchPositions
  * @description fetch all open positions
- * @see https://orderly.network/docs/build-on-evm/evm-api/restful-api/private/get-all-positions-info
+ * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-all-positions-info
  * @param {string[]} [symbols] list of unified market symbols
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
@@ -3815,8 +3909,8 @@ func (this *ModetradeCore) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes292412 := (<-this.LoadMarkets())
-		PanicOnError(retRes292412)
+		retRes296412 := (<-this.LoadMarkets())
+		PanicOnError(retRes296412)
 	}
 
 	response := (<-this.V1PrivateGetPositions(params))

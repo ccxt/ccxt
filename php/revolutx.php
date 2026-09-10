@@ -85,6 +85,7 @@ class revolutx extends Exchange {
                         '1.0/orders/{venue_order_id}' => 1,
                         '1.0/orders/fills/{venue_order_id}' => 1,
                         '1.0/trades/private/{symbol}' => 1,
+                        '1.0/transactions' => 1,
                     ),
                     'post' => array(
                         '1.0/orders' => 1,
@@ -779,7 +780,7 @@ class revolutx extends Exchange {
             $request['end_date'] = $this->milliseconds();
         }
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1900);
         }
         $cursor = $this->safe_string($params, 'cursor');
         if ($cursor !== null) {

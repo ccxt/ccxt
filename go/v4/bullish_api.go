@@ -27,6 +27,16 @@ func (this *BullishCore) PublicGetV1AssetsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1AssetsSymbol", args...)
 }
 
+// PublicGetV1VolGrids returns a channel that yields a JSON array.
+func (this *BullishCore) PublicGetV1VolGrids(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1VolGrids", args...)
+}
+
+// PublicGetV1AssetsSymbolVolGrid returns a channel that yields a JSON object.
+func (this *BullishCore) PublicGetV1AssetsSymbolVolGrid(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1AssetsSymbolVolGrid", args...)
+}
+
 // PublicGetV1Markets returns a channel that yields a JSON array.
 func (this *BullishCore) PublicGetV1Markets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1Markets", args...)
@@ -35,6 +45,11 @@ func (this *BullishCore) PublicGetV1Markets(args ...any) <-chan any {
 // PublicGetV1MarketsSymbol returns a channel that yields a JSON object.
 func (this *BullishCore) PublicGetV1MarketsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1MarketsSymbol", args...)
+}
+
+// PublicGetV1HistoryMarkets returns a channel that yields a JSON array.
+func (this *BullishCore) PublicGetV1HistoryMarkets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1HistoryMarkets", args...)
 }
 
 // PublicGetV1HistoryMarketsSymbol returns a channel that yields a JSON object.
@@ -62,6 +77,16 @@ func (this *BullishCore) PublicGetV1MarketsSymbolCandle(args ...any) <-chan any 
 	return this.callEndpointAsync("publicGetV1MarketsSymbolCandle", args...)
 }
 
+// PublicGetV1MarketsSymbolAuctions returns a channel that yields a JSON object.
+func (this *BullishCore) PublicGetV1MarketsSymbolAuctions(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1MarketsSymbolAuctions", args...)
+}
+
+// PublicGetV1MarketsSymbolAuctionsNoii returns a channel that yields a JSON object.
+func (this *BullishCore) PublicGetV1MarketsSymbolAuctionsNoii(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1MarketsSymbolAuctionsNoii", args...)
+}
+
 // PublicGetV1HistoryMarketsSymbolTrades returns a channel that yields a JSON array.
 func (this *BullishCore) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolTrades", args...)
@@ -70,6 +95,16 @@ func (this *BullishCore) PublicGetV1HistoryMarketsSymbolTrades(args ...any) <-ch
 // PublicGetV1HistoryMarketsSymbolFundingRate returns a channel that yields a JSON array.
 func (this *BullishCore) PublicGetV1HistoryMarketsSymbolFundingRate(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolFundingRate", args...)
+}
+
+// PublicGetV1HistoryMarketsSymbolAuctions returns a channel that yields a JSON array.
+func (this *BullishCore) PublicGetV1HistoryMarketsSymbolAuctions(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1HistoryMarketsSymbolAuctions", args...)
+}
+
+// PublicGetV1HistoryOptionTrades returns a channel that yields a JSON array.
+func (this *BullishCore) PublicGetV1HistoryOptionTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1HistoryOptionTrades", args...)
 }
 
 // PublicGetV1IndexPrices returns a channel that yields a JSON array.
@@ -110,6 +145,11 @@ func (this *BullishCore) PrivateGetV2HistoryOrders(args ...any) <-chan any {
 // PrivateGetV2OrdersOrderId returns a channel that yields a JSON object.
 func (this *BullishCore) PrivateGetV2OrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV2OrdersOrderId", args...)
+}
+
+// PrivateGetV2OrdersClientOrderIdClientOrderId returns a channel that yields a JSON object.
+func (this *BullishCore) PrivateGetV2OrdersClientOrderIdClientOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2OrdersClientOrderIdClientOrderId", args...)
 }
 
 // PrivateGetV2AmmInstructions returns a channel that yields a JSON array.
@@ -247,6 +287,21 @@ func (this *BullishCore) PrivateGetV2OtcTradesUnconfirmedTrade(args ...any) <-ch
 	return this.callEndpointAsync("privateGetV2OtcTradesUnconfirmedTrade", args...)
 }
 
+// PrivateGetV2OtcTradesDelegatedAccounts returns a channel that yields a JSON array.
+func (this *BullishCore) PrivateGetV2OtcTradesDelegatedAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2OtcTradesDelegatedAccounts", args...)
+}
+
+// PrivateGetV2IdbDelegatedAccounts returns a channel that yields a JSON array.
+func (this *BullishCore) PrivateGetV2IdbDelegatedAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2IdbDelegatedAccounts", args...)
+}
+
+// PrivateGetV2IdbOtcTrades returns a channel that yields a JSON array.
+func (this *BullishCore) PrivateGetV2IdbOtcTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2IdbOtcTrades", args...)
+}
+
 // PrivatePostV2Orders returns a channel that yields a JSON object.
 func (this *BullishCore) PrivatePostV2Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2Orders", args...)
@@ -277,6 +332,11 @@ func (this *BullishCore) PrivatePostV1SimulatePortfolioMargin(args ...any) <-cha
 	return this.callEndpointAsync("privatePostV1SimulatePortfolioMargin", args...)
 }
 
+// PrivatePostV1BulkSimulatePortfolioMargin returns a channel that yields a JSON array.
+func (this *BullishCore) PrivatePostV1BulkSimulatePortfolioMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1BulkSimulatePortfolioMargin", args...)
+}
+
 // PrivatePostV1WalletsSelfHostedInitiate returns a channel that yields a JSON object.
 func (this *BullishCore) PrivatePostV1WalletsSelfHostedInitiate(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1WalletsSelfHostedInitiate", args...)
@@ -295,4 +355,14 @@ func (this *BullishCore) PrivatePostV2OtcTrades(args ...any) <-chan any {
 // PrivatePostV2OtcCommand returns a channel that yields a JSON object.
 func (this *BullishCore) PrivatePostV2OtcCommand(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2OtcCommand", args...)
+}
+
+// PrivatePostV2IdbOtcTrades returns a channel that yields a JSON object.
+func (this *BullishCore) PrivatePostV2IdbOtcTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2IdbOtcTrades", args...)
+}
+
+// PrivatePostV2IdbOtcCommand returns a channel that yields a JSON object.
+func (this *BullishCore) PrivatePostV2IdbOtcCommand(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2IdbOtcCommand", args...)
 }

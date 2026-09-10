@@ -211,6 +211,7 @@ class coinbase extends Exchange {
                             'payment-methods/{payment_method_id}' => array( 'cost' => 10.6 ),
                             'user' => array( 'cost' => 10.6 ),
                             'user/auth' => array( 'cost' => 10.6 ),
+                            'subscriptions/coinbase-one' => array( 'cost' => 10.6 ),
                         ),
                         'post' => array(
                             'accounts' => array( 'cost' => 10.6 ),
@@ -270,6 +271,9 @@ class coinbase extends Exchange {
                             'brokerage/cfm/positions' => array( 'cost' => 1 ),
                             'brokerage/cfm/positions/{product_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/current_margin_window' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
+                            'brokerage/intx/balances/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/portfolio/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}' => array( 'cost' => 1 ),
                             'brokerage/intx/positions/{portfolio_uuid}/{symbol}' => array( 'cost' => 1 ),
@@ -288,7 +292,9 @@ class coinbase extends Exchange {
                             'brokerage/convert/quote' => array( 'cost' => 1 ),
                             'brokerage/convert/trade/{trade_id}' => array( 'cost' => 1 ),
                             'brokerage/cfm/sweeps/schedule' => array( 'cost' => 1 ),
+                            'brokerage/cfm/intraday/margin_setting' => array( 'cost' => 1 ),
                             'brokerage/intx/allocate' => array( 'cost' => 1 ),
+                            'brokerage/intx/multi_asset_collateral' => array( 'cost' => 1 ),
                             // futures
                             'brokerage/orders/close_position' => array( 'cost' => 1 ),
                         ),
@@ -3048,7 +3054,7 @@ class coinbase extends Exchange {
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', 'GTD' or 'PO', 'FOK'
          * @param {string} [$params->stop_direction] 'UNKNOWN_STOP_DIRECTION', 'STOP_DIRECTION_STOP_UP', 'STOP_DIRECTION_STOP_DOWN' the direction the stopPrice is triggered from
          * @param {string} [$params->end_time] '2023-05-25T17:01:05.092Z' for 'GTD' orders
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {boolean} [$params->preview] default to false, wether to use the test/preview endpoint or not
          * @param {float} [$params->leverage] default to 1, the leverage to use for the order
          * @param {string} [$params->marginMode] 'cross' or 'isolated'
@@ -3877,7 +3883,7 @@ class coinbase extends Exchange {
          * @param {int} [$params->until] the latest time in ms to fetch trades for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {boolean} [$params->usePrivate] default false, when true will use the private endpoint to fetch the $candles
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -4924,7 +4930,7 @@ class coinbase extends Exchange {
             $portfolio = null;
             list($portfolio, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPositions() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'portfolio_uuid' => $portfolio,
@@ -4966,7 +4972,7 @@ class coinbase extends Exchange {
             $portfolio = null;
             list($portfolio, $params) = $this->handle_option_and_params($params, 'fetchPositions', 'portfolio');
             if ($portfolio === null) {
-                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
+                throw new ArgumentsRequired($this->id . ' fetchPosition() requires a "portfolio" value in $params (eg => dbcb91e7-2bc9-515), or set as exchange.options["portfolio"]. You can get a list of portfolios with fetchPortfolios()');
             }
             $request = array(
                 'symbol' => $market['id'],

@@ -284,6 +284,39 @@ public class PacificaApi extends Exchange
     }
 
     /**
+     * Calls the publicGetOrdersTwap endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwap (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetOrdersTwap", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetOrdersTwapHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwapHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetOrdersTwapHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetOrdersTwapHistoryById endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetOrdersTwapHistoryById (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetOrdersTwapHistoryById", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetSpotAssets endpoint.
      *
      * @param optionalArgs the request parameters
@@ -336,6 +369,39 @@ public class PacificaApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetAccountBuilderCodesApprovals (Object... optionalArgs)
     {
         return this.callAsync ("publicGetAccountBuilderCodesApprovals", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetBuilderOverview endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetBuilderOverview (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetBuilderOverview", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetBuilderTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetBuilderTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetBuilderTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetLeaderboardBuilderCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetLeaderboardBuilderCode (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetLeaderboardBuilderCode", optionalArgs);
     }
 
     /**
@@ -559,6 +625,28 @@ public class PacificaApi extends Exchange
     }
 
     /**
+     * Calls the privatePostOrdersTwapCreate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersTwapCreate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOrdersTwapCreate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOrdersTwapCancel endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostOrdersTwapCancel (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOrdersTwapCancel", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAccountBuilderCodesApprove endpoint.
      *
      * @param optionalArgs the request parameters
@@ -581,6 +669,28 @@ public class PacificaApi extends Exchange
     }
 
     /**
+     * Calls the privatePostBuilderUpdateFeeRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostBuilderUpdateFeeRate (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostBuilderUpdateFeeRate", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostReferralUserCodeClaim endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostReferralUserCodeClaim (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostReferralUserCodeClaim", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostAgentBind endpoint.
      *
      * @param optionalArgs the request parameters
@@ -589,6 +699,83 @@ public class PacificaApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentBind (Object... optionalArgs)
     {
         return this.callAsync ("privatePostAgentBind", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentRevoke endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentRevoke (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentRevoke", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentRevokeAll endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentRevokeAll (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentRevokeAll", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentIpWhitelistList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistList (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentIpWhitelistList", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentIpWhitelistAdd endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistAdd (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentIpWhitelistAdd", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentIpWhitelistRemove endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistRemove (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentIpWhitelistRemove", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAgentIpWhitelistToggle endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAgentIpWhitelistToggle (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAgentIpWhitelistToggle", optionalArgs);
     }
 
     /**

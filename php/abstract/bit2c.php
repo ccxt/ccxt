@@ -20,6 +20,12 @@ abstract class bit2c extends \ccxt\Exchange {
         return $this->request('Exchanges/{pair}/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return array<string, mixed>
+     */
+    public function public_get_exchanges_pair_orderbook_top($params = array()) {
+        return $this->request('Exchanges/{pair}/orderbook-top', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return list<mixed>
      */
     public function public_get_exchanges_pair_trades($params = array()) {
@@ -42,6 +48,12 @@ abstract class bit2c extends \ccxt\Exchange {
      */
     public function private_post_funds_addcoinfundsrequest($params = array()) {
         return $this->request('Funds/AddCoinFundsRequest', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function private_post_funds_withdrawcoin($params = array()) {
+        return $this->request('Funds/WithdrawCoin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -146,6 +158,12 @@ abstract class bit2c extends \ccxt\Exchange {
         return $this->request('Order/OrderHistory', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
+     * @return list<mixed>
+     */
+    public function private_get_order_historybyorderid($params = array()) {
+        return $this->request('Order/HistoryByOrderId', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
      * @return array<string, mixed>
      */
     public function publicGetExchangesPairTicker($params = array()) {
@@ -156,6 +174,12 @@ abstract class bit2c extends \ccxt\Exchange {
      */
     public function publicGetExchangesPairOrderbook($params = array()) {
         return $this->request('Exchanges/{pair}/orderbook', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetExchangesPairOrderbookTop($params = array()) {
+        return $this->request('Exchanges/{pair}/orderbook-top', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return list<mixed>
@@ -180,6 +204,12 @@ abstract class bit2c extends \ccxt\Exchange {
      */
     public function privatePostFundsAddCoinFundsRequest($params = array()) {
         return $this->request('Funds/AddCoinFundsRequest', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function privatePostFundsWithdrawCoin($params = array()) {
+        return $this->request('Funds/WithdrawCoin', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return array<string, mixed>
@@ -282,5 +312,11 @@ abstract class bit2c extends \ccxt\Exchange {
      */
     public function privateGetOrderOrderHistory($params = array()) {
         return $this->request('Order/OrderHistory', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return list<mixed>
+     */
+    public function privateGetOrderHistoryByOrderId($params = array()) {
+        return $this->request('Order/HistoryByOrderId', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
 }

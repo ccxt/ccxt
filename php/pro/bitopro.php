@@ -407,7 +407,7 @@ class bitopro extends \ccxt\async\bitopro {
         $result['symbol'] = $this->safe_string($market, 'symbol'); // $symbol returned from REST's parseTicker is distorted for WS, so re-set it from $market object
         $timestamp = $this->safe_integer($message, 'timestamp');
         $result['timestamp'] = $timestamp;
-        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, values are obviously wrong offset from UTC
+        $result['datetime'] = $this->iso8601($timestamp); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         $this->tickers[$symbol] = $result;
         $client->resolve($result, $messageHash);
     }

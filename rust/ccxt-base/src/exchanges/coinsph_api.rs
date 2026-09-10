@@ -332,6 +332,16 @@ impl CoinsphCore {
         self.call_method(Value::Str("private_post_openapi_fiat_v1_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostOpenapiFiatV2History` implicit endpoint.
+    pub async fn private_post_openapi_fiat_v2_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_fiat_v2_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostOpenapiFiatV1CancelQrCode` implicit endpoint.
+    pub async fn private_post_openapi_fiat_v1_cancel_qr_code(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_openapi_fiat_v1_cancel_qr_code".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostOpenapiMigrationV4Sellorder` implicit endpoint.
     pub async fn private_post_openapi_migration_v4_sellorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_openapi_migration_v4_sellorder".to_string()), optional_args).await

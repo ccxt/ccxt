@@ -757,7 +757,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param int [limit]: max number of candles
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: end timestamp in ms
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -813,7 +813,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         parses a single hyperliquid candle object into a CCXT OHLCV tuple
         :param dict ohlcv: the raw candle object
         :param dict [market]: the market the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
         #
         #     {
@@ -1085,7 +1085,7 @@ class hyperliquid(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: 'Gtc' | 'Ioc' | 'Alo'(default 'Gtc')
         :param boolean [params.postOnly]: if True sets timeInForce to 'Alo'
-        :param boolean [params.reduceOnly]: if True, marks the order only so it can only decrease an existing position
+        :param boolean [params.reduceOnly]: if True, marks the order as reduce only so it can only decrease an existing position
         :param str [params.slippage]: slippage for market orders(default 5%)
         :param str [params.clientOrderId]: hex cloid
         :param str [params.vaultAddress]: optional subaccount/vault address to trade on behalf of(master signer must be authorized)

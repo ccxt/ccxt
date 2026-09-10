@@ -276,6 +276,8 @@ class coinsph extends Exchange {
                         'openapi/fiat/v1/support-channel' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/cash-out' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v2/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/cancel_qr_code' => array( 'cost' => 1 ),
                         'openapi/migration/v4/sellorder' => array( 'cost' => 1 ),
                         'openapi/migration/v4/validate-field' => array( 'cost' => 1 ),
                         'openapi/transfer/v3/transfers' => array( 'cost' => 1 ),
@@ -1120,7 +1122,7 @@ class coinsph extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1463,7 +1465,7 @@ class coinsph extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount for $market buy orders
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */

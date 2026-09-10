@@ -27,6 +27,11 @@ func (this *KrakenCore) PublicGetSystemStatus(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSystemStatus", args...)
 }
 
+// PublicGetMaintenanceSchedule returns a channel that yields a JSON object.
+func (this *KrakenCore) PublicGetMaintenanceSchedule(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMaintenanceSchedule", args...)
+}
+
 // PublicGetAssets returns a channel that yields a JSON object.
 func (this *KrakenCore) PublicGetAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetAssets", args...)
@@ -175,6 +180,11 @@ func (this *KrakenCore) PrivatePostRemoveExport(args ...any) <-chan any {
 // PrivatePostGetApiKeyInfo returns a channel that yields a JSON object.
 func (this *KrakenCore) PrivatePostGetApiKeyInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetApiKeyInfo", args...)
+}
+
+// PrivatePostListWalletAccounts returns a channel that yields a JSON object.
+func (this *KrakenCore) PrivatePostListWalletAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostListWalletAccounts", args...)
 }
 
 // PrivatePostAddOrder returns a channel that yields a JSON object.

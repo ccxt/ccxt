@@ -88,6 +88,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function public_get_derivatives_market_hours($params = array()) {
+        return $this->request('derivatives/market_hours/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_derivatives_market_hours_market_symbol($params = array()) {
+        return $this->request('derivatives/market_hours/{market_symbol}/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function private_get_travel_rule_contacts($params = array()) {
         return $this->request('travel_rule/contacts/', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -96,6 +108,30 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function private_get_contacts_contact_uuid($params = array()) {
         return $this->request('contacts/{contact_uuid}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_travel_rule_utxo_xpub_registrations($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_travel_rule_utxo_xpub_registrations_registration_id($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/{registration_id}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_travel_rule_address_verification($params = array()) {
+        return $this->request('travel_rule/address_verification/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_get_crypto_transactions_deposits($params = array()) {
+        return $this->request('crypto-transactions/deposits/', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -174,6 +210,12 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function private_post_crypto_transactions($params = array()) {
         return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_crypto_transactions_deposits_deposit_id_reject($params = array()) {
+        return $this->request('crypto-transactions/deposits/{deposit_id}/reject/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -360,6 +402,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function private_post_get_max_order_amount($params = array()) {
         return $this->request('get_max_order_amount/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_order_data($params = array()) {
+        return $this->request('order_data/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_account_order_data($params = array()) {
+        return $this->request('account_order_data/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1342,6 +1396,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_travel_rule_utxo_xpub_registrations($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_travel_rule_utxo_xpub_registrations_registration_id_revoke($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/{registration_id}/revoke/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_earn_subscribe($params = array()) {
         return $this->request('earn/subscribe/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -1666,6 +1732,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function publicGetDerivativesMarketHours($params = array()) {
+        return $this->request('derivatives/market_hours/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetDerivativesMarketHoursMarketSymbol($params = array()) {
+        return $this->request('derivatives/market_hours/{market_symbol}/', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function privateGetTravelRuleContacts($params = array()) {
         return $this->request('travel_rule/contacts/', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1674,6 +1752,30 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function privateGetContactsContactUuid($params = array()) {
         return $this->request('contacts/{contact_uuid}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetTravelRuleUtxoXpubRegistrations($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetTravelRuleUtxoXpubRegistrationsRegistrationId($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/{registration_id}/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetTravelRuleAddressVerification($params = array()) {
+        return $this->request('travel_rule/address_verification/', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privateGetCryptoTransactionsDeposits($params = array()) {
+        return $this->request('crypto-transactions/deposits/', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1752,6 +1854,12 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function privatePostCryptoTransactions($params = array()) {
         return $this->request('crypto-transactions/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostCryptoTransactionsDepositsDepositIdReject($params = array()) {
+        return $this->request('crypto-transactions/deposits/{deposit_id}/reject/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1938,6 +2046,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function privatePostGetMaxOrderAmount($params = array()) {
         return $this->request('get_max_order_amount/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostOrderData($params = array()) {
+        return $this->request('order_data/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAccountOrderData($params = array()) {
+        return $this->request('account_order_data/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2916,6 +3036,18 @@ abstract class bitstamp extends \ccxt\async\Exchange {
      */
     public function privatePostTravelRuleContacts($params = array()) {
         return $this->request('travel_rule/contacts/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostTravelRuleUtxoXpubRegistrations($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke($params = array()) {
+        return $this->request('travel_rule/utxo/xpub_registrations/{registration_id}/revoke/', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

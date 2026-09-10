@@ -18,6 +18,13 @@ public partial class blofin : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetMarketInstruments",parameters);
     }
 
+    /// <summary>Calls the publicGetMarketInstrumentsHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketInstrumentsHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketInstrumentsHistory",parameters);
+    }
+
     /// <summary>Calls the publicGetMarketTickers endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetMarketTickers (object parameters = null)
@@ -88,6 +95,41 @@ public partial class blofin : Exchange
         return await this.callAsync<Dictionary<string, object>> ("publicGetMarketPositionTiers",parameters);
     }
 
+    /// <summary>Calls the publicGetSpotMarketInstruments endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotMarketInstruments (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotMarketInstruments",parameters);
+    }
+
+    /// <summary>Calls the publicGetSpotMarketTickers endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotMarketTickers (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotMarketTickers",parameters);
+    }
+
+    /// <summary>Calls the publicGetSpotMarketBooks endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotMarketBooks (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotMarketBooks",parameters);
+    }
+
+    /// <summary>Calls the publicGetSpotMarketTrades endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotMarketTrades (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotMarketTrades",parameters);
+    }
+
+    /// <summary>Calls the publicGetSpotMarketCandles endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetSpotMarketCandles (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetSpotMarketCandles",parameters);
+    }
+
     /// <summary>Calls the privateGetAssetBalances endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privateGetAssetBalances (object parameters = null)
@@ -114,6 +156,13 @@ public partial class blofin : Exchange
     public async Task<Dictionary<string, object>> privateGetAssetDepositHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetAssetDepositAddress endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAssetDepositAddress (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAssetDepositAddress",parameters);
     }
 
     /// <summary>Calls the privateGetAccountConfig endpoint.</summary>
@@ -149,6 +198,13 @@ public partial class blofin : Exchange
     public async Task<Dictionary<string, object>> privateGetAccountPositionsHistory (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privateGetAccountPositionsHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetAccountFundingFees endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetAccountFundingFees (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetAccountFundingFees",parameters);
     }
 
     /// <summary>Calls the privateGetAccountMarginMode endpoint.</summary>
@@ -396,6 +452,48 @@ public partial class blofin : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeFillsHistory",parameters);
     }
 
+    /// <summary>Calls the privateGetSpotTradeOrdersPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrdersPending (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrdersPending",parameters);
+    }
+
+    /// <summary>Calls the privateGetSpotTradeOrderDetail endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrderDetail (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrderDetail",parameters);
+    }
+
+    /// <summary>Calls the privateGetSpotTradeOrdersAlgoPending endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrdersAlgoPending (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrdersAlgoPending",parameters);
+    }
+
+    /// <summary>Calls the privateGetSpotTradeOrdersHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrdersHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrdersHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetSpotTradeOrdersAlgoHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrdersAlgoHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrdersAlgoHistory",parameters);
+    }
+
+    /// <summary>Calls the privateGetSpotTradeOrderPriceRange endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetSpotTradeOrderPriceRange (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetSpotTradeOrderPriceRange",parameters);
+    }
+
     /// <summary>Calls the privatePostAssetTransfer endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostAssetTransfer (object parameters = null)
@@ -408,6 +506,13 @@ public partial class blofin : Exchange
     public async Task<Dictionary<string, object>> privatePostAssetDemoApplyMoney (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostAssetDemoApplyMoney",parameters);
+    }
+
+    /// <summary>Calls the privatePostAssetWithdrawalApply endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostAssetWithdrawalApply (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostAssetWithdrawalApply",parameters);
     }
 
     /// <summary>Calls the privatePostAccountSetMarginMode endpoint.</summary>
@@ -487,11 +592,81 @@ public partial class blofin : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privatePostTradeCancelAlgo",parameters);
     }
 
+    /// <summary>Calls the privatePostTradeAmendOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostTradeAmendBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostTradeAmendTpsl endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendTpsl (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendTpsl",parameters);
+    }
+
+    /// <summary>Calls the privatePostTradeAmendAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostTradeAmendAlgo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostTradeAmendAlgo",parameters);
+    }
+
     /// <summary>Calls the privatePostTradeClosePosition endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostTradeClosePosition (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("privatePostTradeClosePosition",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeOrderAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeOrderAlgo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeOrderAlgo",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeCancelOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeCancelOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeCancelOrder",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeCancelBatchOrders endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeCancelBatchOrders (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeCancelBatchOrders",parameters);
+    }
+
+    /// <summary>Calls the privatePostSpotTradeCancelAlgo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privatePostSpotTradeCancelAlgo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privatePostSpotTradeCancelAlgo",parameters);
     }
 
     /// <summary>Calls the privatePostCopytradingAccountSetPositionMode endpoint.</summary>
