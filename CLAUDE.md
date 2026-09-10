@@ -138,8 +138,8 @@ A test passing only in TS means nothing — the regex transpiler can silently ma
 Primary regression net for per-exchange behaviour. Regenerated via CLI:
 
 ```bash
-node cli.js <exchange> <method> <args...> --report     # request entry
-node cli.js <exchange> <method> <args...> --response   # response entry
+npm run cli.js -- <exchange> <method> <args...> --request    # request entry
+npm run cli.js -- <exchange> <method> <args...> --response   # response entry
 ```
 
 Paste output into `methods.<methodName>` array of the respective JSON, then re-run:
@@ -167,7 +167,7 @@ Combined offline matrix: `npm run id-tests`, `request-tests`, `response-tests`, 
 > Applies to humans, agents, and CI — anything hitting a real exchange with real credentials.
 >
 > 1. **Never risk more than 25 USD equivalent per trade.** Compute notional before every `createOrder`: `notional = amount × markPrice`. Abort/reduce if ≥ 25 USD. For derivatives, notional is the position value. The cap is per individual trade — including cleanup (a 24 USD buy + 24 USD sell to flatten is fine; 30 USD anything is not). For pairs whose minimum order size already exceeds 25 USD: **skip the live test** and rely on static fixtures.
-> 2. **Never call `exchange.withdraw()` against a live exchange.** Ever. Not testnet, not sandbox, not "just to verify". Withdraw is fixture-only forever — capture via `--report`/`--response` and assert against those.
+> 2. **Never call `exchange.withdraw()` against a live exchange.** Ever. Not testnet, not sandbox, not "just to verify". Withdraw is fixture-only forever — capture via `--request`/`--response` and assert against those.
 >
 > If you cannot live-test a method under both rules, that's the correct outcome.
 
@@ -239,7 +239,7 @@ npm run cli.cs -- coinbase fetchMarkets
 # also: cli.js, cli.php, cli.go
 ```
 
-Iterate in the language where the bug shows up (`cli.py` for a Python-only failure, etc.) — much faster than `node run-tests`. **Always pass `--verbose`** when implementing/debugging an endpoint; prints full HTTP request and raw response (needed for signing/parsing/rate-limit issues). Add `--sandbox` for testnet. Drives static-fixture capture via `--report`/`--response` (§5.3).
+Iterate in the language where the bug shows up (`cli.py` for a Python-only failure, etc.) — much faster than `node run-tests`. **Always pass `--verbose`** when implementing/debugging an endpoint; prints full HTTP request and raw response (needed for signing/parsing/rate-limit issues). Add `--sandbox` for testnet. Drives static-fixture capture via `--request`/`--response` (§5.3).
 
 ### 5.8 Skipping known-broken tests — `skip-tests.json`
 
