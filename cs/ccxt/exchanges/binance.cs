@@ -6333,10 +6333,10 @@ public partial class binance : Exchange
         {
             return;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbolMarket = this.market(getValue(symbols, i));
-            object stock = this.safeBool(symbolMarket, "stock", false);
+            bool? stock = this.safeBool(symbolMarket, "stock", false);
             if (isTrue(isEqual(stock, true)))
             {
                 throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), getValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
