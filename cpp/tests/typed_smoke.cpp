@@ -7,9 +7,15 @@
 // verification.
 
 #include "../ccxt/exchanges/binance.h"
+#include "../ccxt/pro/bitvavo.h"
+#include "../ccxt/base/ws/Client.h"
+#include "TestUtils.h"
 
+#include <atomic>
+#include <chrono>
 #include <iostream>
 #include <string>
+#include <thread>
 
 namespace {
 
@@ -141,6 +147,114 @@ int main (int argc, char** argv) {
         check (parsed.last.has_value () && *parsed.last == 20000.0, "parseTicker -> Ticker.last");
         check (parsed.high.has_value () && *parsed.high == 20500.0, "parseTicker -> Ticker.high");
         check (parsed.timestamp.has_value () && *parsed.timestamp == 1700003600000LL, "parseTicker -> Ticker.timestamp");
+
+        // -- typed ws facade through the static ws mock transport -----------------------
+        // the typed watch surface dispatches virtually: ccxt::Exchange's base stubs
+        // throw NotSupported on a REST instance, a pro instance resolves to its real
+        // override. Drive the bitvavo watchTicker fixture through the TYPED facade
+        // with the same mock-transport protocol the static ws harness uses.
+        {
+            using namespace std::chrono_literals;
+            auto proPtr = ccxt::newExchange<ccxt::pro::bitvavo> ();
+            auto& pro = *proPtr;
+            // offline markets: bitvavo's watch chain loads markets before subscribing
+            const std::any markets = pro.parseJson (ccxt::testutils::readFile (
+                ccxt::testutils::rootDir () + "ts/src/test/static/markets/bitvavo.json"));
+            pro.setMarkets (markets);
+            const std::string url = "wss://ws.bitvavo.com/v2";
+            ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (pro.client (url));
+            client.mockConnect ();
+            // fixture frames + the expected first resolution
+            const std::any fixture = pro.parseJson (ccxt::testutils::readFile (
+                ccxt::testutils::rootDir () + "ts/src/test/static/ws/bitvavo.json"));
+            const std::any entry = ::getValue (
+                ::getValue (::getValue (fixture, std::string ("methods")), std::string ("watchTicker")), 0);
+            const ccxt::list frames = std::any_cast<ccxt::list> (::getValue (entry, std::string ("messages")));
+            const std::any expected = std::any_cast<ccxt::list> (::getValue (entry, std::string ("parsedResponses"))).get (0);
+            const double expLast = std::stod (::str (::getValue (expected, std::string ("last"))));
+            const std::string expSymbol = ::str (::getValue (expected, std::string ("symbol")));
+
+            std::atomic<bool> watchDone { false };
+            std::string injectorError;
+            std::string injectorLog;
+            std::thread injector ([&] () {
+                try {
+                    for (long i = 0; i < frames.size () && !watchDone.load (); i++) {
+                        // injector protocol (tests.ts): wait for the watch side to
+                        // register its future, inject one json-parsed frame, then
+                        // wait for the resolution to settle
+                        int waited = 0;
+                        while (!client.hasPendingFutures () && !watchDone.load () && waited < 5000) {
+                            std::this_thread::sleep_for (50ms);
+                            waited += 50;
+                        }
+                        if (watchDone.load ()) {
+                            break;
+                        }
+                        const bool pendingBefore = client.hasPendingFutures ();
+                        // fixture messages arrive ALREADY json-parsed (dicts) --
+                        // re-parsing them yields garbage and the router sees no event
+                        const std::any frame = ::getValue (frames, i);
+                        const std::string ev = ::str (::getValue (frame, std::string ("event")));
+                        pro.handleMessage (std::any (client), frame);
+                        int settled = 0;
+                        while (client.hasPendingFutures () && settled < 500) {
+                            std::this_thread::sleep_for (20ms);
+                            settled += 20;
+                        }
+                        injectorLog += "frame " + std::to_string (i)
+                            + " ev=" + ev
+                            + " pendingBefore=" + (pendingBefore ? "1" : "0")
+                            + " pendingAfter=" + (client.hasPendingFutures () ? "1" : "0")
+                            + " waited=" + std::to_string (waited) + "ms keys=[";
+                        {
+                            const std::any fut = ::getValue (std::any (client), std::string ("futures"));
+                            if (ccxt::isDict (fut)) {
+                                for (const auto& kv : std::any_cast<ccxt::dict> (fut).entries ()) {
+                                    injectorLog += kv.first + " ";
+                                }
+                            }
+                        }
+                        injectorLog += "] ; ";
+                    }
+                    // rejection backstop: a stuck watch must fail the gate, not hang it
+                    for (int w = 0; w < 600 && !watchDone.load (); w++) {
+                        client.reject (std::any (std::string ("ExchangeError")), "");
+                        std::this_thread::sleep_for (50ms);
+                    }
+                } catch (const std::exception& e) {
+                    injectorError = e.what ();
+                }
+            });
+            // the injector thread must be stopped and joined on EVERY exit path,
+            // including exceptions thrown out of the typed watch call (a joinable
+            // thread destroyed during unwind terminates the process)
+            struct WsJoin {
+                std::atomic<bool>& done;
+                std::thread& thread;
+                ~WsJoin () {
+                    done.store (true);
+                    if (thread.joinable ()) {
+                        thread.join ();
+                    }
+                }
+            } joinGuard { watchDone, injector };
+            try {
+                const ccxt::Ticker wsTicker = pro.WatchTicker ("BTC/EUR");
+                watchDone.store (true);
+                injector.join ();
+                check (injectorError.empty (), "ws injector ran clean (" + injectorError + ")");
+                check (wsTicker.symbol.has_value () && *wsTicker.symbol == expSymbol,
+                       "typed WatchTicker symbol == " + expSymbol);
+                check (wsTicker.last.has_value () && *wsTicker.last == expLast,
+                       "typed WatchTicker last == " + d2s (expLast));
+            } catch (const std::exception& e) {
+                check (false, std::string ("typed WatchTicker threw: ") + e.what ()
+                       + " | injector error: " + injectorError + " | " + injectorLog);
+            } catch (...) {
+                check (false, "typed WatchTicker threw a non-standard exception");
+            }
+        }
 
         if (live) {
             std::cout << "-- live: binance public typed calls --" << std::endl;
