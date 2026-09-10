@@ -928,10 +928,12 @@ class CppTranspilerDriver {
         let match;
         while ((match = re.exec (src)) !== null) {
             const name = match[1];
-            // the WS tier (watch*/unWatch*) is not ported to C++; its base stubs would
-            // typecheck but always throw, so keep them off the typed surface
-            if (name.endsWith ('Ws') || name.startsWith ('watch') || name.startsWith ('unWatch')
-                || denylist.has (name) || emitted.has (name)) {
+            // the ws tier (watch*/*Ws) IS on the typed surface: the facade calls the
+            // virtual camelCase method, so a REST instance throws the base stub's
+            // NotSupported while a pro instance (ccxt::pro::<id>) dispatches to its
+            // real override. unWatch* returns Promise<any> and is auto-skipped by
+            // the return mapper below.
+            if (denylist.has (name) || emitted.has (name)) {
                 continue;
             }
             const ret = mapReturn (match[3]);
