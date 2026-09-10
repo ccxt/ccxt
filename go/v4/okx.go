@@ -3122,7 +3122,7 @@ func (this *OkxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	var response any = nil
 	if IsTrue(rpi) {
 
-		response = (<-this.CallDynamically("publicGetMarketBooksRpi", this.Extend(request, params)))
+		response = (<-this.PublicGetMarketBooksRpi(this.Extend(request, params)))
 		PanicOnError(response)
 	} else if IsTrue(IsTrue((IsEqual(method, "publicGetMarketBooksFull"))) || IsTrue((IsGreaterThan(limit, 400)))) {
 
