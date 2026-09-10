@@ -62,11 +62,11 @@
             {
                 "description": "fetchTrades with limit",
                 "method": "fetchTrades",
-                "url": "https://external-api.kalshi.com/trade-api/v2/markets/trades?ticker=KXELONMARS-99&limit=1001",
+                "url": "https://external-api.kalshi.com/trade-api/v2/markets/trades?ticker=KXELONMARS-99&limit=1000",
                 "input": [
                     "ELON_MUSK_VISIT_MARS_AUG_1_2099:YES",
                     null,
-                    1000
+                    1001
                 ]
             }
         ],

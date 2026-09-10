@@ -28,11 +28,11 @@
             {
                 "description": "fetchTrades with limit",
                 "method": "fetchTrades",
-                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/events?limit=101",
+                "url": "https://api.limitless.exchange/markets/usa-and-australia-both-to-score-1779980360817/events?limit=100",
                 "input": [
                     "USA_AUSTRALIA_BOTH_SCORE_1779980360817:YES",
                     null,
-                    100
+                    101
                 ]
             }
         ],
