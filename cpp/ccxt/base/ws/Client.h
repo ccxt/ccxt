@@ -96,42 +96,52 @@ public:
 
     // settle the future for a message hash (JS client.resolve)
     void resolve (const std::any& result, const std::string& messageHash) {
-        std::lock_guard<std::mutex> lock (impl->mutex);
-        if (std::getenv ("CCXT_WS_URL_TRACE")) {
-            std::fprintf (stderr, "[client-resolve] url=%s hash=%s found=%d\n",
-                          impl->url.c_str (), messageHash.c_str (),
-                          static_cast<int> (impl->futures.has (messageHash)));
+        Future f;
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            if (std::getenv ("CCXT_WS_URL_TRACE")) {
+                std::fprintf (stderr, "[client-resolve] url=%s hash=%s found=%d\n",
+                              impl->url.c_str (), messageHash.c_str (),
+                              static_cast<int> (impl->futures.has (messageHash)));
+            }
+            if (!impl->futures.has (messageHash)) {
+                return;
+            }
+            f = std::any_cast<Future> (impl->futures.get (messageHash));
+            impl->futures.erase (messageHash);
         }
-        if (!impl->futures.has (messageHash)) {
-            return;
-        }
-        Future f = std::any_cast<Future> (impl->futures.get (messageHash));
-        impl->futures.erase (messageHash);
+        // settle OUTSIDE the impl lock: subscribers can re-enter any Client
+        // method, and the non-recursive mutex would deadlock
         f.resolve (result);
     }
 
-    // reject one (or, with empty hash, every pending) future (JS client.reject)
+    // reject one (or, with empty hash, every) pending future (JS client.reject)
     void reject (const std::any& reason, const std::string& messageHash = "") {
-        std::lock_guard<std::mutex> lock (impl->mutex);
-        if (messageHash.empty ()) {
-            std::vector<std::string> keys;
-            for (const auto& kv : impl->futures.entries ()) {
-                keys.push_back (kv.first);
+        std::vector<Future> toReject;
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            if (messageHash.empty ()) {
+                std::vector<std::string> keys;
+                for (const auto& kv : impl->futures.entries ()) {
+                    keys.push_back (kv.first);
+                }
+                for (const auto& k : keys) {
+                    toReject.push_back (std::any_cast<Future> (impl->futures.get (k)));
+                    impl->futures.erase (k);
+                }
+            } else {
+                if (!impl->futures.has (messageHash)) {
+                    impl->rejections.set (messageHash, reason);
+                    return;
+                }
+                toReject.push_back (std::any_cast<Future> (impl->futures.get (messageHash)));
+                impl->futures.erase (messageHash);
             }
-            for (const auto& k : keys) {
-                Future f = std::any_cast<Future> (impl->futures.get (k));
-                impl->futures.erase (k);
-                f.reject (reasonToException (reason));
-            }
-            return;
         }
-        if (!impl->futures.has (messageHash)) {
-            impl->rejections.set (messageHash, reason);
-            return;
+        const std::exception_ptr err = reasonToException (reason);
+        for (Future& f : toReject) {
+            f.reject (err);
         }
-        Future f = std::any_cast<Future> (impl->futures.get (messageHash));
-        impl->futures.erase (messageHash);
-        f.reject (reasonToException (reason));
     }
 
     // whether any future is currently awaited (JS tests.helpers polling)
@@ -206,8 +216,22 @@ public:
                 onMessage (std::any (text));
             },
             [impl = impl] (const std::string& err) {
-                std::lock_guard<std::mutex> lock (impl->mutex);
-                impl->lastLiveError = err;
+                // JS client.reset(error): a socket error must settle EVERY pending
+                // watch future, or a mid-watch disconnect strands live callers
+                // forever. Rejections fire outside the impl lock.
+                std::vector<std::pair<std::string, Future>> pending;
+                {
+                    std::lock_guard<std::mutex> lock (impl->mutex);
+                    impl->lastLiveError = err;
+                    impl->liveConnected = false;
+                    for (const auto& kv : impl->futures.entries ()) {
+                        pending.push_back ({ kv.first, std::any_cast<Future> (kv.second) });
+                    }
+                    impl->futures = ccxt::dict {};
+                }
+                for (auto& p : pending) {
+                    p.second.reject (Client::reasonToException (std::any (err)));
+                }
             });
         {
             std::lock_guard<std::mutex> lock (impl->mutex);
@@ -215,16 +239,39 @@ public:
         }
     }
 
-    // record an outgoing frame on the mock transport, or send it over the
-    // live socket when connected (JS client.send semantics)
-    void send (const std::any& message) {
-        std::lock_guard<std::mutex> lock (impl->mutex);
-        if (impl->liveConnected && impl->transport) {
-            const std::string text = impl->serializer ? impl->serializer (message) : std::string ("null");
-            impl->transport->send (text);
-            return;
+    // stop the live transport and join its receive thread (idempotent); the
+    // ExchangeBase destructor calls this before members are destroyed so an
+    // in-flight handleMessage callback can never touch a dead exchange
+    void shutdown () {
+        std::shared_ptr<Transport> transport;
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            transport = impl->transport;
+            impl->liveConnected = false;
         }
-        impl->mockSentMessages.push (message);
+        if (transport) {
+            transport->shutdown ();
+        }
+    }
+
+    // record an outgoing frame on the mock transport, or send it over the
+    // live socket when connected (JS client.send semantics). The socket write
+    // happens OUTSIDE the impl mutex: a stalled peer blocks on TCP backpressure
+    // and must not freeze resolve/reject/subscription bookkeeping.
+    void send (const std::any& message) {
+        std::shared_ptr<Transport> transport;
+        std::string text;
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            if (impl->liveConnected && impl->transport) {
+                transport = impl->transport;
+                text = impl->serializer ? impl->serializer (message) : std::string ("null");
+            } else {
+                impl->mockSentMessages.push (message);
+                return;
+            }
+        }
+        transport->send (text);
     }
 
     ccxt::list sentMessages () {

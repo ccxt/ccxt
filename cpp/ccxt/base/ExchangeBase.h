@@ -94,7 +94,7 @@ public:
 class ExchangeBase {
 public:
     ExchangeBase () = default;
-    virtual ~ExchangeBase () = default;
+    virtual ~ExchangeBase ();
 
     // -- identity and configuration -------------------------------------------------
     std::any id;

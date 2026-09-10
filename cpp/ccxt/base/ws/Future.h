@@ -51,10 +51,16 @@ public:
             impl->value = v;
             fires.swap (impl->listeners);
         }
-        for (const auto& l : fires) {
-            l.first (v);
-        }
+        // notify the waiters FIRST: a throwing listener must not skip the
+        // notify and strand every blocked get() waiter
         impl->cv.notify_all ();
+        for (const auto& l : fires) {
+            try {
+                l.first (v);
+            } catch (...) {
+                // a subscriber that throws must not drop the remaining listeners
+            }
+        }
     }
 
     void reject (const std::exception_ptr& e) {
@@ -70,10 +76,14 @@ public:
             impl->error = e;
             fires.swap (impl->listeners);
         }
-        for (const auto& l : fires) {
-            l.second (e);
-        }
         impl->cv.notify_all ();
+        for (const auto& l : fires) {
+            try {
+                l.second (e);
+            } catch (...) {
+                // a subscriber that throws must not drop the remaining listeners
+            }
+        }
     }
 
     // blocks until settled; returns the value or rethrows the stored error

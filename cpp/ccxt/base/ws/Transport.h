@@ -32,7 +32,10 @@ public:
     using MessageFn = std::function<void (const std::string&)>;
     using ErrorFn = std::function<void (const std::string&)>;
 
-    // splits wss://host[:port][/path] -> host, port, target, usesTls
+    // splits wss://host[:port][/path] -> host, port, target, usesTls.
+    // IPv6 literals keep their brackets ([::1]) so asio parses them; userinfo
+    // is stripped (ccxt ws urls never carry it). ws proxies are not supported
+    // yet (explicitly deferred -- options-level proxies are ignored).
     static void splitUrl (const std::string& url, std::string& host, std::string& port,
                           std::string& target, bool& usesTls) {
         std::string rest = url;
@@ -44,8 +47,23 @@ public:
             rest = rest.substr (5);
         }
         const std::size_t slash = rest.find ('/');
-        const std::string authority = (slash == std::string::npos) ? rest : rest.substr (0, slash);
+        std::string authority = (slash == std::string::npos) ? rest : rest.substr (0, slash);
         target = (slash == std::string::npos) ? std::string ("/") : rest.substr (slash);
+        const std::size_t at = authority.rfind ('@');
+        if (at != std::string::npos) {
+            authority = authority.substr (at + 1);
+        }
+        if (!authority.empty () && authority.front () == '[') {
+            // [::1] or [::1]:443
+            const std::size_t close = authority.find (']');
+            host = authority.substr (0, close + 1);
+            if (close + 1 < authority.size () && authority[close + 1] == ':') {
+                port = authority.substr (close + 2);
+            } else {
+                port = usesTls ? std::string ("443") : std::string ("80");
+            }
+            return;
+        }
         const std::size_t colon = authority.rfind (':');
         if (colon != std::string::npos && colon > 0) {
             host = authority.substr (0, colon);
@@ -109,7 +127,9 @@ public:
         receiveThread = std::thread ([this] () { receiveLoop (); });
     }
 
-    // text send from any thread (mutex-guarded: beast allows one writer)
+    // text send from any thread (mutex-guarded: beast allows one writer).
+    // Frames sent after the socket stopped are silently dropped -- acceptable
+    // "send after close" semantics, matching a dead transport's no-op send.
     void send (const std::string& text) {
         std::lock_guard<std::mutex> lock (sendMutex);
         if (!running.load ()) {
@@ -123,13 +143,17 @@ public:
     }
 
     void shutdown () {
-        if (!running.exchange (false)) {
-            return;
+        // ALWAYS join the receive thread when it is joinable: the loop sets
+        // running=false on its own exit (read error / server close), and an
+        // exited-but-unjoined std::thread destroyed by ~Transport would call
+        // std::terminate. The exchange(false) guard only skips re-cancelling
+        // an already-stopped socket.
+        if (running.exchange (false)) {
+            boost::system::error_code ec;
+            // unblock a read blocked in recv; the close frame flush is best-effort
+            ws.next_layer ().next_layer ().cancel (ec);
+            ws.next_layer ().next_layer ().close (ec);
         }
-        boost::system::error_code ec;
-        // unblock a read blocked in recv; the close frame flush is best-effort
-        ws.next_layer ().next_layer ().cancel (ec);
-        ws.next_layer ().next_layer ().close (ec);
         if (receiveThread.joinable ()) {
             receiveThread.join ();
         }
