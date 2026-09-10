@@ -1862,7 +1862,7 @@ class derive(Exchange, ImplicitAPI):
                 'expired': 'rejected',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order(self, rawOrder: dict, market: Market = None) -> Order:
         #

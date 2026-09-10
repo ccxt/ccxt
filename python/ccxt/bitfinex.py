@@ -1581,7 +1581,7 @@ class bitfinex(Exchange, ImplicitAPI):
 
     def parse_order_status(self, status: Str):
         if status is None:
-            return status
+            return None
         parts = status.split(' ')
         state = self.safe_string(parts, 0)
         statuses = {

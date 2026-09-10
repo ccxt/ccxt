@@ -1743,7 +1743,7 @@ class woofipro(Exchange, ImplicitAPI):
                 'COMPLETED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {

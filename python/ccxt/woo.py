@@ -2182,7 +2182,7 @@ class woo(Exchange, ImplicitAPI):
                 'COMPLETED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
         """
