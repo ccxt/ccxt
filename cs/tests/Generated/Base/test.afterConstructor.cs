@@ -108,7 +108,7 @@ public partial class BaseTest
             Assert(!isEqual(exchangeProp(exchange, "userAgents"), null));
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                string? key = ((string)getValue(keys, i));
                 object userAgent = getValue(exchangeProp(exchange, "userAgents"), key);
                 Assert(!isEqual(userAgent, null));
             }

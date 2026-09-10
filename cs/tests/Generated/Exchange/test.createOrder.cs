@@ -15,7 +15,7 @@ public partial class testMainClass : BaseTest
         if (isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            object msg = add(add(add(add(add(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString()), " : "), symbol), "] "), message);
+            string msg = add(add(add(add(add(" >>>>> testCreateOrder [", ((object)(getValue(exchange, "id"))).ToString()), " : "), symbol), "] "), message);
             Console.WriteLine(msg);
         }
         return true;

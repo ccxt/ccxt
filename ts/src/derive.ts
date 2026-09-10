@@ -1940,7 +1940,7 @@ export default class derive extends Exchange {
             };
             return this.safeString (statuses, status, status);
         }
-        return status;
+        return undefined;
     }
 
     override parseOrder (rawOrder: Dict, market: Market = undefined): Order {

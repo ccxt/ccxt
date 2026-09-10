@@ -27,7 +27,7 @@ public partial class testMainClass : BaseTest
         exchange.proxyUrl = add(add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
         string encodedColon = "%3A";
         string encodedSlash = "%2F";
-        object ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        string ipCheckUrl = add(add(add(add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
         object response = await invokeExchangeDynamically(exchange, "fetch", ipCheckUrl);
         assert(isEqual(response, proxyServerIp), add(add(add(add(add(add(add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
@@ -67,8 +67,8 @@ public partial class testMainClass : BaseTest
             {
                 if (isTrue(!isEqual(j, i)))
                 {
-                    object proxyFirst = getValue(possibleOptionsArray, i);
-                    object proxySecond = getValue(possibleOptionsArray, j);
+                    string? proxyFirst = ((string)getValue(possibleOptionsArray, i));
+                    string? proxySecond = ((string)getValue(possibleOptionsArray, j));
                     exchange.setProperty(exchange, proxyFirst, "0.0.0.0"); // actual value does not matter
                     exchange.setProperty(exchange, proxySecond, "0.0.0.0"); // actual value does not matter
                     bool exceptionCaught = false;

@@ -65,7 +65,9 @@ public partial class BaseExchange
         return (Int64)timestamp - offset + (((int)direction == ROUND_UP) ? ms : 0);
     }
 
-    public object implodeParams(object path2, object parameter2)
+    // both return branches return the (string) path — the `object` signature only erased
+    // a type the value already had (build/csharp-local-types.js now types their call sites)
+    public string implodeParams(object path2, object parameter2)
     {
 
         var path = (string)path2;

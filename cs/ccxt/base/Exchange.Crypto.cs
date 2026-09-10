@@ -78,6 +78,8 @@ public partial class BaseExchange
 
     public string hmac(object request2, object secret2, Delegate algorithm2 = null, string digest = "hex") => Hmac(request2, secret2, algorithm2, digest);
 
+    // digest "binary" returns Byte[] — the signature must stay object so a binary-mode
+    // call site cannot be declared/composed as a string (see build/csharp-local-types.js)
     public object hash(object request2, Delegate algorithm2 = null, object digest2 = null) => Hash(request2, algorithm2, digest2);
 
     public static object Hash(object request2, Delegate hash = null, object digest2 = null)
@@ -443,9 +445,9 @@ public partial class BaseExchange
         };
     }
 
-    public object eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
+    public string eddsa(object request, object secret, object alg = null) => Eddsa(request, secret, alg);
 
-    public static object Eddsa(object request, object secret, object alg = null)
+    public static string Eddsa(object request, object secret, object alg = null)
     {
         alg ??= "ed25519";
         byte[] msg;

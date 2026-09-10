@@ -57,6 +57,8 @@ public partial class BaseExchange
     }
 
 
+    // list params (e.g. batch-order bodies) flow through fetch2 into omit and must
+    // pass through untouched, so these overloads stay object-returning
     public object omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
@@ -183,7 +185,13 @@ public partial class BaseExchange
         return outList;
     }
 
-    public object arrayConcat(object aa, object bb)
+    // List<object> (not `object`): every path hands back the fresh List<object> built below or
+    // null, so the declaration can carry the real box — build/csharp-local-types.js names
+    // `object x = this.arrayConcat(...)` locals from this signature. The Task branch keeps its
+    // exact-type probe but re-boxes its elements into a List<object> so the declared type stays
+    // truthful; nothing else builds or consumes a List<Task<object>> concat (the only other
+    // List<Task<object>> site is PromiseAll's own local), so no runtime box changes in practice.
+    public List<object> arrayConcat(object aa, object bb)
     {
         // if (aa.GetType() == typeof(List<object>))
         if (aa is List<object>)
@@ -202,7 +210,7 @@ public partial class BaseExchange
         {
             var a = (List<Task<object>>)aa;
             var b = (List<Task<object>>)bb;
-            var outList = new List<Task<object>>();
+            var outList = new List<object>();
             foreach (var elem in a)
                 outList.Add(elem);
             foreach (var elem in b)

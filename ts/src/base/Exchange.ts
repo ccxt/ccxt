@@ -9179,7 +9179,7 @@ export class BaseExchange {
         return '';
     }
 
-    async isUTAEnabled (params = {}) {
+    async isUTAEnabled (params = {}): Promise<boolean> {
         return false; // stub
     }
 }

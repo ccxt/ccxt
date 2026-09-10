@@ -100,7 +100,7 @@ public partial class testMainClass : BaseTest
                 List<object> keys = new List<object>(((IDictionary<string,object>)format).Keys);
                 for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-                    object key = getValue(keys, i);
+                    string? key = ((string)getValue(keys, i));
                     if (isTrue(inOp(skippedProperties, key)))
                     {
                         continue;
@@ -200,7 +200,7 @@ public partial class testMainClass : BaseTest
                     {
                         assert(false, add(add("datetime is not parseable: ", dt), logText));
                     }
-                    object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
+                    double diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
                     if (isTrue(isGreaterThanOrEqual(diff, 500)))
                     {
                         object dtParsedString = exchange.iso8601(dtParsed);
@@ -245,7 +245,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(definedValues))
             {
                 // check by code
-                object currencyByCode = exchange.currency(currencyCode);
+                object currencyByCode = exchange.currency(((string)currencyCode));
                 assert(isEqual(getValue(currencyByCode, "id"), currencyId), add(add(add(add(add("currencyId \"", stringValue(currencyId)), "\" does not match currency id from instance: \""), stringValue(getValue(currencyByCode, "id"))), "\""), logText));
                 // check by id
                 object currencyById = exchange.safeCurrency(currencyId);
@@ -469,8 +469,8 @@ public partial class testMainClass : BaseTest
                 }
                 for (int i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
                 {
-                    object num = getValue(decimalNumbers, i);
-                    object numStr = num;
+                    string? num = ((string)getValue(decimalNumbers, i));
+                    string? numStr = num;
                     assertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
                 }
             } else
@@ -533,7 +533,7 @@ public partial class testMainClass : BaseTest
             List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
             for (int i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
-                object singularFetchName = getValue(methods_singular, i);
+                string? singularFetchName = ((string)getValue(methods_singular, i));
                 if (isTrue(isTrue((!isEqual(getValue(exchange.has, singularFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, singularFetchName), false)))))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
@@ -552,7 +552,7 @@ public partial class testMainClass : BaseTest
                 List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
                 for (int i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
-                    object pluralFetchName = getValue(methods_plural, i);
+                    string? pluralFetchName = ((string)getValue(methods_plural, i));
                     if (isTrue(isTrue((!isEqual(getValue(exchange.has, pluralFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, pluralFetchName), false)))))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
@@ -580,7 +580,7 @@ public partial class testMainClass : BaseTest
         {
             // note, `strictCheck` is `true` only from "fetchOrder" cases
             object logText = logTemplate(exchange, method, order);
-            object msg = add(add(add("order should be ", assertedStatus), ", but it was not asserted"), logText);
+            string msg = add(add(add("order should be ", assertedStatus), ", but it was not asserted"), logText);
             object filled = exchange.safeString(order, "filled");
             object amount = exchange.safeString(order, "amount");
             // shorthand variables
@@ -590,7 +590,7 @@ public partial class testMainClass : BaseTest
             bool statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
             bool filledDefined = (!isEqual(filled, null));
             bool amountDefined = (!isEqual(amount, null));
-            object condition = null;
+            bool? condition = null;
             //
             // ### OPEN STATUS
             //
@@ -713,7 +713,7 @@ public partial class testMainClass : BaseTest
                 int responseLength = getArrayLength(response);
                 isEmptyArrayResponse = (isEqual(responseLength, 0));
             }
-            object hintText = "";
+            string hintText = "";
             if (isTrue(!isEqual(hint, null)))
             {
                 hintText = add(" ", hint);

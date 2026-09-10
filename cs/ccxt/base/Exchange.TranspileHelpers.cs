@@ -54,11 +54,12 @@ public partial class BaseExchange
         return a;
     }
 
-    // Typed counterparts for locals the transpiler declares as `int` / `Int64` (for-loop
-    // counters). A `ref` argument binds only to its exact type, so `ref int` never
-    // competes with the `ref object` overload above. The arithmetic is the same unchecked
-    // `+ 1` / `- 1` the `object` overload applies to an int / Int64 box, and the return
-    // value is the incremented value exactly as above (it is only ever discarded).
+    // Typed counterparts for locals the transpiler declares as `int` / `Int64` / `double`
+    // (for-loop counters and numeric locals). A `ref` argument binds only to its exact
+    // type, so `ref int` never competes with the `ref object` overload above. The
+    // arithmetic is the same unchecked `+ 1` / `- 1` the `object` overload applies to an
+    // int / Int64 / double box, and the return value is the incremented value exactly as
+    // above (it is only ever discarded).
     public static int postFixIncrement(ref int a)
     {
         a = a + 1;
@@ -71,6 +72,12 @@ public partial class BaseExchange
         return a;
     }
 
+    public static double postFixIncrement(ref double a)
+    {
+        a = a + 1;
+        return a;
+    }
+
     public static int postFixDecrement(ref int a)
     {
         a = a - 1;
@@ -78,6 +85,12 @@ public partial class BaseExchange
     }
 
     public static Int64 postFixDecrement(ref Int64 a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static double postFixDecrement(ref double a)
     {
         a = a - 1;
         return a;
@@ -131,6 +144,28 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for prefix `-x` on locals the transpiler declares as `int` /
+    // `Int64` / `double`: `a = -a` is the same unchecked negation the object overload
+    // applies to the box (wrapping at the value type's minimum), and the return value is
+    // the same boxed numeric value it returns.
+    public static int prefixUnaryNeg(ref int a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static Int64 prefixUnaryNeg(ref Int64 a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static double prefixUnaryNeg(ref double a)
+    {
+        a = -a;
+        return a;
+    }
+
     public static object prefixUnaryPlus(ref object a)
     {
         if (a.GetType() == typeof(Int64))
@@ -153,6 +188,26 @@ public partial class BaseExchange
         {
             return null;
         }
+        return a;
+    }
+
+    // Same typed counterparts for prefix `+x`: `a = +a` is the identity the object
+    // overload applies to the box, with the same return value.
+    public static int prefixUnaryPlus(ref int a)
+    {
+        a = +a;
+        return a;
+    }
+
+    public static Int64 prefixUnaryPlus(ref Int64 a)
+    {
+        a = +a;
+        return a;
+    }
+
+    public static double prefixUnaryPlus(ref double a)
+    {
+        a = +a;
         return a;
     }
 

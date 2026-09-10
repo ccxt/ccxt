@@ -438,11 +438,11 @@ public partial class independentreserve : Exchange
         {
             object baseId = getValue(baseCurrencyIds, i);
             object bs = this.safeCurrencyCode(baseId);
-            object minAmount = this.safeNumber(limits, baseId);
+            double? minAmount = this.safeNumber(limits, baseId);
             for (int j = 0; isLessThan(j, getArrayLength(quoteCurrencyIds)); postFixIncrement(ref j))
             {
                 object quoteId = getValue(quoteCurrencyIds, j);
-                object quote = this.safeCurrencyCode(quoteId);
+                string? quote = this.safeCurrencyCode(quoteId);
                 object id = add(add(baseId, "/"), quoteId);
                 ((IList<object>)result).Add(new Dictionary<string, object>() {
                     { "id", id },
@@ -507,7 +507,7 @@ public partial class independentreserve : Exchange
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
-            object code = this.safeCurrencyCode(currencyId);
+            string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
@@ -533,7 +533,7 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostGetAccounts(parameters);
+        Dictionary<string, object> response = await this.privatePostGetAccounts(parameters);
         return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
@@ -553,12 +553,12 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
             { "secondaryCurrencyCode", getValue(market, "quoteId") },
         };
-        object response = await this.publicGetGetOrderBook(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetGetOrderBook(this.extend(request, parameters));
         Int64? timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume"));
     }
@@ -628,12 +628,12 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
             { "secondaryCurrencyCode", getValue(market, "quoteId") },
         };
-        object response = await this.publicGetGetMarketSummary(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetGetMarketSummary(this.extend(request, parameters));
         // {
         //     "DayHighestPrice":43489.49,
         //     "DayLowestPrice":41998.32,
@@ -773,7 +773,7 @@ public partial class independentreserve : Exchange
         }, market);
     }
 
-    public virtual object parseOrderStatus(object status)
+    public virtual string? parseOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "Open", "open" },
@@ -788,7 +788,7 @@ public partial class independentreserve : Exchange
         return this.safeString(statuses, status, status);
     }
 
-    public virtual object parseTimeInForce(object timeInForce)
+    public virtual string? parseTimeInForce(object timeInForce)
     {
         Dictionary<string, object> timeInForces = new Dictionary<string, object>() {
             { "Gtc", "GTC" },
@@ -815,10 +815,10 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostGetOrderDetails(this.extend(new Dictionary<string, object>() {
+        Dictionary<string, object> response = await this.privatePostGetOrderDetails(this.extend(new Dictionary<string, object>() {
             { "orderGuid", id },
         }, parameters));
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -845,7 +845,7 @@ public partial class independentreserve : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -858,8 +858,8 @@ public partial class independentreserve : Exchange
         }
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limitVar;
-        object response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
-        object data = this.safeList(response, "Data", new List<object>() {});
+        Dictionary<string, object> response = await this.privatePostGetOpenOrders(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "Data", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
     }
 
@@ -882,7 +882,7 @@ public partial class independentreserve : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -895,8 +895,8 @@ public partial class independentreserve : Exchange
         }
         ((IDictionary<string,object>)request)["pageIndex"] = 1;
         ((IDictionary<string,object>)request)["pageSize"] = limitVar;
-        object response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
-        object data = this.safeList(response, "Data", new List<object>() {});
+        Dictionary<string, object> response = await this.privatePostGetClosedOrders(this.extend(request, parameters));
+        List<object> data = this.safeList(response, "Data", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limitVar));
     }
 
@@ -928,13 +928,13 @@ public partial class independentreserve : Exchange
             { "pageIndex", pageIndex },
             { "pageSize", limitVar },
         };
-        object response = await this.privatePostGetTrades(this.extend(request, parameters));
-        object market = null;
+        Dictionary<string, object> response = await this.privatePostGetTrades(this.extend(request, parameters));
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
         }
-        object data = this.safeList(response, "Data", new List<object>() {});
+        List<object> data = this.safeList(response, "Data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limitVar));
     }
 
@@ -945,9 +945,9 @@ public partial class independentreserve : Exchange
         string? orderId = this.safeString(trade, "OrderGuid");
         string? priceString = this.safeString2(trade, "Price", "SecondaryCurrencyTradePrice");
         string? amountString = this.safeString2(trade, "VolumeTraded", "PrimaryCurrencyAmount");
-        object price = this.parseNumber(priceString);
-        object amount = this.parseNumber(amountString);
-        object cost = this.parseNumber(Precise.stringMul(priceString, amountString));
+        double? price = this.parseNumber(priceString);
+        double? amount = this.parseNumber(amountString);
+        double? cost = this.parseNumber(Precise.stringMul(priceString, amountString));
         object baseId = this.safeString(trade, "PrimaryCurrencyCode");
         string? quoteId = this.safeString(trade, "SecondaryCurrencyCode");
         object marketId = null;
@@ -955,7 +955,7 @@ public partial class independentreserve : Exchange
         {
             marketId = add(add(baseId, "/"), quoteId);
         }
-        object symbol = this.safeSymbol(marketId, market, "/");
+        string? symbol = this.safeSymbol(marketId, market, "/");
         string? side = this.safeString(trade, "OrderType");
         if (isTrue(!isEqual(side, null)))
         {
@@ -1001,14 +1001,14 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
             { "secondaryCurrencyCode", getValue(market, "quoteId") },
             { "numberOfRecentTradesToRetrieve", 50 },
         };
-        object response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
-        object trades = this.safeList(response, "Trades", new List<object>() {});
+        Dictionary<string, object> response = await this.publicGetGetRecentTrades(this.extend(request, parameters));
+        List<object> trades = this.safeList(response, "Trades", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -1026,7 +1026,7 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostGetBrokerageFees(parameters);
+        List<object> response = await this.privatePostGetBrokerageFees(parameters);
         //
         //     [
         //         {
@@ -1042,8 +1042,8 @@ public partial class independentreserve : Exchange
         {
             object fee = getValue(rows, i);
             string? currencyId = this.safeString(fee, "CurrencyCode");
-            object code = this.safeCurrencyCode(currencyId);
-            object tradingFee = this.safeNumber(fee, "Fee");
+            string? code = this.safeCurrencyCode(currencyId);
+            double? tradingFee = this.safeNumber(fee, "Fee");
             if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)fees)[(string)code] = new Dictionary<string, object>() {
@@ -1057,7 +1057,7 @@ public partial class independentreserve : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            Dictionary<string, object> market = this.market(symbol);
             object fee = this.safeValue(fees, getValue(market, "base"), new Dictionary<string, object>() {});
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
                 { "info", this.safeValue(fee, "info") },
@@ -1090,8 +1090,8 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object orderType = this.capitalize(type);
+        Dictionary<string, object> market = this.market(symbol);
+        string orderType = this.capitalize(type);
         orderType = add(orderType, ((bool) isTrue((isEqual(side, "sell")))) ? "Offer" : "Bid");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(market, "baseId") },
@@ -1131,7 +1131,7 @@ public partial class independentreserve : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "orderGuid", id },
         };
-        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, parameters));
         //
         //    {
         //        "AvgPrice": 455.48,
@@ -1166,11 +1166,11 @@ public partial class independentreserve : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(currency, "id") },
         };
-        object response = await this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostGetDigitalCurrencyDepositAddress(this.extend(request, parameters));
         //
         //    {
         //        Tag: '3307446684',
@@ -1222,32 +1222,32 @@ public partial class independentreserve : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "primaryCurrencyCode", getValue(currency, "id") },
             { "withdrawalAddress", address },
-            { "amount", this.currencyToPrecision(code, amount) },
+            { "amount", this.currencyToPrecision(((string)code), amount) },
         };
         if (isTrue(!isEqual(tagVar, null)))
         {
             ((IDictionary<string,object>)request)["destinationTag"] = tagVar;
         }
         object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(!isEqual(networkCode, null)))
         {
             throw new BadRequest ((string)add(this.id, " withdraw () does not accept params[\"networkCode\"]")) ;
         }
-        object response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostWithdrawDigitalCurrency(this.extend(request, parameters));
         //
         //    {
         //        "TransactionGuid": "dc932e19-562b-4c50-821e-a73fd048b93b",
@@ -1287,13 +1287,13 @@ public partial class independentreserve : Exchange
         //        "Transaction": null
         //    }
         //
-        object amount = this.safeDict(transaction, "Amount");
-        object destination = this.safeDict(transaction, "Destination");
+        IDictionary<string, object> amount = this.safeDict(transaction, "Amount");
+        IDictionary<string, object> destination = this.safeDict(transaction, "Destination");
         string? currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
         string? datetime = this.safeString(transaction, "CreatedTimestampUtc");
         string? address = this.safeString(destination, "Address");
         string? tag = this.safeString(destination, "Tag");
-        object code = this.safeCurrencyCode(currencyId, currency);
+        string? code = this.safeCurrencyCode(currencyId, currency);
         return new Dictionary<string, object>() {
             { "info", transaction },
             { "id", this.safeString(transaction, "TransactionGuid") },
@@ -1337,7 +1337,7 @@ public partial class independentreserve : Exchange
         } else
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
+            Int64 nonce = this.nonce();
             List<object> auth = new List<object>() {url, add("apiKey=", this.apiKey), add("nonce=", ((object)nonce).ToString())};
             List<object> keys = new List<object>(((IDictionary<string,object>)parameters).Keys);
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))

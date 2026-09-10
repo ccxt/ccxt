@@ -108,10 +108,10 @@ public partial class Exchange
         if (isTrue(isTrue(!isEqual(getValue(this.has, "fetchMarkPrices"), null)) && isTrue(!isEqual(getValue(this.has, "fetchMarkPrices"), false))))
         {
             await this.loadMarkets();
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchMarkPrices(new List<object>() {symbolVar}, parameters));
-            object ticker = this.safeDict(tickers, symbolVar);
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if (isTrue(isEqual(ticker, null)))
             {
                 throw new NullResponse ((string)add(add(this.id, " fetchMarkPrices() could not find a ticker for "), symbolVar)) ;
@@ -583,10 +583,10 @@ public partial class Exchange
         if (isTrue(isTrue(!isEqual(getValue(this.has, "fetchTickersWs"), null)) && isTrue(!isEqual(getValue(this.has, "fetchTickersWs"), false))))
         {
             await this.loadMarkets();
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickersWs(new List<object>() {symbolVar}, parameters));
-            object ticker = this.safeDict(tickers, symbolVar);
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if (isTrue(isEqual(ticker, null)))
             {
                 throw new NullResponse ((string)add(add(this.id, " fetchTickerWs() could not find a ticker for "), symbolVar)) ;
@@ -743,10 +743,10 @@ public partial class Exchange
         if (isTrue(isTrue(!isEqual(getValue(this.has, "fetchTickers"), null)) && isTrue(!isEqual(getValue(this.has, "fetchTickers"), false))))
         {
             await this.loadMarkets();
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
-            object ticker = this.safeDict(tickers, symbolVar);
+            IDictionary<string, object> ticker = this.safeDict(tickers, symbolVar);
             if (isTrue(isEqual(ticker, null)))
             {
                 throw new NullResponse ((string)add(add(this.id, " fetchTickers() could not find a ticker for "), symbolVar)) ;
