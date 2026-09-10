@@ -2152,7 +2152,7 @@ public class ParadexCore extends ParadexApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrderType(Object type)

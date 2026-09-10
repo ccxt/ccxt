@@ -1471,7 +1471,7 @@ public class ApexCore extends ApexApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrderType(Object type)

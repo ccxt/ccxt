@@ -2472,7 +2472,7 @@ public class DeriveCore extends DeriveApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrder(Object rawOrder, Object... optionalArgs)

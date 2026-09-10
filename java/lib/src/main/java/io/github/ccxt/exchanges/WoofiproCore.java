@@ -2327,7 +2327,7 @@ public class WoofiproCore extends WoofiproApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrderType(Object type)

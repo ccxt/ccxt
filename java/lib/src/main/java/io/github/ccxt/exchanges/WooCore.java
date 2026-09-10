@@ -2697,7 +2697,7 @@ public class WooCore extends WooApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     /**

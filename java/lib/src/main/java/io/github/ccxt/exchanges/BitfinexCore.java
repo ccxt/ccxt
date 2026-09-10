@@ -2044,7 +2044,7 @@ public class BitfinexCore extends BitfinexApi
     {
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
-            return status;
+            return null;
         }
         Object parts = Helpers.split(status, " ");
         String state = this.safeString(parts, 0);
