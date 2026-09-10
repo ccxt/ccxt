@@ -1069,6 +1069,12 @@ class apex extends \ccxt\async\apex {
         if ($this->handle_error_message($client, $message) === true) {
             return;
         }
+        $ret_msg = $this->safe_string($message, 'ret_msg');
+        $pong = $this->safe_integer($message, 'pong');
+        if ($ret_msg === 'pong' || $pong !== null) {
+            $this->handle_pong($client, $message);
+            return;
+        }
         $topic = $this->safe_string_2($message, 'topic', 'op', '');
         $methods = array(
             'ws_zk_accounts_v3' => array($this, 'handle_account'),
@@ -1147,6 +1153,7 @@ class apex extends \ccxt\async\apex {
     }
 
     public function handle_ping(Client $client, mixed $message) {
+        $client->lastPong = $this->milliseconds();
         $this->spawn(array($this, 'pong'), $client, $message);
     }
 

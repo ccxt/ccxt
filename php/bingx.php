@@ -1881,15 +1881,26 @@ class bingx extends Exchange {
          *
          * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
          *
-         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for
+         * @param {string} $symbol unified $symbol of the $market to fetch the funding history for, inverse (Coin-M) markets are not supported
          * @param {int} [$since] timestamp in ms of the earliest funding to fetch
          * @param {int} [$limit] the maximum amount of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~ to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
          * @param {int} [$params->until] timestamp in ms of the latest funding to fetch
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-history-structure funding history structures~
          */
         if ($this->markets === null) {
             $this->load_markets();
+        }
+        $market = null;
+        if ($symbol !== null) {
+            $market = $this->market($symbol);
+        }
+        $subType = null;
+        list($subType, $params) = $this->handle_sub_type_and_params('fetchFundingHistory', $market, $params);
+        $isInverse = ($market !== null) ? ($market['inverse'] === true) : ($subType === 'inverse');
+        if ($isInverse) {
+            throw new NotSupported($this->id . ' fetchFundingHistory() is not supported for inverse swap markets');
         }
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchFundingHistory', 'paginate');
@@ -1899,9 +1910,7 @@ class bingx extends Exchange {
         $request = array(
             'incomeType' => 'FUNDING_FEE',
         );
-        $market = null;
-        if ($symbol !== null) {
-            $market = $this->market($symbol);
+        if ($market !== null) {
             $request['symbol'] = $market['id'];
         }
         if ($since !== null) {

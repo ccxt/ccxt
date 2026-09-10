@@ -144,8 +144,14 @@ function test_decimal_to_precision() {
     assert($exchange->decimal_to_precision('0.000123456789', TRUNCATE, 1.2e-7, \ccxt\TICK_SIZE) === '0.00012336');
     assert($exchange->decimal_to_precision('0.000273398', ROUND, 1e-7, \ccxt\TICK_SIZE) === '0.0002734');
     assert($exchange->decimal_to_precision('0.00005714', TRUNCATE, 1e-8, \ccxt\TICK_SIZE) === '0.00005714');
-    // this line causes problems in JS, fix with Precise
-    // assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, \ccxt\TICK_SIZE) === '0.00005714');
+    assert($exchange->decimal_to_precision('0.0000571495257361', TRUNCATE, 1e-8, \ccxt\TICK_SIZE) === '0.00005714');
+    // A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+    // decimalToPrecision accepts back, and it is what reaches an order body.
+    assert($exchange->decimal_to_precision('0.00000001', TRUNCATE, 1e-8, \ccxt\TICK_SIZE) === '0.00000001');
+    assert($exchange->decimal_to_precision('0.000000123', TRUNCATE, 1e-8, \ccxt\TICK_SIZE) === '0.00000012');
+    assert($exchange->decimal_to_precision('0.0000009', TRUNCATE, 1e-7, \ccxt\TICK_SIZE) === '0.0000009');
+    assert($exchange->decimal_to_precision('0.0000005', TRUNCATE, 1e-7, \ccxt\TICK_SIZE) === '0.0000005');
+    assert($exchange->decimal_to_precision('0.00000001', TRUNCATE, 1e-8, \ccxt\TICK_SIZE, PAD_WITH_ZERO) === '0.00000001');
     assert($exchange->decimal_to_precision('0.01', ROUND, 0.0001, \ccxt\TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
     assert($exchange->decimal_to_precision('0.01', TRUNCATE, 0.0001, \ccxt\TICK_SIZE, PAD_WITH_ZERO) === '0.0100');
     assert($exchange->decimal_to_precision('-0.000123456789', ROUND, 1.2e-7, \ccxt\TICK_SIZE) === '-0.00012348');
