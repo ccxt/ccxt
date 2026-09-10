@@ -10,6 +10,7 @@ require('../Precise.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/throttle.js');
 require('../functions/io.js');
 var base = require('@scure/base');
 

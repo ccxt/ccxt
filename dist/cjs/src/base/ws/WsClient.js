@@ -9,6 +9,7 @@ require('../Precise.js');
 require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
+require('../functions/throttle.js');
 var misc = require('../functions/misc.js');
 require('../functions/io.js');
 var Future = require('./Future.js');

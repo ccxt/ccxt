@@ -412,12 +412,11 @@ class mudrex extends mudrex$1["default"] {
         const ms = this.safeString(ticker, 'symbol');
         market = this.safeMarket(ms, market);
         const symbol = market['symbol'];
-        const ts = this.milliseconds();
         const pct = this.safeNumber(ticker, 'change_perc');
         return this.safeTicker({
             'symbol': symbol,
-            'timestamp': ts,
-            'datetime': this.iso8601(ts),
+            'timestamp': undefined,
+            'datetime': undefined,
             'high': undefined,
             'low': undefined,
             'bid': undefined,
@@ -600,11 +599,8 @@ class mudrex extends mudrex$1["default"] {
     parseBalance(response) {
         const data = this.safeDict(response, 'data', {});
         const currency = this.safeString(response, 'currency', 'USDT');
-        const timestamp = this.milliseconds();
         const result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': this.iso8601(timestamp),
         };
         const account = this.account();
         const futuresBalance = this.safeString(data, 'balance');
@@ -760,10 +756,11 @@ class mudrex extends mudrex$1["default"] {
         params = this.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss']);
         const response = await this.privatePostFuturesAssetIdOrder(this.extend(request, params));
         const data = this.safeDict(response, 'data', response);
-        // the create response omits the order/trigger type, so restore them from the request
-        data['order_type'] = request['order_type'];
-        data['trigger_type'] = request['trigger_type'];
-        return this.parseOrder(data, market);
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        const merged = this.extend(data, { 'order_type': request['order_type'], 'trigger_type': request['trigger_type'] });
+        const order = this.parseOrder(merged, market);
+        order['info'] = data;
+        return order;
     }
     /**
      * @method
@@ -828,6 +825,23 @@ class mudrex extends mudrex$1["default"] {
         else if (rawSide === 'SHORT') {
             side = 'sell';
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        const isRiskOrder = (rawSide === 'STOPLOSS') || (rawSide === 'TAKEPROFIT');
+        const priceString = this.safeString2(order, 'price', 'order_price');
+        let orderPrice = priceString;
+        let triggerPrice = undefined;
+        let stopLossPrice = undefined;
+        let takeProfitPrice = undefined;
+        if (isRiskOrder) {
+            triggerPrice = priceString;
+            orderPrice = undefined;
+            if (rawSide === 'STOPLOSS') {
+                stopLossPrice = priceString;
+            }
+            else {
+                takeProfitPrice = priceString;
+            }
+        }
         const trig = this.safeStringUpper(order, 'trigger_type');
         let typ = undefined;
         if (trig === 'MARKET') {
@@ -836,10 +850,7 @@ class mudrex extends mudrex$1["default"] {
         else if (trig === 'LIMIT') {
             typ = 'limit';
         }
-        let ts = this.parse8601(this.safeString(order, 'created_at'));
-        if (ts === undefined) {
-            ts = this.milliseconds();
-        }
+        const ts = this.parse8601(this.safeString(order, 'created_at'));
         const status = this.parseOrderStatus(this.safeStringLower(order, 'status'));
         const sym = market['symbol'];
         return this.safeOrder({
@@ -854,19 +865,20 @@ class mudrex extends mudrex$1["default"] {
             'timeInForce': undefined,
             'postOnly': undefined,
             'side': side,
-            'price': this.safeNumber2(order, 'price', 'order_price'),
-            'stopPrice': undefined,
-            'triggerPrice': undefined,
-            'amount': this.safeNumber2(order, 'quantity', 'amount'),
+            'price': orderPrice,
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': this.safeString2(order, 'quantity', 'amount'),
             'cost': undefined,
-            'average': undefined,
-            'filled': undefined,
+            'average': this.safeString(order, 'filled_price'),
+            'filled': this.safeString(order, 'filled_quantity'),
             'remaining': undefined,
             'status': status,
             'fee': undefined,
             'trades': [],
             'fees': [],
-            'lastUpdateTimestamp': undefined,
+            'lastUpdateTimestamp': this.parse8601(this.safeString(order, 'updated_at')),
             'reduceOnly': this.safeBool(order, 'reduce_only'),
         }, market);
     }
