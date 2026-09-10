@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 var WebSocket = require('ws');
 var Client = require('./Client.js');
 var platform = require('../functions/platform.js');
+require('../Precise.js');
 require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');

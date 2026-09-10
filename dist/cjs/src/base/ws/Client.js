@@ -6,6 +6,7 @@ var errors = require('../errors.js');
 var Future = require('./Future.js');
 var platform = require('../functions/platform.js');
 var generic = require('../functions/generic.js');
+require('../Precise.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
