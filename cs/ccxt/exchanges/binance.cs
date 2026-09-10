@@ -6327,6 +6327,23 @@ public partial class binance : Exchange
         return ccxt.BaseExchange.ToTicker(this.parseTicker(response, market));
     }
 
+    public virtual void checkNoStockSymbols(object symbols, object methodName)
+    {
+        if (isTrue(isEqual(symbols, null)))
+        {
+            return;
+        }
+        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        {
+            object symbolMarket = this.market(getValue(symbols, i));
+            object stock = this.safeBool(symbolMarket, "stock", false);
+            if (isTrue(isEqual(stock, true)))
+            {
+                throw new NotSupported ((string)add(add(add(add(add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), getValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
+            }
+        }
+    }
+
     /**
      * @method
      * @name binance#fetchBidsAsks
@@ -6338,7 +6355,7 @@ public partial class binance : Exchange
      * @param {string[]|undefined} symbols unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public async override Task<ccxt.Tickers> FetchBidsAsks(object symbols = null, object parameters = null)
     {
@@ -6348,6 +6365,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        this.checkNoStockSymbols(symbols, "fetchBidsAsks");
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
@@ -6494,7 +6512,7 @@ public partial class binance : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.subType] "linear" or "inverse"
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
-     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
+     * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure} tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
      */
     public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
@@ -6504,6 +6522,7 @@ public partial class binance : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols, null, true, true, true);
+        this.checkNoStockSymbols(symbols, "fetchTickers");
         object market = this.getMarketFromSymbols(symbols);
         object type = null;
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);

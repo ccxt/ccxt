@@ -4409,6 +4409,10 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             if is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &Value::Str("connectId=private".to_string())), &Value::Int(0)) {
                 type_var = Value::Str("private".to_string());
             }
+            // Match the negotiation cache key; spot tokens can also contain "Futures".
+            if is_greater_than_or_equal(&get_index_of(&get_value(&client, &Value::Str("url".to_string())), &add(&add(&Value::Str("connectId=".to_string()), &type_var), &Value::Str("Futures".to_string()))), &Value::Int(0)) {
+                type_var = add(&type_var, &Value::Str("Futures".to_string()));
+            }
             add_element_to_object(get_value_mut(unsafe { crate::runtime::coerce_value_to_mut(&self.options) }, &Value::Str("urls".to_string())), &type_var, Value::Null);
         }
         self.handle_errors(Value::Int(1), Value::Str("".to_string()), get_value(&client, &Value::Str("url".to_string())), Value::Str("".to_string()), Value::Map({

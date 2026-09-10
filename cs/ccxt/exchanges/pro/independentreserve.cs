@@ -219,7 +219,11 @@ public partial class independentreserve : ccxt.independentreserve
         {
             object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
             (orderbook as IOrderBook).reset(snapshot);
-            ((IDictionary<string,object>)subscription)["receivedSnapshot"] = true;
+            // write through the parent index: php copies arrays by value, so
+            // mutating the local bind would not persist the flag
+            ((IDictionary<string,object>)((WebSocketClient)client).subscriptions)[(string)messageHash] = this.extend(subscription, new Dictionary<string, object>() {
+                { "receivedSnapshot", true },
+            });
         } else
         {
             object asks = this.safeList(orderBook, "Offers", new List<object>() {});
@@ -251,7 +255,7 @@ public partial class independentreserve : ccxt.independentreserve
                     payload = add(add(payload, this.valueToChecksum(getValue(getValue(storedAsks, i), 0))), this.valueToChecksum(getValue(getValue(storedAsks, i), 1)));
                 }
             }
-            object calculatedChecksum = this.crc32(payload, true);
+            object calculatedChecksum = this.crc32(payload, false);
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {
@@ -270,7 +274,10 @@ public partial class independentreserve : ccxt.independentreserve
 
     public virtual object valueToChecksum(object value)
     {
-        object result = toFixed(value, 8);
+        // toFixed returns a zero-padded *string* in js but a *number* in
+        // go/c#/java, dropping trailing zeros. decimalToPrecision with
+        // PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        object result = this.decimalToPrecision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO);
         result = ((string)result).Replace((string)".", (string)"");
         // remove leading zeros
         result = this.parseNumber(result);

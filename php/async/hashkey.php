@@ -1594,7 +1594,7 @@ class hashkey extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $methodName = 'fetchOHLCV';
         if ($this->markets === null) {
@@ -2599,7 +2599,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {boolean} [$params->test] *spot markets only* whether to use the test endpoint or not, default is false
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC" or "IOC" or "PO" for spot, 'GTC' or 'FOK' or 'IOC' or 'LIMIT_MAKER' or 'PO' for swap
@@ -2662,7 +2662,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {bool} [$params->test] whether to use the $test endpoint or not, default is false
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] 'GTC', 'IOC', or 'PO'
@@ -2806,7 +2806,7 @@ class hashkey extends Exchange {
          * @param {float} $amount how much of you want to trade in units of the base currency
          * @param {float} [$price] the $price that the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *$market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {bool} [$params->postOnly] if true, the order will only be posted to the order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
          * @param {string} [$params->clientOrderId] a unique id for the order
@@ -3093,7 +3093,7 @@ class hashkey extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
-         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used alternative for the $id
+         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used as an alternative for the $id
          * @param {bool} [$params->trigger] *swap markets only* true for canceling a trigger order (default false)
          * @param {bool} [$params->stop] *swap markets only* an alternative for trigger param
          * @return {array} An ~@link https://docs.ccxt.com/?$id=order-structure order structure~
@@ -3287,7 +3287,7 @@ class hashkey extends Exchange {
          * @param {string} $symbol unified $symbol of the $market the order was made in
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->type] 'spot' or 'swap' - the type of the $market to fetch entry for (default 'spot')
-         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used alternative for the $id
+         * @param {string} [$params->clientOrderId] a unique $id for the order that can be used as an alternative for the $id
          * @param {string} [$params->accountId] *spot markets only* account $id to fetch the order from
          * @param {bool} [$params->trigger] *swap markets only* true for fetching a trigger order (default false)
          * @param {bool} [$params->stop] *swap markets only* an alternative for trigger param
@@ -4499,7 +4499,7 @@ class hashkey extends Exchange {
             Async\await($this->load_markets());
         }
         $response = Async\await($this->publicGetApiV1ExchangeInfo($params));
-        // $response is the same fetchMarkets()
+        // $response is the same as in fetchMarkets()
         $data = $this->safe_list($response, 'contracts', array());
         $symbols = $this->market_symbols($symbols);
         return $this->parse_leverage_tiers($data, $symbols, 'symbol');
@@ -4785,7 +4785,7 @@ class hashkey extends Exchange {
         }
         $errorInArray = false;
         $responseCodeString = $this->safe_string($response, 'code');
-        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others
+        $responseCodeInteger = $this->safe_integer($response, 'code'); // some codes in $response are returned as '0000' others as 0
         if ($responseCodeInteger === 0) {
             $result = $this->safe_list($response, 'result', array()); // for batch methods
             for ($i = 0; $i < count($result); $i++) {

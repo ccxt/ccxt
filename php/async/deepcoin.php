@@ -594,7 +594,7 @@ class deepcoin extends Exchange {
             if (($market !== null) && ($market['swap'] === true)) {
                 $additionalId = $this->safe_string($market, 'baseId', '') . $this->safe_string($market, 'quoteId', '');
                 if ($this->markets_by_id !== null) {
-                    $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap $market id+quote
+                    $this->markets_by_id[$additionalId] = array( $market ); // some endpoints return swap $market id as base+quote
                 }
             }
         }
@@ -668,7 +668,7 @@ class deepcoin extends Exchange {
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->price] "mark" or "index" for mark $price and index $price candles
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2754,16 +2754,16 @@ class deepcoin extends Exchange {
             'contractSize' => null,
             'side' => $this->safe_string($position, 'posSide'),
             'notional' => null,
-            'leverage' => $this->omit_zero($this->safe_string($position, 'lever')),
+            'leverage' => $this->parse_number($this->omit_zero($this->safe_string($position, 'lever'))),
             'unrealizedPnl' => null,
             'realizedPnl' => null,
             'collateral' => null,
             'entryPrice' => $this->safe_number($position, 'avgPx'),
             'markPrice' => null,
-            'liquidationPrice' => $this->safe_string($position, 'liqPx'),
+            'liquidationPrice' => $this->safe_number($position, 'liqPx'),
             'marginMode' => $this->safe_string($position, 'mgnMode'),
             'hedged' => true,
-            'maintenanceMargin' => $this->safe_string($position, 'useMargin'),
+            'maintenanceMargin' => $this->safe_number($position, 'useMargin'),
             'maintenanceMarginPercentage' => null,
             'initialMargin' => null,
             'initialMarginPercentage' => null,

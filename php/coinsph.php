@@ -1078,7 +1078,7 @@ class coinsph extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (default 500, max 1000)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1401,7 +1401,7 @@ class coinsph extends Exchange {
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] the quote quantity that can be used alternative for the $amount for $market buy orders
+         * @param {float} [$params->cost] the quote quantity that can be used as an alternative for the $amount for $market buy orders
          * @param {bool} [$params->test] set to true to test an order, no order will be created but the $request will be validated
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */

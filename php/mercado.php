@@ -874,7 +874,7 @@ class mercado extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -885,7 +885,7 @@ class mercado extends Exchange {
             'symbol' => $market['base'] . '-' . $market['quote'], // exceptional endpoint, that needs custom $symbol syntax
         );
         if ($limit === null) {
-            $limit = 100; // set some default $limit,'s required if user doesn't provide it
+            $limit = 100; // set some default $limit, as it's required if user doesn't provide it
         }
         if ($since !== null) {
             $request['from'] = $this->parse_to_int($since / 1000);

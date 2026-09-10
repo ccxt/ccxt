@@ -367,7 +367,6 @@ impl OkxCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("watchOrderBook".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("checksum".to_string(), Value::Bool(true));
         m.insert("depth".to_string(), Value::Str("books".to_string()));
     m
 }));
@@ -1283,7 +1282,7 @@ impl OkxCore {
         }
         let mut market: Value = self.get_market_from_symbols(&[symbols.clone()]);
         let mut type_var: Value = Value::Null;
-        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchliquidationsForSymbols".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        { let __destr_tmp = self.handle_market_type_and_params(Value::Str("watchLiquidationsForSymbols".to_string()), &[market.clone(), params.clone()]); type_var = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         let mut channel: Value = Value::Str("liquidation-orders".to_string());
         if is_equal(&type_var, &Value::Str("spot".to_string())) {
             type_var = Value::Str("SWAP".to_string());

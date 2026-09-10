@@ -6,6 +6,7 @@ var errors = require('../errors.js');
 var Future = require('./Future.js');
 var platform = require('../functions/platform.js');
 var generic = require('../functions/generic.js');
+require('../Precise.js');
 var encode = require('../functions/encode.js');
 require('../functions/crypto.js');
 var time = require('../functions/time.js');
@@ -326,17 +327,11 @@ class Client {
             }
         }
         catch (error) {
-            // a frame that cannot be decompressed/decoded is connection-fatal:
-            // the stream is corrupt or misaligned, so no subsequent frame can
-            // be trusted either. the error must be handled here, at the throw
-            // site - if it escaped onMessage it would be lost: on node it
-            // would reject the fire-and-forget deliverLoop promise
-            // (WsClient.ts) and crash the process as an unhandled rejection,
-            // on browsers/bun the host event dispatch swallows handler
-            // exceptions silently. established error semantics: onError
-            // normalizes the error, sets this.error, rejects all pending
-            // futures and notifies the exchange, then close () tears the
-            // connection down
+            // a frame that cannot be decompressed/decoded is connection-fatal: the
+            // stream is corrupt, so no later frame can be trusted. it must be handled
+            // here - if it escaped onMessage it would reject the fire-and-forget
+            // deliverLoop (node: unhandled rejection crash) or be swallowed by the
+            // host event dispatch (browsers/bun). onError rejects all pending futures.
             this.onError(error);
             this.close();
             return;

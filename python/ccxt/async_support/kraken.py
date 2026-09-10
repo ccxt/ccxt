@@ -1182,7 +1182,7 @@ class kraken(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1449,7 +1449,7 @@ class kraken(Exchange, ImplicitAPI):
             amount = self.safe_string(trade, 1)
             tradeLength = len(trade)
             if tradeLength > 6:
-                id = self.safe_string(trade, 6)  # artificially added  #1794
+                id = self.safe_string(trade, 6)  # artificially added as per  #1794
         elif isinstance(trade, str):
             id = trade
         elif 'ordertxid' in trade:
@@ -2018,7 +2018,7 @@ class kraken(Exchange, ImplicitAPI):
                 trades.append(self.safe_trade({'id': rawTrade, 'orderId': id, 'symbol': symbol, 'info': {}}))
             else:
                 trades.append(rawTrade)
-        # in  #24192 PR, self field is not something consistent/actual
+        # as mentioned in  #24192 PR, self field is not something consistent/actual
         # triggerPrice = self.omit_zero(self.safe_string(order, 'stopprice', triggerPrice))
         stopLossPrice = None
         takeProfitPrice = None
@@ -3142,7 +3142,7 @@ class kraken(Exchange, ImplicitAPI):
         defaultDepositMethod = self.safe_string(defaultDepositMethods, code)
         depositMethod = self.safe_string(params, 'method', defaultDepositMethod)
         # if the user has specified an exchange-specific method in params
-        # we pass it, otherwise we take the 'network' unified param
+        # we pass it as is, otherwise we take the 'network' unified param
         if depositMethod is None:
             depositMethods = await self.fetch_deposit_methods(code)
             if network is not None:
@@ -3233,7 +3233,7 @@ class kraken(Exchange, ImplicitAPI):
             #
             result = self.safe_dict(response, 'result', {})
             return self.parse_transaction(result, currency)
-        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, up on your account)")
+        raise ExchangeError(self.id + " withdraw() requires a 'key' parameter(withdrawal key name, as set up on your account)")
 
     async def fetch_positions(self, symbols: Strings = None, params={}) -> list[Position]:
         """

@@ -601,7 +601,7 @@ class bitbank extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($since === null) {
             if ($limit === null) {
@@ -1093,7 +1093,7 @@ class bitbank extends Exchange {
             $this->check_required_credentials();
             // bitbank supports two $auth methods, see https://github.com/bitbankinc/bitbank-$api-docs/blob/master/rest-$api->md#authorization
             // 'timeWindow' (default) => request time . validity window, stateless and safe for concurrent use of one key
-            // 'nonce' => legacy strictly-increasing $nonce, kept escape hatch for clients with drifting clocks,
+            // 'nonce' => legacy strictly-increasing $nonce, kept as an escape hatch for clients with drifting clocks,
             // since bitbank offers no server time endpoint to compensate against
             $authMethod = $this->safe_string($this->options, 'authMethod', 'timeWindow');
             $isTimeWindow = ($authMethod === 'timeWindow');
@@ -1196,11 +1196,11 @@ class bitbank extends Exchange {
                 '70001' => 'A system error occurred. Please contact support',
                 '70002' => 'A system error occurred. Please contact support',
                 '70003' => 'A system error occurred. Please contact support',
-                '70004' => 'We are unable to accept orders transaction is currently suspended',
+                '70004' => 'We are unable to accept orders as the transaction is currently suspended',
                 '70005' => 'Order can not be accepted because purchase order is currently suspended',
                 '70006' => 'We can not accept orders because we are currently unsubscribed ',
                 '70009' => 'We are currently temporarily restricting orders to be carried out. Please use the limit order.',
-                '70010' => 'We are temporarily raising the minimum order quantity system load is now rising.',
+                '70010' => 'We are temporarily raising the minimum order quantity as the system load is now rising.',
             );
             $code = $this->safe_string($data, 'code');
             $message = $this->safe_string($errorMessages, $code, 'Error');

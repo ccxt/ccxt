@@ -790,7 +790,7 @@ export default class revolutx extends Exchange {
             request['end_date'] = this.milliseconds();
         }
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 1900);
         }
         const cursor = this.safeString(params, 'cursor');
         if (cursor !== undefined) {

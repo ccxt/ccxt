@@ -821,7 +821,7 @@ class apex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1322,7 +1322,7 @@ class apex extends Exchange {
     public function get_seeds() {
         $seeds = $this->safe_string($this->options, 'seeds');
         if ($seeds === null) {
-            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it.options["seeds"] = XXXX');
+            throw new ArgumentsRequired($this->id . ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX');
         }
         return $seeds;
     }

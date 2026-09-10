@@ -926,7 +926,7 @@ class bithumb extends Exchange {
         $nonZeroOpen = $this->omit_zero($open);
         if (($marketId !== null) && ($nonZeroOpen !== null) && ($close !== null)) {
             $computedChange = Precise::string_sub($close, $open);
-            // Some v2 payloads return signed_change_price while open/last imply a non-zero move.
+            // Some v2 payloads return signed_change_price as 0 while open/last imply a non-zero move.
             if (($change !== null) && Precise::string_eq($change, '0') && !Precise::string_eq($computedChange, '0')) {
                 $change = $computedChange;
                 $percentage = null;
@@ -1312,7 +1312,7 @@ class bithumb extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->generation] if you want to use the API $generation 1 or 2, default is 2
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1860,7 +1860,7 @@ class bithumb extends Exchange {
 
     public function create_twap_order(string $symbol, string $side, float $amount, float $duration, $params = array()): array {
         /**
-         * create a trade order that is executed TWAP order over a specified $duration->
+         * create a trade order that is executed as a TWAP order over a specified $duration->
          *
          * @see https://apidocs.bithumb.com/reference/twap-%EC%A3%BC%EB%AC%B8-%EC%9A%94%EC%B2%AD
          *

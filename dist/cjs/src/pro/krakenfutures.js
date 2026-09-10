@@ -424,14 +424,29 @@ class krakenfutures extends krakenfutures$1["default"] {
      * @param {int} [since] not used by krakenfutures watchOrders
      * @param {int} [limit] not used by krakenfutures watchOrders
      * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     async watchOrders(symbol = undefined, since = undefined, limit = undefined, params = {}) {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const name = 'open_orders';
+        let verbose = false;
+        [verbose, params] = this.handleOptionAndParams(params, 'watchOrders', 'verbose', false);
+        let name = 'open_orders';
         let messageHash = 'orders';
+        if (verbose) {
+            name = 'open_orders_verbose';
+            messageHash = 'orders:verbose';
+        }
+        const feed = this.safeString(params, 'feed');
+        if (feed !== undefined) {
+            name = feed;
+            messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
+        }
         if (symbol !== undefined) {
             const market = this.market(symbol);
             messageHash += ':' + market['symbol'];
@@ -740,7 +755,11 @@ class krakenfutures extends krakenfutures$1["default"] {
         const order = this.safeValue(message, 'order');
         if (order !== undefined) {
             const marketId = this.safeString(order, 'instrument');
-            const messageHash = 'orders';
+            const feed = this.safeString(message, 'feed');
+            let messageHash = 'orders';
+            if (feed === 'open_orders_verbose') {
+                messageHash = 'orders:verbose';
+            }
             const symbol = this.safeSymbol(marketId);
             const orderId = this.safeString(order, 'order_id');
             const previousOrders = this.safeValue(orders.hashmap, symbol, {});
@@ -808,6 +827,11 @@ class krakenfutures extends krakenfutures$1["default"] {
                 if (reason === 'full_fill') {
                     status = 'closed';
                 }
+                const feed = this.safeString(message, 'feed');
+                let messageHash = 'orders';
+                if (feed === 'open_orders_verbose') {
+                    messageHash = 'orders:verbose';
+                }
                 // get order without symbol
                 for (let i = 0; i < orders.length; i++) {
                     const currentOrder = orders[i];
@@ -819,8 +843,8 @@ class krakenfutures extends krakenfutures$1["default"] {
                             'status': status,
                             'info': info,
                         });
-                        client.resolve(orders, 'orders');
-                        client.resolve(orders, 'orders:' + currentOrder['symbol']);
+                        client.resolve(orders, messageHash);
+                        client.resolve(orders, messageHash + ':' + currentOrder['symbol']);
                         break;
                     }
                 }
@@ -879,6 +903,11 @@ class krakenfutures extends krakenfutures$1["default"] {
         const orders = this.safeValue(message, 'orders', []);
         const limit = this.safeInteger(this.options, 'ordersLimit');
         this.orders = new Cache.ArrayCacheBySymbolById(limit);
+        const feed = this.safeString(message, 'feed');
+        let messageHash = 'orders';
+        if (feed === 'open_orders_verbose_snapshot') {
+            messageHash = 'orders:verbose';
+        }
         const symbols = {};
         const cachedOrders = this.orders;
         for (let i = 0; i < orders.length; i++) {
@@ -892,12 +921,12 @@ class krakenfutures extends krakenfutures$1["default"] {
         }
         const length = this.orders.length;
         if (length > 0) {
-            client.resolve(this.orders, 'orders');
+            client.resolve(this.orders, messageHash);
             const keys = Object.keys(symbols);
             for (let i = 0; i < keys.length; i++) {
                 const symbol = keys[i];
-                const messageHash = 'orders:' + symbol;
-                client.resolve(this.orders, messageHash);
+                const symbolMessageHash = messageHash + ':' + symbol;
+                client.resolve(this.orders, symbolMessageHash);
             }
         }
     }

@@ -202,7 +202,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.timeInForce]: GTC(default), IOC, FOK
         :param str [params.clientOrderId]: Maximum 64-character length.*
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
 
  EXCHANGE SPECIFIC PARAMETERS
         :param str [params.amount]: quote units for the order
@@ -341,7 +341,7 @@ class poloniex(ccxt.async_support.poloniex):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -818,7 +818,7 @@ class poloniex(ccxt.async_support.poloniex):
                     trade = self.parse_ws_trade(order)
                     self.handle_my_trades(client, trade)
                     if previousOrder is None:
-                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse fresh order instead of aggregating
+                        # fill event for an order missing from the cache(e.g. placed before subscribing or after a reconnect) - parse as a fresh order instead of aggregating
                         parsedOrder = self.parse_ws_order(order)
                         orders.append(parsedOrder)
                         marketIds.append(marketId)

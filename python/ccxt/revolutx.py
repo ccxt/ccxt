@@ -740,7 +740,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1900)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor

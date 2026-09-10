@@ -547,10 +547,10 @@ class poloniex extends Exchange {
                     '25010' => '\\ccxt\\PermissionDenied', // Unauthorized to cancel order
                     '25011' => '\\ccxt\\InvalidOrder', // Failed to cancel due to invalid paramters
                     '25012' => '\\ccxt\\ExchangeError', // Failed to cancel
-                    '25013' => '\\ccxt\\OrderNotFound', // Failed to cancel were not found
-                    '25014' => '\\ccxt\\OrderNotFound', // Failed to cancel were not found
-                    '25015' => '\\ccxt\\OrderNotFound', // Failed to cancel orders exist
-                    '25016' => '\\ccxt\\ExchangeError', // Failed to cancel to release funds
+                    '25013' => '\\ccxt\\OrderNotFound', // Failed to cancel as orders were not found
+                    '25014' => '\\ccxt\\OrderNotFound', // Failed to cancel as smartorders were not found
+                    '25015' => '\\ccxt\\OrderNotFound', // Failed to cancel as no orders exist
+                    '25016' => '\\ccxt\\ExchangeError', // Failed to cancel as unable to release funds
                     '25017' => '\\ccxt\\ExchangeError', // No orders were canceled
                     '25018' => '\\ccxt\\BadRequest', // Invalid accountType
                     '25019' => '\\ccxt\\BadSymbol', // Invalid symbol
@@ -674,7 +674,7 @@ class poloniex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $this->load_markets();
         $paginate = false;
@@ -800,7 +800,7 @@ class poloniex extends Exchange {
     }
 
     public function fetch_swap_markets($params = array()): array {
-        // do similar per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
+        // do similar as spot per https://api-docs.poloniex.com/v3/futures/api/market/get-product-info
         $response = $this->swapPublicGetV3MarketAllInstruments($params);
         //
         //    {
@@ -2046,7 +2046,7 @@ class poloniex extends Exchange {
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->triggerPrice] the $price at which a trigger order is triggered at
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique identifier for the order
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-structure order structure~
          */

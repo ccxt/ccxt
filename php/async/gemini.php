@@ -134,7 +134,7 @@ class gemini extends Exchange {
                     'get' => array(
                         // fetchMarkets passes this through fetchWebEndpoint with
                         // returnAsJson=false and a startRegex, i.e. it splits the
-                        // body => this endpoint answers with the docs page
+                        // body as text => this endpoint answers with the docs page
                         // markup, not with JSON
                         'rest-api' => array( 'cost' => 1 ),
                     ),
@@ -439,7 +439,7 @@ class gemini extends Exchange {
         //    {
         //        "tradingPairs" => array( array( 'BTCUSD', 2, 8, '0.00001', 10, true ),  ... ),
         //        "currencies" => array(
-        //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), //, precisions seem to be the 5th index
+        //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), // as confirmed, precisions seem to be the 5th index
         //            array( "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ),
         //            array( "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ),
         //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ),
@@ -655,7 +655,7 @@ class gemini extends Exchange {
             'limit_only' => true,
         );
         if ($status === null) {
-            return true; // below
+            return true; // as defaulted below
         }
         return $this->safe_bool($statuses, $status, true);
     }
@@ -2082,7 +2082,7 @@ class gemini extends Exchange {
         $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $params)));
         $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
         // one address structure per network, like every other venue (the endpoint is scoped to a
-        // single network, so the last address the venue lists for it wins — same)
+        // single network, so the last address the venue lists for it wins — same as before)
         return $this->index_by($results, 'network');
     }
 
@@ -2198,7 +2198,7 @@ class gemini extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

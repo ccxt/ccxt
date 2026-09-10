@@ -6,6 +6,7 @@ namespace ccxt\pro;
 // https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code
 
 use Exception; // a common import
+use ccxt\ExchangeError;
 use ccxt\Precise;
 use React\Async;
 use React\Promise\PromiseInterface;
@@ -1429,13 +1430,18 @@ class lighter extends \ccxt\async\lighter {
         try {
             if ($error !== null) {
                 $code = $this->safe_string($error, 'code');
-                if ($code !== null) {
-                    $feedback = $this->id . ' ' . $this->json($message);
-                    $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
-                }
+                $errorMessage = $this->safe_string($error, 'message');
+                $feedback = $this->id . ' ' . $this->json($message);
+                $this->throw_exactly_matched_exception($this->exceptions['exact'], $code, $feedback);
+                $this->throw_broadly_matched_exception($this->exceptions['broad'], $errorMessage, $feedback);
+                // the rest handler ends with the same unconditional throw. without it an
+                // unmapped $code raises nothing and is dropped by the routing below,
+                // leaving the request that caused it awaiting a response that never comes
+                throw new ExchangeError($feedback);
             }
         } catch (Exception $e) {
             $id = $this->safe_string($message, 'id');
+            $handled = false;
             if ($id !== null) {
                 $subscriptionKeys = is_array($client->subscriptions) ? array_keys($client->subscriptions) : array();
                 for ($i = 0; $i < count($subscriptionKeys); $i++) {
@@ -1444,13 +1450,16 @@ class lighter extends \ccxt\async\lighter {
                     $subscription = $this->safe_string($client->subscriptions[$subscriptionHash], 'subscription');
                     if ($id === $subscriptionId) {
                         $client->reject($e, $subscriptionHash);
+                        $handled = true;
                         if ($subscription !== null) {
                             unset($client->subscriptions[$subscription]);
                         }
                     }
                 }
             }
-            $client->reject($e);
+            if (!$handled) {
+                $client->reject($e);
+            }
         }
         return true;
     }

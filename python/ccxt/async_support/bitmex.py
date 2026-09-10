@@ -1587,7 +1587,7 @@ class bitmex(Exchange, ImplicitAPI):
             await self.load_markets()
         symbols = self.market_symbols(symbols)
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         rawTickers = self.to_array(response)
         for i in range(0, len(rawTickers)):
@@ -1670,7 +1670,7 @@ class bitmex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2646,7 +2646,7 @@ class bitmex(Exchange, ImplicitAPI):
         if self.markets is None:
             await self.load_markets()
         response = await self.publicGetInstrumentActiveAndIndices(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         filteredResponse = []
         rawItems = self.to_array(response)
         for i in range(0, len(rawItems)):

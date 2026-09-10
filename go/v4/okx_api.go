@@ -27,6 +27,11 @@ func (this *OkxCore) PublicGetMarketBooksFull(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketBooksFull", args...)
 }
 
+// PublicGetMarketBooksRpi returns a channel that yields a JSON object.
+func (this *OkxCore) PublicGetMarketBooksRpi(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketBooksRpi", args...)
+}
+
 // PublicGetMarketCandles returns a channel that yields a JSON object.
 func (this *OkxCore) PublicGetMarketCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketCandles", args...)

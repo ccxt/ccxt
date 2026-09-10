@@ -575,7 +575,7 @@ class deepcoin(Exchange, ImplicitAPI):
             if (market is not None) and (market['swap'] is True):
                 additionalId = self.safe_string(market, 'baseId', '') + self.safe_string(market, 'quoteId', '')
                 if self.markets_by_id is not None:
-                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id+quote
+                    self.markets_by_id[additionalId] = [market]  # some endpoints return swap market id as base+quote
         return result
 
     def fetch_order_book(self, symbol: str, limit: Int = None, params={}) -> OrderBook:
@@ -634,7 +634,7 @@ class deepcoin(Exchange, ImplicitAPI):
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2454,16 +2454,16 @@ class deepcoin(Exchange, ImplicitAPI):
             'contractSize': None,
             'side': self.safe_string(position, 'posSide'),
             'notional': None,
-            'leverage': self.omit_zero(self.safe_string(position, 'lever')),
+            'leverage': self.parse_number(self.omit_zero(self.safe_string(position, 'lever'))),
             'unrealizedPnl': None,
             'realizedPnl': None,
             'collateral': None,
             'entryPrice': self.safe_number(position, 'avgPx'),
             'markPrice': None,
-            'liquidationPrice': self.safe_string(position, 'liqPx'),
+            'liquidationPrice': self.safe_number(position, 'liqPx'),
             'marginMode': self.safe_string(position, 'mgnMode'),
             'hedged': True,
-            'maintenanceMargin': self.safe_string(position, 'useMargin'),
+            'maintenanceMargin': self.safe_number(position, 'useMargin'),
             'maintenanceMarginPercentage': None,
             'initialMargin': None,
             'initialMarginPercentage': None,

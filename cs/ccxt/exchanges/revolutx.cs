@@ -868,7 +868,7 @@ public partial class revolutx : Exchange
         }
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1900);
         }
         string? cursor = this.safeString(parameters, "cursor");
         if (isTrue(!isEqual(cursor, null)))

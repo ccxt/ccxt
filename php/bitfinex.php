@@ -366,7 +366,7 @@ class bitfinex extends Exchange {
                 ),
                 // convert 'market' to 'EXCHANGE MARKET'
                 // convert 'limit' 'EXCHANGE LIMIT'
-                // everything else remains
+                // everything else remains as is
                 'orderTypes' => array(
                     'market' => 'EXCHANGE MARKET',
                     'limit' => 'EXCHANGE LIMIT',
@@ -1078,7 +1078,7 @@ class bitfinex extends Exchange {
         $error = $this->safe_string($response, 0);
         if ($error === 'error') {
             $message = $this->safe_string($response, 2, '');
-            // same $message v1
+            // same $message as in v1
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $this->id . ' ' . $message);
             throw new ExchangeError($this->id . ' ' . $message);
         }
@@ -1556,7 +1556,7 @@ class bitfinex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch, default 100 max 10000
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          */
@@ -1773,7 +1773,7 @@ class bitfinex extends Exchange {
             $orderType = 'TRAILING STOP';
             $request['price_trailing'] = $trailingAmount;
         } elseif ($triggerPrice !== null) {
-            // $request['price'] is taken for stop orders
+            // $request['price'] is taken as $triggerPrice for stop orders
             $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $orderType = 'STOP LIMIT';
@@ -2899,7 +2899,7 @@ class bitfinex extends Exchange {
         if ($statusMessage === 'error') {
             $feedback = $this->id . ' ' . $response;
             $message = $this->safe_string($response, 2, '');
-            // same $message v1
+            // same $message as in v1
             $this->throw_exactly_matched_exception($this->exceptions['exact'], $message, $feedback);
             $this->throw_broadly_matched_exception($this->exceptions['broad'], $message, $feedback);
             throw new ExchangeError($feedback); // unknown $message
@@ -3589,10 +3589,10 @@ class bitfinex extends Exchange {
          *
          * @param {string} $symbol unified CCXT $market $symbol
          * @param {string} $timeframe the time period of each row of data, not used by bitfinex
-         * @param {int} [$since] the time in ms of the earliest record to retrieve unix timestamp
+         * @param {int} [$since] the time in ms of the earliest record to retrieve as a unix timestamp
          * @param {int} [$limit] the number of records in the $response
          * @param {array} [$params] exchange specific parameters
-         * @param {int} [$params->until] the time in ms of the latest record to retrieve unix timestamp
+         * @param {int} [$params->until] the time in ms of the latest record to retrieve as a unix timestamp
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @return An array of ~@link https://docs.ccxt.com/?id=open-interest-structure open interest structures~
          */
@@ -3990,7 +3990,7 @@ class bitfinex extends Exchange {
         if ($trailingAmount !== null) {
             $request['price_trailing'] = $trailingAmount;
         } elseif ($triggerPrice !== null) {
-            // $request['price'] is taken for stop orders
+            // $request['price'] is taken as $triggerPrice for stop orders
             $request['price'] = $this->price_to_precision($symbol, $triggerPrice);
             if ($type === 'limit') {
                 $request['price_aux_limit'] = $this->price_to_precision($symbol, $price);

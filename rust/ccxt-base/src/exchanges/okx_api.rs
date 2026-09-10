@@ -32,6 +32,11 @@ impl OkxCore {
         self.call_method(Value::Str("public_get_market_books_full".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMarketBooksRpi` implicit endpoint.
+    pub async fn public_get_market_books_rpi(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_market_books_rpi".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetMarketCandles` implicit endpoint.
     pub async fn public_get_market_candles(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_market_candles".to_string()), optional_args).await

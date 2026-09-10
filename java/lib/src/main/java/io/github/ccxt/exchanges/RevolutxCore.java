@@ -936,7 +936,7 @@ public class RevolutxCore extends RevolutxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1900));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))

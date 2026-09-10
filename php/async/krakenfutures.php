@@ -396,7 +396,7 @@ class krakenfutures extends Exchange {
 
     private function do_fetch_markets($params = array()) {
         /**
-         * Fetches the available trading markets from the exchange, Multi-collateral markets are returned markets, but can be settled in multiple $currencies
+         * Fetches the available trading markets from the exchange, Multi-collateral markets are returned as $linear markets, but can be settled in multiple $currencies
          *
          * @see https://docs.kraken.com/api/docs/futures-api/trading/get-$instruments
          *
@@ -927,7 +927,7 @@ class krakenfutures extends Exchange {
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1372,8 +1372,8 @@ class krakenfutures extends Exchange {
          * @param {float} $amount number of contracts
          * @param {float} [$price] limit order $price
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->reduceOnly] set if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
-         * @param {bool} [$params->postOnly] set if you wish to make a postOnly order, default is false
+         * @param {bool} [$params->reduceOnly] set as true if you wish the order to only reduce an existing position, any order which increases an existing position will be rejected, default is false
+         * @param {bool} [$params->postOnly] set as true if you wish to make a postOnly order, default is false
          * @param {string} [$params->clientOrderId] UUID The order identity that is specified from the user, It must be globally unique
          * @param {float} [$params->triggerPrice] the $price that a stop order is triggered at
          * @param {float} [$params->stopLossPrice] the $price that a stop loss order is triggered at

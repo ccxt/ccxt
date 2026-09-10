@@ -679,7 +679,7 @@ class hitbtc(ccxt.async_support.hitbtc):
         :param int [since]: not used by hitbtc watchOHLCV
         :param int [limit]: 0 – 1000, default value = 0(no history returned)
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         period = self.safe_string(self.timeframes, timeframe, timeframe)
         name = 'candles/' + period

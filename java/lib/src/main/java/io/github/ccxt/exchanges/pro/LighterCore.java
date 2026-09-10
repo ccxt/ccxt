@@ -1662,15 +1662,16 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             if (Helpers.isTrue(!Helpers.isEqual(error, null)))
             {
                 Object code = this.safeString(error, "code");
-                if (Helpers.isTrue(!Helpers.isEqual(code, null)))
-                {
-                    Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
-                    this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
-                }
+                Object errorMessage = this.safeString(error, "message");
+                Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
+                this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessage, feedback);
+                throw new ExchangeError((String)feedback) ;
             }
         } catch(Exception e)
         {
             Object id = this.safeString(message, "id");
+            Object handled = false;
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
@@ -1682,6 +1683,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                     if (Helpers.isTrue(Helpers.isEqual(id, subscriptionId)))
                     {
                         client.reject(e, subscriptionHash);
+                        handled = true;
                         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
                         {
                             ((java.util.Map<String,Object>)client.subscriptions).remove((String)subscription);
@@ -1689,7 +1691,10 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                     }
                 }
             }
-            client.reject(e);
+            if (!Helpers.isTrue(handled))
+            {
+                client.reject(e);
+            }
         }
         return true;
     }

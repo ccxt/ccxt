@@ -242,7 +242,7 @@ class woo(Exchange, ImplicitAPI):
                             'order': {'cost': 1},
                             'client/order': {'cost': 1},
                             'orders': {'cost': 1},
-                            'asset/withdraw': {'cost': 120},  # cancel a pending withdrawal, undocumented but alive 2026-08
+                            'asset/withdraw': {'cost': 120},  # cancel a pending withdrawal, undocumented but alive as of 2026-08
                         },
                     },
                 },
@@ -537,7 +537,7 @@ class woo(Exchange, ImplicitAPI):
                     '317176': InvalidOrder,  # The trigger after should from 0 to `${maxTriggerAfter}`
                     '317177': InvalidOrder,  # Order has terminated
                     '317178': BadRequest,  # The receive window is invalid.
-                    '317179': BadRequest,  # Request has failed receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
+                    '317179': BadRequest,  # Request has failed as the receive window: `${recv_window}` millisecond is exceeded from `${api_timestamp}`
                     '317184': OrderNotFound,  # The order cannot be found, or it is already completed.
                     '317206': InvalidOrder,  # Spot trading is disabled while futures credits are active. Please remove or fully utilize your futures credits to enable spot trading.
                     '317207': InsufficientFunds,  # Request failed. Please ensure you have sufficient USDT to cover the futures credits currently in use.
@@ -554,7 +554,7 @@ class woo(Exchange, ImplicitAPI):
                     '302110': ExchangeError,  # application is lock now
                     '302111': InvalidOrder,  # Your account position is being liquidated. Trading has been suspended at the moment. Please try again later.
                     '302112': InvalidOrder,  # Remaining order quantity is smaller than transaction quantity
-                    '302113': InvalidOrder,  # Order side is not same side
+                    '302113': InvalidOrder,  # Order side is not same as transaction side
                     '302114': InvalidOrder,  # Order price too small
                     '302115': InvalidOrder,  # Order quantity too small
                     '302117': DuplicateOrderId,  # The client_order_id is repeated.
@@ -583,7 +583,7 @@ class woo(Exchange, ImplicitAPI):
                     '302142': InvalidOrder,  # The order quantity must bigger than the executed quantity.
                     '302143': ExchangeError,  # Application not found.
                     '302144': InvalidOrder,  # There isn’t a positive amount to repay the interest balance.
-                    '302145': InsufficientFunds,  # Your margin will be insufficient after disabling self token.
+                    '302145': InsufficientFunds,  # Your margin will be insufficient after disabling self token as collateral.
                     '302147': InvalidOrder,  # Amount is required for buy market orders when margin disabled.
                     '302148': InvalidOrder,  # Amount is required for ASK buy order when margin disabled.
                     '302149': InvalidOrder,  # Amount is required for BID buy order when margin disabled.
@@ -608,7 +608,7 @@ class woo(Exchange, ImplicitAPI):
                     '302171': InvalidOrder,  # Buy or sell orders by amount are not supported under Reduce Only trading mode.
                     '302172': InvalidOrder,  # `${token}` max position size of `${maxPosition}` is exceeded.
                     '302177': InvalidOrder,  # Pending new orders cannot be edited.
-                    '302178': InvalidOrder,  # Order is rejected have an existing market close order.
+                    '302178': InvalidOrder,  # Order is rejected as you have an existing market close order.
                     '302185': InvalidOrder,  # Your order request cannot be processed at self moment because the position mode is currently being switched.
                     '302186': InvalidOrder,  # The position side you’ve used is not compatible with your current position mode.
                     '302188': InvalidOrder,  # exceed max open notional
@@ -1345,7 +1345,7 @@ class woo(Exchange, ImplicitAPI):
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
         :param float [params.algoType]: 'STOP' or 'TRAILING_STOP' or 'OCO' or 'CLOSE_POSITION'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param str [params.trailingAmount]: the quote amount to trail away from the current market price
         :param str [params.trailingPercent]: the percent to trail away from the current market price
         :param str [params.trailingTriggerPrice]: the price to trigger a trailing order, default uses the price argument
@@ -2237,7 +2237,7 @@ class woo(Exchange, ImplicitAPI):
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

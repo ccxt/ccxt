@@ -310,7 +310,7 @@ class lighter extends Exchange {
                     '21730' => '\\ccxt\\InvalidOrder', // order status is not pending
                     '21731' => '\\ccxt\\InvalidOrder', // order can not be triggered
                     '21732' => '\\ccxt\\InvalidOrder', // reduce only increases position
-                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged accidental price
+                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged as an accidental price
                     '21734' => '\\ccxt\\InvalidOrder', // limit order price is too far from the mark price
                     '21735' => '\\ccxt\\InvalidOrder', // SL/TP order price is too far from the trigger price
                     '21736' => '\\ccxt\\InvalidOrder', // invalid order trigger status
@@ -1702,7 +1702,7 @@ class lighter extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');

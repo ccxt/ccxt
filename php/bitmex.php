@@ -1649,7 +1649,7 @@ class bitmex extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = $this->publicGetInstrumentActiveAndIndices($params);
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $result = array();
         $rawTickers = $this->to_array($response);
         for ($i = 0; $i < count($rawTickers); $i++) {
@@ -1737,7 +1737,7 @@ class bitmex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as $timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2793,7 +2793,7 @@ class bitmex extends Exchange {
             $this->load_markets();
         }
         $response = $this->publicGetInstrumentActiveAndIndices($params);
-        // same $response "fetchMarkets"
+        // same $response as under "fetchMarkets"
         $filteredResponse = array();
         $rawItems = $this->to_array($response);
         for ($i = 0; $i < count($rawItems); $i++) {

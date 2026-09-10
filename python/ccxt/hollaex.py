@@ -268,7 +268,7 @@ class hollaex(Exchange, ImplicitAPI):
                     'Invalid token': AuthenticationError,
                     'Order not found': OrderNotFound,
                     'Insufficient balance': InsufficientFunds,
-                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.': OrderImmediatelyFillable,
+                    'Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order.': OrderImmediatelyFillable,
                 },
                 'exact': {
                     '400': BadRequest,
@@ -912,7 +912,7 @@ class hollaex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch(max 500)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1308,7 +1308,7 @@ class hollaex(Exchange, ImplicitAPI):
             'size': self.amount_to_precision(symbol, amount),
             'type': type,
             # 'stop': float(self.price_to_precision(symbol, stopPrice)),
-            # 'meta': {},  # other options such
+            # 'meta': {},  # other options such as post_only
         }
         triggerPrice = self.safe_number_n(params, ['triggerPrice', 'stopPrice', 'stop'])
         meta = self.safe_value(params, 'meta', {})
@@ -2012,7 +2012,7 @@ class hollaex(Exchange, ImplicitAPI):
             #
             # different errors return the same code eg
             #
-            #  {"message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order."}
+            #  {"message":"Error 1001 - Order rejected. Order could not be submitted as self order was set to a post only order."}
             #
             #  {"message":"Error 1001 - POST ONLY order can not be of type market"}
             #

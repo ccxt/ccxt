@@ -502,7 +502,7 @@ class dydx extends Exchange {
         }
         $parts = explode('-', $marketId);
         $baseName = $this->safe_string($parts, 0);
-        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving
+        $baseId = $this->safe_string($market, 'baseId', $baseName); // idk where 'baseId' comes from, but leaving as is
         $base = $this->safe_currency_code($baseId);
         $quote = $this->safe_currency_code($quoteId);
         $settleId = 'USDC';
@@ -736,7 +736,7 @@ class dydx extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();

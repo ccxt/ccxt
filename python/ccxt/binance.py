@@ -2033,8 +2033,8 @@ class binance(Exchange, ImplicitAPI):
                         '-10005': BadResponse,  # No records found.
                         '-10007': BadRequest,  # This coin is not loanable
                         '-10008': BadRequest,  # This coin is not loanable
-                        '-10009': BadRequest,  # This coin can not be used.
-                        '-10010': BadRequest,  # This coin can not be used.
+                        '-10009': BadRequest,  # This coin can not be used as collateral.
+                        '-10010': BadRequest,  # This coin can not be used as collateral.
                         '-10011': InsufficientFunds,  # Insufficient spot assets.
                         '-10012': BadRequest,  # Invalid repayment amount.
                         '-10013': InsufficientFunds,  # Insufficient collateral amount.
@@ -2190,13 +2190,13 @@ class binance(Exchange, ImplicitAPI):
                         '-4211': BadRequest,  # Stop price is lower than price multiplier floor
                         '-4400': PermissionDenied,  # Futures Trading Quantitative Rules violated, only reduceOnly order is allowed, please try again later.
                         '-4401': PermissionDenied,  # Compliance restricted account permission: can only place reduceOnly order.
-                        '-4402': PermissionDenied,  # Dear user, our Terms of Use and compliance with local regulations, self feature is currently not available in your region.
-                        '-4403': PermissionDenied,  # Dear user, our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
+                        '-4402': PermissionDenied,  # Dear user, as per our Terms of Use and compliance with local regulations, self feature is currently not available in your region.
+                        '-4403': PermissionDenied,  # Dear user, as per our Terms of Use and compliance with local regulations, the leverage can only up to %sx in your region
                         #
                         #        5xxx
                         #
                         '-5021': OrderNotFillable,  # Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022': OrderNotFillable,  # Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022': OrderNotFillable,  # Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5024': OperationRejected,  # Symbol is not in trading status. Order amendment is not permitted.
                         '-5025': OperationRejected,  # Only limit order is supported.
                         '-5026': OperationRejected,  # Exceed maximum modify order limit.
@@ -2642,7 +2642,7 @@ class binance(Exchange, ImplicitAPI):
                         #        5xxx Order Execution Issues
                         #
                         '-5021': OrderNotFillable,  # Due to the order could not be filled immediately, the FOK order has been rejected.
-                        '-5022': OrderNotFillable,  # Due to the order could not be executed, the Post Only order will be rejected.
+                        '-5022': OrderNotFillable,  # Due to the order could not be executed as maker, the Post Only order will be rejected.
                         '-5028': OperationFailed,  # The requested timestamp is outside the recvWindow of the matching engine
                         '-5041': RateLimitExceeded,  # Time out for too many requests from self account queueing at the same time.
                     },
@@ -4594,6 +4594,15 @@ class binance(Exchange, ImplicitAPI):
             raise NullResponse(self.id + ' fetchTicker() returned empty response')
         return self.parse_ticker(response, market)
 
+    def check_no_stock_symbols(self, symbols: Strings, methodName: str):
+        if symbols is None:
+            return
+        for i in range(0, len(symbols)):
+            symbolMarket = self.market(symbols[i])
+            stock = self.safe_bool(symbolMarket, 'stock', False)
+            if stock is True:
+                raise NotSupported(self.id + ' ' + methodName + '() does not support tokenized stock symbols(' + symbols[i] + '), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead')
+
     def fetch_bids_asks(self, symbols: Strings = None, params={}):
         """
         fetches the bid and ask price and volume for multiple markets
@@ -4606,11 +4615,12 @@ class binance(Exchange, ImplicitAPI):
         :param str[]|None symbols: unified symbols of the markets to fetch the bids and asks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchBidsAsks')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchBidsAsks', market, params)
@@ -4752,11 +4762,12 @@ class binance(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.subType]: "linear" or "inverse"
         :param str [params.type]: 'spot', 'option', use params["subType"] for swap and future markets
-        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>`
+        :returns dict: a dictionary of `ticker structures <https://docs.ccxt.com/?id=ticker-structure>` tokenized stock symbols are not supported here, use fetchTicker() per symbol instead
         """
         if self.markets is None:
             self.load_markets()
         symbols = self.market_symbols(symbols, None, True, True, True)
+        self.check_no_stock_symbols(symbols, 'fetchTickers')
         market = self.get_market_from_symbols(symbols)
         type = None
         type, params = self.handle_market_type_and_params('fetchTickers', market, params)
@@ -4955,7 +4966,7 @@ class binance(Exchange, ImplicitAPI):
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -7051,7 +7062,7 @@ class binance(Exchange, ImplicitAPI):
                 if stopPrice is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice extra param for a ' + type + ' order')
             else:
-                # check for delta price
+                # check for delta price as well
                 if trailingDelta is None and stopPrice is None and trailingPercent is None:
                     raise InvalidOrder(self.id + ' createOrder() requires a triggerPrice, trailingDelta or trailingPercent param for a ' + type + ' order')
             if stopPrice is not None:
@@ -9369,7 +9380,7 @@ class binance(Exchange, ImplicitAPI):
             fromIsolated = not (fromId in accountsById)
             toIsolated = not (toId in accountsById)
             if fromIsolated and (market is None):
-                isolatedSymbol = fromId  # allow user provide symbol from/to account
+                isolatedSymbol = fromId  # allow user provide symbol as the from/to account
             if toIsolated and (market is None):
                 isolatedSymbol = toId
             if fromIsolated or toIsolated:  # Isolated margin transfer
@@ -10543,7 +10554,7 @@ class binance(Exchange, ImplicitAPI):
             rational = self.is_round_number(1000 % leverage)
             if not rational:
                 initialMarginPercentageString = Precise.string_div(Precise.string_add(initialMarginPercentageString, '1e-8'), '1', 8)
-        # to notionalValue
+        # as oppose to notionalValue
         usdm = ('notional' in position)
         maintenanceMarginString = self.safe_string(position, 'maintMargin')
         maintenanceMargin = self.parse_number(maintenanceMarginString)
@@ -10798,7 +10809,7 @@ class binance(Exchange, ImplicitAPI):
         entryPrice = self.parse_number(entryPriceString)
         contractSize = self.safe_value(market, 'contractSize')
         contractSizeString = self.number_to_string(contractSize)
-        # to notionalValue
+        # as oppose to notionalValue
         linear = ('notional' in position)
         if marginMode == 'cross':
             # calculate collateral
@@ -13166,10 +13177,10 @@ class binance(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m","15m","30m","1h","2h","4h","6h","12h", or "1d"
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30, max 500
         :param dict [params]: exchange specific parameters
-        :param int [params.until]: the time(ms) of the latest record to retrieve unix timestamp
+        :param int [params.until]: the time(ms) of the latest record to retrieve as a unix timestamp
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
         :returns dict: an array of `open interest structure <https://docs.ccxt.com/?id=open-interest-structure>`
         """

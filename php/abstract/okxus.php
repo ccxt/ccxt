@@ -34,6 +34,12 @@ abstract class okxus extends \ccxt\okx {
     /**
      * @return array<string, mixed>
      */
+    public function public_get_market_books_rpi($params = array()) {
+        return $this->request('market/books-rpi', 'public', 'GET', $params, null, null, array("cost" => 0.5));
+    }
+    /**
+     * @return array<string, mixed>
+     */
     public function public_get_market_candles($params = array()) {
         return $this->request('market/candles', 'public', 'GET', $params, null, null, array("cost" => 0.5));
     }
@@ -2706,6 +2712,12 @@ abstract class okxus extends \ccxt\okx {
      */
     public function publicGetMarketBooksFull($params = array()) {
         return $this->request('market/books-full', 'public', 'GET', $params, null, null, array("cost" => 2));
+    }
+    /**
+     * @return array<string, mixed>
+     */
+    public function publicGetMarketBooksRpi($params = array()) {
+        return $this->request('market/books-rpi', 'public', 'GET', $params, null, null, array("cost" => 0.5));
     }
     /**
      * @return array<string, mixed>
