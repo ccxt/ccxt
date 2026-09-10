@@ -244,7 +244,11 @@ int main (int argc, char** argv) {
                 // future never registers (a registration bug is exactly what the
                 // rejection backstop cannot catch), main would otherwise block
                 // forever with nothing left to unblock it
-                auto watchTask = std::async (std::launch::async, [&] () {
+                // NOTE: the lambda returns std::any on purpose -- a
+                // std::future<ccxt::Ticker> fails to compile because the
+                // namespace-scope ccxt::operator!(const std::any&) poisons
+                // ADL for std::future's is_array/is_function static_asserts
+                auto watchTask = std::async (std::launch::async, [&] () -> std::any {
                     return pro.WatchTicker ("BTC/EUR");
                 });
                 if (watchTask.wait_for (45s) != std::future_status::ready) {
@@ -253,7 +257,7 @@ int main (int argc, char** argv) {
                     // destructor would join it, hanging the gate on the way out
                     std::_Exit (1);
                 }
-                const ccxt::Ticker wsTicker = watchTask.get ();
+                const ccxt::Ticker wsTicker = std::any_cast<ccxt::Ticker> (watchTask.get ());
                 watchDone.store (true);
                 injector.join ();
                 check (injectorError.empty (), "ws injector ran clean (" + injectorError + ")");
