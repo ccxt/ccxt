@@ -557,7 +557,7 @@ fetches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/algo order |
 | params.is_triggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |
@@ -589,7 +589,7 @@ fetches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/algo order |
 | params.is_triggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |
@@ -621,7 +621,7 @@ fetches information on multiple orders made by the user
 | --- | --- | --- | --- |
 | symbol | <code>string</code> | Yes | unified market symbol of the market orders were made in |
 | since | <code>int</code> | No | the earliest time in ms to fetch orders for |
-| limit | <code>int</code> | No | the maximum number of order structures to retrieve |
+| limit | <code>int</code> | No | the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true |
 | params | <code>object</code> | No | extra parameters specific to the exchange API endpoint |
 | params.trigger | <code>boolean</code> | No | whether the order is a stop/algo order |
 | params.is_triggered | <code>boolean</code> | No | whether the order has been triggered (false by default) |

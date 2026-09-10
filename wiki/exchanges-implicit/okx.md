@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official okx API documentation:** [okx.com](https://www.okx.com/docs-v5/en/)
 
-> 446 implicit endpoints across 2 access groups.
+> 447 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -65,6 +65,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetMarketTicker` | GET | `market/ticker` | 1 |
 | `publicGetMarketBooks` | GET | `market/books` | 0.5 |
 | `publicGetMarketBooksFull` | GET | `market/books-full` | 2 |
+| `publicGetMarketBooksRpi` | GET | `market/books-rpi` | 0.5 |
 | `publicGetMarketCandles` | GET | `market/candles` | 0.5 |
 | `publicGetMarketHistoryCandles` | GET | `market/history-candles` | 1 |
 | `publicGetMarketTrades` | GET | `market/trades` | 0.2 |

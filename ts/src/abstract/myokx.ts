@@ -13,6 +13,7 @@ interface okx {
     publicGetMarketTicker (params?: {}): Promise<Dict>;
     publicGetMarketBooks (params?: {}): Promise<Dict>;
     publicGetMarketBooksFull (params?: {}): Promise<Dict>;
+    publicGetMarketBooksRpi (params?: {}): Promise<Dict>;
     publicGetMarketCandles (params?: {}): Promise<Dict>;
     publicGetMarketHistoryCandles (params?: {}): Promise<Dict>;
     publicGetMarketTrades (params?: {}): Promise<Dict>;
