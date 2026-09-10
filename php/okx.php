@@ -248,6 +248,8 @@ class okx extends Exchange {
                         'public/event-contract/markets' => array( 'cost' => 1 ),
                         'public/event-contract/series' => array( 'cost' => 1 ),
                         'public/vip-interest-rate-loan-quota' => array( 'cost' => 10 ), // not documented
+                        'public/mm-instrument-types' => array( 'cost' => 4 ),
+                        'public/delta-hedge-currencies' => array( 'cost' => 1 ),
                         // rubik
                         'rubik/stat/trading-data/support-coin' => array( 'cost' => 4 ),
                         'rubik/stat/contracts/open-interest-history' => array( 'cost' => 2 ),
@@ -458,6 +460,21 @@ class okx extends Exchange {
                         'finance/flexible-loan/loan-info' => array( 'cost' => 4 ),
                         'finance/flexible-loan/loan-history' => array( 'cost' => 4 ),
                         'finance/flexible-loan/interest-accrued' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/emode-info' => array( 'cost' => 4 ),
+                        // okusd
+                        'finance/okusd/limits' => array( 'cost' => 10 ),
+                        'finance/okusd/account' => array( 'cost' => 10 ),
+                        'finance/okusd/subscribe/history' => array( 'cost' => 4 ),
+                        'finance/okusd/redeem/history' => array( 'cost' => 4 ),
+                        'finance/okusd/rewards/history' => array( 'cost' => 4 ),
+                        'finance/okusd/rate/history' => array( 'cost' => 4 ),
+                        // stable rewards
+                        'finance/stable-rewards/product-info' => array( 'cost' => 4 ),
+                        'finance/stable-rewards/balance' => array( 'cost' => 4 ),
+                        'finance/stable-rewards/apy-history' => array( 'cost' => 5 / 3 ),
+                        // glp
+                        'users/glp/todayperformance' => array( 'cost' => 4 ),
+                        'users/glp/historicalperformance' => array( 'cost' => 4 ),
                         // copytrading
                         'copytrading/current-subpositions' => array( 'cost' => 1 ),
                         'copytrading/subpositions-history' => array( 'cost' => 1 ),
@@ -493,6 +510,11 @@ class okx extends Exchange {
                         'finance/sfp/dcd/order-history' => array( 'cost' => 2 ),
                         // affiliate
                         'affiliate/invitee/detail' => array( 'cost' => 1 ),
+                        'affiliate/performance/summary' => array( 'cost' => 10 / 3 ),
+                        'affiliate/invitee/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/link/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/co-inviter/list' => array( 'cost' => 10 / 3 ),
+                        'affiliate/sub-affiliate/list' => array( 'cost' => 10 / 3 ),
                         'users/partner/if-rebate' => array( 'cost' => 1 ), // not documented
                         'support/announcements' => array( 'cost' => 4 ),
                     ),
@@ -647,6 +669,11 @@ class okx extends Exchange {
                         'finance/staking-defi/sol/cancel-redeem' => array( 'cost' => 5 ),
                         'finance/flexible-loan/max-loan' => array( 'cost' => 4 ),
                         'finance/flexible-loan/adjust-collateral' => array( 'cost' => 4 ),
+                        'finance/flexible-loan/borrow' => array( 'cost' => 10 ),
+                        'finance/flexible-loan/repay' => array( 'cost' => 10 ),
+                        // okusd
+                        'finance/okusd/subscribe' => array( 'cost' => 20 ),
+                        'finance/okusd/redeem' => array( 'cost' => 20 ),
                         // copytrading
                         'copytrading/algo-order' => array( 'cost' => 1 ),
                         'copytrading/close-subposition' => array( 'cost' => 1 ),

@@ -248,6 +248,13 @@ class weex extends Exchange {
                         'api/v3/agency/verifyReferrals' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getAssert' => array( 'cost' => 20 ), // not unified
                         'api/v3/agency/getDealData' => array( 'cost' => 20 ), // not unified
+                        'api/v3/apiReferral/checkUserEligibility' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio' => array( 'cost' => 5 ), // not unified - broker access
+                        'api/v3/content/articles/detail' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/list' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/articles/listByCoin' => array( 'cost' => 1 ), // not unified - partner content
+                        'api/v3/content/banners/latest' => array( 'cost' => 1 ), // not unified - partner content
                     ),
                     'post' => array(
                         'api/v3/account/bills' => array( 'cost' => 5 ), // done
@@ -255,6 +262,7 @@ class weex extends Exchange {
                         'api/v3/order' => array( 'cost' => 5 ), // done
                         'api/v3/order/batch' => array( 'cost' => 50 ), // not supported, returns array("code":-1150,"msg":"Request method 'POST' not supported")
                         'api/v3/rebate/affiliate/internalWithdrawal' => array( 'cost' => 100 ), // not unified
+                        'api/v3/tax/income' => array( 'cost' => 5 ), // not unified - tax reporting
                     ),
                     'delete' => array(
                         'api/v3/order' => array( 'cost' => 1 ), // done
@@ -299,6 +307,15 @@ class weex extends Exchange {
                         'capi/v3/sim/balance' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition' => array( 'cost' => 15 ), // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history' => array( 'cost' => 10 ), // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/trader/pairs' => array( 'cost' => 1 ), // not unified - copy trading
+                        'capi/v3/trailing/openOrders' => array( 'cost' => 2 ), // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders' => array( 'cost' => 10 ), // not unified - trailing orders
                     ),
                     'post' => array(
                         'capi/v3/account/income' => array( 'cost' => 5 ), // done
@@ -313,6 +330,9 @@ class weex extends Exchange {
                         'capi/v3/placeTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/modifyTpSlOrder' => array( 'cost' => 5 ), // not unified
                         'capi/v3/sim/order' => array( 'cost' => 5 ), // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos' => array( 'cost' => 50 ), // not unified - copy trading
+                        'capi/v3/copy/follower/settings' => array( 'cost' => 10 ), // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy' => array( 'cost' => 10 ), // not unified - copy trading
                     ),
                     'delete' => array(
                         'capi/v3/order' => array( 'cost' => 3 ), // done

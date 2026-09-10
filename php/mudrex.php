@@ -107,6 +107,7 @@ class mudrex extends Exchange {
                         'futures/{asset_id}' => array( 'cost' => 1 ),
                         'wallet/funds' => array( 'cost' => 5 ),
                         'futures/funds' => array( 'cost' => 5 ),
+                        'futures/transactions' => array( 'cost' => 1 ),
                         'futures/orders' => array( 'cost' => 1 ),
                         'futures/orders/history' => array( 'cost' => 1 ),
                         'futures/orders/{order_id}' => array( 'cost' => 1 ),

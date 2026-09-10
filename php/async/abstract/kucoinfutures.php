@@ -130,6 +130,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_margin_available_inventory($params = array()) {
+        return $this->request('margin/available-inventory', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_convert_symbol($params = array()) {
         return $this->request('convert/symbol', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -574,6 +580,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_margin_borrowrate($params = array()) {
+        return $this->request('margin/borrowRate', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_project_list($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -666,6 +678,36 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
      */
     public function private_get_affiliate_inviter_statistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_affiliate_queryinvitees($params = array()) {
+        return $this->request('affiliate/queryInvitees', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_affiliate_querymycommission($params = array()) {
+        return $this->request('affiliate/queryMyCommission', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_affiliate_querytransactionbyuid($params = array()) {
+        return $this->request('affiliate/queryTransactionByUid', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_affiliate_querytransactionbytime($params = array()) {
+        return $this->request('affiliate/queryTransactionByTime', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_affiliate_querykumining($params = array()) {
+        return $this->request('affiliate/queryKumining', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1654,6 +1696,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function broker_get_broker_nd_mark_up($params = array()) {
+        return $this->request('broker/nd/mark-up', 'broker', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function broker_get_asset_ndbroker_deposit_list($params = array()) {
         return $this->request('asset/ndbroker/deposit/list', 'broker', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -1698,6 +1746,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
      */
     public function broker_post_broker_nd_account_update_apikey($params = array()) {
         return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function broker_post_broker_nd_mark_up($params = array()) {
+        return $this->request('broker/nd/mark-up', 'broker', 'POST', $params, null, null, array("cost" => 6));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -2236,6 +2290,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetMarginAvailableInventory($params = array()) {
+        return $this->request('margin/available-inventory', 'public', 'GET', $params, null, null, array("cost" => 10));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetConvertSymbol($params = array()) {
         return $this->request('convert/symbol', 'public', 'GET', $params, null, null, array("cost" => 5));
     }
@@ -2680,6 +2740,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetMarginBorrowRate($params = array()) {
+        return $this->request('margin/borrowRate', 'private', 'GET', $params, null, null, array("cost" => 20));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetProjectList($params = array()) {
         return $this->request('project/list', 'private', 'GET', $params, null, null, array("cost" => 10));
     }
@@ -2772,6 +2838,36 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
      */
     public function privateGetAffiliateInviterStatistics($params = array()) {
         return $this->request('affiliate/inviter/statistics', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAffiliateQueryInvitees($params = array()) {
+        return $this->request('affiliate/queryInvitees', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAffiliateQueryMyCommission($params = array()) {
+        return $this->request('affiliate/queryMyCommission', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAffiliateQueryTransactionByUid($params = array()) {
+        return $this->request('affiliate/queryTransactionByUid', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAffiliateQueryTransactionByTime($params = array()) {
+        return $this->request('affiliate/queryTransactionByTime', 'private', 'GET', $params, null, null, array("cost" => 30));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetAffiliateQueryKumining($params = array()) {
+        return $this->request('affiliate/queryKumining', 'private', 'GET', $params, null, null, array("cost" => 30));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -3760,6 +3856,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function brokerGetBrokerNdMarkUp($params = array()) {
+        return $this->request('broker/nd/mark-up', 'broker', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function brokerGetAssetNdbrokerDepositList($params = array()) {
         return $this->request('asset/ndbroker/deposit/list', 'broker', 'GET', $params, null, null, array("cost" => 2));
     }
@@ -3804,6 +3906,12 @@ abstract class kucoinfutures extends \ccxt\async\kucoin {
      */
     public function brokerPostBrokerNdAccountUpdateApikey($params = array()) {
         return $this->request('broker/nd/account/update-apikey', 'broker', 'POST', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function brokerPostBrokerNdMarkUp($params = array()) {
+        return $this->request('broker/nd/mark-up', 'broker', 'POST', $params, null, null, array("cost" => 6));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

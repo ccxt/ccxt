@@ -131,6 +131,7 @@ class btcbox extends Exchange {
                 'private' => array(
                     'post' => array(
                         'balance' => array( 'cost' => 1 ),
+                        'order_history' => array( 'cost' => 1 ),
                         'trade_add' => array( 'cost' => 1 ),
                         'trade_cancel' => array( 'cost' => 1 ),
                         'trade_list' => array( 'cost' => 1 ),

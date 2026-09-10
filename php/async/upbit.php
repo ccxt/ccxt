@@ -156,6 +156,11 @@ class upbit extends Exchange {
                         'travel_rule/vasps' => array( 'cost' => 0.67 ),
                         'status/wallet' => array( 'cost' => 0.67 ),
                         'api_keys' => array( 'cost' => 0.67 ), // Upbit KR only
+                        'pockets' => array( 'cost' => 0.67 ),
+                        'pockets/api_keys' => array( 'cost' => 0.67 ),
+                        'pockets/assets' => array( 'cost' => 0.67 ),
+                        'pockets/universal_transfers' => array( 'cost' => 0.67 ),
+                        'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'post' => array(
                         'orders' => array( 'cost' => 2.5 ), // RPS => 8
@@ -167,6 +172,8 @@ class upbit extends Exchange {
                         'deposits/generate_coin_address' => array( 'cost' => 0.67 ),
                         'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers' => array( 'cost' => 0.67 ),
+                        'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 0.67 ),

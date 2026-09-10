@@ -34,6 +34,12 @@ abstract class nado extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function gateway_public_post_edge_query($params = array()) {
+        return $this->request('edge/query', array('gateway', 'public'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function gateway_private_post_execute($params = array()) {
         return $this->request('execute', array('gateway', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -82,6 +88,12 @@ abstract class nado extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function archivev2_public_get_symbols($params = array()) {
+        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function trigger_private_post_execute($params = array()) {
         return $this->request('execute', array('trigger', 'private'), 'POST', $params, null, null, array("cost" => 1));
     }
@@ -114,6 +126,12 @@ abstract class nado extends \ccxt\async\Exchange {
      */
     public function gatewayPublicPostQuery($params = array()) {
         return $this->request('query', array('gateway', 'public'), 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function gatewayPublicPostEdgeQuery($params = array()) {
+        return $this->request('edge/query', array('gateway', 'public'), 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -162,6 +180,12 @@ abstract class nado extends \ccxt\async\Exchange {
      */
     public function archiveV2PublicGetTrades($params = array()) {
         return $this->request('trades', array('archiveV2', 'public'), 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function archiveV2PublicGetSymbols($params = array()) {
+        return $this->request('symbols', array('archiveV2', 'public'), 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

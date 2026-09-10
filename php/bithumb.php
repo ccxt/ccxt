@@ -169,6 +169,8 @@ class bithumb extends Exchange {
                         'v1/orders/chance' => array( 'cost' => 1 ),
                         'v1/order' => array( 'cost' => 1 ),
                         'v1/orders' => array( 'cost' => 1 ),
+                        'v2/orders/pending' => array( 'cost' => 1 ),
+                        'v2/orders/history' => array( 'cost' => 1 ),
                         'v1/twap' => array( 'cost' => 1 ),
                         'v1/withdraws' => array( 'cost' => 1 ),
                         'v1/withdraws/krw' => array( 'cost' => 1 ),
@@ -204,6 +206,7 @@ class bithumb extends Exchange {
                         'v2/orders' => array( 'cost' => 1 ),
                         'v2/orders/batch' => array( 'cost' => 6 ), // max 20 requests per second
                         'v2/orders/cancel' => array( 'cost' => 6 ), // max 20 requests per second
+                        'v2/orders/search' => array( 'cost' => 1 ),
                         'v1/twap' => array( 'cost' => 1 ),
                         'v1/withdraws/coin' => array( 'cost' => 1 ),
                         'v1/withdraws/krw' => array( 'cost' => 1 ),

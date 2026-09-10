@@ -109,9 +109,22 @@ class grvt extends Exchange {
             'api' => array(
                 // RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge' => array(
+                    'get' => array(
+                        'api/v1/deposit/addresses' => array( 'cost' => $rlOthers ),
+                        'api/v1/bridge/withdrawal-info' => array( 'cost' => $rlOthers ),
+                        'api/v1/bridge/withdrawal-status' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/epochs' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/points' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/data' => array( 'cost' => $rlOthers ),
+                        'api/v1/referral/indirect_data' => array( 'cost' => $rlOthers ),
+                    ),
                     'post' => array(
                         'auth/api_key/login' => array( 'cost' => 100 ),
                         'auth/wallet/login' => array( 'cost' => 100 ),
+                        'auth/builder/authorize' => array( 'cost' => 100 ),
+                        'api/v1/deposit/generate-address' => array( 'cost' => 100 ),
+                        'api/v1/bridge/withdrawal-quote' => array( 'cost' => 100 ),
+                        'api/v1/bridge/withdraw' => array( 'cost' => 100 ),
                     ),
                 ),
                 'publicMarket' => array(
@@ -128,6 +141,8 @@ class grvt extends Exchange {
                         'full/v1/trade_history' => array( 'cost' => 12 ),
                         'full/v1/kline' => array( 'cost' => 12 ),
                         'full/v1/funding' => array( 'cost' => 12 ),
+                        'full/v1/supported_assets' => array( 'cost' => 12 ),
+                        'full/v1/get_all_collateral_asset_info' => array( 'cost' => 12 ),
                     ),
                 ),
                 'privateTrading' => array(
@@ -168,6 +183,16 @@ class grvt extends Exchange {
                         'full/v1/authorize_builder' => array( 'cost' => $rlOthers ), // https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders' => array( 'cost' => $rlOthers ),
                         'full/v1/builder_fill_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/create_rfq' => array( 'cost' => 5 ),
+                        'full/v1/cancel_rfq' => array( 'cost' => 5 ),
+                        'full/v1/ecn_from_broker' => array( 'cost' => $rlOthers ),
+                        'full/v2/bulk_orders' => array( 'cost' => 50 ),
+                        'full/v1/position_history' => array( 'cost' => $rlOrders ),
+                        'full/v1/interest_payment_history' => array( 'cost' => $rlOthers ),
+                        'full/v1/get_collateral_preference' => array( 'cost' => $rlOthers ),
+                        'full/v1/spot_account_summary' => array( 'cost' => $rlOthers ),
+                        'full/v1/set_indicative_prices' => array( 'cost' => $rlOthers ),
+                        'full/v1/withdrawal_fee' => array( 'cost' => 100 ),
                     ),
                 ),
             ),

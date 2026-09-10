@@ -294,6 +294,8 @@ class woo extends Exchange {
                             'asset/wallet/withdraw' => array( 'cost' => 60 ), // 10/60s
                             'spotMargin/leverage' => array( 'cost' => 120 ), // 5/60s
                             'spotMargin/interestRepay' => array( 'cost' => 60 ), // 10/60s
+                            'futures/defaultMarginMode/reset' => array( 'cost' => 60 ),
+                            'isolatedMargin/margin' => array( 'cost' => 60 ),
                             'algo/order' => array( 'cost' => 5 ),
                             'convert/rft' => array( 'cost' => 60 ),
                         ),
@@ -302,6 +304,8 @@ class woo extends Exchange {
                             'trade/algoOrder' => array( 'cost' => 2 ), // 5/1s
                             'futures/leverage' => array( 'cost' => 60 ), // 10/60s
                             'futures/positionMode' => array( 'cost' => 120 ), // 5/60s
+                            'futures/defaultMarginMode' => array( 'cost' => 60 ),
+                            'futures/defaultMarginMode/{symbol}' => array( 'cost' => 60 ),
                             'order/{oid}' => array( 'cost' => 2 ),
                             'order/client/{client_order_id}' => array( 'cost' => 2 ),
                             'algo/order/{oid}' => array( 'cost' => 2 ),
@@ -317,6 +321,7 @@ class woo extends Exchange {
                             'algo/orders/pending' => array( 'cost' => 1 ),
                             'algo/orders/pending/{symbol}' => array( 'cost' => 1 ),
                             'orders/pending' => array( 'cost' => 1 ),
+                            'asset/wallet/withdraw/{withdrawId}' => array( 'cost' => 60 ),
                         ),
                     ),
                 ),

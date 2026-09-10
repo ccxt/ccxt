@@ -100,6 +100,7 @@ class nado extends Exchange {
                         ),
                         'post' => array(
                             'query' => array( 'cost' => 1 ),
+                            'edge/query' => array( 'cost' => 1 ),
                         ),
                     ),
                     'private' => array(
@@ -128,6 +129,7 @@ class nado extends Exchange {
                             'tickers' => array( 'cost' => 1 ),
                             'contracts' => array( 'cost' => 1 ),
                             'trades' => array( 'cost' => 1 ),
+                            'symbols' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),

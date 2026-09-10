@@ -202,6 +202,7 @@ class mexc extends Exchange {
                         'get' => array(
                             'kyc/status' => array( 'cost' => 1 ),
                             'uid' => array( 'cost' => 1 ),
+                            'apiKeyInfo' => array( 'cost' => 1 ),
                             'order' => array( 'cost' => 2 ),
                             'openOrders' => array( 'cost' => 3 ),
                             'allOrders' => array( 'cost' => 10 ),
@@ -264,6 +265,7 @@ class mexc extends Exchange {
                             'sub-account/margin' => array( 'cost' => 1 ),
                             'batchOrders' => array( 'cost' => 10 ),
                             'strategy/group' => array( 'cost' => 20 ),
+                            'strategy/group/uid' => array( 'cost' => 20 ),
                             'capital/withdraw/apply' => array( 'cost' => 1 ),
                             'capital/withdraw' => array( 'cost' => 1 ),
                             'capital/transfer' => array( 'cost' => 50 ),

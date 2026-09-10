@@ -224,6 +224,14 @@ class bingx extends Exchange {
                                 'market/depth' => array( 'cost' => 1 ),
                                 'market/kline' => array( 'cost' => 1 ),
                                 'ticker/price' => array( 'cost' => 1 ),
+                                'quote/bookTicker' => array( 'cost' => 1 ),
+                                'quote/depth' => array( 'cost' => 1 ),
+                                'quote/historicalKlines' => array( 'cost' => 1 ),
+                                'quote/historicalTrades' => array( 'cost' => 1 ),
+                                'quote/klines' => array( 'cost' => 1 ),
+                                'quote/price' => array( 'cost' => 1 ),
+                                'quote/ticker' => array( 'cost' => 1 ),
+                                'quote/trades' => array( 'cost' => 1 ),
                             ),
                         ),
                     ),
@@ -311,6 +319,7 @@ class bingx extends Exchange {
                                 'trade/allOrders' => array( 'cost' => 2 ),
                                 'trade/allFillOrders' => array( 'cost' => 2 ),
                                 'trade/fillHistory' => array( 'cost' => 2 ),
+                                'trade/positionHistory' => array( 'cost' => 2 ),
                                 'user/income/export' => array( 'cost' => 2 ),
                                 'user/commissionRate' => array( 'cost' => 2 ),
                                 'quote/bookTicker' => array( 'cost' => 1 ),
@@ -382,6 +391,13 @@ class bingx extends Exchange {
                             'delete' => array(
                                 'trade/allOpenOrders' => array( 'cost' => 2 ), // post method in doc
                                 'trade/cancelOrder' => array( 'cost' => 2 ),
+                            ),
+                        ),
+                    ),
+                    'v2' => array(
+                        'private' => array(
+                            'post' => array(
+                                'trade/order' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),
@@ -544,6 +560,21 @@ class bingx extends Exchange {
                                 'asset/partnerData' => array( 'cost' => 5 ),
                                 'commissionDataList/referralCode' => array( 'cost' => 5 ),
                                 'account/superiorCheck' => array( 'cost' => 5 ),
+                            ),
+                        ),
+                    ),
+                ),
+                'wealth' => array(
+                    'v1' => array(
+                        'private' => array(
+                            'get' => array(
+                                'product/dual-currency/pre-order' => array( 'cost' => 2 ),
+                                'product/dual-currency/position' => array( 'cost' => 2 ),
+                                'product/dual-currency/order-records' => array( 'cost' => 2 ),
+                            ),
+                            'post' => array(
+                                'product/dual-currency/invest-asset-list' => array( 'cost' => 2 ),
+                                'product/dual-currency/order' => array( 'cost' => 2 ),
                             ),
                         ),
                     ),

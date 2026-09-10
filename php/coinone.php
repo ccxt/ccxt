@@ -209,6 +209,8 @@ class coinone extends Exchange {
                         'transaction/krw/history' => array( 'cost' => 1 ),
                         'transaction/coin/history' => array( 'cost' => 1 ),
                         'transaction/coin/withdrawal/limit' => array( 'cost' => 1 ),
+                        'event/order-reward/programs' => array( 'cost' => 1 ),
+                        'event/order-reward/history' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

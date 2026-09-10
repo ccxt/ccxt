@@ -266,6 +266,8 @@ class coinsph extends Exchange {
                         'openapi/fiat/v1/support-channel' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/cash-out' => array( 'cost' => 1 ),
                         'openapi/fiat/v1/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v2/history' => array( 'cost' => 1 ),
+                        'openapi/fiat/v1/cancel_qr_code' => array( 'cost' => 1 ),
                         'openapi/migration/v4/sellorder' => array( 'cost' => 1 ),
                         'openapi/migration/v4/validate-field' => array( 'cost' => 1 ),
                         'openapi/transfer/v3/transfers' => array( 'cost' => 1 ),

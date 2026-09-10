@@ -274,6 +274,13 @@ class aster extends Exchange {
                         // builder
                         'v3/agent' => array( 'cost' => 1 ),
                         'v3/builder' => array( 'cost' => 1 ),
+                        'v3/builder/userTrades' => array( 'cost' => 5 ),
+                        'v3/builder/approvedUserList' => array( 'cost' => 5 ),
+                        'v3/stpMode' => array( 'cost' => 30 ),
+                        'v3/asset/migrateUser/history' => array( 'cost' => 50 ),
+                        // strategy
+                        'v3/strategyOpenOrder' => array( 'cost' => 5 ),
+                        'v3/strategyHistoryOrder' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         'v1/positionSide/dual' => array( 'cost' => 1 ),
@@ -307,6 +314,13 @@ class aster extends Exchange {
                         'v3/updateAgent' => array( 'cost' => 1 ),
                         'v3/approveBuilder' => array( 'cost' => 1 ),
                         'v3/updateBuilder' => array( 'cost' => 1 ),
+                        'v3/registerAndApproveAgent' => array( 'cost' => 50 ),
+                        'v3/asset/migrateUser' => array( 'cost' => 50 ),
+                        'v3/chase' => array( 'cost' => 1 ),
+                        'v3/stpMode' => array( 'cost' => 1 ),
+                        // strategy
+                        'v3/placeStrategyOrder' => array( 'cost' => 50 ),
+                        'v3/updateStrategyOrder' => array( 'cost' => 50 ),
                     ),
                     'put' => array(
                         'v1/listenKey' => array( 'cost' => 1 ),
@@ -319,6 +333,8 @@ class aster extends Exchange {
                         'v3/allOpenOrders' => array( 'cost' => 1 ),
                         'v1/batchOrders' => array( 'cost' => 1 ),
                         'v3/batchOrders' => array( 'cost' => 1 ),
+                        'v3/guardedCancelOrder' => array( 'cost' => 1 ),
+                        'v3/guardedBatchOrders' => array( 'cost' => 1 ),
                         'v3/mmp' => array( 'cost' => 1 ),
                         'v1/listenKey' => array( 'cost' => 1 ),
                         'v3/listenKey' => array( 'cost' => 1 ),

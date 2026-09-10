@@ -152,6 +152,7 @@ class bitbank extends Exchange {
                         'user/assets' => array( 'cost' => 1 ),
                         'user/spot/order' => array( 'cost' => 1 ),
                         'user/spot/active_orders' => array( 'cost' => 1 ),
+                        'user/margin/status' => array( 'cost' => 1 ),
                         'user/margin/positions' => array( 'cost' => 1 ),
                         'user/spot/trade_history' => array( 'cost' => 1 ),
                         'user/deposit_history' => array( 'cost' => 1 ),

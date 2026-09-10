@@ -187,6 +187,7 @@ class apex extends Exchange {
                         'v3/open-orders' => array( 'cost' => 1 ),
                         'v3/transfers' => array( 'cost' => 1 ),
                         'v3/transfer' => array( 'cost' => 1 ),
+                        'v3/stock/account' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v3/delete-open-orders' => array( 'cost' => 1 ),
@@ -196,6 +197,10 @@ class apex extends Exchange {
                         'v3/set-initial-margin-rate' => array( 'cost' => 1 ),
                         'v3/transfer-out' => array( 'cost' => 1 ),
                         'v3/contract-transfer-out' => array( 'cost' => 1 ),
+                        'v3/contract-transfer-to' => array( 'cost' => 1 ),
+                        'v3/submit-withdraw-claim' => array( 'cost' => 1 ),
+                        'v3/stock/register-account' => array( 'cost' => 1 ),
+                        'v3/stock/generate-api' => array( 'cost' => 1 ),
                     ),
                 ),
             ),

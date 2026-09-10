@@ -242,6 +242,10 @@ class gate extends Exchange {
                             '{settle}/index_constituents/{index}' => array( 'cost' => 1 ),
                             '{settle}/liq_orders' => array( 'cost' => 1 ),
                             '{settle}/risk_limit_tiers' => array( 'cost' => 1 ),
+                            '{settle}/adl_risk_states' => array( 'cost' => 1 ),
+                        ),
+                        'post' => array(
+                            '{settle}/funding_rates' => array( 'cost' => 1 ),
                         ),
                     ),
                     'delivery' => array(
@@ -278,6 +282,9 @@ class gate extends Exchange {
                             'uni/currencies/{currency}' => array( 'cost' => 1 ),
                             'dual/investment_plan' => array( 'cost' => 1 ),
                             'structured/products' => array( 'cost' => 1 ),
+                            'dual/project-recommend' => array( 'cost' => 1 ),
+                            'fixed-term/product' => array( 'cost' => 1 ),
+                            'fixed-term/product/{asset}/list' => array( 'cost' => 1 ),
                         ),
                     ),
                     'loan' => array(
@@ -320,6 +327,7 @@ class gate extends Exchange {
                             'small_balance_history' => array( 'cost' => 1 ),
                             'push' => array( 'cost' => 1 ),
                             'getLowCapExchangeList' => array( 'cost' => 1 ),
+                            'transfers' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'transfers' => array( 'cost' => 2.5 ), // 8r/s cost = 20 / 8 = 2.5
@@ -365,6 +373,8 @@ class gate extends Exchange {
                             'loan_margin_tiers' => array( 'cost' => 20 / 15 ),
                             'leverage/user_currency_config' => array( 'cost' => 20 / 15 ),
                             'leverage/user_currency_setting' => array( 'cost' => 20 / 15 ),
+                            'delta_neutral' => array( 'cost' => 20 / 15 ),
+                            'estimated_quick_repayment' => array( 'cost' => 20 / 15 ),
                             'account_mode' => array( 'cost' => 20 / 15 ), // deprecated
                         ),
                         'post' => array(
@@ -372,6 +382,9 @@ class gate extends Exchange {
                             'portfolio_calculator' => array( 'cost' => 20 / 15 ),
                             'leverage/user_currency_setting' => array( 'cost' => 20 / 15 ),
                             'collateral_currencies' => array( 'cost' => 20 / 15 ),
+                            'delta_neutral' => array( 'cost' => 20 / 15 ),
+                            'leverage/user_setting' => array( 'cost' => 20 / 15 ),
+                            'quick_repayment' => array( 'cost' => 20 / 15 ),
                             'account_mode' => array( 'cost' => 20 / 15 ), // deprecated
                         ),
                         'put' => array(
@@ -391,6 +404,8 @@ class gate extends Exchange {
                             'my_trades' => array( 'cost' => 1 ),
                             'price_orders' => array( 'cost' => 1 ),
                             'price_orders/{order_id}' => array( 'cost' => 1 ),
+                            'pov_orders' => array( 'cost' => 1 ),
+                            'pov_orders/{order_id}' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'batch_orders' => array( 'cost' => 0.4 ),
@@ -400,12 +415,15 @@ class gate extends Exchange {
                             'countdown_cancel_all' => array( 'cost' => 20 / 75 ),
                             'amend_batch_orders' => array( 'cost' => 0.4 ),
                             'price_orders' => array( 'cost' => 0.4 ),
+                            'pov_orders' => array( 'cost' => 0.4 ),
                         ),
                         'delete' => array(
                             'orders' => array( 'cost' => 20 / 75 ),
                             'orders/{order_id}' => array( 'cost' => 20 / 75 ),
                             'price_orders' => array( 'cost' => 20 / 75 ),
                             'price_orders/{order_id}' => array( 'cost' => 20 / 75 ),
+                            'pov_orders' => array( 'cost' => 20 / 75 ),
+                            'pov_orders/{order_id}' => array( 'cost' => 20 / 75 ),
                         ),
                         'patch' => array(
                             'orders/{order_id}' => array( 'cost' => 0.4 ),
@@ -489,6 +507,11 @@ class gate extends Exchange {
                             '{settle}/risk_limit_table' => array( 'cost' => 1 ),
                             '{settle}/price_orders' => array( 'cost' => 1 ),
                             '{settle}/price_orders/{order_id}' => array( 'cost' => 1 ),
+                            '{settle}/autoorder/v1/trail/list' => array( 'cost' => 1 ),
+                            '{settle}/autoorder/v1/trail/detail' => array( 'cost' => 1 ),
+                            '{settle}/autoorder/v1/trail/change_log' => array( 'cost' => 1 ),
+                            '{settle}/autoorder/v1/chase/list' => array( 'cost' => 1 ),
+                            '{settle}/autoorder/v1/chase/detail' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             '{settle}/positions/{contract}/margin' => array( 'cost' => 1 ),
@@ -509,6 +532,13 @@ class gate extends Exchange {
                             '{settle}/batch_amend_orders' => array( 'cost' => 0.4 ),
                             '{settle}/bbo_orders' => array( 'cost' => 0.4 ),
                             '{settle}/price_orders' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/trail/create' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/trail/stop' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/trail/stop_all' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/trail/update' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/chase/create' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/chase/stop' => array( 'cost' => 0.4 ),
+                            '{settle}/autoorder/v1/chase/stop_all' => array( 'cost' => 0.4 ),
                         ),
                         'put' => array(
                             '{settle}/orders/{order_id}' => array( 'cost' => 1 ),
@@ -569,6 +599,9 @@ class gate extends Exchange {
                             'mmp' => array( 'cost' => 20 / 15 ),
                             'mmp/reset' => array( 'cost' => 20 / 15 ),
                         ),
+                        'put' => array(
+                            'orders/{order_id}' => array( 'cost' => 20 / 15 ),
+                        ),
                         'delete' => array(
                             'orders' => array( 'cost' => 20 / 15 ),
                             'orders/{order_id}' => array( 'cost' => 20 / 15 ),
@@ -591,6 +624,15 @@ class gate extends Exchange {
                             'staking/order_list' => array( 'cost' => 20 / 15 ),
                             'staking/award_list' => array( 'cost' => 20 / 15 ),
                             'staking/assets' => array( 'cost' => 20 / 15 ),
+                            'dual/order-refund-preview' => array( 'cost' => 20 / 15 ),
+                            'fixed-term/user/lend' => array( 'cost' => 20 / 15 ),
+                            'fixed-term/user/history' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/coins' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/config' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/orders' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/detail' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/list_info' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/records' => array( 'cost' => 20 / 15 ),
                             'uni/currencies' => array( 'cost' => 20 / 15 ), // deprecated
                             'uni/currencies/{currency}' => array( 'cost' => 20 / 15 ), // deprecated
                         ),
@@ -600,6 +642,15 @@ class gate extends Exchange {
                             'dual/orders' => array( 'cost' => 20 / 15 ),
                             'structured/orders' => array( 'cost' => 20 / 15 ),
                             'staking/swap' => array( 'cost' => 20 / 15 ),
+                            'dual/order-refund' => array( 'cost' => 20 / 15 ),
+                            'dual/modify-order-reinvest' => array( 'cost' => 20 / 15 ),
+                            'fixed-term/user/lend' => array( 'cost' => 20 / 15 ),
+                            'fixed-term/user/pre-redeem' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/min_invest_amount' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/add_position' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/create' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/stop' => array( 'cost' => 20 / 15 ),
+                            'autoinvest/plans/update' => array( 'cost' => 20 / 15 ),
                         ),
                         'put' => array(
                             'uni/interest_reinvest' => array( 'cost' => 20 / 15 ), // deprecated
@@ -666,6 +717,7 @@ class gate extends Exchange {
                             'broker/transaction_history' => array( 'cost' => 20 / 15 ),
                             'user/info' => array( 'cost' => 20 / 15 ),
                             'user/sub_relation' => array( 'cost' => 20 / 15 ),
+                            'partner/data/aggregated' => array( 'cost' => 20 / 15 ),
                         ),
                     ),
                     'otc' => array(
@@ -674,6 +726,8 @@ class gate extends Exchange {
                             'order/list' => array( 'cost' => 1 ),
                             'stable_coin/order/list' => array( 'cost' => 1 ),
                             'order/detail' => array( 'cost' => 1 ),
+                            'bank/list' => array( 'cost' => 1 ),
+                            'bank/bank_supplement_checklist' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'quote' => array( 'cost' => 1 ),
@@ -681,6 +735,12 @@ class gate extends Exchange {
                             'stable_coin/order/create' => array( 'cost' => 1 ),
                             'order/paid' => array( 'cost' => 1 ),
                             'order/cancel' => array( 'cost' => 1 ),
+                            'bank/create' => array( 'cost' => 1 ),
+                            'bank/delete' => array( 'cost' => 1 ),
+                            'bank/set_default' => array( 'cost' => 1 ),
+                            'bank/personal/bank_supplement' => array( 'cost' => 1 ),
+                            'bank/enterprise/bank_supplement' => array( 'cost' => 1 ),
+                            'upload/pre_upload' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),

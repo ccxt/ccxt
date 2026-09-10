@@ -177,6 +177,7 @@ class kucoin extends Exchange {
                         'margin/config' => array( 'cost' => 25 ),
                         'announcements' => array( 'cost' => 20 ),
                         'margin/collateralRatio' => array( 'cost' => 10 ),
+                        'margin/available-inventory' => array( 'cost' => 10 ),
                         // convert
                         'convert/symbol' => array( 'cost' => 5 ),
                         'convert/currencies' => array( 'cost' => 5 ),
@@ -263,6 +264,7 @@ class kucoin extends Exchange {
                         'margin/borrow' => array( 'cost' => 15 ),
                         'margin/repay' => array( 'cost' => 15 ),
                         'margin/interest' => array( 'cost' => 20 ),
+                        'margin/borrowRate' => array( 'cost' => 20 ),
                         'project/list' => array( 'cost' => 10 ),
                         'project/marketInterestRate' => array( 'cost' => 5 ),
                         'redeem/orders' => array( 'cost' => 10 ),
@@ -282,6 +284,11 @@ class kucoin extends Exchange {
                         'convert/limit/orders' => array( 'cost' => 5 ),
                         // affiliate
                         'affiliate/inviter/statistics' => array( 'cost' => 30 ),
+                        'affiliate/queryInvitees' => array( 'cost' => 30 ),
+                        'affiliate/queryMyCommission' => array( 'cost' => 30 ),
+                        'affiliate/queryTransactionByUid' => array( 'cost' => 30 ),
+                        'affiliate/queryTransactionByTime' => array( 'cost' => 30 ),
+                        'affiliate/queryKumining' => array( 'cost' => 30 ),
                     ),
                     'post' => array(
                         // account
@@ -491,6 +498,7 @@ class kucoin extends Exchange {
                         'broker/nd/account' => array( 'cost' => 4 ),
                         'broker/nd/account/apikey' => array( 'cost' => 4 ),
                         'broker/nd/rebase/download' => array( 'cost' => 4 ),
+                        'broker/nd/mark-up' => array( 'cost' => 4 ),
                         'asset/ndbroker/deposit/list' => array( 'cost' => 2 ),
                         'broker/nd/transfer/detail' => array( 'cost' => 2 ),
                         'broker/nd/deposit/detail' => array( 'cost' => 2 ),
@@ -501,6 +509,7 @@ class kucoin extends Exchange {
                         'broker/nd/account' => array( 'cost' => 6 ),
                         'broker/nd/account/apikey' => array( 'cost' => 6 ),
                         'broker/nd/account/update-apikey' => array( 'cost' => 6 ),
+                        'broker/nd/mark-up' => array( 'cost' => 6 ),
                     ),
                     'delete' => array(
                         'broker/nd/account/apikey' => array( 'cost' => 6 ),
@@ -947,6 +956,7 @@ class kucoin extends Exchange {
                             'symbols' => 'v2',
                             'mark-price/all-symbols' => 'v3',
                             'announcements' => 'v3',
+                            'margin/available-inventory' => 'v3',
                         ),
                     ),
                     'private' => array(
@@ -988,6 +998,7 @@ class kucoin extends Exchange {
                             'margin/borrow' => 'v3',
                             'margin/repay' => 'v3',
                             'margin/interest' => 'v3',
+                            'margin/borrowRate' => 'v3',
                             'project/list' => 'v3',
                             'project/marketInterestRate' => 'v3',
                             'redeem/orders' => 'v3',
@@ -995,6 +1006,11 @@ class kucoin extends Exchange {
                             'migrate/user/account/status' => 'v3',
                             'margin/symbols' => 'v3',
                             'affiliate/inviter/statistics' => 'v2',
+                            'affiliate/queryInvitees' => 'v2',
+                            'affiliate/queryMyCommission' => 'v2',
+                            'affiliate/queryTransactionByUid' => 'v2',
+                            'affiliate/queryTransactionByTime' => 'v2',
+                            'affiliate/queryKumining' => 'v2',
                             'asset/ndbroker/deposit/list' => 'v1',
                         ),
                         'POST' => array(

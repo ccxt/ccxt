@@ -219,6 +219,10 @@ class bitso extends Exchange {
                         'orders/{oid}' => array( 'cost' => 1 ),
                         'orders/all' => array( 'cost' => 1 ),
                     ),
+                    'patch' => array(
+                        'orders' => array( 'cost' => 1 ),
+                        'orders/{oid}' => array( 'cost' => 1 ),
+                    ),
                 ),
             ),
             'features' => array(

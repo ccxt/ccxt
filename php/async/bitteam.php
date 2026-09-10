@@ -193,6 +193,7 @@ class bitteam extends Exchange {
                         'trade/api/pairs' => array( 'cost' => 1 ), // not unified
                         'trade/api/pairs/precisions' => array( 'cost' => 1 ), // not unified
                         'trade/api/rates' => array( 'cost' => 1 ), // not unified
+                        'trade/api/stats' => array( 'cost' => 1 ), // not unified
                         'trade/api/trade/{id}' => array( 'cost' => 1 ), // not unified
                         'trade/api/trades' => array( 'cost' => 1 ), // not unified
                         'trade/api/ccxt/pairs' => array( 'cost' => 1 ),

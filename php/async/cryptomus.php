@@ -174,6 +174,7 @@ class cryptomus extends Exchange {
                     'get' => array(
                         'v2/user-api/exchange/markets' => array( 'cost' => 1 ), // done
                         'v2/user-api/exchange/market/price' => array( 'cost' => 1 ), // not used
+                        'v2/user-api/exchange/markets/price' => array( 'cost' => 1 ),
                         'v1/exchange/market/assets' => array( 'cost' => 1 ), // done
                         'v1/exchange/market/order-book/{currencyPair}' => array( 'cost' => 1 ), // done
                         'v1/exchange/market/tickers' => array( 'cost' => 1 ), // done
@@ -189,13 +190,27 @@ class cryptomus extends Exchange {
                         'v2/user-api/payment/services' => array( 'cost' => 1 ),
                         'v2/user-api/payout/services' => array( 'cost' => 1 ),
                         'v2/user-api/transaction/list' => array( 'cost' => 1 ),
+                        'v2/user-api/balance' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/direction-list' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/order-list' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/balance' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/currencies' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/packages' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request/{id}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v2/user-api/exchange/orders' => array( 'cost' => 1 ), // done
                         'v2/user-api/exchange/orders/market' => array( 'cost' => 1 ), // done
+                        'v2/user-api/convert' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/calculate' => array( 'cost' => 1 ),
+                        'v2/user-api/convert/limit' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request' => array( 'cost' => 1 ),
+                        'v2/user-api/aml/check/request/{id}/report/send' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
                         'v2/user-api/exchange/orders/{orderId}' => array( 'cost' => 1 ), // done
+                        'v2/user-api/convert/{orderUuid}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
