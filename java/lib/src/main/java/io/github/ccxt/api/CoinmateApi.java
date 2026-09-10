@@ -723,4 +723,26 @@ public class CoinmateApi extends Exchange
         return this.callAsync ("privatePostBankWireWithdrawal", optionalArgs);
     }
 
+    /**
+     * Calls the privatePostLightningDeposit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLightningDeposit (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLightningDeposit", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostLightningWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostLightningWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostLightningWithdraw", optionalArgs);
+    }
+
 }

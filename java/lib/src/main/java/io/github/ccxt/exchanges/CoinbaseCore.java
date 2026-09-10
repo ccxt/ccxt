@@ -263,6 +263,9 @@ public class CoinbaseCore extends CoinbaseApi
                             put( "user/auth", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10.6 );
                             }} );
+                            put( "subscriptions/coinbase-one", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10.6 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "accounts", new java.util.HashMap<String, Object>() {{
@@ -408,6 +411,15 @@ public class CoinbaseCore extends CoinbaseApi
                             put( "brokerage/cfm/sweeps", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "brokerage/cfm/intraday/current_margin_window", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "brokerage/cfm/intraday/margin_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "brokerage/intx/balances/{portfolio_uuid}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "brokerage/intx/portfolio/{portfolio_uuid}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -458,7 +470,13 @@ public class CoinbaseCore extends CoinbaseApi
                             put( "brokerage/cfm/sweeps/schedule", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "brokerage/cfm/intraday/margin_setting", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "brokerage/intx/allocate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "brokerage/intx/multi_asset_collateral", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "brokerage/orders/close_position", new java.util.HashMap<String, Object>() {{

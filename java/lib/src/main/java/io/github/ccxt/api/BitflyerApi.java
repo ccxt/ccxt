@@ -130,6 +130,17 @@ public class BitflyerApi extends Exchange
     }
 
     /**
+     * Calls the publicGetGetfundingratehistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetGetfundingratehistory (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetGetfundingratehistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetGetpermissions endpoint.
      *
      * @param optionalArgs the request parameters

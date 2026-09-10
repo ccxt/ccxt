@@ -526,6 +526,12 @@ public class WooCore extends WooApi
                             put( "spotMargin/interestRepay", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
+                            put( "futures/defaultMarginMode/reset", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
+                            put( "isolatedMargin/margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
                             put( "algo/order", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 5 );
                             }} );
@@ -545,6 +551,12 @@ public class WooCore extends WooApi
                             }} );
                             put( "futures/positionMode", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "futures/defaultMarginMode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
+                            }} );
+                            put( "futures/defaultMarginMode/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
                             }} );
                             put( "order/{oid}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 2 );
@@ -586,6 +598,9 @@ public class WooCore extends WooApi
                             }} );
                             put( "orders/pending", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
+                            }} );
+                            put( "asset/wallet/withdraw/{withdrawId}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 60 );
                             }} );
                         }} );
                     }} );

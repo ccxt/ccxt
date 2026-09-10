@@ -141,6 +141,39 @@ public class CoinbaseexchangeApi extends Exchange
     }
 
     /**
+     * Calls the publicGetWrappedAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetWrappedAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetWrappedAssets", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetWrappedAssetsWrappedAssetId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetWrappedAssetsWrappedAssetId (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetWrappedAssetsWrappedAssetId", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetWrappedAssetsWrappedAssetIdConversionRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetWrappedAssetsWrappedAssetIdConversionRate (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetWrappedAssetsWrappedAssetIdConversionRate", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetAddressBook endpoint.
      *
      * @param optionalArgs the request parameters
@@ -149,6 +182,17 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAddressBook (Object... optionalArgs)
     {
         return this.callAsync ("privateGetAddressBook", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetAddressBookCounterparty endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetAddressBookCounterparty (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetAddressBookCounterparty", optionalArgs);
     }
 
     /**
@@ -471,6 +515,17 @@ public class CoinbaseexchangeApi extends Exchange
     }
 
     /**
+     * Calls the privateGetTravelRules endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTravelRules (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTravelRules", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetUsersSelfExchangeLimits endpoint.
      *
      * @param optionalArgs the request parameters
@@ -501,6 +556,17 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersSelfTrailingVolume (Object... optionalArgs)
     {
         return this.callAsync ("privateGetUsersSelfTrailingVolume", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUsersUserIdTradingVolumes endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUsersUserIdTradingVolumes (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUsersUserIdTradingVolumes", optionalArgs);
     }
 
     /**
@@ -669,6 +735,61 @@ public class CoinbaseexchangeApi extends Exchange
     }
 
     /**
+     * Calls the privateGetLoansOptions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetLoansOptions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetLoansOptions", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWrappedAssetsRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWrappedAssetsRedeem (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWrappedAssetsRedeem", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWrappedAssetsRedeemRedeemId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWrappedAssetsRedeemRedeemId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWrappedAssetsRedeemRedeemId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWrappedAssetsStakeWrap endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWrappedAssetsStakeWrap (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWrappedAssetsStakeWrap", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWrappedAssetsStakeWrapStakeWrapId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetWrappedAssetsStakeWrapStakeWrapId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWrappedAssetsStakeWrapStakeWrapId", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostConversions endpoint.
      *
      * @param optionalArgs the request parameters
@@ -710,6 +831,17 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCoinbaseAccountsIdAddresses (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCoinbaseAccountsIdAddresses", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAddressBook endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostAddressBook (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAddressBook", optionalArgs);
     }
 
     /**
@@ -812,6 +944,17 @@ public class CoinbaseexchangeApi extends Exchange
     }
 
     /**
+     * Calls the privatePostWithdrawalsCounterparty endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawalsCounterparty (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostWithdrawalsCounterparty", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostWithdrawalsCrypto endpoint.
      *
      * @param optionalArgs the request parameters
@@ -831,6 +974,61 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWithdrawalsPaymentMethod (Object... optionalArgs)
     {
         return this.callAsync ("privatePostWithdrawalsPaymentMethod", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTransfersTransferIdTravelRules endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTransfersTransferIdTravelRules (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTransfersTransferIdTravelRules", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTravelRules endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRules (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTravelRules", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUsersUserIdSettlementPreferences endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUsersUserIdSettlementPreferences (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUsersUserIdSettlementPreferences", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostWrappedAssetsRedeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWrappedAssetsRedeem (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostWrappedAssetsRedeem", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostWrappedAssetsStakeWrap endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostWrappedAssetsStakeWrap (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostWrappedAssetsStakeWrap", optionalArgs);
     }
 
     /**
@@ -900,6 +1098,28 @@ public class CoinbaseexchangeApi extends Exchange
     }
 
     /**
+     * Calls the privateDeleteAddressBookId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteAddressBookId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteAddressBookId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteTravelRulesId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteTravelRulesId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteTravelRulesId", optionalArgs);
+    }
+
+    /**
      * Calls the privatePutProfilesIdDeactivate endpoint.
      *
      * @param optionalArgs the request parameters
@@ -919,6 +1139,17 @@ public class CoinbaseexchangeApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutProfilesId (Object... optionalArgs)
     {
         return this.callAsync ("privatePutProfilesId", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePutAddressBookId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutAddressBookId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutAddressBookId", optionalArgs);
     }
 
 }

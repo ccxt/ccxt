@@ -116,6 +116,9 @@ public class ZebpayCore extends ZebpayApi
                             put( "v2/market/orderbook", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "v2/market/orderbook/ticker", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                             put( "v2/market/trades", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
@@ -153,6 +156,12 @@ public class ZebpayCore extends ZebpayApi
                             put( "v1/exchange/tradefees", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "v1/exchange/exchangeInfo", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v1/exchange/pairs", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                             put( "v1/market/orderBook", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
@@ -160,6 +169,9 @@ public class ZebpayCore extends ZebpayApi
                                 put( "cost", 10 );
                             }} );
                             put( "v1/market/markets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v1/market/marketInfo", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                             put( "v1/market/aggTrade", new java.util.HashMap<String, Object>() {{
@@ -188,6 +200,9 @@ public class ZebpayCore extends ZebpayApi
                                 put( "cost", 10 );
                             }} );
                             put( "v2/ex/tradefee", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v2/ex/myfee/{symbol}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                             put( "v2/ex/order", new java.util.HashMap<String, Object>() {{
@@ -220,6 +235,9 @@ public class ZebpayCore extends ZebpayApi
                             put( "v1/trade/order/open-orders", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "v1/trade/order/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                             put( "v1/trade/userLeverages", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
@@ -230,6 +248,9 @@ public class ZebpayCore extends ZebpayApi
                                 put( "cost", 10 );
                             }} );
                             put( "v1/trade/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v1/trade/transaction/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                         }} );
@@ -254,6 +275,14 @@ public class ZebpayCore extends ZebpayApi
                             }} );
                         }} );
                         put( "delete", new java.util.HashMap<String, Object>() {{
+                            put( "v1/trade/order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "v1/trade/order/all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                        }} );
+                        put( "patch", new java.util.HashMap<String, Object>() {{
                             put( "v1/trade/order", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );

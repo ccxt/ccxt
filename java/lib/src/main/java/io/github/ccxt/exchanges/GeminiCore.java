@@ -184,11 +184,68 @@ public class GeminiCore extends GeminiApi
                         put( "v1/riskstats/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "v1/prediction-markets/events", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/events/{eventTicker}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/events/{eventTicker}/strike", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/events/newly-listed", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/events/recently-settled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/events/upcoming", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/categories", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/volume/{date}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/volume/{date}/hourly", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/terms", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/maker-rebate/rates", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/liquidity-rewards/config", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v1/prediction-markets/liquidity-rewards/events", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "v1/perpetuals/fundingpaymentreport/records.xlsx", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/terms/status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/maker-rebate/summary/total", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/liquidity-rewards/summary/daily", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/liquidity-rewards/summary/total", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/network/{token}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/networks/{network}/assets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -371,6 +428,48 @@ public class GeminiCore extends GeminiApi
                             put( "cost", 1 );
                         }} );
                         put( "v1/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/order/batch", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/order/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/order/batch/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/orders/active", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/orders/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/positions/settled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/metrics/volume", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/terms/accept", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v1/prediction-markets/maker-rebate/payouts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/transfers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/withdraw/{network}/{ticker}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/withdraw/{network}/{ticker}/feeEstimate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

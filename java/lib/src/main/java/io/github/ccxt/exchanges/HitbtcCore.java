@@ -279,6 +279,9 @@ public class HitbtcCore extends HitbtcApi
                         put( "margin/history/clearing", new java.util.HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
+                        put( "margin-settings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
                         put( "futures/balance", new java.util.HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
@@ -318,10 +321,16 @@ public class HitbtcCore extends HitbtcApi
                         put( "futures/history/clearing", new java.util.HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
+                        put( "user/api-keys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
                         put( "wallet/balance", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
                         put( "wallet/balance/{currency}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "wallet/crypto/address/white-list", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
                         put( "wallet/crypto/address", new java.util.HashMap<String, Object>() {{
@@ -343,6 +352,9 @@ public class HitbtcCore extends HitbtcApi
                             put( "cost", 30 );
                         }} );
                         put( "wallet/crypto/fee/estimate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "wallet/crypto/fee/withdraw/hash", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
                         put( "wallet/airdrops", new java.util.HashMap<String, Object>() {{
@@ -404,6 +416,9 @@ public class HitbtcCore extends HitbtcApi
                         put( "wallet/crypto/fees/estimate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
+                        put( "wallet/crypto/fee/estimate/bulk", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
                         put( "wallet/airdrops/{id}/claim", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );
                         }} );
@@ -414,6 +429,12 @@ public class HitbtcCore extends HitbtcApi
                             put( "cost", 15 );
                         }} );
                         put( "sub-account/transfer", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
+                        put( "sub-account/transfer/sub-to-super", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
+                        put( "sub-account/transfer/sub-to-sub", new java.util.HashMap<String, Object>() {{
                             put( "cost", 15 );
                         }} );
                         put( "sub-account/acl", new java.util.HashMap<String, Object>() {{
@@ -470,8 +491,17 @@ public class HitbtcCore extends HitbtcApi
                         put( "margin/account/isolated/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "margin-settings/amm", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
+                        put( "margin/margin-settings/amr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
+                        }} );
                         put( "futures/account/isolated/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "futures/margin-settings/amr", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 15 );
                         }} );
                         put( "wallet/crypto/withdraw/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 30 );

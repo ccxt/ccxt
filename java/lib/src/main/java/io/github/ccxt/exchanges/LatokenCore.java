@@ -198,7 +198,13 @@ public class LatokenCore extends LatokenApi
                         put( "auth/account/currency/{currency}/{type}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "auth/account/filtered", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "auth/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "auth/order/active", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "auth/order/getOrder/{id}", new java.util.HashMap<String, Object>() {{
@@ -257,7 +263,13 @@ public class LatokenCore extends LatokenApi
                         put( "auth/order/cancelAll/{currency}/{quote}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "auth/order/cancelBulk", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "auth/order/place", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "auth/order/placeBulk", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "auth/spot/deposit", new java.util.HashMap<String, Object>() {{

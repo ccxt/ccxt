@@ -200,6 +200,12 @@ public class BitstampCore extends BitstampApi
                         put( "funding_rate_history/{pair}/", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "derivatives/market_hours/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "derivatives/market_hours/{market_symbol}/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
@@ -208,6 +214,18 @@ public class BitstampCore extends BitstampApi
                             put( "cost", 1 );
                         }} );
                         put( "contacts/{contact_uuid}/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel_rule/utxo/xpub_registrations/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel_rule/utxo/xpub_registrations/{registration_id}/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel_rule/address_verification/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto-transactions/deposits/", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "earn/subscriptions/", new java.util.HashMap<String, Object>() {{
@@ -249,6 +267,9 @@ public class BitstampCore extends BitstampApi
                             put( "cost", 1 );
                         }} );
                         put( "crypto-transactions/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto-transactions/deposits/{deposit_id}/reject/", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "open_order", new java.util.HashMap<String, Object>() {{
@@ -342,6 +363,12 @@ public class BitstampCore extends BitstampApi
                             put( "cost", 1 );
                         }} );
                         put( "get_max_order_amount/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "order_data/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account_order_data/", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "btc_withdrawal/", new java.util.HashMap<String, Object>() {{
@@ -831,6 +858,12 @@ public class BitstampCore extends BitstampApi
                             put( "cost", 1 );
                         }} );
                         put( "travel_rule/contacts/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel_rule/utxo/xpub_registrations/", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "travel_rule/utxo/xpub_registrations/{registration_id}/revoke/", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "earn/subscribe/", new java.util.HashMap<String, Object>() {{

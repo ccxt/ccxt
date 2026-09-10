@@ -335,6 +335,9 @@ public class HashkeyCore extends HashkeyApi
                         put( "api/v1/account/withdrawOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v1/affiliate/inviteeInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "api/v1/userDataStream", new java.util.HashMap<String, Object>() {{
@@ -395,6 +398,9 @@ public class HashkeyCore extends HashkeyApi
                         put( "api/v1/spot/cancelOrderByIds", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "api/v1/spot/cancelAllOpenOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "api/v1/futures/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -402,6 +408,9 @@ public class HashkeyCore extends HashkeyApi
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/futures/cancelOrderByIds", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v1/futures/cancelAllOpenOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "api/v1/userDataStream", new java.util.HashMap<String, Object>() {{

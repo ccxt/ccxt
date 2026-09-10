@@ -402,6 +402,24 @@ public class AsterCore extends AsterApi
                         put( "v3/builder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v3/builder/userTrades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v3/builder/approvedUserList", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v3/stpMode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 30 );
+                        }} );
+                        put( "v3/asset/migrateUser/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "v3/strategyOpenOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "v3/strategyHistoryOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "v1/positionSide/dual", new java.util.HashMap<String, Object>() {{
@@ -491,6 +509,24 @@ public class AsterCore extends AsterApi
                         put( "v3/updateBuilder", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v3/registerAndApproveAgent", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "v3/asset/migrateUser", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "v3/chase", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/stpMode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/placeStrategyOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "v3/updateStrategyOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
                         put( "v1/listenKey", new java.util.HashMap<String, Object>() {{
@@ -517,6 +553,12 @@ public class AsterCore extends AsterApi
                             put( "cost", 1 );
                         }} );
                         put( "v3/batchOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/guardedCancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/guardedBatchOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v3/mmp", new java.util.HashMap<String, Object>() {{

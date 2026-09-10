@@ -299,6 +299,14 @@ public class BitsoCore extends BitsoApi
                             put( "cost", 1 );
                         }} );
                     }} );
+                    put( "patch", new java.util.HashMap<String, Object>() {{
+                        put( "orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/{oid}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
                 }} );
             }} );
             put( "features", new java.util.HashMap<String, Object>() {{

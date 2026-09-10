@@ -146,6 +146,9 @@ public class BtcturkCore extends BtcturkApi
                         put( "ticker", new java.util.HashMap<String, Object>() {{
                             put( "cost", 0.1 );
                         }} );
+                        put( "ticker/currency", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.1 );
+                        }} );
                         put( "trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -168,7 +171,19 @@ public class BtcturkCore extends BtcturkApi
                         put( "allOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "order/{orderId}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "users/transactions/trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/transactions/crypto", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "users/transactions/fiat", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto-deposit-declarations", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -183,6 +198,9 @@ public class BtcturkCore extends BtcturkApi
                             put( "cost", 1 );
                         }} );
                         put( "cancelOrder", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "crypto-deposit-declarations/confirm", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

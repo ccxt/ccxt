@@ -246,6 +246,12 @@ public class WoofiproCore extends WoofiproApi
                             put( "public/points/epoch_dates", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "public/points/rankings", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/points/stages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "public/referral/check_ref_code", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -285,6 +291,9 @@ public class WoofiproCore extends WoofiproApi
                             put( "tv/symbol_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "tv/kline_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "public/funding_rate_history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -310,6 +319,15 @@ public class WoofiproCore extends WoofiproApi
                                 put( "cost", 1 );
                             }} );
                             put( "public/futures/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "staking/valor2/batch_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "staking/valor2/pool_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "staking/valor2/revenue_buyback", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -372,6 +390,9 @@ public class WoofiproCore extends WoofiproApi
                             put( "settle_nonce", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "transfer_nonce", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "pnl_settlement/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -414,6 +435,9 @@ public class WoofiproCore extends WoofiproApi
                             put( "broker/user_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "broker/daily_fee_revenue", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                             put( "orderbook/{symbol}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -421,6 +445,42 @@ public class WoofiproCore extends WoofiproApi
                                 put( "cost", 1 );
                             }} );
                             put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/points/user_statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "staking/valor2/redeem", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/max_rebate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/rebate_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/volume_prerequisite", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -462,6 +522,9 @@ public class WoofiproCore extends WoofiproApi
                                 put( "cost", 60 );
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 120 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
                             }} );
                             put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
@@ -506,6 +569,33 @@ public class WoofiproCore extends WoofiproApi
                             put( "referral/edit_split", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "referral/edit_referee_description", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/create/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/reset/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/claim_code", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/set_default", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{
                             put( "order", new java.util.HashMap<String, Object>() {{
@@ -538,6 +628,15 @@ public class WoofiproCore extends WoofiproApi
                                 put( "cost", 1 );
                             }} );
                             put( "client/batch-order", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                    }} );
+                }} );
+                put( "v2", new java.util.HashMap<String, Object>() {{
+                    put( "private", new java.util.HashMap<String, Object>() {{
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "internal_transfer", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );

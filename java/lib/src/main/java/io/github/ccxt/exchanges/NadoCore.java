@@ -105,6 +105,9 @@ public class NadoCore extends NadoApi
                             put( "query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "edge/query", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -147,6 +150,9 @@ public class NadoCore extends NadoApi
                                 put( "cost", 1 );
                             }} );
                             put( "trades", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "symbols", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );

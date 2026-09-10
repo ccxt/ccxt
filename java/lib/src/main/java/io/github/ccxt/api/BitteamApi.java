@@ -119,6 +119,17 @@ public class BitteamApi extends Exchange
     }
 
     /**
+     * Calls the publicGetTradeApiStats endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetTradeApiStats (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetTradeApiStats", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetTradeApiTradeId endpoint.
      *
      * @param optionalArgs the request parameters

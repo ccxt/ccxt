@@ -365,6 +365,12 @@ public class OkxCore extends OkxApi
                         put( "public/vip-interest-rate-loan-quota", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "public/mm-instrument-types", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "public/delta-hedge-currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "rubik/stat/trading-data/support-coin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
@@ -938,6 +944,42 @@ public class OkxCore extends OkxApi
                         put( "finance/flexible-loan/interest-accrued", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "finance/flexible-loan/emode-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/okusd/limits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "finance/okusd/account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "finance/okusd/subscribe/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/okusd/redeem/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/okusd/rewards/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/okusd/rate/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/stable-rewards/product-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/stable-rewards/balance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "finance/stable-rewards/apy-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(5, 3) );
+                        }} );
+                        put( "users/glp/todayperformance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "users/glp/historicalperformance", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                         put( "copytrading/current-subpositions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -1033,6 +1075,21 @@ public class OkxCore extends OkxApi
                         }} );
                         put( "affiliate/invitee/detail", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "affiliate/performance/summary", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "affiliate/invitee/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "affiliate/link/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "affiliate/co-inviter/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
+                        }} );
+                        put( "affiliate/sub-affiliate/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(10, 3) );
                         }} );
                         put( "users/partner/if-rebate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
@@ -1461,6 +1518,18 @@ public class OkxCore extends OkxApi
                         }} );
                         put( "finance/flexible-loan/adjust-collateral", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
+                        }} );
+                        put( "finance/flexible-loan/borrow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "finance/flexible-loan/repay", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "finance/okusd/subscribe", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
+                        }} );
+                        put( "finance/okusd/redeem", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 20 );
                         }} );
                         put( "copytrading/algo-order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );

@@ -260,6 +260,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "tv/symbol_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "tv/kline_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
                             put( "public/funding_rate_history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -290,6 +293,9 @@ public class ModetradeCore extends ModetradeApi
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "register_account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -350,6 +356,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "pnl_settlement/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "volume/user/daily", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -389,10 +398,46 @@ public class ModetradeCore extends ModetradeApi
                             put( "broker/user_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "broker/daily_fee_revenue", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "orderbook/{symbol}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "kline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/max_rebate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/volume_prerequisite", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -427,6 +472,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "settle_pnl", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "notification/inbox/mark_read", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -435,6 +483,15 @@ public class ModetradeCore extends ModetradeApi
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 120 );
+                            }} );
+                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
                             }} );
                             put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
@@ -470,6 +527,33 @@ public class ModetradeCore extends ModetradeApi
                                 put( "cost", 10 );
                             }} );
                             put( "referral/edit_split", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/edit_referee_description", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/create/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/reset/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/claim_code", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/set_default", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/update", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                         }} );

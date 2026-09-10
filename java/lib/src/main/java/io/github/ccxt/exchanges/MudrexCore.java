@@ -127,6 +127,9 @@ public class MudrexCore extends MudrexApi
                         put( "futures/funds", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "futures/transactions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "futures/orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

@@ -198,6 +198,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                         put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "sendorder", new java.util.HashMap<String, Object>() {{
@@ -245,6 +248,14 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                             put( "cost", 1 );
                         }} );
                         put( "subaccount/{uid}/trading-enabled", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "delete", new java.util.HashMap<String, Object>() {{
+                        put( "rfq-assignment/max-leverage", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

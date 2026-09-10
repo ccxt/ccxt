@@ -471,6 +471,17 @@ public class WhitebitApi extends Exchange
     }
 
     /**
+     * Calls the v4PrivatePostCollateralAccountPositionsClosedPnl endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostCollateralAccountPositionsClosedPnl (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostCollateralAccountPositionsClosedPnl", optionalArgs);
+    }
+
+    /**
      * Calls the v4PrivatePostCollateralAccountSummary endpoint.
      *
      * @param optionalArgs the request parameters
@@ -614,6 +625,17 @@ public class WhitebitApi extends Exchange
     }
 
     /**
+     * Calls the v4PrivatePostMainAccountExpressWithdrawToken endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountExpressWithdrawToken (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountExpressWithdrawToken", optionalArgs);
+    }
+
+    /**
      * Calls the v4PrivatePostMainAccountTransfer endpoint.
      *
      * @param optionalArgs the request parameters
@@ -691,6 +713,94 @@ public class WhitebitApi extends Exchange
     }
 
     /**
+     * Calls the v4PrivatePostMainAccountSmartFlexPlans endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostMainAccountSmartFlexPlans (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexPlans", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestments endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestments (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestments", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsInvest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsInvest (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsInvest", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsClose endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsClose (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsClose", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest", optionalArgs);
+    }
+
+    /**
      * Calls the v4PrivatePostTradeAccountBalance endpoint.
      *
      * @param optionalArgs the request parameters
@@ -721,6 +831,17 @@ public class WhitebitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTradeAccountOrderHistory (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostTradeAccountOrderHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostTradeAccountOrderHistoryQuery endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostTradeAccountOrderHistoryQuery (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostTradeAccountOrderHistoryQuery", optionalArgs);
     }
 
     /**
@@ -864,6 +985,17 @@ public class WhitebitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderCancelAll (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostOrderCancelAll", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostOrderCancelBulk endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  v4PrivatePostOrderCancelBulk (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostOrderCancelBulk", optionalArgs);
     }
 
     /**
@@ -1219,6 +1351,116 @@ public class WhitebitApi extends Exchange
     }
 
     /**
+     * Calls the v4PrivatePostMiningHashrate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningHashrate (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningHashrate", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningPayoutDestination endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningPayoutDestination (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningPayoutDestination", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningPayoutDestinationEdit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningPayoutDestinationEdit (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningPayoutDestinationEdit", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningMinersInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningMinersInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningMinersInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningWorkersNames endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWorkersNames (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningWorkersNames", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningWorkersHashrate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWorkersHashrate (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningWorkersHashrate", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningWatcherLinksCreate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWatcherLinksCreate (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningWatcherLinksCreate", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningWatcherLinksList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningWatcherLinksList (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningWatcherLinksList", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningAccountsCreate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningAccountsCreate (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningAccountsCreate", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostMiningAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMiningAccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMiningAccounts", optionalArgs);
+    }
+
+    /**
      * Calls the v4PrivatePostMarketFee endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1230,6 +1472,17 @@ public class WhitebitApi extends Exchange
     }
 
     /**
+     * Calls the v4PrivatePostMarketFeeSingle endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostMarketFeeSingle (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostMarketFeeSingle", optionalArgs);
+    }
+
+    /**
      * Calls the v4PrivatePostConditionalOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1238,6 +1491,39 @@ public class WhitebitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostConditionalOrders (Object... optionalArgs)
     {
         return this.callAsync ("v4PrivatePostConditionalOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostTravelRuleVasps endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTravelRuleVasps (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostTravelRuleVasps", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostTravelRuleDepositVerification endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostTravelRuleDepositVerification (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostTravelRuleDepositVerification", optionalArgs);
+    }
+
+    /**
+     * Calls the v4PrivatePostJwt endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v4PrivatePostJwt (Object... optionalArgs)
+    {
+        return this.callAsync ("v4PrivatePostJwt", optionalArgs);
     }
 
 }

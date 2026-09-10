@@ -245,6 +245,12 @@ public class BitmexCore extends BitmexApi
                         put( "wallet/assets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "wallet/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "wallet/haircuts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "wallet/networks", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -255,7 +261,13 @@ public class BitmexCore extends BitmexApi
                         put( "address", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "addressConfig", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "apiKey", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "apiKey/self", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "execution", new java.util.HashMap<String, Object>() {{
@@ -270,6 +282,15 @@ public class BitmexCore extends BitmexApi
                         put( "leaderboard/name", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "leagueoftrader/myRankings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/investor", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/tradingTeam", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -277,6 +298,18 @@ public class BitmexCore extends BitmexApi
                             put( "cost", 5 );
                         }} );
                         put( "position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "referralCode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "referralCode/check/{code}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "referralCode/code/{code}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "referralCode/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "user", new java.util.HashMap<String, Object>() {{
@@ -297,6 +330,9 @@ public class BitmexCore extends BitmexApi
                         put( "user/depositAddress", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "user/depositAddressInformation", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "user/executionHistory", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -304,6 +340,9 @@ public class BitmexCore extends BitmexApi
                             put( "cost", 5 );
                         }} );
                         put( "user/margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "user/marginingMode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "user/quoteFillRatio", new java.util.HashMap<String, Object>() {{
@@ -319,6 +358,9 @@ public class BitmexCore extends BitmexApi
                             put( "cost", 5 );
                         }} );
                         put( "user/staking/tiers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "user/tradingSettings", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "user/tradingVolume", new java.util.HashMap<String, Object>() {{
@@ -340,6 +382,12 @@ public class BitmexCore extends BitmexApi
                             put( "cost", 5 );
                         }} );
                         put( "userEvent", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "userPriceAlert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "userStats/volumeRank", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
@@ -368,6 +416,24 @@ public class BitmexCore extends BitmexApi
                         put( "guild/sharesTrades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "managedSubAccountBinding/approve", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/createMSA", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/reject", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/toggleTradeHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "managedSubAccountBinding/unbind", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -375,6 +441,9 @@ public class BitmexCore extends BitmexApi
                             put( "cost", 5 );
                         }} );
                         put( "order/closePosition", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "position/crossLeverage", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "position/isolate", new java.util.HashMap<String, Object>() {{
@@ -388,6 +457,9 @@ public class BitmexCore extends BitmexApi
                         }} );
                         put( "position/transferMargin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "referralCode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                         put( "user/addSubaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
@@ -404,7 +476,16 @@ public class BitmexCore extends BitmexApi
                         put( "user/confirmWithdrawal", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "user/createIndependentSubaccount", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "user/logout", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "user/marginingMode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "user/positionMode", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "user/preferences", new java.util.HashMap<String, Object>() {{
@@ -422,13 +503,25 @@ public class BitmexCore extends BitmexApi
                         put( "user/walletTransfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "userPriceAlert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
+                        put( "address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "guild", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                         put( "order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "referralCode/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "userPriceAlert/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
@@ -438,7 +531,19 @@ public class BitmexCore extends BitmexApi
                         put( "order/all", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "referralCode/{id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "user/unstakingRequests", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "user/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "userPriceAlert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "userPriceAlert/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );
