@@ -206,3 +206,13 @@ func (this *BitsoCore) PrivateDeleteOrdersOid(args ...any) <-chan any {
 func (this *BitsoCore) PrivateDeleteOrdersAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrdersAll", args...)
 }
+
+// PrivatePatchOrders returns a channel that yields a JSON object.
+func (this *BitsoCore) PrivatePatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchOrders", args...)
+}
+
+// PrivatePatchOrdersOid returns a channel that yields a JSON object.
+func (this *BitsoCore) PrivatePatchOrdersOid(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePatchOrdersOid", args...)
+}

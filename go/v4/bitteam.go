@@ -204,6 +204,9 @@ func (this *BitteamCore) Describe() any {
 					"trade/api/rates": map[string]any{
 						"cost": 1,
 					},
+					"trade/api/stats": map[string]any{
+						"cost": 1,
+					},
 					"trade/api/trade/{id}": map[string]any{
 						"cost": 1,
 					},
@@ -849,8 +852,8 @@ func (this *BitteamCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76312 := (<-this.LoadMarkets())
-		PanicOnError(retRes76312)
+		retRes76412 := (<-this.LoadMarkets())
+		PanicOnError(retRes76412)
 	}
 	var market any = this.Market(symbol)
 	var resolution any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -934,8 +937,8 @@ func (this *BitteamCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes83712 := (<-this.LoadMarkets())
-		PanicOnError(retRes83712)
+		retRes83812 := (<-this.LoadMarkets())
+		PanicOnError(retRes83812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1008,8 +1011,8 @@ func (this *BitteamCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89012 := (<-this.LoadMarkets())
-		PanicOnError(retRes89012)
+		retRes89112 := (<-this.LoadMarkets())
+		PanicOnError(retRes89112)
 	}
 	var typeVar any = this.SafeString(params, "type", "all")
 	var request map[string]any = map[string]any{
@@ -1139,8 +1142,8 @@ func (this *BitteamCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100412 := (<-this.LoadMarkets())
-		PanicOnError(retRes100412)
+		retRes100512 := (<-this.LoadMarkets())
+		PanicOnError(retRes100512)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1224,16 +1227,16 @@ func (this *BitteamCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes106812 := (<-this.LoadMarkets())
-		PanicOnError(retRes106812)
+		retRes106912 := (<-this.LoadMarkets())
+		PanicOnError(retRes106912)
 	}
 	var request map[string]any = map[string]any{
 		"type": "active",
 	}
 
-	retRes107315 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes107315)
-	ch <- retRes107315
+	retRes107415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes107415)
+	ch <- retRes107415
 	return nil
 }
 
@@ -1266,16 +1269,16 @@ func (this *BitteamCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes108912 := (<-this.LoadMarkets())
-		PanicOnError(retRes108912)
+		retRes109012 := (<-this.LoadMarkets())
+		PanicOnError(retRes109012)
 	}
 	var request map[string]any = map[string]any{
 		"type": "closed",
 	}
 
-	retRes109415 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes109415)
-	ch <- retRes109415
+	retRes109515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes109515)
+	ch <- retRes109515
 	return nil
 }
 
@@ -1308,16 +1311,16 @@ func (this *BitteamCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes111012 := (<-this.LoadMarkets())
-		PanicOnError(retRes111012)
+		retRes111112 := (<-this.LoadMarkets())
+		PanicOnError(retRes111112)
 	}
 	var request map[string]any = map[string]any{
 		"type": "cancelled",
 	}
 
-	retRes111515 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes111515)
-	ch <- retRes111515
+	retRes111615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes111615)
+	ch <- retRes111615
 	return nil
 }
 
@@ -1348,8 +1351,8 @@ func (this *BitteamCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes113312 := (<-this.LoadMarkets())
-		PanicOnError(retRes113312)
+		retRes113412 := (<-this.LoadMarkets())
+		PanicOnError(retRes113412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1421,8 +1424,8 @@ func (this *BitteamCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes118912 := (<-this.LoadMarkets())
-		PanicOnError(retRes118912)
+		retRes119012 := (<-this.LoadMarkets())
+		PanicOnError(retRes119012)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1467,8 +1470,8 @@ func (this *BitteamCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes121812 := (<-this.LoadMarkets())
-		PanicOnError(retRes121812)
+		retRes121912 := (<-this.LoadMarkets())
+		PanicOnError(retRes121912)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1691,8 +1694,8 @@ func (this *BitteamCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes142712 := (<-this.LoadMarkets())
-		PanicOnError(retRes142712)
+		retRes142812 := (<-this.LoadMarkets())
+		PanicOnError(retRes142812)
 	}
 
 	response := (<-this.PublicGetTradeApiCmcSummary())
@@ -1764,8 +1767,8 @@ func (this *BitteamCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes148512 := (<-this.LoadMarkets())
-		PanicOnError(retRes148512)
+		retRes148612 := (<-this.LoadMarkets())
+		PanicOnError(retRes148612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2120,8 +2123,8 @@ func (this *BitteamCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes182112 := (<-this.LoadMarkets())
-		PanicOnError(retRes182112)
+		retRes182212 := (<-this.LoadMarkets())
+		PanicOnError(retRes182212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2185,8 +2188,8 @@ func (this *BitteamCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes186512 := (<-this.LoadMarkets())
-		PanicOnError(retRes186512)
+		retRes186612 := (<-this.LoadMarkets())
+		PanicOnError(retRes186612)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2468,8 +2471,8 @@ func (this *BitteamCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes213212 := (<-this.LoadMarkets())
-		PanicOnError(retRes213212)
+		retRes213312 := (<-this.LoadMarkets())
+		PanicOnError(retRes213312)
 	}
 
 	response := (<-this.PrivateGetTradeApiCcxtBalance(params))
@@ -2576,8 +2579,8 @@ func (this *BitteamCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes222012 := (<-this.LoadMarkets())
-		PanicOnError(retRes222012)
+		retRes222112 := (<-this.LoadMarkets())
+		PanicOnError(retRes222112)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}

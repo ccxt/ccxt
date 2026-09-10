@@ -237,6 +237,36 @@ func (this *DydxCore) IndexerGetHistoricalPnlParentSubaccount(args ...any) <-cha
 	return this.callEndpointAsync("indexerGetHistoricalPnlParentSubaccount", args...)
 }
 
+// IndexerGetPnl returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPnl(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerGetPnl", args...)
+}
+
+// IndexerGetPnlParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetPnlParentSubaccountNumber(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerGetPnlParentSubaccountNumber", args...)
+}
+
+// IndexerGetTradeHistory returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerGetTradeHistory", args...)
+}
+
+// IndexerGetTradeHistoryParentSubaccountNumber returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerGetTradeHistoryParentSubaccountNumber(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerGetTradeHistoryParentSubaccountNumber", args...)
+}
+
+// IndexerPostTurnkeySignin returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerPostTurnkeySignin(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerPostTurnkeySignin", args...)
+}
+
+// IndexerPostTurnkeyUploadAddress returns a channel that yields a JSON object.
+func (this *DydxCore) IndexerPostTurnkeyUploadAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("indexerPostTurnkeyUploadAddress", args...)
+}
+
 // NodeRpcGetAbciInfo returns a channel that yields a JSON object.
 func (this *DydxCore) NodeRpcGetAbciInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("nodeRpcGetAbciInfo", args...)

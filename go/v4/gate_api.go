@@ -187,6 +187,16 @@ func (this *GateCore) PublicFuturesGetSettleRiskLimitTiers(args ...any) <-chan a
 	return this.callEndpointAsync("publicFuturesGetSettleRiskLimitTiers", args...)
 }
 
+// PublicFuturesGetSettleAdlRiskStates returns a channel that yields a JSON array.
+func (this *GateCore) PublicFuturesGetSettleAdlRiskStates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicFuturesGetSettleAdlRiskStates", args...)
+}
+
+// PublicFuturesPostSettleFundingRates returns a channel that yields a JSON array.
+func (this *GateCore) PublicFuturesPostSettleFundingRates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicFuturesPostSettleFundingRates", args...)
+}
+
 // PublicDeliveryGetSettleContracts returns a channel that yields a JSON array.
 func (this *GateCore) PublicDeliveryGetSettleContracts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicDeliveryGetSettleContracts", args...)
@@ -305,6 +315,21 @@ func (this *GateCore) PublicEarnGetDualInvestmentPlan(args ...any) <-chan any {
 // PublicEarnGetStructuredProducts returns a channel that yields a JSON array.
 func (this *GateCore) PublicEarnGetStructuredProducts(args ...any) <-chan any {
 	return this.callEndpointAsync("publicEarnGetStructuredProducts", args...)
+}
+
+// PublicEarnGetDualProjectRecommend returns a channel that yields a JSON array.
+func (this *GateCore) PublicEarnGetDualProjectRecommend(args ...any) <-chan any {
+	return this.callEndpointAsync("publicEarnGetDualProjectRecommend", args...)
+}
+
+// PublicEarnGetFixedTermProduct returns a channel that yields a JSON array.
+func (this *GateCore) PublicEarnGetFixedTermProduct(args ...any) <-chan any {
+	return this.callEndpointAsync("publicEarnGetFixedTermProduct", args...)
+}
+
+// PublicEarnGetFixedTermProductAssetList returns a channel that yields a JSON array.
+func (this *GateCore) PublicEarnGetFixedTermProductAssetList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicEarnGetFixedTermProductAssetList", args...)
 }
 
 // PublicLoanGetCollateralCurrencies returns a channel that yields a JSON array.
@@ -430,6 +455,11 @@ func (this *GateCore) PrivateWalletGetPush(args ...any) <-chan any {
 // PrivateWalletGetGetLowCapExchangeList returns a channel that yields a JSON array.
 func (this *GateCore) PrivateWalletGetGetLowCapExchangeList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateWalletGetGetLowCapExchangeList", args...)
+}
+
+// PrivateWalletGetTransfers returns a channel that yields a JSON object.
+func (this *GateCore) PrivateWalletGetTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateWalletGetTransfers", args...)
 }
 
 // PrivateWalletPostTransfers returns a channel that yields a JSON object.
@@ -577,6 +607,16 @@ func (this *GateCore) PrivateUnifiedGetLeverageUserCurrencySetting(args ...any) 
 	return this.callEndpointAsync("privateUnifiedGetLeverageUserCurrencySetting", args...)
 }
 
+// PrivateUnifiedGetDeltaNeutral returns a channel that yields a JSON object.
+func (this *GateCore) PrivateUnifiedGetDeltaNeutral(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUnifiedGetDeltaNeutral", args...)
+}
+
+// PrivateUnifiedGetEstimatedQuickRepayment returns a channel that yields a JSON object.
+func (this *GateCore) PrivateUnifiedGetEstimatedQuickRepayment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUnifiedGetEstimatedQuickRepayment", args...)
+}
+
 // PrivateUnifiedGetAccountMode returns a channel that yields a JSON object.
 func (this *GateCore) PrivateUnifiedGetAccountMode(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUnifiedGetAccountMode", args...)
@@ -600,6 +640,21 @@ func (this *GateCore) PrivateUnifiedPostLeverageUserCurrencySetting(args ...any)
 // PrivateUnifiedPostCollateralCurrencies returns a channel that yields a JSON object.
 func (this *GateCore) PrivateUnifiedPostCollateralCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateUnifiedPostCollateralCurrencies", args...)
+}
+
+// PrivateUnifiedPostDeltaNeutral returns a channel that yields a JSON object.
+func (this *GateCore) PrivateUnifiedPostDeltaNeutral(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUnifiedPostDeltaNeutral", args...)
+}
+
+// PrivateUnifiedPostLeverageUserSetting returns a channel that yields a JSON object.
+func (this *GateCore) PrivateUnifiedPostLeverageUserSetting(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUnifiedPostLeverageUserSetting", args...)
+}
+
+// PrivateUnifiedPostQuickRepayment returns a channel that yields a JSON object.
+func (this *GateCore) PrivateUnifiedPostQuickRepayment(args ...any) <-chan any {
+	return this.callEndpointAsync("privateUnifiedPostQuickRepayment", args...)
 }
 
 // PrivateUnifiedPostAccountMode returns a channel that yields a JSON object.
@@ -662,6 +717,16 @@ func (this *GateCore) PrivateSpotGetPriceOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotGetPriceOrdersOrderId", args...)
 }
 
+// PrivateSpotGetPovOrders returns a channel that yields a JSON array.
+func (this *GateCore) PrivateSpotGetPovOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetPovOrders", args...)
+}
+
+// PrivateSpotGetPovOrdersOrderId returns a channel that yields a JSON object.
+func (this *GateCore) PrivateSpotGetPovOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotGetPovOrdersOrderId", args...)
+}
+
 // PrivateSpotPostBatchOrders returns a channel that yields a JSON array.
 func (this *GateCore) PrivateSpotPostBatchOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostBatchOrders", args...)
@@ -697,6 +762,11 @@ func (this *GateCore) PrivateSpotPostPriceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotPostPriceOrders", args...)
 }
 
+// PrivateSpotPostPovOrders returns a channel that yields a JSON object.
+func (this *GateCore) PrivateSpotPostPovOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotPostPovOrders", args...)
+}
+
 // PrivateSpotDeleteOrders returns a channel that yields a JSON array.
 func (this *GateCore) PrivateSpotDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotDeleteOrders", args...)
@@ -715,6 +785,16 @@ func (this *GateCore) PrivateSpotDeletePriceOrders(args ...any) <-chan any {
 // PrivateSpotDeletePriceOrdersOrderId returns a channel that yields a JSON object.
 func (this *GateCore) PrivateSpotDeletePriceOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateSpotDeletePriceOrdersOrderId", args...)
+}
+
+// PrivateSpotDeletePovOrders returns a channel that yields a JSON array.
+func (this *GateCore) PrivateSpotDeletePovOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotDeletePovOrders", args...)
+}
+
+// PrivateSpotDeletePovOrdersOrderId returns a channel that yields a JSON object.
+func (this *GateCore) PrivateSpotDeletePovOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateSpotDeletePovOrdersOrderId", args...)
 }
 
 // PrivateSpotPatchOrdersOrderId returns a channel that yields a JSON object.
@@ -1022,6 +1102,31 @@ func (this *GateCore) PrivateFuturesGetSettlePriceOrdersOrderId(args ...any) <-c
 	return this.callEndpointAsync("privateFuturesGetSettlePriceOrdersOrderId", args...)
 }
 
+// PrivateFuturesGetSettleAutoorderV1TrailList returns a channel that yields a JSON array.
+func (this *GateCore) PrivateFuturesGetSettleAutoorderV1TrailList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesGetSettleAutoorderV1TrailList", args...)
+}
+
+// PrivateFuturesGetSettleAutoorderV1TrailDetail returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesGetSettleAutoorderV1TrailDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesGetSettleAutoorderV1TrailDetail", args...)
+}
+
+// PrivateFuturesGetSettleAutoorderV1TrailChangeLog returns a channel that yields a JSON array.
+func (this *GateCore) PrivateFuturesGetSettleAutoorderV1TrailChangeLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesGetSettleAutoorderV1TrailChangeLog", args...)
+}
+
+// PrivateFuturesGetSettleAutoorderV1ChaseList returns a channel that yields a JSON array.
+func (this *GateCore) PrivateFuturesGetSettleAutoorderV1ChaseList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesGetSettleAutoorderV1ChaseList", args...)
+}
+
+// PrivateFuturesGetSettleAutoorderV1ChaseDetail returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesGetSettleAutoorderV1ChaseDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesGetSettleAutoorderV1ChaseDetail", args...)
+}
+
 // PrivateFuturesPostSettlePositionsContractMargin returns a channel that yields a JSON object.
 func (this *GateCore) PrivateFuturesPostSettlePositionsContractMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateFuturesPostSettlePositionsContractMargin", args...)
@@ -1110,6 +1215,41 @@ func (this *GateCore) PrivateFuturesPostSettleBboOrders(args ...any) <-chan any 
 // PrivateFuturesPostSettlePriceOrders returns a channel that yields a JSON object.
 func (this *GateCore) PrivateFuturesPostSettlePriceOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateFuturesPostSettlePriceOrders", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1TrailCreate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1TrailCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1TrailCreate", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1TrailStop returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1TrailStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1TrailStop", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1TrailStopAll returns a channel that yields a JSON array.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1TrailStopAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1TrailStopAll", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1TrailUpdate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1TrailUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1TrailUpdate", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1ChaseCreate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1ChaseCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1ChaseCreate", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1ChaseStop returns a channel that yields a JSON object.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1ChaseStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1ChaseStop", args...)
+}
+
+// PrivateFuturesPostSettleAutoorderV1ChaseStopAll returns a channel that yields a JSON array.
+func (this *GateCore) PrivateFuturesPostSettleAutoorderV1ChaseStopAll(args ...any) <-chan any {
+	return this.callEndpointAsync("privateFuturesPostSettleAutoorderV1ChaseStopAll", args...)
 }
 
 // PrivateFuturesPutSettleOrdersOrderId returns a channel that yields a JSON object.
@@ -1317,6 +1457,11 @@ func (this *GateCore) PrivateOptionsPostMmpReset(args ...any) <-chan any {
 	return this.callEndpointAsync("privateOptionsPostMmpReset", args...)
 }
 
+// PrivateOptionsPutOrdersOrderId returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOptionsPutOrdersOrderId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOptionsPutOrdersOrderId", args...)
+}
+
 // PrivateOptionsDeleteOrders returns a channel that yields a JSON array.
 func (this *GateCore) PrivateOptionsDeleteOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateOptionsDeleteOrders", args...)
@@ -1402,6 +1547,51 @@ func (this *GateCore) PrivateEarnGetStakingAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetStakingAssets", args...)
 }
 
+// PrivateEarnGetDualOrderRefundPreview returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnGetDualOrderRefundPreview(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetDualOrderRefundPreview", args...)
+}
+
+// PrivateEarnGetFixedTermUserLend returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetFixedTermUserLend(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetFixedTermUserLend", args...)
+}
+
+// PrivateEarnGetFixedTermUserHistory returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetFixedTermUserHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetFixedTermUserHistory", args...)
+}
+
+// PrivateEarnGetAutoinvestCoins returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetAutoinvestCoins(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestCoins", args...)
+}
+
+// PrivateEarnGetAutoinvestConfig returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetAutoinvestConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestConfig", args...)
+}
+
+// PrivateEarnGetAutoinvestOrders returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetAutoinvestOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestOrders", args...)
+}
+
+// PrivateEarnGetAutoinvestPlansDetail returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnGetAutoinvestPlansDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestPlansDetail", args...)
+}
+
+// PrivateEarnGetAutoinvestPlansListInfo returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetAutoinvestPlansListInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestPlansListInfo", args...)
+}
+
+// PrivateEarnGetAutoinvestPlansRecords returns a channel that yields a JSON array.
+func (this *GateCore) PrivateEarnGetAutoinvestPlansRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnGetAutoinvestPlansRecords", args...)
+}
+
 // PrivateEarnGetUniCurrencies returns a channel that yields a JSON array.
 func (this *GateCore) PrivateEarnGetUniCurrencies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnGetUniCurrencies", args...)
@@ -1435,6 +1625,51 @@ func (this *GateCore) PrivateEarnPostStructuredOrders(args ...any) <-chan any {
 // PrivateEarnPostStakingSwap returns a channel that yields a JSON object.
 func (this *GateCore) PrivateEarnPostStakingSwap(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEarnPostStakingSwap", args...)
+}
+
+// PrivateEarnPostDualOrderRefund returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostDualOrderRefund(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostDualOrderRefund", args...)
+}
+
+// PrivateEarnPostDualModifyOrderReinvest returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostDualModifyOrderReinvest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostDualModifyOrderReinvest", args...)
+}
+
+// PrivateEarnPostFixedTermUserLend returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostFixedTermUserLend(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostFixedTermUserLend", args...)
+}
+
+// PrivateEarnPostFixedTermUserPreRedeem returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostFixedTermUserPreRedeem(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostFixedTermUserPreRedeem", args...)
+}
+
+// PrivateEarnPostAutoinvestMinInvestAmount returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostAutoinvestMinInvestAmount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostAutoinvestMinInvestAmount", args...)
+}
+
+// PrivateEarnPostAutoinvestPlansAddPosition returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostAutoinvestPlansAddPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostAutoinvestPlansAddPosition", args...)
+}
+
+// PrivateEarnPostAutoinvestPlansCreate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostAutoinvestPlansCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostAutoinvestPlansCreate", args...)
+}
+
+// PrivateEarnPostAutoinvestPlansStop returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostAutoinvestPlansStop(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostAutoinvestPlansStop", args...)
+}
+
+// PrivateEarnPostAutoinvestPlansUpdate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateEarnPostAutoinvestPlansUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEarnPostAutoinvestPlansUpdate", args...)
 }
 
 // PrivateEarnPutUniInterestReinvest returns a channel that yields a JSON object.
@@ -1657,6 +1892,11 @@ func (this *GateCore) PrivateRebateGetUserSubRelation(args ...any) <-chan any {
 	return this.callEndpointAsync("privateRebateGetUserSubRelation", args...)
 }
 
+// PrivateRebateGetPartnerDataAggregated returns a channel that yields a JSON object.
+func (this *GateCore) PrivateRebateGetPartnerDataAggregated(args ...any) <-chan any {
+	return this.callEndpointAsync("privateRebateGetPartnerDataAggregated", args...)
+}
+
 // PrivateOtcGetGetUserDefBank returns a channel that yields a JSON object.
 func (this *GateCore) PrivateOtcGetGetUserDefBank(args ...any) <-chan any {
 	return this.callEndpointAsync("privateOtcGetGetUserDefBank", args...)
@@ -1675,6 +1915,16 @@ func (this *GateCore) PrivateOtcGetStableCoinOrderList(args ...any) <-chan any {
 // PrivateOtcGetOrderDetail returns a channel that yields a JSON object.
 func (this *GateCore) PrivateOtcGetOrderDetail(args ...any) <-chan any {
 	return this.callEndpointAsync("privateOtcGetOrderDetail", args...)
+}
+
+// PrivateOtcGetBankList returns a channel that yields a JSON array.
+func (this *GateCore) PrivateOtcGetBankList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcGetBankList", args...)
+}
+
+// PrivateOtcGetBankBankSupplementChecklist returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcGetBankBankSupplementChecklist(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcGetBankBankSupplementChecklist", args...)
 }
 
 // PrivateOtcPostQuote returns a channel that yields a JSON object.
@@ -1700,4 +1950,34 @@ func (this *GateCore) PrivateOtcPostOrderPaid(args ...any) <-chan any {
 // PrivateOtcPostOrderCancel returns a channel that yields a JSON object.
 func (this *GateCore) PrivateOtcPostOrderCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privateOtcPostOrderCancel", args...)
+}
+
+// PrivateOtcPostBankCreate returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostBankCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostBankCreate", args...)
+}
+
+// PrivateOtcPostBankDelete returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostBankDelete(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostBankDelete", args...)
+}
+
+// PrivateOtcPostBankSetDefault returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostBankSetDefault(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostBankSetDefault", args...)
+}
+
+// PrivateOtcPostBankPersonalBankSupplement returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostBankPersonalBankSupplement(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostBankPersonalBankSupplement", args...)
+}
+
+// PrivateOtcPostBankEnterpriseBankSupplement returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostBankEnterpriseBankSupplement(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostBankEnterpriseBankSupplement", args...)
+}
+
+// PrivateOtcPostUploadPreUpload returns a channel that yields a JSON object.
+func (this *GateCore) PrivateOtcPostUploadPreUpload(args ...any) <-chan any {
+	return this.callEndpointAsync("privateOtcPostUploadPreUpload", args...)
 }

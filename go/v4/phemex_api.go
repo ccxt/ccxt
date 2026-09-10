@@ -122,6 +122,11 @@ func (this *PhemexCore) V2GetPublicProductsPlus(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetPublicProductsPlus", args...)
 }
 
+// V2GetPublicIndexSources returns a channel that yields a JSON object.
+func (this *PhemexCore) V2GetPublicIndexSources(args ...any) <-chan any {
+	return this.callEndpointAsync("v2GetPublicIndexSources", args...)
+}
+
 // V2GetMdV2Orderbook returns a channel that yields a JSON object.
 func (this *PhemexCore) V2GetMdV2Orderbook(args ...any) <-chan any {
 	return this.callEndpointAsync("v2GetMdV2Orderbook", args...)
@@ -412,6 +417,46 @@ func (this *PhemexCore) PrivateGetAssetsQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetsQuote", args...)
 }
 
+// PrivateGetPhemexLbPublicApiTraderPerformanceInfo returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetPhemexLbPublicApiTraderPerformanceInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPhemexLbPublicApiTraderPerformanceInfo", args...)
+}
+
+// PrivateGetUtaApiRiskRiskMode returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaApiRiskRiskMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaApiRiskRiskMode", args...)
+}
+
+// PrivateGetUtaApiRiskRiskUnits returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaApiRiskRiskUnits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaApiRiskRiskUnits", args...)
+}
+
+// PrivateGetUtaBizAssets returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaBizAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaBizAssets", args...)
+}
+
+// PrivateGetUtaFundsContractBorrow returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaFundsContractBorrow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaFundsContractBorrow", args...)
+}
+
+// PrivateGetUtaFundsContractPayback returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaFundsContractPayback(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaFundsContractPayback", args...)
+}
+
+// PrivateGetUtaFundsContractBorrowInterests returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaFundsContractBorrowInterests(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaFundsContractBorrowInterests", args...)
+}
+
+// PrivateGetUtaExchangerAssetsConvert returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivateGetUtaExchangerAssetsConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUtaExchangerAssetsConvert", args...)
+}
+
 // PrivatePostSpotOrders returns a channel that yields a JSON object.
 func (this *PhemexCore) PrivatePostSpotOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSpotOrders", args...)
@@ -495,6 +540,16 @@ func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCreateWithdraw(args .
 // PrivatePostPhemexWithdrawWalletsApiCancelWithdraw returns a channel that yields a JSON object.
 func (this *PhemexCore) PrivatePostPhemexWithdrawWalletsApiCancelWithdraw(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPhemexWithdrawWalletsApiCancelWithdraw", args...)
+}
+
+// PrivatePostUtaAccountSwitchMode returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostUtaAccountSwitchMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUtaAccountSwitchMode", args...)
+}
+
+// PrivatePostUtaFundsContractPayback returns a channel that yields a JSON object.
+func (this *PhemexCore) PrivatePostUtaFundsContractPayback(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUtaFundsContractPayback", args...)
 }
 
 // PrivatePutSpotOrdersCreate returns a channel that yields a JSON object.

@@ -7,6 +7,41 @@
 
 package ccxt
 
+// PrivateEdgeGetApiV1DepositAddresses returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1DepositAddresses(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1DepositAddresses", args...)
+}
+
+// PrivateEdgeGetApiV1BridgeWithdrawalInfo returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1BridgeWithdrawalInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1BridgeWithdrawalInfo", args...)
+}
+
+// PrivateEdgeGetApiV1BridgeWithdrawalStatus returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1BridgeWithdrawalStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1BridgeWithdrawalStatus", args...)
+}
+
+// PrivateEdgeGetApiV1ReferralEpochs returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1ReferralEpochs(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1ReferralEpochs", args...)
+}
+
+// PrivateEdgeGetApiV1ReferralPoints returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1ReferralPoints(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1ReferralPoints", args...)
+}
+
+// PrivateEdgeGetApiV1ReferralData returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1ReferralData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1ReferralData", args...)
+}
+
+// PrivateEdgeGetApiV1ReferralIndirectData returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgeGetApiV1ReferralIndirectData(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgeGetApiV1ReferralIndirectData", args...)
+}
+
 // PrivateEdgePostAuthApiKeyLogin returns a channel that yields a JSON object.
 func (this *GrvtCore) PrivateEdgePostAuthApiKeyLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEdgePostAuthApiKeyLogin", args...)
@@ -15,6 +50,26 @@ func (this *GrvtCore) PrivateEdgePostAuthApiKeyLogin(args ...any) <-chan any {
 // PrivateEdgePostAuthWalletLogin returns a channel that yields a JSON object.
 func (this *GrvtCore) PrivateEdgePostAuthWalletLogin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateEdgePostAuthWalletLogin", args...)
+}
+
+// PrivateEdgePostAuthBuilderAuthorize returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgePostAuthBuilderAuthorize(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgePostAuthBuilderAuthorize", args...)
+}
+
+// PrivateEdgePostApiV1DepositGenerateAddress returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgePostApiV1DepositGenerateAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgePostApiV1DepositGenerateAddress", args...)
+}
+
+// PrivateEdgePostApiV1BridgeWithdrawalQuote returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgePostApiV1BridgeWithdrawalQuote(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgePostApiV1BridgeWithdrawalQuote", args...)
+}
+
+// PrivateEdgePostApiV1BridgeWithdraw returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateEdgePostApiV1BridgeWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privateEdgePostApiV1BridgeWithdraw", args...)
 }
 
 // PublicMarketPostFullV1Instrument returns a channel that yields a JSON object.
@@ -75,6 +130,16 @@ func (this *GrvtCore) PublicMarketPostFullV1Kline(args ...any) <-chan any {
 // PublicMarketPostFullV1Funding returns a channel that yields a JSON object.
 func (this *GrvtCore) PublicMarketPostFullV1Funding(args ...any) <-chan any {
 	return this.callEndpointAsync("publicMarketPostFullV1Funding", args...)
+}
+
+// PublicMarketPostFullV1SupportedAssets returns a channel that yields a JSON object.
+func (this *GrvtCore) PublicMarketPostFullV1SupportedAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarketPostFullV1SupportedAssets", args...)
+}
+
+// PublicMarketPostFullV1GetAllCollateralAssetInfo returns a channel that yields a JSON object.
+func (this *GrvtCore) PublicMarketPostFullV1GetAllCollateralAssetInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicMarketPostFullV1GetAllCollateralAssetInfo", args...)
 }
 
 // PrivateTradingPostFullV1CreateOrder returns a channel that yields a JSON object.
@@ -255,4 +320,54 @@ func (this *GrvtCore) PrivateTradingPostFullV1GetAuthorizedBuilders(args ...any)
 // PrivateTradingPostFullV1BuilderFillHistory returns a channel that yields a JSON object.
 func (this *GrvtCore) PrivateTradingPostFullV1BuilderFillHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateTradingPostFullV1BuilderFillHistory", args...)
+}
+
+// PrivateTradingPostFullV1CreateRfq returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1CreateRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1CreateRfq", args...)
+}
+
+// PrivateTradingPostFullV1CancelRfq returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1CancelRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1CancelRfq", args...)
+}
+
+// PrivateTradingPostFullV1EcnFromBroker returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1EcnFromBroker(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1EcnFromBroker", args...)
+}
+
+// PrivateTradingPostFullV2BulkOrders returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV2BulkOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV2BulkOrders", args...)
+}
+
+// PrivateTradingPostFullV1PositionHistory returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1PositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1PositionHistory", args...)
+}
+
+// PrivateTradingPostFullV1InterestPaymentHistory returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1InterestPaymentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1InterestPaymentHistory", args...)
+}
+
+// PrivateTradingPostFullV1GetCollateralPreference returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1GetCollateralPreference(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1GetCollateralPreference", args...)
+}
+
+// PrivateTradingPostFullV1SpotAccountSummary returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1SpotAccountSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1SpotAccountSummary", args...)
+}
+
+// PrivateTradingPostFullV1SetIndicativePrices returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1SetIndicativePrices(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1SetIndicativePrices", args...)
+}
+
+// PrivateTradingPostFullV1WithdrawalFee returns a channel that yields a JSON object.
+func (this *GrvtCore) PrivateTradingPostFullV1WithdrawalFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateTradingPostFullV1WithdrawalFee", args...)
 }

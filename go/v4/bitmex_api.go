@@ -162,6 +162,16 @@ func (this *BitmexCore) PublicGetWalletAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWalletAssets", args...)
 }
 
+// PublicGetWalletCurrencies returns a channel that yields a JSON object.
+func (this *BitmexCore) PublicGetWalletCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletCurrencies", args...)
+}
+
+// PublicGetWalletHaircuts returns a channel that yields a JSON array.
+func (this *BitmexCore) PublicGetWalletHaircuts(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetWalletHaircuts", args...)
+}
+
 // PublicGetWalletNetworks returns a channel that yields a JSON array.
 func (this *BitmexCore) PublicGetWalletNetworks(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWalletNetworks", args...)
@@ -172,9 +182,19 @@ func (this *BitmexCore) PrivateGetAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAddress", args...)
 }
 
+// PrivateGetAddressConfig returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetAddressConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAddressConfig", args...)
+}
+
 // PrivateGetApiKey returns a channel that yields a JSON array.
 func (this *BitmexCore) PrivateGetApiKey(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiKey", args...)
+}
+
+// PrivateGetApiKeySelf returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetApiKeySelf(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiKeySelf", args...)
 }
 
 // PrivateGetExecution returns a channel that yields a JSON array.
@@ -197,6 +217,21 @@ func (this *BitmexCore) PrivateGetLeaderboardName(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetLeaderboardName", args...)
 }
 
+// PrivateGetLeagueoftraderMyRankings returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetLeagueoftraderMyRankings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetLeagueoftraderMyRankings", args...)
+}
+
+// PrivateGetManagedSubAccountBindingInvestor returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetManagedSubAccountBindingInvestor(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetManagedSubAccountBindingInvestor", args...)
+}
+
+// PrivateGetManagedSubAccountBindingTradingTeam returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetManagedSubAccountBindingTradingTeam(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetManagedSubAccountBindingTradingTeam", args...)
+}
+
 // PrivateGetOrder returns a channel that yields a JSON array.
 func (this *BitmexCore) PrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrder", args...)
@@ -210,6 +245,26 @@ func (this *BitmexCore) PrivateGetPorlSnapshots(args ...any) <-chan any {
 // PrivateGetPosition returns a channel that yields a JSON array.
 func (this *BitmexCore) PrivateGetPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPosition", args...)
+}
+
+// PrivateGetReferralCode returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralCode", args...)
+}
+
+// PrivateGetReferralCodeCheckCode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetReferralCodeCheckCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralCodeCheckCode", args...)
+}
+
+// PrivateGetReferralCodeCodeCode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetReferralCodeCodeCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralCodeCodeCode", args...)
+}
+
+// PrivateGetReferralCodeId returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetReferralCodeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetReferralCodeId", args...)
 }
 
 // PrivateGetUser returns a channel that yields a JSON object.
@@ -242,6 +297,11 @@ func (this *BitmexCore) PrivateGetUserDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserDepositAddress", args...)
 }
 
+// PrivateGetUserDepositAddressInformation returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserDepositAddressInformation(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserDepositAddressInformation", args...)
+}
+
 // PrivateGetUserExecutionHistory returns a channel that yields a JSON array.
 func (this *BitmexCore) PrivateGetUserExecutionHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserExecutionHistory", args...)
@@ -255,6 +315,11 @@ func (this *BitmexCore) PrivateGetUserGetWalletTransferAccounts(args ...any) <-c
 // PrivateGetUserMargin returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivateGetUserMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserMargin", args...)
+}
+
+// PrivateGetUserMarginingMode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserMarginingMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserMarginingMode", args...)
 }
 
 // PrivateGetUserQuoteFillRatio returns a channel that yields a JSON object.
@@ -280,6 +345,11 @@ func (this *BitmexCore) PrivateGetUserStakingInstruments(args ...any) <-chan any
 // PrivateGetUserStakingTiers returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivateGetUserStakingTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserStakingTiers", args...)
+}
+
+// PrivateGetUserTradingSettings returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserTradingSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserTradingSettings", args...)
 }
 
 // PrivateGetUserTradingVolume returns a channel that yields a JSON array.
@@ -315,6 +385,16 @@ func (this *BitmexCore) PrivateGetUserAffiliates(args ...any) <-chan any {
 // PrivateGetUserEvent returns a channel that yields a JSON array.
 func (this *BitmexCore) PrivateGetUserEvent(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserEvent", args...)
+}
+
+// PrivateGetUserPriceAlert returns a channel that yields a JSON array.
+func (this *BitmexCore) PrivateGetUserPriceAlert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserPriceAlert", args...)
+}
+
+// PrivateGetUserStatsVolumeRank returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateGetUserStatsVolumeRank(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserStatsVolumeRank", args...)
 }
 
 // PrivatePostAddress returns a channel that yields a JSON object.
@@ -357,6 +437,36 @@ func (this *BitmexCore) PrivatePostGuildSharesTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGuildSharesTrades", args...)
 }
 
+// PrivatePostManagedSubAccountBindingApprove returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingApprove(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingApprove", args...)
+}
+
+// PrivatePostManagedSubAccountBindingCancel returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingCancel", args...)
+}
+
+// PrivatePostManagedSubAccountBindingCreateMSA returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingCreateMSA(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingCreateMSA", args...)
+}
+
+// PrivatePostManagedSubAccountBindingReject returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingReject(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingReject", args...)
+}
+
+// PrivatePostManagedSubAccountBindingToggleTradeHistory returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingToggleTradeHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingToggleTradeHistory", args...)
+}
+
+// PrivatePostManagedSubAccountBindingUnbind returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostManagedSubAccountBindingUnbind(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostManagedSubAccountBindingUnbind", args...)
+}
+
 // PrivatePostOrder returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivatePostOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrder", args...)
@@ -370,6 +480,11 @@ func (this *BitmexCore) PrivatePostOrderCancelAllAfter(args ...any) <-chan any {
 // PrivatePostOrderClosePosition returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivatePostOrderClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrderClosePosition", args...)
+}
+
+// PrivatePostPositionCrossLeverage returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostPositionCrossLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPositionCrossLeverage", args...)
 }
 
 // PrivatePostPositionIsolate returns a channel that yields a JSON object.
@@ -390,6 +505,11 @@ func (this *BitmexCore) PrivatePostPositionRiskLimit(args ...any) <-chan any {
 // PrivatePostPositionTransferMargin returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivatePostPositionTransferMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostPositionTransferMargin", args...)
+}
+
+// PrivatePostReferralCode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostReferralCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostReferralCode", args...)
 }
 
 // PrivatePostUserAddSubaccount returns a channel that yields a JSON object.
@@ -417,9 +537,24 @@ func (this *BitmexCore) PrivatePostUserConfirmWithdrawal(args ...any) <-chan any
 	return this.callEndpointAsync("privatePostUserConfirmWithdrawal", args...)
 }
 
+// PrivatePostUserCreateIndependentSubaccount returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserCreateIndependentSubaccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserCreateIndependentSubaccount", args...)
+}
+
 // PrivatePostUserLogout returns a channel that yields a JSON scalar.
 func (this *BitmexCore) PrivatePostUserLogout(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserLogout", args...)
+}
+
+// PrivatePostUserMarginingMode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserMarginingMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserMarginingMode", args...)
+}
+
+// PrivatePostUserPositionMode returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserPositionMode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserPositionMode", args...)
 }
 
 // PrivatePostUserPreferences returns a channel that yields a JSON object.
@@ -447,6 +582,16 @@ func (this *BitmexCore) PrivatePostUserWalletTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserWalletTransfer", args...)
 }
 
+// PrivatePostUserPriceAlert returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePostUserPriceAlert(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostUserPriceAlert", args...)
+}
+
+// PrivatePutAddress returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePutAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutAddress", args...)
+}
+
 // PrivatePutGuild returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivatePutGuild(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutGuild", args...)
@@ -455,6 +600,16 @@ func (this *BitmexCore) PrivatePutGuild(args ...any) <-chan any {
 // PrivatePutOrder returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivatePutOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutOrder", args...)
+}
+
+// PrivatePutReferralCodeId returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePutReferralCodeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutReferralCodeId", args...)
+}
+
+// PrivatePutUserPriceAlertId returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivatePutUserPriceAlertId(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutUserPriceAlertId", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON array.
@@ -467,7 +622,27 @@ func (this *BitmexCore) PrivateDeleteOrderAll(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteOrderAll", args...)
 }
 
+// PrivateDeleteReferralCodeId returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateDeleteReferralCodeId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteReferralCodeId", args...)
+}
+
 // PrivateDeleteUserUnstakingRequests returns a channel that yields a JSON object.
 func (this *BitmexCore) PrivateDeleteUserUnstakingRequests(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteUserUnstakingRequests", args...)
+}
+
+// PrivateDeleteUserWithdrawal returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateDeleteUserWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteUserWithdrawal", args...)
+}
+
+// PrivateDeleteUserPriceAlert returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateDeleteUserPriceAlert(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteUserPriceAlert", args...)
+}
+
+// PrivateDeleteUserPriceAlertId returns a channel that yields a JSON object.
+func (this *BitmexCore) PrivateDeleteUserPriceAlertId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteUserPriceAlertId", args...)
 }

@@ -217,6 +217,11 @@ func (this *CryptocomCore) V1PrivatePostPrivateGetInstrumentFeeRate(args ...any)
 	return this.callEndpointAsync("v1PrivatePostPrivateGetInstrumentFeeRate", args...)
 }
 
+// V1PrivatePostPrivateGetFeeCreditBalances returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateGetFeeCreditBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateGetFeeCreditBalances", args...)
+}
+
 // V1PrivatePostPrivateFiatFiatDepositInfo returns a channel that yields a JSON object.
 func (this *CryptocomCore) V1PrivatePostPrivateFiatFiatDepositInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostPrivateFiatFiatDepositInfo", args...)
@@ -310,6 +315,41 @@ func (this *CryptocomCore) V1PrivatePostPrivateCreateIsolatedMarginTransfer(args
 // V1PrivatePostPrivateChangeIsolatedMarginLeverage returns a channel that yields a JSON object.
 func (this *CryptocomCore) V1PrivatePostPrivateChangeIsolatedMarginLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostPrivateChangeIsolatedMarginLeverage", args...)
+}
+
+// V1PrivatePostPrivateBotCreateTradingBot returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotCreateTradingBot(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotCreateTradingBot", args...)
+}
+
+// V1PrivatePostPrivateBotUpdateTradingBot returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotUpdateTradingBot(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotUpdateTradingBot", args...)
+}
+
+// V1PrivatePostPrivateBotTerminateTradingBot returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotTerminateTradingBot(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotTerminateTradingBot", args...)
+}
+
+// V1PrivatePostPrivateBotPauseTradingBot returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotPauseTradingBot(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotPauseTradingBot", args...)
+}
+
+// V1PrivatePostPrivateBotResumeTradingBot returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotResumeTradingBot(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotResumeTradingBot", args...)
+}
+
+// V1PrivatePostPrivateBotGetTradingBots returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotGetTradingBots(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBots", args...)
+}
+
+// V1PrivatePostPrivateBotGetTradingBotExecutions returns a channel that yields a JSON object.
+func (this *CryptocomCore) V1PrivatePostPrivateBotGetTradingBotExecutions(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPrivateBotGetTradingBotExecutions", args...)
 }
 
 // V2PublicGetPublicAuth returns a channel that yields a JSON object.

@@ -112,6 +112,11 @@ func (this *LighterCore) PublicGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetCandles", args...)
 }
 
+// PublicGetMarkPriceCandles returns a channel that yields a JSON object.
+func (this *LighterCore) PublicGetMarkPriceCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarkPriceCandles", args...)
+}
+
 // PublicGetFundings returns a channel that yields a JSON object.
 func (this *LighterCore) PublicGetFundings(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetFundings", args...)
@@ -130,6 +135,21 @@ func (this *LighterCore) PublicGetFundingRates(args ...any) <-chan any {
 // PublicGetWithdrawalDelay returns a channel that yields a JSON object.
 func (this *LighterCore) PublicGetWithdrawalDelay(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetWithdrawalDelay", args...)
+}
+
+// PublicGetPartnerStats returns a channel that yields a JSON object.
+func (this *LighterCore) PublicGetPartnerStats(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetPartnerStats", args...)
+}
+
+// PublicGetSyntheticSpotInfo returns a channel that yields a JSON object.
+func (this *LighterCore) PublicGetSyntheticSpotInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSyntheticSpotInfo", args...)
+}
+
+// PublicGetTokenlist returns a channel that yields a JSON object.
+func (this *LighterCore) PublicGetTokenlist(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetTokenlist", args...)
 }
 
 // PublicPostSendTx returns a channel that yields a JSON object.
@@ -177,6 +197,11 @@ func (this *LighterCore) PrivateGetPublicPoolsMetadata(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetPublicPoolsMetadata", args...)
 }
 
+// PrivateGetGetMakerOnlyApiKeys returns a channel that yields a JSON object.
+func (this *LighterCore) PrivateGetGetMakerOnlyApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetGetMakerOnlyApiKeys", args...)
+}
+
 // PrivateGetAccountActiveOrders returns a channel that yields a JSON object.
 func (this *LighterCore) PrivateGetAccountActiveOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountActiveOrders", args...)
@@ -187,9 +212,19 @@ func (this *LighterCore) PrivateGetAccountInactiveOrders(args ...any) <-chan any
 	return this.callEndpointAsync("privateGetAccountInactiveOrders", args...)
 }
 
+// PrivateGetAccountOrders returns a channel that yields a JSON object.
+func (this *LighterCore) PrivateGetAccountOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountOrders", args...)
+}
+
 // PrivateGetExport returns a channel that yields a JSON object.
 func (this *LighterCore) PrivateGetExport(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetExport", args...)
+}
+
+// PrivateGetExportHistoricalTrades returns a channel that yields a JSON object.
+func (this *LighterCore) PrivateGetExportHistoricalTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetExportHistoricalTrades", args...)
 }
 
 // PrivateGetTrades returns a channel that yields a JSON object.
@@ -227,12 +262,42 @@ func (this *LighterCore) PrivateGetTransferFeeInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTransferFeeInfo", args...)
 }
 
+// PrivateGetRfqGet returns a channel that yields a JSON object.
+func (this *LighterCore) PrivateGetRfqGet(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqGet", args...)
+}
+
+// PrivateGetRfqList returns a channel that yields a JSON object.
+func (this *LighterCore) PrivateGetRfqList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqList", args...)
+}
+
 // PrivatePostChangeAccountTier returns a channel that yields a JSON object.
 func (this *LighterCore) PrivatePostChangeAccountTier(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostChangeAccountTier", args...)
 }
 
+// PrivatePostSetMakerOnlyApiKeys returns a channel that yields a JSON object.
+func (this *LighterCore) PrivatePostSetMakerOnlyApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSetMakerOnlyApiKeys", args...)
+}
+
 // PrivatePostNotificationAck returns a channel that yields a JSON object.
 func (this *LighterCore) PrivatePostNotificationAck(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostNotificationAck", args...)
+}
+
+// PrivatePostRfqCreate returns a channel that yields a JSON object.
+func (this *LighterCore) PrivatePostRfqCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqCreate", args...)
+}
+
+// PrivatePostRfqRespond returns a channel that yields a JSON object.
+func (this *LighterCore) PrivatePostRfqRespond(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqRespond", args...)
+}
+
+// PrivatePostRfqUpdate returns a channel that yields a JSON object.
+func (this *LighterCore) PrivatePostRfqUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRfqUpdate", args...)
 }

@@ -17,6 +17,11 @@ func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketPrice(args ...any) <-
 	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketPrice", args...)
 }
 
+// PublicGetV2UserApiExchangeMarketsPrice returns a channel that yields a JSON object.
+func (this *CryptomusCore) PublicGetV2UserApiExchangeMarketsPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV2UserApiExchangeMarketsPrice", args...)
+}
+
 // PublicGetV1ExchangeMarketAssets returns a channel that yields a JSON object.
 func (this *CryptomusCore) PublicGetV1ExchangeMarketAssets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1ExchangeMarketAssets", args...)
@@ -72,6 +77,46 @@ func (this *CryptomusCore) PrivateGetV2UserApiTransactionList(args ...any) <-cha
 	return this.callEndpointAsync("privateGetV2UserApiTransactionList", args...)
 }
 
+// PrivateGetV2UserApiBalance returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiBalance", args...)
+}
+
+// PrivateGetV2UserApiConvertDirectionList returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiConvertDirectionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiConvertDirectionList", args...)
+}
+
+// PrivateGetV2UserApiConvertOrderList returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiConvertOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiConvertOrderList", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckBalance returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiAmlCheckBalance(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckBalance", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckCurrencies returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiAmlCheckCurrencies(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckCurrencies", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckPackages returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiAmlCheckPackages(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckPackages", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckRequest", args...)
+}
+
+// PrivateGetV2UserApiAmlCheckRequestId returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateGetV2UserApiAmlCheckRequestId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2UserApiAmlCheckRequestId", args...)
+}
+
 // PrivatePostV2UserApiExchangeOrders returns a channel that yields a JSON object.
 func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrders", args...)
@@ -82,7 +127,37 @@ func (this *CryptomusCore) PrivatePostV2UserApiExchangeOrdersMarket(args ...any)
 	return this.callEndpointAsync("privatePostV2UserApiExchangeOrdersMarket", args...)
 }
 
+// PrivatePostV2UserApiConvert returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiConvert(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvert", args...)
+}
+
+// PrivatePostV2UserApiConvertCalculate returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiConvertCalculate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvertCalculate", args...)
+}
+
+// PrivatePostV2UserApiConvertLimit returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiConvertLimit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiConvertLimit", args...)
+}
+
+// PrivatePostV2UserApiAmlCheckRequest returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiAmlCheckRequest(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiAmlCheckRequest", args...)
+}
+
+// PrivatePostV2UserApiAmlCheckRequestIdReportSend returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivatePostV2UserApiAmlCheckRequestIdReportSend(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2UserApiAmlCheckRequestIdReportSend", args...)
+}
+
 // PrivateDeleteV2UserApiExchangeOrdersOrderId returns a channel that yields a JSON object.
 func (this *CryptomusCore) PrivateDeleteV2UserApiExchangeOrdersOrderId(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteV2UserApiExchangeOrdersOrderId", args...)
+}
+
+// PrivateDeleteV2UserApiConvertOrderUuid returns a channel that yields a JSON object.
+func (this *CryptomusCore) PrivateDeleteV2UserApiConvertOrderUuid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteV2UserApiConvertOrderUuid", args...)
 }

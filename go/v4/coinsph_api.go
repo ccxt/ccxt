@@ -327,6 +327,16 @@ func (this *CoinsphCore) PrivatePostOpenapiFiatV1History(args ...any) <-chan any
 	return this.callEndpointAsync("privatePostOpenapiFiatV1History", args...)
 }
 
+// PrivatePostOpenapiFiatV2History returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiFiatV2History(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiFiatV2History", args...)
+}
+
+// PrivatePostOpenapiFiatV1CancelQrCode returns a channel that yields a JSON object.
+func (this *CoinsphCore) PrivatePostOpenapiFiatV1CancelQrCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOpenapiFiatV1CancelQrCode", args...)
+}
+
 // PrivatePostOpenapiMigrationV4Sellorder returns a channel that yields a JSON object.
 func (this *CoinsphCore) PrivatePostOpenapiMigrationV4Sellorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOpenapiMigrationV4Sellorder", args...)

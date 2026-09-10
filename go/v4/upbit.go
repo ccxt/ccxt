@@ -227,6 +227,21 @@ func (this *UpbitCore) Describe() any {
 					"api_keys": map[string]any{
 						"cost": 0.67,
 					},
+					"pockets": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/api_keys": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/assets": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/universal_transfers": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/transfers": map[string]any{
+						"cost": 0.67,
+					},
 				},
 				"post": map[string]any{
 					"orders": map[string]any{
@@ -254,6 +269,12 @@ func (this *UpbitCore) Describe() any {
 						"cost": 0.67,
 					},
 					"travel_rule/deposit/txid": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/universal_transfers": map[string]any{
+						"cost": 0.67,
+					},
+					"pockets/transfers": map[string]any{
 						"cost": 0.67,
 					},
 				},
@@ -396,14 +417,14 @@ func (this *UpbitCore) fetchCurrencyBody(ch chan any, code any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes28912 := (<-this.LoadMarkets())
-		PanicOnError(retRes28912)
+		retRes29612 := (<-this.LoadMarkets())
+		PanicOnError(retRes29612)
 	}
 	var currency any = this.Currency(code)
 
-	retRes29215 := (<-this.FetchCurrencyById(GetValue(currency, "id"), params))
-	PanicOnError(retRes29215)
-	ch <- retRes29215
+	retRes29915 := (<-this.FetchCurrencyById(GetValue(currency, "id"), params))
+	PanicOnError(retRes29915)
+	ch <- retRes29915
 	return nil
 }
 func (this *UpbitCore) FetchCurrencyById(id any, optionalArgs ...any) <-chan any {
@@ -522,14 +543,14 @@ func (this *UpbitCore) fetchMarketBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38912 := (<-this.LoadMarkets())
-		PanicOnError(retRes38912)
+		retRes39612 := (<-this.LoadMarkets())
+		PanicOnError(retRes39612)
 	}
 	var market any = this.Market(symbol)
 
-	retRes39215 := (<-this.FetchMarketById(GetValue(market, "id"), params))
-	PanicOnError(retRes39215)
-	ch <- retRes39215
+	retRes39915 := (<-this.FetchMarketById(GetValue(market, "id"), params))
+	PanicOnError(retRes39915)
+	ch <- retRes39915
 	return nil
 }
 func (this *UpbitCore) FetchMarketById(id any, optionalArgs ...any) <-chan any {
@@ -787,8 +808,8 @@ func (this *UpbitCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61412 := (<-this.LoadMarkets())
-		PanicOnError(retRes61412)
+		retRes62112 := (<-this.LoadMarkets())
+		PanicOnError(retRes62112)
 	}
 
 	response := (<-this.PrivateGetAccounts(params))
@@ -837,8 +858,8 @@ func (this *UpbitCore) fetchOrderBooksBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64512 := (<-this.LoadMarkets())
-		PanicOnError(retRes64512)
+		retRes65212 := (<-this.LoadMarkets())
+		PanicOnError(retRes65212)
 	}
 	var ids any = nil
 	if IsTrue(IsEqual(symbols, nil)) {
@@ -1024,8 +1045,8 @@ func (this *UpbitCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes80112 := (<-this.LoadMarkets())
-		PanicOnError(retRes80112)
+		retRes80812 := (<-this.LoadMarkets())
+		PanicOnError(retRes80812)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var tickers any = []any{}
@@ -1253,8 +1274,8 @@ func (this *UpbitCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99412 := (<-this.LoadMarkets())
-		PanicOnError(retRes99412)
+		retRes100112 := (<-this.LoadMarkets())
+		PanicOnError(retRes100112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(limit, nil)) {
@@ -1316,8 +1337,8 @@ func (this *UpbitCore) fetchTradingFeeBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104212 := (<-this.LoadMarkets())
-		PanicOnError(retRes104212)
+		retRes104912 := (<-this.LoadMarkets())
+		PanicOnError(retRes104912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1397,8 +1418,8 @@ func (this *UpbitCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes110812 := (<-this.LoadMarkets())
-		PanicOnError(retRes110812)
+		retRes111512 := (<-this.LoadMarkets())
+		PanicOnError(retRes111512)
 	}
 
 	fetchMarketResponse := (<-this.FetchMarkets(params))
@@ -1473,8 +1494,8 @@ func (this *UpbitCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes116912 := (<-this.LoadMarkets())
-		PanicOnError(retRes116912)
+		retRes117612 := (<-this.LoadMarkets())
+		PanicOnError(retRes117612)
 	}
 	var market any = this.Market(symbol)
 	var timeframePeriod any = this.ParseTimeframe(timeframe)
@@ -1603,8 +1624,8 @@ func (this *UpbitCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes127712 := (<-this.LoadMarkets())
-		PanicOnError(retRes127712)
+		retRes128412 := (<-this.LoadMarkets())
+		PanicOnError(retRes128412)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -1741,8 +1762,8 @@ func (this *UpbitCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes139712 := (<-this.LoadMarkets())
-		PanicOnError(retRes139712)
+		retRes140412 := (<-this.LoadMarkets())
+		PanicOnError(retRes140412)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -1811,8 +1832,8 @@ func (this *UpbitCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes144812 := (<-this.LoadMarkets())
-		PanicOnError(retRes144812)
+		retRes145512 := (<-this.LoadMarkets())
+		PanicOnError(retRes145512)
 	}
 	var request map[string]any = map[string]any{}
 	var prevClientOrderId any = this.SafeString(params, "clientOrderId")
@@ -1952,8 +1973,8 @@ func (this *UpbitCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes156812 := (<-this.LoadMarkets())
-		PanicOnError(retRes156812)
+		retRes157512 := (<-this.LoadMarkets())
+		PanicOnError(retRes157512)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -2014,8 +2035,8 @@ func (this *UpbitCore) fetchDepositBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes161612 := (<-this.LoadMarkets())
-		PanicOnError(retRes161612)
+		retRes162312 := (<-this.LoadMarkets())
+		PanicOnError(retRes162312)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2078,8 +2099,8 @@ func (this *UpbitCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes165912 := (<-this.LoadMarkets())
-		PanicOnError(retRes165912)
+		retRes166612 := (<-this.LoadMarkets())
+		PanicOnError(retRes166612)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -2141,8 +2162,8 @@ func (this *UpbitCore) fetchWithdrawalBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes170712 := (<-this.LoadMarkets())
-		PanicOnError(retRes170712)
+		retRes171412 := (<-this.LoadMarkets())
+		PanicOnError(retRes171412)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2457,8 +2478,8 @@ func (this *UpbitCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes200212 := (<-this.LoadMarkets())
-		PanicOnError(retRes200212)
+		retRes200912 := (<-this.LoadMarkets())
+		PanicOnError(retRes200912)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -2530,8 +2551,8 @@ func (this *UpbitCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes205412 := (<-this.LoadMarkets())
-		PanicOnError(retRes205412)
+		retRes206112 := (<-this.LoadMarkets())
+		PanicOnError(retRes206112)
 	}
 	var request any = map[string]any{
 		"state": "done",
@@ -2612,8 +2633,8 @@ func (this *UpbitCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes211312 := (<-this.LoadMarkets())
-		PanicOnError(retRes211312)
+		retRes212012 := (<-this.LoadMarkets())
+		PanicOnError(retRes212012)
 	}
 	var request any = map[string]any{
 		"state": "cancel",
@@ -2688,8 +2709,8 @@ func (this *UpbitCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes217012 := (<-this.LoadMarkets())
-		PanicOnError(retRes217012)
+		retRes217712 := (<-this.LoadMarkets())
+		PanicOnError(retRes217712)
 	}
 	var request map[string]any = map[string]any{
 		"uuid": id,
@@ -2769,8 +2790,8 @@ func (this *UpbitCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223412 := (<-this.LoadMarkets())
-		PanicOnError(retRes223412)
+		retRes224112 := (<-this.LoadMarkets())
+		PanicOnError(retRes224112)
 	}
 
 	response := (<-this.PrivateGetDepositsCoinAddresses(params))
@@ -2847,8 +2868,8 @@ func (this *UpbitCore) fetchDepositAddressBody(ch chan any, code any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes229612 := (<-this.LoadMarkets())
-		PanicOnError(retRes229612)
+		retRes230312 := (<-this.LoadMarkets())
+		PanicOnError(retRes230312)
 	}
 	var currency any = this.Currency(code)
 	var networkCode any = nil
@@ -2899,8 +2920,8 @@ func (this *UpbitCore) createDepositAddressBody(ch chan any, code any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes233112 := (<-this.LoadMarkets())
-		PanicOnError(retRes233112)
+		retRes233812 := (<-this.LoadMarkets())
+		PanicOnError(retRes233812)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2964,8 +2985,8 @@ func (this *UpbitCore) withdrawBody(ch chan any, code any, amount any, address a
 	params = GetValue(tagparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes237712 := (<-this.LoadMarkets())
-		PanicOnError(retRes237712)
+		retRes238412 := (<-this.LoadMarkets())
+		PanicOnError(retRes238412)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
