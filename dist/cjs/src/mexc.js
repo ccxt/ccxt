@@ -195,6 +195,7 @@ class mexc extends mexc$1["default"] {
                         'get': {
                             'kyc/status': { 'cost': 1 },
                             'uid': { 'cost': 1 },
+                            'apiKeyInfo': { 'cost': 1 },
                             'order': { 'cost': 2 },
                             'openOrders': { 'cost': 3 },
                             'allOrders': { 'cost': 10 },
@@ -257,6 +258,7 @@ class mexc extends mexc$1["default"] {
                             'sub-account/margin': { 'cost': 1 },
                             'batchOrders': { 'cost': 10 },
                             'strategy/group': { 'cost': 20 },
+                            'strategy/group/uid': { 'cost': 20 },
                             'capital/withdraw/apply': { 'cost': 1 },
                             'capital/withdraw': { 'cost': 1 },
                             'capital/transfer': { 'cost': 50 },

@@ -111,6 +111,7 @@ export default class mudrex extends Exchange {
                         'futures/{asset_id}': { 'cost': 1 },
                         'wallet/funds': { 'cost': 5 },
                         'futures/funds': { 'cost': 5 },
+                        'futures/transactions': { 'cost': 1 },
                         'futures/orders': { 'cost': 1 },
                         'futures/orders/history': { 'cost': 1 },
                         'futures/orders/{order_id}': { 'cost': 1 },

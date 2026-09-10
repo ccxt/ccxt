@@ -230,6 +230,14 @@ class bingx extends bingx$1["default"] {
                                 'market/depth': { 'cost': 1 },
                                 'market/kline': { 'cost': 1 },
                                 'ticker/price': { 'cost': 1 },
+                                'quote/bookTicker': { 'cost': 1 },
+                                'quote/depth': { 'cost': 1 },
+                                'quote/historicalKlines': { 'cost': 1 },
+                                'quote/historicalTrades': { 'cost': 1 },
+                                'quote/klines': { 'cost': 1 },
+                                'quote/price': { 'cost': 1 },
+                                'quote/ticker': { 'cost': 1 },
+                                'quote/trades': { 'cost': 1 },
                             },
                         },
                     },
@@ -317,6 +325,7 @@ class bingx extends bingx$1["default"] {
                                 'trade/allOrders': { 'cost': 2 },
                                 'trade/allFillOrders': { 'cost': 2 },
                                 'trade/fillHistory': { 'cost': 2 },
+                                'trade/positionHistory': { 'cost': 2 },
                                 'user/income/export': { 'cost': 2 },
                                 'user/commissionRate': { 'cost': 2 },
                                 'quote/bookTicker': { 'cost': 1 },
@@ -388,6 +397,13 @@ class bingx extends bingx$1["default"] {
                             'delete': {
                                 'trade/allOpenOrders': { 'cost': 2 }, // post method in doc
                                 'trade/cancelOrder': { 'cost': 2 },
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'post': {
+                                'trade/order': { 'cost': 2 },
                             },
                         },
                     },
@@ -550,6 +566,21 @@ class bingx extends bingx$1["default"] {
                                 'asset/partnerData': { 'cost': 5 },
                                 'commissionDataList/referralCode': { 'cost': 5 },
                                 'account/superiorCheck': { 'cost': 5 },
+                            },
+                        },
+                    },
+                },
+                'wealth': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'product/dual-currency/pre-order': { 'cost': 2 },
+                                'product/dual-currency/position': { 'cost': 2 },
+                                'product/dual-currency/order-records': { 'cost': 2 },
+                            },
+                            'post': {
+                                'product/dual-currency/invest-asset-list': { 'cost': 2 },
+                                'product/dual-currency/order': { 'cost': 2 },
                             },
                         },
                     },

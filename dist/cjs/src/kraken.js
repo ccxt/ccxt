@@ -165,6 +165,7 @@ class kraken extends kraken$1["default"] {
                         // rate-limits explained in comment in the top of this file
                         'Time': { 'cost': 1 },
                         'SystemStatus': { 'cost': 1 },
+                        'MaintenanceSchedule': { 'cost': 1 },
                         'Assets': { 'cost': 1 },
                         'AssetPairs': { 'cost': 1 },
                         'Ticker': { 'cost': 1 },
@@ -200,6 +201,7 @@ class kraken extends kraken$1["default"] {
                         'RetrieveExport': { 'cost': 3 },
                         'RemoveExport': { 'cost': 3 },
                         'GetApiKeyInfo': { 'cost': 3 },
+                        'ListWalletAccounts': { 'cost': 3 },
                         // trading
                         'AddOrder': { 'cost': 0 },
                         'AmendOrder': { 'cost': 0 },

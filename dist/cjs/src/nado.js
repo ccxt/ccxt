@@ -96,6 +96,7 @@ class nado extends nado$1["default"] {
                         },
                         'post': {
                             'query': { 'cost': 1 },
+                            'edge/query': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -124,6 +125,7 @@ class nado extends nado$1["default"] {
                             'tickers': { 'cost': 1 },
                             'contracts': { 'cost': 1 },
                             'trades': { 'cost': 1 },
+                            'symbols': { 'cost': 1 },
                         },
                     },
                 },

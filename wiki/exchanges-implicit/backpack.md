@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official backpack API documentation:** [docs.backpack.exchange](https://docs.backpack.exchange/)
 
-> 56 implicit endpoints across 2 access groups.
+> 72 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -67,11 +67,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `publicGetApiV1Collateral` | GET | `api/v1/collateral` | 1 |
 | `publicGetApiV1BorrowLendMarkets` | GET | `api/v1/borrowLend/markets` | 1 |
 | `publicGetApiV1BorrowLendMarketsHistory` | GET | `api/v1/borrowLend/markets/history` | 1 |
+| `publicGetApiV1BorrowLendApy` | GET | `api/v1/borrowLend/apy` | 1 |
 | `publicGetApiV1Markets` | GET | `api/v1/markets` | 1 |
 | `publicGetApiV1Market` | GET | `api/v1/market` | 1 |
 | `publicGetApiV1Ticker` | GET | `api/v1/ticker` | 1 |
 | `publicGetApiV1Tickers` | GET | `api/v1/tickers` | 1 |
 | `publicGetApiV1Depth` | GET | `api/v1/depth` | 1 |
+| `publicGetApiV1Prediction` | GET | `api/v1/prediction` | 1 |
+| `publicGetApiV1PredictionTags` | GET | `api/v1/prediction/tags` | 1 |
+| `publicGetApiV1MarketSessions` | GET | `api/v1/market-sessions` | 1 |
+| `publicGetApiV1MarketHolidays` | GET | `api/v1/market-holidays` | 1 |
+| `publicGetApiV1Securities` | GET | `api/v1/securities` | 1 |
 | `publicGetApiV1Klines` | GET | `api/v1/klines` | 1 |
 | `publicGetApiV1MarkPrices` | GET | `api/v1/markPrices` | 1 |
 | `publicGetApiV1OpenInterest` | GET | `api/v1/openInterest` | 1 |
@@ -94,6 +100,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV1AccountLimitsOrder` | GET | `api/v1/account/limits/order` | 1 |
 | `privateGetApiV1AccountLimitsWithdrawal` | GET | `api/v1/account/limits/withdrawal` | 1 |
 | `privateGetApiV1BorrowLendPositions` | GET | `api/v1/borrowLend/positions` | 1 |
+| `privateGetApiV1BorrowLendPositionLiquidationPrice` | GET | `api/v1/borrowLend/position/liquidationPrice` | 1 |
 | `privateGetApiV1Capital` | GET | `api/v1/capital` | 1 |
 | `privateGetApiV1CapitalCollateral` | GET | `api/v1/capital/collateral` | 1 |
 | `privateGetWapiV1CapitalDeposits` | GET | `wapi/v1/capital/deposits` | 1 |
@@ -106,11 +113,17 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetWapiV1HistoryDust` | GET | `wapi/v1/history/dust` | 1 |
 | `privateGetWapiV1HistoryFills` | GET | `wapi/v1/history/fills` | 1 |
 | `privateGetWapiV1HistoryFunding` | GET | `wapi/v1/history/funding` | 1 |
+| `privateGetWapiV1HistoryPosition` | GET | `wapi/v1/history/position` | 1 |
 | `privateGetWapiV1HistoryOrders` | GET | `wapi/v1/history/orders` | 1 |
+| `privateGetApiV1Rfqs` | GET | `api/v1/rfqs` | 1 |
 | `privateGetWapiV1HistoryRfq` | GET | `wapi/v1/history/rfq` | 1 |
 | `privateGetWapiV1HistoryQuote` | GET | `wapi/v1/history/quote` | 1 |
+| `privateGetWapiV1HistoryRfqFill` | GET | `wapi/v1/history/rfq/fill` | 1 |
+| `privateGetWapiV1HistoryQuoteFill` | GET | `wapi/v1/history/quote/fill` | 1 |
 | `privateGetWapiV1HistorySettlement` | GET | `wapi/v1/history/settlement` | 1 |
 | `privateGetWapiV1HistoryStrategies` | GET | `wapi/v1/history/strategies` | 1 |
+| `privateGetApiV1Strategy` | GET | `api/v1/strategy` | 1 |
+| `privateGetApiV1Strategies` | GET | `api/v1/strategies` | 1 |
 | `privateGetApiV1Order` | GET | `api/v1/order` | 1 |
 | `privateGetApiV1Orders` | GET | `api/v1/orders` | 1 |
 | `privatePostApiV1AccountConvertDust` | POST | `api/v1/account/convertDust` | 1 |
@@ -123,7 +136,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostApiV1RfqRefresh` | POST | `api/v1/rfq/refresh` | 1 |
 | `privatePostApiV1RfqCancel` | POST | `api/v1/rfq/cancel` | 1 |
 | `privatePostApiV1RfqQuote` | POST | `api/v1/rfq/quote` | 1 |
+| `privatePostApiV1Strategy` | POST | `api/v1/strategy` | 1 |
 | `privateDeleteApiV1Order` | DELETE | `api/v1/order` | 1 |
 | `privateDeleteApiV1Orders` | DELETE | `api/v1/orders` | 1 |
+| `privateDeleteApiV1Strategy` | DELETE | `api/v1/strategy` | 1 |
+| `privateDeleteApiV1Strategies` | DELETE | `api/v1/strategies` | 1 |
 | `privatePatchApiV1Account` | PATCH | `api/v1/account` | 1 |
 

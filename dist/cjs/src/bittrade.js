@@ -182,6 +182,7 @@ class bittrade extends bittrade$1["default"] {
                         'common/timestamp': { 'cost': 1 }, // 查询系统当前时间
                         'common/exchange': { 'cost': 1 }, // order limits
                         'settings/currencys': { 'cost': 1 }, // ?language=en-US
+                        'retail/maintain/time': { 'cost': 1 }, // 零售维护时间
                     },
                 },
                 'private': {
@@ -212,6 +213,7 @@ class bittrade extends bittrade$1["default"] {
                         'subuser/aggregate-balance': { 'cost': 10 },
                         'stable-coin/exchange_rate': { 'cost': 1 },
                         'stable-coin/quote': { 'cost': 1 },
+                        'retail/order/list': { 'cost': 1 }, // 零售订单历史
                     },
                     'post': {
                         'account/transfer': { 'cost': 1 }, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -239,6 +241,7 @@ class bittrade extends bittrade$1["default"] {
                         'cross-margin/orders/{id}/repay': { 'cost': 1 }, // 归还借币
                         'stable-coin/exchange': { 'cost': 1 },
                         'subuser/transfer': { 'cost': 10 },
+                        'retail/order/place': { 'cost': 1 }, // 零售下单
                     },
                 },
             },

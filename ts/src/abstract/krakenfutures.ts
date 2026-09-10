@@ -35,6 +35,7 @@ interface Exchange {
     privateGetSelfTradeStrategy (params?: {}): Promise<Dict>;
     privateGetSubaccounts (params?: {}): Promise<Dict>;
     privateGetSubaccountUidTradingEnabled (params?: {}): Promise<Dict>;
+    privateGetRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
     privatePostSendorder (params?: {}): Promise<Dict>;
     privatePostEditorder (params?: {}): Promise<Dict>;
     privatePostCancelorder (params?: {}): Promise<Dict>;
@@ -50,6 +51,8 @@ interface Exchange {
     privatePutPnlpreferences (params?: {}): Promise<Dict>;
     privatePutSelfTradeStrategy (params?: {}): Promise<Dict>;
     privatePutSubaccountUidTradingEnabled (params?: {}): Promise<Dict>;
+    privatePutRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
+    privateDeleteRfqAssignmentMaxLeverage (params?: {}): Promise<Dict>;
     chartsGetPriceTypeSymbolInterval (params?: {}): Promise<Dict>;
     chartsGetAnalyticsLiquidityPool (params?: {}): Promise<Dict>;
     historyGetOrders (params?: {}): Promise<Dict>;

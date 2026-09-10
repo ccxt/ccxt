@@ -216,6 +216,10 @@ class bitso extends bitso$1["default"] {
                         'orders/{oid}': { 'cost': 1 },
                         'orders/all': { 'cost': 1 },
                     },
+                    'patch': {
+                        'orders': { 'cost': 1 },
+                        'orders/{oid}': { 'cost': 1 },
+                    },
                 },
             },
             'features': {

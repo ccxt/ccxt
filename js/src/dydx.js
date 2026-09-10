@@ -201,6 +201,14 @@ export default class dydx extends Exchange {
                         'addresses/{address}/subaccountNumber/{subaccountNumber}/orders': { 'cost': 1 },
                         'fills/parentSubaccount': { 'cost': 1 },
                         'historical-pnl/parentSubaccount': { 'cost': 1 },
+                        'pnl': { 'cost': 1 },
+                        'pnl/parentSubaccountNumber': { 'cost': 1 },
+                        'tradeHistory': { 'cost': 1 },
+                        'tradeHistory/parentSubaccountNumber': { 'cost': 1 },
+                    },
+                    'post': {
+                        'turnkey/signin': { 'cost': 1 },
+                        'turnkey/uploadAddress': { 'cost': 1 },
                     },
                 },
                 'nodeRpc': {

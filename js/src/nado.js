@@ -97,6 +97,7 @@ export default class nado extends Exchange {
                         },
                         'post': {
                             'query': { 'cost': 1 },
+                            'edge/query': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -125,6 +126,7 @@ export default class nado extends Exchange {
                             'tickers': { 'cost': 1 },
                             'contracts': { 'cost': 1 },
                             'trades': { 'cost': 1 },
+                            'symbols': { 'cost': 1 },
                         },
                     },
                 },
