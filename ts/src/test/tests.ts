@@ -496,6 +496,19 @@ class testMainClass {
         return true;
     }
 
+    getLastRequestUrl (exchange: any): string {
+        const fetchCache = exchange.getFetchCache ();
+        let url: string = '';
+        if (fetchCache.length > 0) {
+            const lastEntry: dict = fetchCache[fetchCache.length - 1];
+            const 
+            if (lastRequest !== undefined) {
+
+            }
+        }
+        return fetchCache.length > 0 ? fetchCache[fetchCache.length - 1]['request']['url'] : '';
+    }
+
     async runPublicTests (exchange: any, symbols: any) {
         const primarySymbol = symbols[0];
         let tests: Dict = {
