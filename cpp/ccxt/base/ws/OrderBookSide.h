@@ -161,7 +161,9 @@ private:
         if (size != 0) {
             double key = 0;
             bool haveKey = false;
-            if (priceAny.has_value ()) {
+            // TS: `index_price = index_price || old_price` -- a falsy price (0)
+            // falls back to the stored key; a present 0 must not move the level
+            if (priceAny.has_value () && !(isNum (priceAny) && toDouble (priceAny) == 0)) {
                 key = this->sortKey (toDouble (priceAny));
                 haveKey = true;
             }

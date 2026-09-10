@@ -230,6 +230,14 @@ int main (int argc, char** argv) {
         testClass.parseCliArgsAndProps ();
         const auto future = testClass.init (std::string (exchangeId), symbolArgv, methodArgv);
         ccxt::awaitValue (future);
+        // the transpiled framework prints per-test [TEST_FAILURE] markers but
+        // never surfaces them in the exit code -- fold them in so a failed
+        // static suite can never report a green exit
+        const long failures = testClass.totalTestFailures ();
+        if (failures > 0) {
+            std::cout << "[TEST_FAILURE] " << failures << " static test suite(s) reported failures" << std::endl;
+            return 1;
+        }
         return 0;
     } catch (const std::exception& e) {
         std::cout << "[TEST_FAILURE] " << e.what () << std::endl;

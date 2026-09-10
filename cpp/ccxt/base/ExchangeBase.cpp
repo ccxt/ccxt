@@ -1367,6 +1367,20 @@ void connectWsClient (ccxt::ExchangeBase* ex, const std::any& url, ccxt::ws::Cli
 
 } // namespace
 
+ExchangeBase::~ExchangeBase () {
+    // shut live transports down BEFORE members are destroyed: the receive
+    // threads route frames into handleMessage on `this`, and the join inside
+    // Transport::shutdown orders any in-flight callback before this teardown
+    if (this->clients.has_value () && ccxt::isDict (this->clients)) {
+        const ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+        for (const auto& kv : clients.entries ()) {
+            if (kv.second.type () == typeid (ccxt::ws::Client)) {
+                std::any_cast<ccxt::ws::Client> (kv.second).shutdown ();
+            }
+        }
+    }
+}
+
 std::any ExchangeBase::resolve (std::any value, std::any messageHash) {
     if (std::getenv ("CCXT_WS_URL_TRACE")) {
         std::fprintf (stderr, "[ex-resolve-enter] hash=%s clients=%d\n",
@@ -1493,13 +1507,12 @@ std::any ExchangeBase::watchMultiple (std::any url, std::any messageHashes, std:
 
 std::shared_future<std::any> ExchangeBase::spawn (std::any methodName, std::any args) {
     // fire-and-forget dispatch by method name (generated pro code passes the
-    // method as a stringified reference)
+    // method as a stringified reference). Exceptions propagate through the
+    // shared_future (TS parity: a throwing spawned task rejects its promise
+    // and awaitValue rethrows) -- swallowing here produced empty results that
+    // masked real failures downstream.
     return std::async (std::launch::async, [this, methodName, args] () -> std::any {
-        try {
-            return this->callDynamically (str (methodName), args);
-        } catch (...) {
-            return std::any {};
-        }
+        return this->callDynamically (str (methodName), args);
     }).share ();
 }
 
@@ -1507,11 +1520,7 @@ std::shared_future<std::any> ExchangeBase::delay (std::any timeout, std::any met
     const int64_t ms = timeout.has_value () ? static_cast<int64_t> (toDouble (timeout)) : 0;
     return std::async (std::launch::async, [this, ms, methodName, args] () -> std::any {
         std::this_thread::sleep_for (std::chrono::milliseconds (ms));
-        try {
-            return this->callDynamically (str (methodName), args);
-        } catch (...) {
-            return std::any {};
-        }
+        return this->callDynamically (str (methodName), args);
     }).share ();
 }
 
