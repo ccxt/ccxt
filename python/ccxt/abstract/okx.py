@@ -7,6 +7,7 @@ class ImplicitAPI:
     public_get_market_ticker = publicGetMarketTicker = Entry[_Dict]('market/ticker', 'public', 'GET', {'cost': 1})
     public_get_market_books = publicGetMarketBooks = Entry[_Dict]('market/books', 'public', 'GET', {'cost': 0.5})
     public_get_market_books_full = publicGetMarketBooksFull = Entry[_Dict]('market/books-full', 'public', 'GET', {'cost': 2})
+    public_get_market_books_rpi = publicGetMarketBooksRpi = Entry[_Dict]('market/books-rpi', 'public', 'GET', {'cost': 0.5})
     public_get_market_candles = publicGetMarketCandles = Entry[_Dict]('market/candles', 'public', 'GET', {'cost': 0.5})
     public_get_market_history_candles = publicGetMarketHistoryCandles = Entry[_Dict]('market/history-candles', 'public', 'GET', {'cost': 1})
     public_get_market_trades = publicGetMarketTrades = Entry[_Dict]('market/trades', 'public', 'GET', {'cost': 0.2})

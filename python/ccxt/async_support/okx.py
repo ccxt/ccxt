@@ -226,6 +226,7 @@ class okx(Exchange, ImplicitAPI):
                         'market/ticker': {'cost': 1},
                         'market/books': {'cost': 1 / 2},
                         'market/books-full': {'cost': 2},
+                        'market/books-rpi': {'cost': 1 / 2},
                         'market/candles': {'cost': 1 / 2},
                         'market/history-candles': {'cost': 1},
                         'market/trades': {'cost': 1 / 5},
@@ -974,6 +975,7 @@ class okx(Exchange, ImplicitAPI):
                     '54008': InvalidOrder,  # This operation is disabled by the 'mass cancel order' endpoint. Please enable it using self endpoint.
                     '54009': InvalidOrder,  # The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder,  # 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051': InvalidOrder,  # RPI order rejected. The order value is below the minimum required
                     '54072': ExchangeError,  # This contract is currently view-only and not tradable.
                     '54073': BadRequest,  # Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError,  # Your settings failed as you have positions, bot or open orders for USD contracts.
@@ -2114,11 +2116,13 @@ class okx(Exchange, ImplicitAPI):
 
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
         https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+        https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
 
         :param str symbol: unified symbol of the market to fetch the order book for
         :param int [limit]: the maximum amount of order book entries to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.method]: 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+        :param bool [params.rpi]: set to True to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
         :returns dict: an `order book structure <https://docs.ccxt.com/?id=order-book-structure>`
         """
         if self.markets is None:
@@ -2127,15 +2131,23 @@ class okx(Exchange, ImplicitAPI):
         request = {
             'instId': market['id'],
         }
+        rpi = False
+        rpi, params = self.handle_option_and_params(params, 'fetchOrderBook', 'rpi')
         method = None
         method, params = self.handle_option_and_params(params, 'fetchOrderBook', 'method', 'publicGetMarketBooks')
         if method == 'publicGetMarketBooksFull' and limit is None:
             limit = 5000
         limit = 100 if (limit is None) else limit
+        if rpi and (limit > 400):
+            # the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            # including the 5000 that publicGetMarketBooksFull defaults to
+            limit = 400
         if limit is not None:
             request['sz'] = limit  # max 400
         response = None
-        if (method == 'publicGetMarketBooksFull') or (limit > 400):
+        if rpi:
+            response = await self.publicGetMarketBooksRpi(self.extend(request, params))
+        elif (method == 'publicGetMarketBooksFull') or (limit > 400):
             response = await self.publicGetMarketBooksFull(self.extend(request, params))
         else:
             response = await self.publicGetMarketBooks(self.extend(request, params))
@@ -2159,6 +2171,10 @@ class okx(Exchange, ImplicitAPI):
         #             }
         #         ]
         #     }
+        #
+        # the rpi book has the same envelope, but each level is
+        # [price, totalQty, nonRpiQty, count] - totalQty already includes the
+        # rpi liquidity, so index 0 and 1 stay the price and the amount
         #
         data = self.safe_list(response, 'data', [])
         first = self.safe_dict(data, 0, {})
@@ -3328,7 +3344,7 @@ class okx(Exchange, ImplicitAPI):
         https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
 
         :param str symbol: unified symbol of the market to create an order in
-        :param str type: 'market' or 'limit'
+        :param str type: 'market' or 'limit', or 'rpi' for a retail price improvement maker order
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -3348,6 +3364,8 @@ class okx(Exchange, ImplicitAPI):
         :param str [params.tpOrdKind]: 'condition' or 'limit', the default is 'condition'
         :param bool [params.hedged]: *swap and future only* True for hedged mode, False for one way mode
         :param str [params.marginMode]: 'cross' or 'isolated', the default is 'cross'
+        :param bool [params.rpiTakerAccess]: True to a taker order match against retail price improvement liquidity
+        :param bool [params.rpiPxRound]: *rpi orders only* True to round the price outward to the nearest placeable non-crossing level
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
         if self.markets is None:
@@ -4063,6 +4081,10 @@ class okx(Exchange, ImplicitAPI):
             type = 'limit'
         elif type == 'ioc':
             timeInForce = 'IOC'
+            type = 'limit'
+        elif type == 'rpi':
+            # retail price improvement orders are maker-only limit orders
+            postOnly = True
             type = 'limit'
         marketId = self.safe_string(order, 'instId')
         market = self.safe_market(marketId, market)
