@@ -1,6 +1,7 @@
 /* eslint-disable */
 import assert from 'assert'
 import { Throttler } from '../../../base/functions/throttle.js'
+import { sleep } from '../../../base/functions/time.js'
 import type { Dict } from '../../../base/types.js'
 
 async function testThrottle () {
@@ -103,7 +104,8 @@ async function testThrottle () {
     }
 
     await testThrottleQueueCompaction ()
-    return testThrottleRollingWindowInvariant ()
+    await testThrottleRollingWindowInvariant ()
+    return testThrottleRollingWindowDrainExactness ()
 }
 
 // exercises the periodic compaction branch in Throttler#dequeue () (queueHead
@@ -161,6 +163,49 @@ async function testThrottleRollingWindowInvariant () {
     }
     await Promise.all (promises)
     console.log ('testThrottleRollingWindowInvariant succeeded')
+}
+
+// guards exact equality with the pre-#30266 behaviour at a window drain.
+// master recomputed totalCost from scratch on every iteration, so once every
+// timestamp had expired its value was exactly 0. The incremental form carries
+// the accumulated floating-point error of every += / -= instead, and that error
+// does not cancel: with fractional costs (0.1 + 0.2 - 0.1 - 0.2 !== 0 in binary
+// floating point) it random-walks and grows with the number of drains, so a
+// long-lived exchange instance accumulates it indefinitely. Because it is
+// signed it can understate the live cost and admit a request master would have
+// rejected. rollingWindowLoop () therefore re-anchors totalCost to 0 whenever
+// the trim empties timestamps[]; this test fails if that reset is removed.
+async function testThrottleRollingWindowDrainExactness () {
+    const windowSize = 20
+    const throttler = new Throttler ({
+        'algorithm': 'rollingWindow',
+        'windowSize': windowSize,
+        'rateLimit': 0.02, // maxWeight = windowSize / rateLimit = 1000, far above what this test admits
+        'cost': 1,
+    })
+    // fractional costs specifically chosen so add-then-subtract does not cancel
+    // exactly in binary floating point - integral costs would hide the drift
+    const costs = [ 0.1, 0.2, 0.3, 0.7, 0.01, 0.07, 0.123456789, 0.9999999 ]
+    const probeCost = 0.000001
+    const cycles = 12
+    for (let cycle = 0; cycle < cycles; cycle++) {
+        for (let i = 0; i < costs.length; i++) {
+            await throttler.throttle (costs[i])
+        }
+        // let the whole window expire, so the next request's prefix trim runs
+        // with every recorded timestamp already past the cut-off
+        await sleep (windowSize * 2)
+        await throttler.throttle (probeCost)
+        let exactSum = 0
+        for (let i = 0; i < throttler.timestamps.length; i++) {
+            exactSum += throttler.timestamps[i].cost
+        }
+        // after a full drain only the probe request survives, so totalCost must
+        // equal its cost EXACTLY - not merely within a tolerance, which is what
+        // testThrottleRollingWindowInvariant above already covers
+        assert (throttler.totalCost === exactSum, `testThrottleRollingWindowDrainExactness: totalCost (${throttler.totalCost}) is not exactly sum(timestamps[].cost) (${exactSum}) after drain cycle ${cycle}, residual ${throttler.totalCost - exactSum} - the empty-window reset in rollingWindowLoop () is missing`)
+    }
+    console.log (`testThrottleRollingWindowDrainExactness succeeded over ${cycles} drain cycles`)
 }
 
 export default testThrottle;
