@@ -565,12 +565,11 @@ func (this *MudrexCore) ParseTicker(ticker any, optionalArgs ...any) any {
 	var ms any = this.SafeString(ticker, "symbol")
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
-	var ts int64 = this.Milliseconds()
 	var pct any = this.SafeNumber(ticker, "change_perc")
 	return this.SafeTicker(map[string]any{
 		"symbol":        symbol,
-		"timestamp":     ts,
-		"datetime":      this.Iso8601(ts),
+		"timestamp":     nil,
+		"datetime":      nil,
 		"high":          nil,
 		"low":           nil,
 		"bid":           nil,
@@ -746,8 +745,8 @@ func (this *MudrexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57612 := (<-this.LoadMarkets())
-		PanicOnError(retRes57612)
+		retRes57512 := (<-this.LoadMarkets())
+		PanicOnError(retRes57512)
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params, "swap")
@@ -787,11 +786,8 @@ func (this *MudrexCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 func (this *MudrexCore) ParseBalance(response any) any {
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var currency any = this.SafeString(response, "currency", "USDT")
-	var timestamp int64 = this.Milliseconds()
 	var result map[string]any = map[string]any{
-		"info":      response,
-		"timestamp": timestamp,
-		"datetime":  this.Iso8601(timestamp),
+		"info": response,
 	}
 	var account any = this.Account()
 	var futuresBalance any = this.SafeString(data, "balance")
@@ -829,8 +825,8 @@ func (this *MudrexCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64112 := (<-this.LoadMarkets())
-		PanicOnError(retRes64112)
+		retRes63712 := (<-this.LoadMarkets())
+		PanicOnError(retRes63712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -880,8 +876,8 @@ func (this *MudrexCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes67512 := (<-this.LoadMarkets())
-		PanicOnError(retRes67512)
+		retRes67112 := (<-this.LoadMarkets())
+		PanicOnError(retRes67112)
 	}
 	var market any = this.Market(symbol)
 	var marginType any = this.SafeString(params, "marginType", "ISOLATED")
@@ -937,8 +933,8 @@ func (this *MudrexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes71512 := (<-this.LoadMarkets())
-		PanicOnError(retRes71512)
+		retRes71112 := (<-this.LoadMarkets())
+		PanicOnError(retRes71112)
 	}
 	var market any = this.Market(symbol)
 	// standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
@@ -1000,11 +996,15 @@ func (this *MudrexCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	response := (<-this.PrivatePostFuturesAssetIdOrder(this.Extend(request, params)))
 	PanicOnError(response)
 	var data any = this.SafeDict(response, "data", response)
-	// the create response omits the order/trigger type, so restore them from the request
-	AddElementToObject(data, "order_type", GetValue(request, "order_type"))
-	AddElementToObject(data, "trigger_type", GetValue(request, "trigger_type"))
+	// the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+	var merged map[string]any = this.Extend(data, map[string]any{
+		"order_type":   GetValue(request, "order_type"),
+		"trigger_type": GetValue(request, "trigger_type"),
+	})
+	var order any = this.ParseOrder(merged, market)
+	AddElementToObject(order, "info", data)
 
-	ch <- this.ParseOrder(data, market)
+	ch <- order
 	return nil
 }
 
@@ -1038,8 +1038,8 @@ func (this *MudrexCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes79312 := (<-this.LoadMarkets())
-		PanicOnError(retRes79312)
+		retRes79012 := (<-this.LoadMarkets())
+		PanicOnError(retRes79012)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1091,6 +1091,22 @@ func (this *MudrexCore) ParseOrder(order any, optionalArgs ...any) any {
 	} else if IsTrue(IsEqual(rawSide, "SHORT")) {
 		side = "sell"
 	}
+	// stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+	var isRiskOrder bool = IsTrue((IsEqual(rawSide, "STOPLOSS"))) || IsTrue((IsEqual(rawSide, "TAKEPROFIT")))
+	var priceString any = this.SafeString2(order, "price", "order_price")
+	var orderPrice any = priceString
+	var triggerPrice any = nil
+	var stopLossPrice any = nil
+	var takeProfitPrice any = nil
+	if IsTrue(isRiskOrder) {
+		triggerPrice = priceString
+		orderPrice = nil
+		if IsTrue(IsEqual(rawSide, "STOPLOSS")) {
+			stopLossPrice = priceString
+		} else {
+			takeProfitPrice = priceString
+		}
+	}
 	var trig any = this.SafeStringUpper(order, "trigger_type")
 	var typ any = nil
 	if IsTrue(IsEqual(trig, "MARKET")) {
@@ -1099,9 +1115,6 @@ func (this *MudrexCore) ParseOrder(order any, optionalArgs ...any) any {
 		typ = "limit"
 	}
 	var ts any = this.Parse8601(this.SafeString(order, "created_at"))
-	if IsTrue(IsEqual(ts, nil)) {
-		ts = this.Milliseconds()
-	}
 	var status any = this.ParseOrderStatus(this.SafeStringLower(order, "status"))
 	var sym any = GetValue(market, "symbol")
 	return this.SafeOrder(map[string]any{
@@ -1116,19 +1129,20 @@ func (this *MudrexCore) ParseOrder(order any, optionalArgs ...any) any {
 		"timeInForce":         nil,
 		"postOnly":            nil,
 		"side":                side,
-		"price":               this.SafeNumber2(order, "price", "order_price"),
-		"stopPrice":           nil,
-		"triggerPrice":        nil,
-		"amount":              this.SafeNumber2(order, "quantity", "amount"),
+		"price":               orderPrice,
+		"triggerPrice":        triggerPrice,
+		"stopLossPrice":       stopLossPrice,
+		"takeProfitPrice":     takeProfitPrice,
+		"amount":              this.SafeString2(order, "quantity", "amount"),
 		"cost":                nil,
-		"average":             nil,
-		"filled":              nil,
+		"average":             this.SafeString(order, "filled_price"),
+		"filled":              this.SafeString(order, "filled_quantity"),
 		"remaining":           nil,
 		"status":              status,
 		"fee":                 nil,
 		"trades":              []any{},
 		"fees":                []any{},
-		"lastUpdateTimestamp": nil,
+		"lastUpdateTimestamp": this.Parse8601(this.SafeString(order, "updated_at")),
 		"reduceOnly":          this.SafeBool(order, "reduce_only"),
 	}, market)
 }
@@ -1157,8 +1171,8 @@ func (this *MudrexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89512 := (<-this.LoadMarkets())
-		PanicOnError(retRes89512)
+		retRes90612 := (<-this.LoadMarkets())
+		PanicOnError(retRes90612)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1200,8 +1214,8 @@ func (this *MudrexCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92112 := (<-this.LoadMarkets())
-		PanicOnError(retRes92112)
+		retRes93212 := (<-this.LoadMarkets())
+		PanicOnError(retRes93212)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1249,8 +1263,8 @@ func (this *MudrexCore) fetchOrdersByStateBody(ch chan any, state any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes94912 := (<-this.LoadMarkets())
-		PanicOnError(retRes94912)
+		retRes96012 := (<-this.LoadMarkets())
+		PanicOnError(retRes96012)
 	}
 	var q map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(limit, nil)) {
@@ -1310,9 +1324,9 @@ func (this *MudrexCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes98715 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
-	PanicOnError(retRes98715)
-	ch <- retRes98715
+	retRes99815 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
+	PanicOnError(retRes99815)
+	ch <- retRes99815
 	return nil
 }
 
@@ -1344,9 +1358,9 @@ func (this *MudrexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes100215 := (<-this.FetchOrdersByState("open", symbol, since, limit, params))
-	PanicOnError(retRes100215)
-	ch <- retRes100215
+	retRes101315 := (<-this.FetchOrdersByState("open", symbol, since, limit, params))
+	PanicOnError(retRes101315)
+	ch <- retRes101315
 	return nil
 }
 
@@ -1378,9 +1392,9 @@ func (this *MudrexCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes101715 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
-	PanicOnError(retRes101715)
-	ch <- retRes101715
+	retRes102815 := (<-this.FetchOrdersByState("closed", symbol, since, limit, params))
+	PanicOnError(retRes102815)
+	ch <- retRes102815
 	return nil
 }
 
@@ -1408,8 +1422,8 @@ func (this *MudrexCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes103212 := (<-this.LoadMarkets())
-		PanicOnError(retRes103212)
+		retRes104312 := (<-this.LoadMarkets())
+		PanicOnError(retRes104312)
 	}
 	var q map[string]any = map[string]any{}
 
@@ -1465,8 +1479,8 @@ func (this *MudrexCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes106612 := (<-this.LoadMarkets())
-		PanicOnError(retRes106612)
+		retRes107712 := (<-this.LoadMarkets())
+		PanicOnError(retRes107712)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{}
@@ -1584,8 +1598,8 @@ func (this *MudrexCore) closePositionBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes116712 := (<-this.LoadMarkets())
-		PanicOnError(retRes116712)
+		retRes117812 := (<-this.LoadMarkets())
+		PanicOnError(retRes117812)
 	}
 	var positionId any = this.SafeString(params, "position_id")
 	var amount any = this.SafeValue(params, "amount")
@@ -1659,8 +1673,8 @@ func (this *MudrexCore) addMarginBody(ch chan any, symbol any, amount any, optio
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes122112 := (<-this.LoadMarkets())
-		PanicOnError(retRes122112)
+		retRes123212 := (<-this.LoadMarkets())
+		PanicOnError(retRes123212)
 	}
 	var positionId any = this.SafeString(params, "position_id")
 	if IsTrue(IsEqual(positionId, nil)) {
@@ -1712,9 +1726,9 @@ func (this *MudrexCore) reduceMarginBody(ch chan any, symbol any, amount any, op
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes125715 := (<-this.AddMargin(symbol, OpNeg(amount), params))
-	PanicOnError(retRes125715)
-	ch <- retRes125715
+	retRes126815 := (<-this.AddMargin(symbol, OpNeg(amount), params))
+	PanicOnError(retRes126815)
+	ch <- retRes126815
 	return nil
 }
 
@@ -1748,8 +1762,8 @@ func (this *MudrexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes127412 := (<-this.LoadMarkets())
-		PanicOnError(retRes127412)
+		retRes128512 := (<-this.LoadMarkets())
+		PanicOnError(retRes128512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {

@@ -206,6 +206,7 @@ func (this *NadoCore) Describe() any {
 				"1002": RestrictedLocation,
 				"1003": RestrictedLocation,
 				"1004": OnMaintenance,
+				"1005": BadRequest,
 				"2000": InvalidOrder,
 				"2001": InvalidOrder,
 				"2002": InvalidOrder,
@@ -329,6 +330,7 @@ func (this *NadoCore) Describe() any {
 				"2123": BadRequest,
 				"2124": InvalidOrder,
 				"2125": OperationRejected,
+				"2126": OrderNotFound,
 				"3000": BadRequest,
 				"3001": BadRequest,
 				"3002": ArgumentsRequired,
@@ -369,7 +371,7 @@ func (this *NadoCore) Describe() any {
  * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
  * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
- * @param {string} [params.triggerDirection] trigger direction, above, below
+ * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -387,8 +389,8 @@ func (this *NadoCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	this.CheckRequiredCredentials()
 
-	retRes3528 := (<-this.LoadMarkets())
-	PanicOnError(retRes3528)
+	retRes3548 := (<-this.LoadMarkets())
+	PanicOnError(retRes3548)
 	var market any = this.Market(symbol)
 
 	request := (<-this.CreateOrderRequest(symbol, typeVar, side, amount, price, params))
@@ -504,13 +506,14 @@ func (this *NadoCore) createOrderRequestBody(ch chan any, symbol any, typeVar an
 	var isStopOrder any = !IsEqual(triggerPrice, nil)
 	var isTriggerOrder bool = IsTrue(IsTrue(isStopOrder) || IsTrue(isStopLossOrder)) || IsTrue(isTakeProfitOrder)
 	if IsTrue(isStopOrder) {
-		var triggerDirection any = this.SafeStringLower(params, "triggerDirection")
-		if IsTrue(IsEqual(triggerDirection, nil)) {
-			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires triggerDirection for trigger order")))
-		}
+		var triggerDirection any = nil
+		triggerDirectionparamsVariable := this.HandleTriggerDirectionAndParams(params)
+		triggerDirection = GetValue(triggerDirectionparamsVariable, 0)
+		params = GetValue(triggerDirectionparamsVariable, 1)
+		var directionSuffix any = Ternary(IsTrue((IsEqual(triggerDirection, "ascending"))), "above", "below")
 		var triggerPriceX18 any = this.ConvertToX18(triggerPrice)
 		var priceRequirement map[string]any = map[string]any{}
-		AddElementToObject(priceRequirement, Add("oracle_price_", triggerDirection), triggerPriceX18)
+		AddElementToObject(priceRequirement, Add("oracle_price_", directionSuffix), triggerPriceX18)
 		var trigger map[string]any = map[string]any{
 			"price_trigger": map[string]any{
 				"price_requirement": priceRequirement,
@@ -577,6 +580,7 @@ func (this *NadoCore) createOrderRequestBody(ch chan any, symbol any, typeVar an
  * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
  * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+ * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *NadoCore) EditOrder(id any, symbol any, typeVar any, side any, optionalArgs ...any) <-chan any {
@@ -595,8 +599,8 @@ func (this *NadoCore) editOrderBody(ch chan any, id any, symbol any, typeVar any
 	_ = params
 	this.CheckRequiredCredentials()
 
-	retRes5148 := (<-this.LoadMarkets())
-	PanicOnError(retRes5148)
+	retRes5168 := (<-this.LoadMarkets())
+	PanicOnError(retRes5168)
 	var market any = this.Market(symbol)
 
 	request := (<-this.EditOrderRequest(id, symbol, typeVar, side, amount, price, params))
@@ -654,6 +658,10 @@ func (this *NadoCore) editOrderRequestBody(ch chan any, id any, symbol any, type
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(typeVar, "limit")) {
 		panic(InvalidOrder(Add(this.Id, " editOrder() supports limit orders only")))
+	}
+	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"})
+	if IsTrue(!IsEqual(triggerPrice, nil)) {
+		panic(NotSupported(Add(this.Id, " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")))
 	}
 	if IsTrue(IsEqual(amount, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " editOrder() requires an amount argument")))
@@ -801,8 +809,8 @@ func (this *NadoCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	this.CheckRequiredCredentials()
 
-	retRes6618 := (<-this.LoadMarkets())
-	PanicOnError(retRes6618)
+	retRes6678 := (<-this.LoadMarkets())
+	PanicOnError(retRes6678)
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -933,8 +941,8 @@ func (this *NadoCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 		panic(ArgumentsRequired(Add(this.Id, " cancelOrders() requires a symbol argument")))
 	}
 
-	retRes7838 := (<-this.LoadMarkets())
-	PanicOnError(retRes7838)
+	retRes7898 := (<-this.LoadMarkets())
+	PanicOnError(retRes7898)
 	var market any = this.Market(symbol)
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -1067,8 +1075,8 @@ func (this *NadoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 		panic(ArgumentsRequired(Add(this.Id, " fetchOrder() requires a symbol argument")))
 	}
 
-	retRes9078 := (<-this.LoadMarkets())
-	PanicOnError(retRes9078)
+	retRes9138 := (<-this.LoadMarkets())
+	PanicOnError(retRes9138)
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
 		"type":       "order",
@@ -1111,7 +1119,7 @@ func (this *NadoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1133,8 +1141,8 @@ func (this *NadoCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes9528 := (<-this.LoadMarkets())
-	PanicOnError(retRes9528)
+	retRes9588 := (<-this.LoadMarkets())
+	PanicOnError(retRes9588)
 	var productIds any = []any{}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1165,7 +1173,7 @@ func (this *NadoCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 		"product_ids": productIds,
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "limit", limit)
+		AddElementToObject(request, "limit", mathMin(limit, 500))
 	}
 
 	contracts := (<-this.QueryContracts())
@@ -1247,8 +1255,8 @@ func (this *NadoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		panic(ArgumentsRequired(Add(this.Id, " fetchOpenOrders() requires walletAddress")))
 	}
 
-	retRes10398 := (<-this.LoadMarkets())
-	PanicOnError(retRes10398)
+	retRes10458 := (<-this.LoadMarkets())
+	PanicOnError(retRes10458)
 	var subaccount any = nil
 	subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
@@ -1257,11 +1265,11 @@ func (this *NadoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	if IsTrue(IsEqual(trigger, true)) {
 
-		retRes104519 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
+		retRes105119 := (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"waiting_price", "waiting_dependency"},
 		})))
-		PanicOnError(retRes104519)
-		ch <- retRes104519
+		PanicOnError(retRes105119)
+		ch <- retRes105119
 		return nil
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
@@ -1347,8 +1355,8 @@ func (this *NadoCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		panic(ArgumentsRequired(Add(this.Id, " fetchClosedOrders() requires walletAddress")))
 	}
 
-	retRes11128 := (<-this.LoadMarkets())
-	PanicOnError(retRes11128)
+	retRes11188 := (<-this.LoadMarkets())
+	PanicOnError(retRes11188)
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1361,11 +1369,11 @@ func (this *NadoCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	if IsTrue(IsEqual(trigger, true)) {
 
-		retRes112219 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
+		retRes112819 := (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any{
 			"status_types": []any{"triggered", "triggering", "twap_executing", "twap_completed"},
 		})))
-		PanicOnError(retRes112219)
-		ch <- retRes112219
+		PanicOnError(retRes112819)
+		ch <- retRes112819
 		return nil
 	}
 	var ordersRequest any = map[string]any{
@@ -1423,13 +1431,12 @@ func (this *NadoCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 /**
  * @method
  * @name nado#fetchCanceledOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NadoCore) FetchCanceledOrders(optionalArgs ...any) <-chan any {
@@ -1449,24 +1456,24 @@ func (this *NadoCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any) 
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes118715 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
+	retRes119215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any{
+		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error"},
 	})))
-	PanicOnError(retRes118715)
-	ch <- retRes118715
+	PanicOnError(retRes119215)
+	ch <- retRes119215
 	return nil
 }
 
 /**
  * @method
  * @name nado#fetchCanceledAndClosedOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *NadoCore) FetchCanceledAndClosedOrders(optionalArgs ...any) <-chan any {
@@ -1486,11 +1493,12 @@ func (this *NadoCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArgs
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes120715 := (<-this.FetchOrders(symbol, since, nil, this.Extend(params, map[string]any{
+	retRes121215 := (<-this.FetchOrders(symbol, since, limit, this.Extend(params, map[string]any{
+		"trigger":      true,
 		"status_types": []any{"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"},
 	})))
-	PanicOnError(retRes120715)
-	ch <- retRes120715
+	PanicOnError(retRes121215)
+	ch <- retRes121215
 	return nil
 }
 
@@ -1527,8 +1535,8 @@ func (this *NadoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(Add(this.Id, " fetchMyTrades() requires walletAddress")))
 	}
 
-	retRes12318 := (<-this.LoadMarkets())
-	PanicOnError(retRes12318)
+	retRes12378 := (<-this.LoadMarkets())
+	PanicOnError(retRes12378)
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
@@ -1621,8 +1629,8 @@ func (this *NadoCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(Add(this.Id, " fetchBalance() requires walletAddress")))
 	}
 
-	retRes13088 := (<-this.LoadMarkets())
-	PanicOnError(retRes13088)
+	retRes13148 := (<-this.LoadMarkets())
+	PanicOnError(retRes13148)
 	var subaccount any = nil
 	subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchBalance", "subaccount", "default")
 	subaccount = GetValue(subaccountparamsVariable, 0)
@@ -1689,9 +1697,9 @@ func (this *NadoCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes135315 := (<-this.QueryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))
-	PanicOnError(retRes135315)
-	ch <- retRes135315
+	retRes135915 := (<-this.QueryTransactionsByEventType("deposit_collateral", "deposit", "fetchDeposits", code, since, limit, params))
+	PanicOnError(retRes135915)
+	ch <- retRes135915
 	return nil
 }
 
@@ -1725,9 +1733,9 @@ func (this *NadoCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes137015 := (<-this.QueryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))
-	PanicOnError(retRes137015)
-	ch <- retRes137015
+	retRes137615 := (<-this.QueryTransactionsByEventType("withdraw_collateral", "withdrawal", "fetchWithdrawals", code, since, limit, params))
+	PanicOnError(retRes137615)
+	ch <- retRes137615
 	return nil
 }
 func (this *NadoCore) QueryTransactionsByEventType(eventType any, transactionType any, methodName any, optionalArgs ...any) <-chan any {
@@ -1750,8 +1758,8 @@ func (this *NadoCore) queryTransactionsByEventTypeBody(ch chan any, eventType an
 		panic(ArgumentsRequired(Add(Add(Add(this.Id, " "), methodName), "() requires walletAddress")))
 	}
 
-	retRes13778 := (<-this.LoadMarkets())
-	PanicOnError(retRes13778)
+	retRes13838 := (<-this.LoadMarkets())
+	PanicOnError(retRes13838)
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
 		currency = this.Currency(code)
@@ -1862,8 +1870,8 @@ func (this *NadoCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 		panic(ArgumentsRequired(Add(this.Id, " fetchPositions() requires walletAddress")))
 	}
 
-	retRes14748 := (<-this.LoadMarkets())
-	PanicOnError(retRes14748)
+	retRes14808 := (<-this.LoadMarkets())
+	PanicOnError(retRes14808)
 	symbols = this.MarketSymbols(symbols)
 	var subaccount any = nil
 	subaccountparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "subaccount", "default")
@@ -2246,8 +2254,8 @@ func (this *NadoCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes17858 := (<-this.LoadMarkets())
-	PanicOnError(retRes17858)
+	retRes17918 := (<-this.LoadMarkets())
+	PanicOnError(retRes17918)
 	symbols = this.MarketSymbols(symbols)
 
 	response := (<-this.ArchiveV2PublicGetTickers(params))
@@ -2292,9 +2300,10 @@ func (this *NadoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes18168 := (<-this.LoadMarkets())
-	PanicOnError(retRes18168)
+	retRes18228 := (<-this.LoadMarkets())
+	PanicOnError(retRes18228)
 	var market any = this.Market(symbol)
+	symbol = GetValue(market, "symbol")
 
 	tickers := (<-this.FetchTickers([]any{symbol}, params))
 	PanicOnError(tickers)
@@ -2303,7 +2312,7 @@ func (this *NadoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 		panic(BadSymbol(Add(Add(this.Id, " fetchTicker() ticker not found for "), symbol)))
 	}
 
-	ch <- this.SafeTicker(ticker, market)
+	ch <- ticker
 	return nil
 }
 
@@ -2328,8 +2337,8 @@ func (this *NadoCore) fetchFundingRateBody(ch chan any, symbol any, optionalArgs
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes18378 := (<-this.LoadMarkets())
-	PanicOnError(retRes18378)
+	retRes18448 := (<-this.LoadMarkets())
+	PanicOnError(retRes18448)
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingRate() supports swap contracts only")))
@@ -2402,8 +2411,8 @@ func (this *NadoCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) 
 		panic(ArgumentsRequired(Add(this.Id, " fetchFundingHistory() requires walletAddress")))
 	}
 
-	retRes18908 := (<-this.LoadMarkets())
-	PanicOnError(retRes18908)
+	retRes18978 := (<-this.LoadMarkets())
+	PanicOnError(retRes18978)
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchFundingHistory() supports swap contracts only")))
@@ -2473,8 +2482,8 @@ func (this *NadoCore) fetchFundingRatesBody(ch chan any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes19448 := (<-this.LoadMarkets())
-	PanicOnError(retRes19448)
+	retRes19518 := (<-this.LoadMarkets())
+	PanicOnError(retRes19518)
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
 	response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2534,8 +2543,8 @@ func (this *NadoCore) fetchOpenInterestBody(ch chan any, symbol any, optionalArg
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes19908 := (<-this.LoadMarkets())
-	PanicOnError(retRes19908)
+	retRes19978 := (<-this.LoadMarkets())
+	PanicOnError(retRes19978)
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
 		panic(BadSymbol(Add(this.Id, " fetchOpenInterest() supports swap contracts only")))
@@ -2596,8 +2605,8 @@ func (this *NadoCore) fetchOpenInterestsBody(ch chan any, optionalArgs ...any) a
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes20358 := (<-this.LoadMarkets())
-	PanicOnError(retRes20358)
+	retRes20428 := (<-this.LoadMarkets())
+	PanicOnError(retRes20428)
 	symbols = this.MarketSymbols(symbols, "swap", true)
 
 	response := (<-this.ArchiveV2PublicGetContracts(params))
@@ -2659,8 +2668,8 @@ func (this *NadoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
 
-	retRes20818 := (<-this.LoadMarkets())
-	PanicOnError(retRes20818)
+	retRes20888 := (<-this.LoadMarkets())
+	PanicOnError(retRes20888)
 	var market any = this.Market(symbol)
 	var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 	var request map[string]any = map[string]any{
@@ -2718,8 +2727,8 @@ func (this *NadoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	params := GetArg(optionalArgs, 2, map[string]any{})
 	_ = params
 
-	retRes21218 := (<-this.LoadMarkets())
-	PanicOnError(retRes21218)
+	retRes21288 := (<-this.LoadMarkets())
+	PanicOnError(retRes21288)
 	var market any = this.Market(symbol)
 	var tickerId any = this.SafeString(GetValue(market, "info"), "ticker_id")
 	var request map[string]any = map[string]any{
@@ -2758,7 +2767,7 @@ func (this *NadoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2780,8 +2789,8 @@ func (this *NadoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes21628 := (<-this.LoadMarkets())
-	PanicOnError(retRes21628)
+	retRes21698 := (<-this.LoadMarkets())
+	PanicOnError(retRes21698)
 	var market any = this.Market(symbol)
 	var until any = this.SafeInteger(params, "until")
 	params = this.Omit(params, "until")
@@ -2792,7 +2801,7 @@ func (this *NadoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 		},
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(GetValue(request, "candlesticks"), "limit", limit)
+		AddElementToObject(GetValue(request, "candlesticks"), "limit", mathMin(limit, 500))
 	}
 	if IsTrue(!IsEqual(until, nil)) {
 		AddElementToObject(GetValue(request, "candlesticks"), "max_time", this.ParseToInt(Divide(until, 1000)))
@@ -3533,7 +3542,12 @@ func (this *NadoCore) ParseX18(value any) any {
 }
 func (this *NadoCore) CreateOrderNonce(recvWindow any) any {
 	var expires any = this.Sum(this.Milliseconds(), recvWindow)
-	return Precise.StringMul(this.NumberToString(expires), "1048576")
+	var highBits any = Precise.StringMul(this.NumberToString(expires), "1048576")
+	// the exchange defines the nonce to be the recv time moved left by 20 bits
+	// plus a random value on the low bits, otherwise two orders created
+	// during the same millisecond would collide on the same nonce and get rejected
+	var entropy int64 = this.RandNumber(6)
+	return Precise.StringAdd(highBits, this.NumberToString(entropy))
 }
 func (this *NadoCore) CreateOrderAppendix(isTriggerOrder any, optionalArgs ...any) any {
 	// | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |
