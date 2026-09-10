@@ -1494,13 +1494,14 @@ public partial class mudrex : Exchange
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.trade.mudrex.com/docs
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+     * @see https://docs.trade.mudrex.com/docs/fees
+     * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+     * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     public async override Task<List<ccxt.Trade>> FetchMyTrades(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
@@ -1515,51 +1516,152 @@ public partial class mudrex : Exchange
         {
             market = this.market(symbol);
         }
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        object maxCalls = null;
+        IList<object> maxCallsparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+        maxCalls = ((IList<object>)maxCallsparametersVariable)[0];
+        parameters = ((IList<object>)maxCallsparametersVariable)[1];
+        object pageSize = 0;
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = multiply(limit, 2);
         }
-        Dictionary<string, object> response = await this.privateGetFuturesFeeHistory(this.extend(request, parameters));
-        object data = this.safeValue(response, "data", new List<object>() {});
-        IList<object> rows = this.toArray(data);
+        List<object> allRows = new List<object>() {};
+        object transactionsCount = 0;
+        object calls = 0;
+        object offset = 0;
+        bool paging = true;
+        while (isEqual(paging, true))
+        {
+            Dictionary<string, object> request = new Dictionary<string, object>() {};
+            if (isTrue(isGreaterThan(pageSize, 0)))
+            {
+                ((IDictionary<string,object>)request)["limit"] = pageSize;
+                ((IDictionary<string,object>)request)["offset"] = offset;
+            }
+            Dictionary<string, object> response = await this.privateGetFuturesFeeHistory(this.extend(request, parameters));
+            List<object> data = this.safeList(response, "data", new List<object>() {});
+            int dataLength = getArrayLength(data);
+            for (int i = 0; isLessThan(i, dataLength); postFixIncrement(ref i))
+            {
+                object entry = getValue(data, i);
+                ((IList<object>)allRows).Add(entry);
+                if (isTrue(isEqual(this.safeString(entry, "fee_type"), "TRANSACTION")))
+                {
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if (isTrue(isTrue((isEqual(market, null))) || isTrue((isEqual(this.safeString(entry, "symbol"), getValue(market, "id"))))))
+                    {
+                        transactionsCount = this.sum(transactionsCount, 1);
+                    }
+                }
+            }
+            calls = this.sum(calls, 1);
+            paging = false;
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if (isTrue(isTrue(isTrue(isTrue((!isEqual(limit, null))) && isTrue((isEqual(dataLength, pageSize)))) && isTrue((isLessThan(transactionsCount, limit)))) && isTrue((isLessThan(calls, maxCalls)))))
+            {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum(offset, pageSize);
+                paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        List<object> rebateKeys = new List<object>() {};
+        List<object> rebateAmounts = new List<object>() {};
+        List<object> transactions = new List<object>() {};
+        List<object> transactionKeys = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(allRows)); postFixIncrement(ref i))
+        {
+            object entry = getValue(allRows, i);
+            string? feeType = this.safeString(entry, "fee_type");
+            object pairKey = add(add(add(add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+            if (isTrue(isEqual(feeType, "TRANSACTION")))
+            {
+                ((IList<object>)transactions).Add(entry);
+                ((IList<object>)transactionKeys).Add(pairKey);
+            } else if (isTrue(isEqual(feeType, "REBATE")))
+            {
+                ((IList<object>)rebateKeys).Add(pairKey);
+                ((IList<object>)rebateAmounts).Add(this.safeString(entry, "fee_amount", "0"));
+            }
+        }
+        List<object> rows = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(transactions)); postFixIncrement(ref i))
+        {
+            object rebate = null;
+            for (int j = 0; isLessThan(j, getArrayLength(rebateKeys)); postFixIncrement(ref j))
+            {
+                if (isTrue(isEqual(getValue(rebateKeys, j), getValue(transactionKeys, i))))
+                {
+                    rebate = getValue(rebateAmounts, j);
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    ((List<object>)rebateKeys)[Convert.ToInt32(j)] = null;
+                    break;
+                }
+            }
+            if (isTrue(isEqual(rebate, null)))
+            {
+                ((IList<object>)rows).Add(getValue(transactions, i));
+            } else
+            {
+                ((IList<object>)rows).Add(this.extend(getValue(transactions, i), new Dictionary<string, object>() {
+                    { "rebate_amount", rebate },
+                }));
+            }
+        }
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(rows, market, since, limit));
     }
 
     public override object parseTrade(object trade, object market = null)
     {
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         string? ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
         object symbol = getValue(market, "symbol");
         Int64? ts = this.parse8601(this.safeString(trade, "created_at"));
-        if (isTrue(isEqual(ts, null)))
-        {
-            ts = this.safeInteger(trade, "time");
-        }
-        string? side = this.safeStringLower2(trade, "side", "order_type");
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        string? side = this.safeStringLower(trade, "order_type");
         string? tradeSide = null;
-        if (isTrue(isTrue(isEqual(side, "buy")) || isTrue(isEqual(side, "long"))))
+        if (isTrue(isEqual(side, "long")))
         {
             tradeSide = "buy";
-        } else if (isTrue(isTrue(isEqual(side, "sell")) || isTrue(isEqual(side, "short"))))
+        } else if (isTrue(isEqual(side, "short")))
         {
             tradeSide = "sell";
         }
-        string? feeType = this.safeStringUpper(trade, "fee_type");
+        string? trig = this.safeStringUpper(trade, "trigger_type");
         string? takerOrMaker = null;
-        if (isTrue(isEqual(feeType, "TRANSACTION")))
+        if (isTrue(isEqual(trig, "MARKET")))
         {
+            // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = "taker";
-        } else if (isTrue(isEqual(feeType, "REBATE")))
-        {
-            takerOrMaker = "maker";
         }
         Dictionary<string, object> fee = null;
-        double? feeCost = this.safeNumber(trade, "fee_amount");
-        if (isTrue(!isEqual(feeCost, null)))
+        string? feeCostString = this.safeString(trade, "fee_amount");
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        string? rebateString = this.safeString(trade, "rebate_amount");
+        if (isTrue(isTrue((!isEqual(feeCostString, null))) && isTrue((!isEqual(rebateString, null)))))
+        {
+            feeCostString = Precise.stringSub(feeCostString, rebateString);
+        }
+        if (isTrue(!isEqual(feeCostString, null)))
         {
             fee = new Dictionary<string, object>() {
-                { "cost", feeCost },
+                { "cost", feeCostString },
                 { "currency", this.safeString(trade, "trade_currency") },
             };
         }
@@ -1568,14 +1670,14 @@ public partial class mudrex : Exchange
             { "timestamp", ts },
             { "datetime", this.iso8601(ts) },
             { "symbol", symbol },
-            { "id", this.safeString2(trade, "execId", "id") },
-            { "order", this.safeString(trade, "order_id") },
+            { "id", this.safeString(trade, "id") },
+            { "order", null },
             { "type", this.safeStringLower(trade, "trigger_type") },
             { "side", tradeSide },
             { "takerOrMaker", takerOrMaker },
-            { "price", this.safeNumber(trade, "price") },
-            { "amount", this.safeNumber2(trade, "size", "quantity") },
-            { "cost", this.safeNumber(trade, "transaction_amount") },
+            { "price", null },
+            { "amount", null },
+            { "cost", this.safeString(trade, "transaction_amount") },
             { "fee", fee },
         }, market);
     }
