@@ -1618,7 +1618,7 @@ class bitfinex extends bitfinex$1["default"] {
     }
     parseOrderStatus(status) {
         if (status === undefined) {
-            return status;
+            return undefined;
         }
         const parts = status.split(' ');
         const state = this.safeString(parts, 0);

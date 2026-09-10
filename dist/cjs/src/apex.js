@@ -1251,7 +1251,7 @@ class apex extends apex$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {

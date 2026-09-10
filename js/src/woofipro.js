@@ -1783,7 +1783,7 @@ export default class woofipro extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {

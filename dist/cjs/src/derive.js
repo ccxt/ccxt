@@ -1915,7 +1915,7 @@ class derive extends derive$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrder(rawOrder, market = undefined) {
         //

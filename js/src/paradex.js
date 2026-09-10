@@ -1656,7 +1656,7 @@ export default class paradex extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {

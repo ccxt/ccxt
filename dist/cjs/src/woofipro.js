@@ -1782,7 +1782,7 @@ class woofipro extends woofipro$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {

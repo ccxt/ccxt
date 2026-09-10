@@ -1916,7 +1916,7 @@ export default class derive extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrder(rawOrder, market = undefined) {
         //

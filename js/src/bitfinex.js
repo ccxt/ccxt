@@ -1619,7 +1619,7 @@ export default class bitfinex extends Exchange {
     }
     parseOrderStatus(status) {
         if (status === undefined) {
-            return status;
+            return undefined;
         }
         const parts = status.split(' ');
         const state = this.safeString(parts, 0);

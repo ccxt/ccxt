@@ -2286,7 +2286,7 @@ export default class woo extends Exchange {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     /**
      * @method
