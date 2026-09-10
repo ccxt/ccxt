@@ -1034,8 +1034,8 @@ class bingx extends Exchange {
         $currency = $this->safe_string($market, 'currency');
         $checkIsInverse = false;
         $checkIsLinear = true;
-        $minTickSize = $this->safe_number($market, 'minTickSize');
-        if ($minTickSize !== null) {
+        $inverseContractSize = $this->safe_number($market, 'minTickSize');
+        if ($inverseContractSize !== null) {
             // inverse $swap $market
             $currency = $baseId;
             $checkIsInverse = true;
@@ -1058,7 +1058,10 @@ class bingx extends Exchange {
             $symbol .= ':' . $settle;
         }
         $fees = $this->safe_dict($this->fees, $type, array());
-        $contractSize = ($swap) ? $this->parse_number('1') : null;
+        $contractSize = null;
+        if ($swap) {
+            $contractSize = ($checkIsInverse) ? $inverseContractSize : $this->parse_number('1');
+        }
         $isActive = false;
         if (($this->safe_string($market, 'apiStateOpen') === 'true') && ($this->safe_string($market, 'apiStateClose') === 'true')) {
             $isActive = true; // $swap active
@@ -1118,7 +1121,7 @@ class bingx extends Exchange {
                     'max' => null,
                 ),
                 'price' => array(
-                    'min' => $minTickSize,
+                    'min' => null,
                     'max' => null,
                 ),
                 'cost' => array(

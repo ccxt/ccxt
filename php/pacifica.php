@@ -1417,7 +1417,9 @@ class pacifica extends Exchange {
         $timestamp = $this->safe_integer($trade, 'created_at');
         $price = $this->safe_string($trade, 'price');
         $amount = $this->safe_string($trade, 'amount');
-        $symbol = $this->safe_symbol(null, $market);
+        $marketId = $this->safe_string($trade, 'symbol');
+        $market = $this->safe_market($marketId, $market);
+        $symbol = $market['symbol'];
         $id = $this->safe_string($trade, 'history_id');
         $side = $this->safe_string($trade, 'side');
         if ($side === 'open_long') {
