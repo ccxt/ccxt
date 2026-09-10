@@ -926,6 +926,11 @@ class apex(ccxt.async_support.apex):
     def handle_message(self, client: Client, message: object):
         if self.handle_error_message(client, message) is True:
             return
+        ret_msg = self.safe_string(message, 'ret_msg')
+        pong = self.safe_integer(message, 'pong')
+        if ret_msg == 'pong' or pong is not None:
+            self.handle_pong(client, message)
+            return
         topic = self.safe_string_2(message, 'topic', 'op', '')
         methods = {
             'ws_zk_accounts_v3': self.handle_account,
@@ -991,6 +996,7 @@ class apex(ccxt.async_support.apex):
         return message
 
     def handle_ping(self, client: Client, message: object):
+        client.lastPong = self.milliseconds()
         self.spawn(self.pong, client, message)
 
     def handle_account(self, client: Client, message: object):
