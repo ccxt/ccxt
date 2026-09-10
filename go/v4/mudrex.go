@@ -1738,13 +1738,14 @@ func (this *MudrexCore) reduceMarginBody(ch chan any, symbol any, amount any, op
 /**
  * @method
  * @name mudrex#fetchMyTrades
- * @description fetch all trades made by the user
- * @see https://docs.trade.mudrex.com/docs
- * @param {string} [symbol] unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
- * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+ * @see https://docs.trade.mudrex.com/docs/fees
+ * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+ * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+ * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.trade_currency] the settlement currency to filter trades by
+ * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+ * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
  * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
 func (this *MudrexCore) FetchMyTrades(optionalArgs ...any) <-chan any {
@@ -1765,55 +1766,143 @@ func (this *MudrexCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes128612 := (<-this.LoadMarkets())
-		PanicOnError(retRes128612)
+		retRes128712 := (<-this.LoadMarkets())
+		PanicOnError(retRes128712)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
 		market = this.Market(symbol)
 	}
-	var request map[string]any = map[string]any{}
+	var maxCalls any = nil
+	maxCallsparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginationCalls", 10)
+	maxCalls = GetValue(maxCallsparamsVariable, 0)
+	params = GetValue(maxCallsparamsVariable, 1)
+	var pageSize any = 0
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "limit", limit)
+		// every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+		pageSize = Multiply(limit, 2)
 	}
+	var allRows any = []any{}
+	var transactionsCount any = 0
+	var calls any = 0
+	var offset any = 0
+	var paging bool = true
+	for IsEqual(paging, true) {
+		var request map[string]any = map[string]any{}
+		if IsTrue(IsGreaterThan(pageSize, 0)) {
+			AddElementToObject(request, "limit", pageSize)
+			AddElementToObject(request, "offset", offset)
+		}
 
-	response := (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, params)))
-	PanicOnError(response)
-	var data any = this.SafeValue(response, "data", []any{})
-	var rows []any = this.ToArray(data)
+		response := (<-this.PrivateGetFuturesFeeHistory(this.Extend(request, params)))
+		PanicOnError(response)
+		var data any = this.SafeList(response, "data", []any{})
+		var dataLength int = GetArrayLength(data)
+		for i := 0; IsLessThan(i, dataLength); i++ {
+			var entry any = GetValue(data, i)
+			AppendToArray(&allRows, entry)
+			if IsTrue(IsEqual(this.SafeString(entry, "fee_type"), "TRANSACTION")) {
+				// count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+				if IsTrue(IsTrue((IsEqual(market, nil))) || IsTrue((IsEqual(this.SafeString(entry, "symbol"), GetValue(market, "id"))))) {
+					transactionsCount = this.Sum(transactionsCount, 1)
+				}
+			}
+		}
+		calls = this.Sum(calls, 1)
+		paging = false
+		// the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+		if IsTrue(IsTrue(IsTrue(IsTrue((!IsEqual(limit, nil))) && IsTrue((IsEqual(dataLength, pageSize)))) && IsTrue((IsLessThan(transactionsCount, limit)))) && IsTrue((IsLessThan(calls, maxCalls)))) {
+			// this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+			offset = this.Sum(offset, pageSize)
+			paging = true
+		}
+	}
+	// a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+	var rebateKeys any = []any{}
+	var rebateAmounts any = []any{}
+	var transactions any = []any{}
+	var transactionKeys any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(allRows)); i++ {
+		var entry any = GetValue(allRows, i)
+		var feeType any = this.SafeString(entry, "fee_type")
+		var pairKey any = Add(Add(Add(Add(this.SafeString(entry, "symbol", ""), ":"), this.SafeString(entry, "created_at", "")), ":"), this.SafeString(entry, "transaction_amount", ""))
+		if IsTrue(IsEqual(feeType, "TRANSACTION")) {
+			AppendToArray(&transactions, entry)
+			AppendToArray(&transactionKeys, pairKey)
+		} else if IsTrue(IsEqual(feeType, "REBATE")) {
+			AppendToArray(&rebateKeys, pairKey)
+			AppendToArray(&rebateAmounts, this.SafeString(entry, "fee_amount", "0"))
+		}
+	}
+	var rows any = []any{}
+	for i := 0; IsLessThan(i, GetArrayLength(transactions)); i++ {
+		var rebate any = nil
+		for j := 0; IsLessThan(j, GetArrayLength(rebateKeys)); j++ {
+			if IsTrue(IsEqual(GetValue(rebateKeys, j), GetValue(transactionKeys, i))) {
+				rebate = GetValue(rebateAmounts, j)
+				// blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+				AddElementToObject(rebateKeys, j, nil)
+				break
+			}
+		}
+		if IsTrue(IsEqual(rebate, nil)) {
+			AppendToArray(&rows, GetValue(transactions, i))
+		} else {
+			AppendToArray(&rows, this.Extend(GetValue(transactions, i), map[string]any{
+				"rebate_amount": rebate,
+			}))
+		}
+	}
 
 	ch <- this.ParseTrades(rows, market, since, limit)
 	return nil
 }
 func (this *MudrexCore) ParseTrade(trade any, optionalArgs ...any) any {
+	//
+	//     {
+	//         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+	//         "symbol": "APTUSDT",
+	//         "fee_amount": "0.02468116",
+	//         "fee_perc": "0.05900003",
+	//         "fee_type": "TRANSACTION",
+	//         "created_at": "2026-07-02T08:10:58Z",
+	//         "transaction_amount": "41.83245",
+	//         "trade_currency": "USDT",
+	//         "order_type": "LONG",
+	//         "trigger_type": "MARKET",
+	//         "gst_amount": "0.00376492"
+	//     }
+	//
 	market := GetArg(optionalArgs, 0, nil)
 	_ = market
 	var ms any = this.SafeString(trade, "symbol")
 	market = this.SafeMarket(ms, market)
 	var symbol any = GetValue(market, "symbol")
 	var ts any = this.Parse8601(this.SafeString(trade, "created_at"))
-	if IsTrue(IsEqual(ts, nil)) {
-		ts = this.SafeInteger(trade, "time")
-	}
-	var side any = this.SafeStringLower2(trade, "side", "order_type")
+	// exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+	var side any = this.SafeStringLower(trade, "order_type")
 	var tradeSide any = nil
-	if IsTrue(IsTrue(IsEqual(side, "buy")) || IsTrue(IsEqual(side, "long"))) {
+	if IsTrue(IsEqual(side, "long")) {
 		tradeSide = "buy"
-	} else if IsTrue(IsTrue(IsEqual(side, "sell")) || IsTrue(IsEqual(side, "short"))) {
+	} else if IsTrue(IsEqual(side, "short")) {
 		tradeSide = "sell"
 	}
-	var feeType any = this.SafeStringUpper(trade, "fee_type")
+	var trig any = this.SafeStringUpper(trade, "trigger_type")
 	var takerOrMaker any = nil
-	if IsTrue(IsEqual(feeType, "TRANSACTION")) {
+	if IsTrue(IsEqual(trig, "MARKET")) {
+		// a market execution always takes liquidity, a limit execution can be either
 		takerOrMaker = "taker"
-	} else if IsTrue(IsEqual(feeType, "REBATE")) {
-		takerOrMaker = "maker"
 	}
 	var fee any = nil
-	var feeCost any = this.SafeNumber(trade, "fee_amount")
-	if IsTrue(!IsEqual(feeCost, nil)) {
+	var feeCostString any = this.SafeString(trade, "fee_amount")
+	// rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+	var rebateString any = this.SafeString(trade, "rebate_amount")
+	if IsTrue(IsTrue((!IsEqual(feeCostString, nil))) && IsTrue((!IsEqual(rebateString, nil)))) {
+		feeCostString = Precise.StringSub(feeCostString, rebateString)
+	}
+	if IsTrue(!IsEqual(feeCostString, nil)) {
 		fee = map[string]any{
-			"cost":     feeCost,
+			"cost":     feeCostString,
 			"currency": this.SafeString(trade, "trade_currency"),
 		}
 	}
@@ -1822,14 +1911,14 @@ func (this *MudrexCore) ParseTrade(trade any, optionalArgs ...any) any {
 		"timestamp":    ts,
 		"datetime":     this.Iso8601(ts),
 		"symbol":       symbol,
-		"id":           this.SafeString2(trade, "execId", "id"),
-		"order":        this.SafeString(trade, "order_id"),
+		"id":           this.SafeString(trade, "id"),
+		"order":        nil,
 		"type":         this.SafeStringLower(trade, "trigger_type"),
 		"side":         tradeSide,
 		"takerOrMaker": takerOrMaker,
-		"price":        this.SafeNumber(trade, "price"),
-		"amount":       this.SafeNumber2(trade, "size", "quantity"),
-		"cost":         this.SafeNumber(trade, "transaction_amount"),
+		"price":        nil,
+		"amount":       nil,
+		"cost":         this.SafeString(trade, "transaction_amount"),
 		"fee":          fee,
 	}, market)
 }
