@@ -44,7 +44,7 @@ file (GLOB EXCHANGE_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/exchanges/tu_*.cpp)
 file (GLOB PRO_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/pro/tu_*.cpp)
 target_sources (ccxt PRIVATE ${EXCHANGE_TUS} ${PRO_TUS})
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
-target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::Crypto)
+target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 
 # The value model underpins everything else (ordered dicts, reference semantics), so it
 # is its own binary and runs first.

@@ -1322,13 +1322,67 @@ std::any ExchangeBase::storeArray (std::any target, std::any value) {
     }
     return target;
 }
+namespace {
+
+// dials a real socket for a non-mock client: handshake on the caller thread,
+// then a receive thread routes frames into the exchange's handleMessage. Used
+// by BOTH watch() and watchMultiple() -- the pro tier funnels most exchanges
+// through watchMultiple, so the connect step must live here too.
+void connectWsClient (ccxt::ExchangeBase* ex, const std::any& url, ccxt::ws::Client& client) {
+    if (client.isMockConnected () || client.isLiveConnected ()) {
+        return;
+    }
+    const std::any clientAny = std::any (client);
+    try {
+        client.connect (
+            str (url),
+            [ex, clientAny] (const std::any& rawText) {
+                if (std::getenv ("CCXT_WS_URL_TRACE")) {
+                    const std::string text = str (rawText);
+                    std::fprintf (stderr, "[ws-frame] %.110s\n", text.c_str ());
+                }
+                try {
+                    ex->handleMessage (clientAny, ex->parseJson (rawText));
+                } catch (const std::exception& e) {
+                    if (std::getenv ("CCXT_WS_URL_TRACE")) {
+                        std::fprintf (stderr, "[ws-frame-error] %s\n", e.what ());
+                    }
+                } catch (...) {
+                    // a malformed frame must not kill the receive thread
+                }
+            },
+            [ex] (const std::any& message) {
+                return ::str (ex->json (message));
+            });
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ws-connect] ok url=%s\n", str (url).c_str ());
+        }
+    } catch (const std::exception& e) {
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ws-connect] FAILED url=%s err=%s\n", str (url).c_str (), e.what ());
+        }
+        throw;
+    }
+}
+
+} // namespace
+
 std::any ExchangeBase::resolve (std::any value, std::any messageHash) {
+    if (std::getenv ("CCXT_WS_URL_TRACE")) {
+        std::fprintf (stderr, "[ex-resolve-enter] hash=%s clients=%d\n",
+                      messageHash.has_value () ? str (messageHash).c_str () : "<empty>",
+                      static_cast<int> (this->clients.has_value () && ccxt::isDict (this->clients)));
+    }
     // generated pro code resolves through the client it got from handleMessage;
     // the hash identifies the future. Try every registered client: only the one
     // that holds the hash will settle anything, the others no-op (JS client.resolve).
     if (this->clients.has_value () && ccxt::isDict (this->clients)) {
         const std::string hash = messageHash.has_value () ? str (messageHash) : std::string {};
-        for (const auto& kv : std::any_cast<ccxt::dict> (this->clients).entries ()) {
+        const ccxt::dict clients = std::any_cast<ccxt::dict> (this->clients);
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[ex-resolve] hash=%s clients=%zu\n", hash.c_str (), clients.size ());
+        }
+        for (const auto& kv : clients.entries ()) {
             if (kv.second.type () == typeid (ccxt::ws::Client)) {
                 std::any_cast<ccxt::ws::Client> (kv.second).resolve (value, hash);
             }
@@ -1384,6 +1438,8 @@ std::any ExchangeBase::watch (std::any url, std::any messageHash, std::any messa
     }
     const std::string hash = str (messageHash);
     ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    // a non-mock client dials the real socket on first use (shared with watchMultiple)
+    connectWsClient (this, url, client);
     if (!subscribeHash.has_value () && client.hasFuture (hash)) {
         return std::any (client.future (hash));
     }
@@ -1411,6 +1467,8 @@ std::any ExchangeBase::watchMultiple (std::any url, std::any messageHashes, std:
         throw ccxt::ArgumentsRequired (str (this->id) + " watchMultiple() requires a url argument");
     }
     ccxt::ws::Client client = std::any_cast<ccxt::ws::Client> (this->client (url));
+    // a non-mock client dials the real socket on first use (shared with watch)
+    connectWsClient (this, url, client);
     // missing-subscription bookkeeping before the race so re-entrant calls don't resend
     std::vector<std::string> missing;
     if (subscribeHashes.has_value () && ccxt::isList (subscribeHashes)) {
@@ -1789,6 +1847,10 @@ std::any ExchangeBase::setProperty (const std::string& name, std::any value) {
 }
 
 std::any ExchangeBase::callDynamically (const std::string& name, std::any args) {
+    if (std::getenv ("CCXT_WS_URL_TRACE")
+        && (name.rfind ("handle", 0) == 0 || name.rfind ("watch", 0) == 0)) {
+        std::fprintf (stderr, "[callDynamically] %s\n", name.c_str ());
+    }
     // unified methods first: the generated per-exchange callMethod table. A name that
     // has already missed every table goes straight to the hand-written helper
     // registry below -- the miss scan is ~800 string comparisons plus an exception

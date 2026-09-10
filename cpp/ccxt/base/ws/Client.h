@@ -17,10 +17,14 @@
 // semantics (client.subscriptions[hash] = ... sticks).
 
 #include "Future.h"
+#include "Transport.h"
 #include "../Errors.h"
 #include "../Value.h"
 
 #include <any>
+#include <cstdio>
+#include <cstdlib>
+#include <functional>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -45,6 +49,13 @@ public:
         // frames sent over the mock transport, already json-parsed
         ccxt::list mockSentMessages;
         bool mockConnected = false;
+        // live transport (Boost.Beast): set when a non-mock client dials
+        std::shared_ptr<Transport> transport;
+        bool liveConnected = false;
+        // live sends need the json TEXT of an outgoing frame: the exchange
+        // installs its serializer at connect time
+        std::function<std::string (const std::any&)> serializer;
+        std::string lastLiveError;
         bool wsTestCompleted = false;
         int64_t lastPong = 0;
         int64_t keepAlive = 30000;
@@ -86,6 +97,11 @@ public:
     // settle the future for a message hash (JS client.resolve)
     void resolve (const std::any& result, const std::string& messageHash) {
         std::lock_guard<std::mutex> lock (impl->mutex);
+        if (std::getenv ("CCXT_WS_URL_TRACE")) {
+            std::fprintf (stderr, "[client-resolve] url=%s hash=%s found=%d\n",
+                          impl->url.c_str (), messageHash.c_str (),
+                          static_cast<int> (impl->futures.has (messageHash)));
+        }
         if (!impl->futures.has (messageHash)) {
             return;
         }
@@ -161,9 +177,53 @@ public:
         return impl->mockConnected;
     }
 
-    // record an outgoing frame (json-parsed) on the mock transport
+    bool isLiveConnected () {
+        std::lock_guard<std::mutex> lock (impl->mutex);
+        return impl->liveConnected;
+    }
+
+    // live transport: dial + websocket handshake on the caller thread, then a
+    // receive thread routes TEXT frames to onMessage (the exchange parses and
+    // dispatches them). serialize converts outgoing frames to json text.
+    void connect (const std::string& url,
+                  const std::function<void (const std::any&)>& onMessage,
+                  const std::function<std::string (const std::any&)>& serialize) {
+        std::shared_ptr<Transport> transport;
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            if (impl->mockConnected || impl->liveConnected) {
+                return;
+            }
+            impl->serializer = serialize;
+            impl->transport = std::make_shared<Transport> ();
+            transport = impl->transport;
+        }
+        // the dial may block or throw; keep it outside the lock so a receive
+        // thread firing resolve() never deadlocks against a held impl mutex
+        transport->connect (
+            url,
+            [onMessage] (const std::string& text) {
+                onMessage (std::any (text));
+            },
+            [impl = impl] (const std::string& err) {
+                std::lock_guard<std::mutex> lock (impl->mutex);
+                impl->lastLiveError = err;
+            });
+        {
+            std::lock_guard<std::mutex> lock (impl->mutex);
+            impl->liveConnected = true;
+        }
+    }
+
+    // record an outgoing frame on the mock transport, or send it over the
+    // live socket when connected (JS client.send semantics)
     void send (const std::any& message) {
         std::lock_guard<std::mutex> lock (impl->mutex);
+        if (impl->liveConnected && impl->transport) {
+            const std::string text = impl->serializer ? impl->serializer (message) : std::string ("null");
+            impl->transport->send (text);
+            return;
+        }
         impl->mockSentMessages.push (message);
     }
 
