@@ -1231,7 +1231,7 @@ export default class limitless extends Exchange {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = Math.min (limit, 100);
+            request['limit'] = limit;
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents (this.extend (request, params));
         //
