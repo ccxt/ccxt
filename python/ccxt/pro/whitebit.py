@@ -899,18 +899,11 @@ class whitebit(ccxt.async_support.whitebit):
         # the authorized sentinel authenticate() has always returned - every
         # path below hands back that same value
         authorized = 1
-        # single-flight leader election, see
-        # https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-        # subscriptions['authenticated'], which watch() only registers once
-        # the awaited v4PrivatePostProfileWebsocketToken() has resolved, so
-        # every concurrent cold caller used to pass that gate, burn a
-        # rate-limited private REST call for its own websocket_token and push
-        # its own authorize frame down the shared socket. the flight is
-        # registered in client.futures on the very client that carries the
-        # handshake, under a key that is not one of the exchange's own
-        # messageHashes, and is settled through client.resolve() /
-        # client.reject() so every write to that map goes through the
-        # client's own accessors
+        # single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+        # the handshake gate subscriptions['authenticated'] is only registered after the awaited
+        # token fetch, so concurrent cold callers would each burn a private REST call and push
+        # their own authorize frame. the flight lives in client.futures of the handshake client
+        # under a non-messageHash key and settles only via client.resolve() / client.reject()
         messageHash = 'authenticateFlight'
         if messageHash in client.futures:
             # a flight is already in progress - wake when the leader settles

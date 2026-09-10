@@ -2702,20 +2702,11 @@ class aster(Exchange, ImplicitAPI):
         postOnly = self.is_post_only(isMarketOrder, None, params)
         if postOnly:
             request['timeInForce'] = 'GTX'
-        #
-        # spot
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity or quoteOrderQty
-        # STOP and TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        # future
-        # LIMIT timeInForce, quantity, price
-        # MARKET quantity
-        # STOP/TAKE_PROFIT quantity, price, stopPrice
-        # STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        # TRAILING_STOP_MARKET callbackRate
-        #
-        # additional required fields depending on the order type
+        # additional required fields per order type
+        # spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty
+        #       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        # future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice
+        #       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         closePosition = self.safe_bool(params, 'closePosition', False)
         timeInForceIsRequired = False
         priceIsRequired = False
