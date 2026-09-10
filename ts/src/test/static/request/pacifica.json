@@ -85,6 +85,24 @@
                 "output": null
             }
         ],
+        "fetchMyTrades": [
+            {
+                "description": "Fetch my trades without symbol",
+                "method": "fetchMyTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades/history?account=bNMBfVAEjgxhNruYTR2vSZ92UdVKP2pdZewEG7978Vt",
+                "input": [],
+                "output": null
+            }
+        ],
+        "fetchTrades": [
+            {
+                "description": "Fetch recent public trades",
+                "method": "fetchTrades",
+                "url": "https://test-api.pacifica.fi/api/v1/trades?symbol=BTC",
+                "input": ["BTC/USDC:USDC"],
+                "output": null
+            }
+        ],
         "createOrder": [
             {
                 "description": "Stop (trigger) buy order",
