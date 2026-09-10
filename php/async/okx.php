@@ -208,6 +208,7 @@ class okx extends Exchange {
                         'market/ticker' => array( 'cost' => 1 ),
                         'market/books' => array( 'cost' => 1 / 2 ),
                         'market/books-full' => array( 'cost' => 2 ),
+                        'market/books-rpi' => array( 'cost' => 1 / 2 ),
                         'market/candles' => array( 'cost' => 1 / 2 ),
                         'market/history-candles' => array( 'cost' => 1 ),
                         'market/trades' => array( 'cost' => 1 / 5 ),
@@ -956,6 +957,7 @@ class okx extends Exchange {
                     '54008' => '\\ccxt\\InvalidOrder', // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009' => '\\ccxt\\InvalidOrder', // The range of {param0} should be [{param1}, {param2}].
                     '54011' => '\\ccxt\\InvalidOrder', // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051' => '\\ccxt\\InvalidOrder', // RPI order rejected. The order value is below the minimum required
                     '54072' => '\\ccxt\\ExchangeError', // This contract is currently view-only and not tradable.
                     '54073' => '\\ccxt\\BadRequest', // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074' => '\\ccxt\\ExchangeError', // Your settings failed as you have positions, bot or open orders for USD contracts.
@@ -2169,11 +2171,13 @@ class okx extends Exchange {
          *
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-order-book
          * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-full-order-book
+         * @see https://www.okx.com/docs-v5/en/#order-book-trading-$market-$data-get-$rpi-order-book
          *
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+         * @param {bool} [$params->rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -2183,17 +2187,26 @@ class okx extends Exchange {
         $request = array(
             'instId' => $market['id'],
         );
+        $rpi = false;
+        list($rpi, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'rpi');
         $method = null;
         list($method, $params) = $this->handle_option_and_params($params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if ($method === 'publicGetMarketBooksFull' && $limit === null) {
             $limit = 5000;
         }
         $limit = ($limit === null) ? 100 : $limit;
+        if ($rpi && ($limit > 400)) {
+            // the $rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            $limit = 400;
+        }
         if ($limit !== null) {
             $request['sz'] = $limit; // max 400
         }
         $response = null;
-        if (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
+        if ($rpi) {
+            $response = Async\await($this->publicGetMarketBooksRpi($this->extend($request, $params)));
+        } elseif (($method === 'publicGetMarketBooksFull') || ($limit > 400)) {
             $response = Async\await($this->publicGetMarketBooksFull($this->extend($request, $params)));
         } else {
             $response = Async\await($this->publicGetMarketBooks($this->extend($request, $params)));
@@ -2218,6 +2231,10 @@ class okx extends Exchange {
         //             }
         //         )
         //     }
+        //
+        // the $rpi book has the same envelope, but each level is
+        // array( price, totalQty, nonRpiQty, count ) - totalQty already includes the
+        // $rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         $data = $this->safe_list($response, 'data', array());
         $first = $this->safe_dict($data, 0, array());
@@ -3543,20 +3560,20 @@ class okx extends Exchange {
 
     private function do_create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()) {
         /**
-         * create a trade $order
+         * create $a trade $order
          *
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-$order
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-trade-post-place-multiple-orders
          * @see https://www.okx.com/docs-v5/en/#$order-book-trading-algo-trading-post-place-algo-$order
          *
          * @param {string} $symbol unified $symbol of the $market to create an $order in
-         * @param {string} $type 'market' or 'limit'
+         * @param {string} $type 'market' or 'limit', or 'rpi' for $a retail $price improvement maker $order
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much of currency you want to trade in units of base currency
          * @param {float} [$price] the $price at which the $order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {bool} [$params->reduceOnly] a mark to reduce the position size for margin, swap and future orders
-         * @param {bool} [$params->postOnly] true to place a post only $order
+         * @param {bool} [$params->reduceOnly] $a mark to reduce the position size for margin, swap and future orders
+         * @param {bool} [$params->postOnly] true to place $a post only $order
          * @param {array} [$params->takeProfit] *takeProfit object in $params* containing the triggerPrice at which the attached take profit $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
          * @param {float} [$params->takeProfit.price] used for take profit limit orders, not used for take profit $market $price orders
@@ -3570,6 +3587,8 @@ class okx extends Exchange {
          * @param {string} [$params->tpOrdKind] 'condition' or 'limit', the default is 'condition'
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode
          * @param {string} [$params->marginMode] 'cross' or 'isolated', the default is 'cross'
+         * @param {bool} [$params->rpiTakerAccess] true to $a taker $order match against retail $price improvement liquidity
+         * @param {bool} [$params->rpiPxRound] *rpi orders only* true to round the $price outward to the nearest placeable non-crossing level
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */
         if ($this->markets === null) {
@@ -3587,8 +3606,8 @@ class okx extends Exchange {
         }
         if ($method === 'privatePostTradeBatchOrders') {
             // keep the $request body the same
-            // submit a single $order in an array to the batch $order endpoint
-            // because it has a lower ratelimit
+            // submit $a single $order in an array to the batch $order endpoint
+            // because it has $a lower ratelimit
             $request = array( $request );
         }
         $response = null;
@@ -4373,6 +4392,10 @@ class okx extends Exchange {
             $type = 'limit';
         } elseif ($type === 'ioc') {
             $timeInForce = 'IOC';
+            $type = 'limit';
+        } elseif ($type === 'rpi') {
+            // retail $price improvement orders are maker-only limit orders
+            $postOnly = true;
             $type = 'limit';
         }
         $marketId = $this->safe_string($order, 'instId');

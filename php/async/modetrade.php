@@ -2164,7 +2164,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2194,7 +2194,7 @@ class modetrade extends Exchange {
             $request['start_t'] = $since;
         }
         if ($limit !== null) {
-            $request['size'] = $limit;
+            $request['size'] = min($limit, $maxLimit);
         } else {
             $request['size'] = $maxLimit;
         }
@@ -2260,7 +2260,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
@@ -2289,7 +2289,7 @@ class modetrade extends Exchange {
          *
          * @param {string} $symbol unified market $symbol of the market orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500, or max 100 when $params->trigger(or the legacy $params->stop) is true
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] whether the order is a stop/algo order
          * @param {boolean} [$params->is_triggered] whether the order has been triggered (false by default)
