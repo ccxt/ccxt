@@ -313,6 +313,8 @@ class woo(Exchange, ImplicitAPI):
                             'asset/wallet/withdraw': {'cost': 60},  # 10/60s
                             'spotMargin/leverage': {'cost': 120},  # 5/60s
                             'spotMargin/interestRepay': {'cost': 60},  # 10/60s
+                            'futures/defaultMarginMode/reset': {'cost': 60},
+                            'isolatedMargin/margin': {'cost': 60},
                             'algo/order': {'cost': 5},
                             'convert/rft': {'cost': 60},
                         },
@@ -321,6 +323,8 @@ class woo(Exchange, ImplicitAPI):
                             'trade/algoOrder': {'cost': 2},  # 5/1s
                             'futures/leverage': {'cost': 60},  # 10/60s
                             'futures/positionMode': {'cost': 120},  # 5/60s
+                            'futures/defaultMarginMode': {'cost': 60},
+                            'futures/defaultMarginMode/{symbol}': {'cost': 60},
                             'order/{oid}': {'cost': 2},
                             'order/client/{client_order_id}': {'cost': 2},
                             'algo/order/{oid}': {'cost': 2},
@@ -336,6 +340,7 @@ class woo(Exchange, ImplicitAPI):
                             'algo/orders/pending': {'cost': 1},
                             'algo/orders/pending/{symbol}': {'cost': 1},
                             'orders/pending': {'cost': 1},
+                            'asset/wallet/withdraw/{withdrawId}': {'cost': 60},
                         },
                     },
                 },

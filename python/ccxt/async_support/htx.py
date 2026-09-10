@@ -429,6 +429,12 @@ class htx(Exchange, ImplicitAPI):
                             'v2/etp/transactions': {'cost': 5},
                             'v2/etp/transaction': {'cost': 5},
                             'v2/etp/limit': {'cost': 1},
+                            # Referral
+                            'v2/invitee/rebate/referrals': {'cost': 10},  # 1 request per second
+                            'v2/invitee/rebate/detail': {'cost': 1},
+                            'v2/invitee/rebate/history': {'cost': 1},
+                            'v2/invitee/rebate/all_rebate/detail': {'cost': 1},
+                            'v2/invitee/rebate/batcher_rebate/detail': {'cost': 1},
                         },
                         'post': {
                             # Account
@@ -479,6 +485,8 @@ class htx(Exchange, ImplicitAPI):
                             'v2/etp/redemption': {'cost': 5},
                             'v2/etp/{transactId}/cancel': {'cost': 10},
                             'v2/etp/batch-cancel': {'cost': 50},
+                            # Universal Transfer
+                            'v5/account/universal_transfer': {'cost': 4},  # 5 requests per 2 seconds
                         },
                     },
                 },
@@ -618,6 +626,13 @@ class htx(Exchange, ImplicitAPI):
                             'v5/algo/order/opens': {'cost': 0.41679},
                             'v5/algo/order': {'cost': 0.41679},
                             'v5/algo/order/history': {'cost': 0.41679},
+                            # Copy Trading
+                            'api/v6/copyTrading/trader/instruments': {'cost': 2},
+                            'api/v6/copyTrading/trader/statistics': {'cost': 2},
+                            'api/v6/copyTrading/trader/profit-sharing-history': {'cost': 2},
+                            'api/v6/copyTrading/trader/profit-sharing-history-summary': {'cost': 2},
+                            'api/v6/copyTrading/trader/unrealized-profit-sharing-summary': {'cost': 2},
+                            'api/v6/copyTrading/trader/followers': {'cost': 2},
                         },
                         'post': {
                             # Future Account Interface
@@ -752,6 +767,12 @@ class htx(Exchange, ImplicitAPI):
                             'v5/account/fee_deduction_currency': {'cost': 0.20834},
                             'v5/algo/order': {'cost': 0.41679},
                             'v5/algo/cancel_orders': {'cost': 0.41679},
+                            # Copy Trading
+                            'api/v6/copyTrading/trader/follower': {'cost': 2},
+                            'api/v6/copyTrading/trader/transfer': {'cost': 2},
+                            'api/v6/copyTrading/trader/follower-settings': {'cost': 2},
+                            'api/v6/copyTrading/trader/config': {'cost': 2},
+                            'api/v6/copyTrading/trader/apikey': {'cost': 2},
                         },
                     },
                 },

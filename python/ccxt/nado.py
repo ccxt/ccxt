@@ -113,6 +113,7 @@ class nado(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'query': {'cost': 1},
+                            'edge/query': {'cost': 1},
                         },
                     },
                     'private': {
@@ -141,6 +142,7 @@ class nado(Exchange, ImplicitAPI):
                             'tickers': {'cost': 1},
                             'contracts': {'cost': 1},
                             'trades': {'cost': 1},
+                            'symbols': {'cost': 1},
                         },
                     },
                 },

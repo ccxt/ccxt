@@ -286,6 +286,8 @@ class coinsph(Exchange, ImplicitAPI):
                         'openapi/fiat/v1/support-channel': {'cost': 1},
                         'openapi/fiat/v1/cash-out': {'cost': 1},
                         'openapi/fiat/v1/history': {'cost': 1},
+                        'openapi/fiat/v2/history': {'cost': 1},
+                        'openapi/fiat/v1/cancel_qr_code': {'cost': 1},
                         'openapi/migration/v4/sellorder': {'cost': 1},
                         'openapi/migration/v4/validate-field': {'cost': 1},
                         'openapi/transfer/v3/transfers': {'cost': 1},

@@ -170,6 +170,7 @@ class cex(Exchange, ImplicitAPI):
                         'do_cancel_my_order': {'cost': 1},
                         'do_cancel_all_orders': {'cost': 5},
                         'get_order_book': {'cost': 1},
+                        'get_ticker': {'cost': 1},
                         'get_candles': {'cost': 1},
                         'get_trade_history': {'cost': 1},
                         'get_my_transaction_history': {'cost': 1},

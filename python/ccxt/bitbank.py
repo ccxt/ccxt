@@ -162,6 +162,7 @@ class bitbank(Exchange, ImplicitAPI):
                         'user/assets': {'cost': 1},
                         'user/spot/order': {'cost': 1},
                         'user/spot/active_orders': {'cost': 1},
+                        'user/margin/status': {'cost': 1},
                         'user/margin/positions': {'cost': 1},
                         'user/spot/trade_history': {'cost': 1},
                         'user/deposit_history': {'cost': 1},

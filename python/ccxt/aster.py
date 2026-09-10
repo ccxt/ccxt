@@ -291,6 +291,13 @@ class aster(Exchange, ImplicitAPI):
                         # builder
                         'v3/agent': {'cost': 1},
                         'v3/builder': {'cost': 1},
+                        'v3/builder/userTrades': {'cost': 5},
+                        'v3/builder/approvedUserList': {'cost': 5},
+                        'v3/stpMode': {'cost': 30},
+                        'v3/asset/migrateUser/history': {'cost': 50},
+                        # strategy
+                        'v3/strategyOpenOrder': {'cost': 5},
+                        'v3/strategyHistoryOrder': {'cost': 5},
                     },
                     'post': {
                         'v1/positionSide/dual': {'cost': 1},
@@ -324,6 +331,13 @@ class aster(Exchange, ImplicitAPI):
                         'v3/updateAgent': {'cost': 1},
                         'v3/approveBuilder': {'cost': 1},
                         'v3/updateBuilder': {'cost': 1},
+                        'v3/registerAndApproveAgent': {'cost': 50},
+                        'v3/asset/migrateUser': {'cost': 50},
+                        'v3/chase': {'cost': 1},
+                        'v3/stpMode': {'cost': 1},
+                        # strategy
+                        'v3/placeStrategyOrder': {'cost': 50},
+                        'v3/updateStrategyOrder': {'cost': 50},
                     },
                     'put': {
                         'v1/listenKey': {'cost': 1},
@@ -336,6 +350,8 @@ class aster(Exchange, ImplicitAPI):
                         'v3/allOpenOrders': {'cost': 1},
                         'v1/batchOrders': {'cost': 1},
                         'v3/batchOrders': {'cost': 1},
+                        'v3/guardedCancelOrder': {'cost': 1},
+                        'v3/guardedBatchOrders': {'cost': 1},
                         'v3/mmp': {'cost': 1},
                         'v1/listenKey': {'cost': 1},
                         'v3/listenKey': {'cost': 1},

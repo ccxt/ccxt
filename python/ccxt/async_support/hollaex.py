@@ -162,12 +162,14 @@ class hollaex(Exchange, ImplicitAPI):
                         'user/deposits': {'cost': 1},
                         'user/withdrawals': {'cost': 1},
                         'user/withdrawal/fee': {'cost': 1},
+                        'subaccounts': {'cost': 1},
                         'user/trades': {'cost': 1},
                         'orders': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'post': {
                         'user/withdrawal': {'cost': 1},
+                        'subaccount/transfer': {'cost': 1},
                         'order': {'cost': 1},
                     },
                     'delete': {
