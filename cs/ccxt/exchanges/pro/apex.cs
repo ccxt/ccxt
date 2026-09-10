@@ -1126,6 +1126,13 @@ public partial class apex : ccxt.apex
         {
             return;
         }
+        string? ret_msg = this.safeString(message, "ret_msg");
+        Int64? pong = this.safeInteger(message, "pong");
+        if (isTrue(isTrue(isEqual(ret_msg, "pong")) || isTrue(!isEqual(pong, null))))
+        {
+            this.handlePong(client as WebSocketClient, message);
+            return;
+        }
         string? topic = this.safeString2(message, "topic", "op", "");
         Dictionary<string, object> methods = new Dictionary<string, object>() {
             { "ws_zk_accounts_v3", this.handleAccount },
@@ -1213,6 +1220,7 @@ public partial class apex : ccxt.apex
 
     public virtual void handlePing(WebSocketClient client, object message)
     {
+        client.lastPong = this.milliseconds();
         this.spawn(this.pong, new object[] { client, message});
     }
 

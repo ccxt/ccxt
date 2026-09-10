@@ -3074,7 +3074,7 @@ public partial class okx : Exchange
         object response = null;
         if (isTrue(rpi))
         {
-            response = await ((Task<object>)callDynamically(this, "publicGetMarketBooksRpi", new object[] { this.extend(request, parameters) }));
+            response = await this.publicGetMarketBooksRpi(this.extend(request, parameters));
         } else if (isTrue(isTrue((isEqual(method, "publicGetMarketBooksFull"))) || isTrue((isGreaterThan(limitVar, 400)))))
         {
             response = await this.publicGetMarketBooksFull(this.extend(request, parameters));

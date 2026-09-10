@@ -1497,15 +1497,16 @@ public partial class lighter : ccxt.lighter
             if (isTrue(!isEqual(error, null)))
             {
                 string? code = this.safeString(error, "code");
-                if (isTrue(!isEqual(code, null)))
-                {
-                    object feedback = add(add(this.id, " "), this.json(message));
-                    this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
-                }
+                string? errorMessage = this.safeString(error, "message");
+                object feedback = add(add(this.id, " "), this.json(message));
+                this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), code, feedback);
+                this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), errorMessage, feedback);
+                throw new ExchangeError ((string)feedback) ;
             }
         } catch(Exception e)
         {
             string? id = this.safeString(message, "id");
+            bool handled = false;
             if (isTrue(!isEqual(id, null)))
             {
                 List<object> subscriptionKeys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
@@ -1517,6 +1518,7 @@ public partial class lighter : ccxt.lighter
                     if (isTrue(isEqual(id, subscriptionId)))
                     {
                         ((WebSocketClient)client).reject(e, subscriptionHash);
+                        handled = true;
                         if (isTrue(!isEqual(subscription, null)))
                         {
                             ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)subscription);
@@ -1524,7 +1526,10 @@ public partial class lighter : ccxt.lighter
                     }
                 }
             }
-            ((WebSocketClient)client).reject(e);
+            if (!isTrue(handled))
+            {
+                ((WebSocketClient)client).reject(e);
+            }
         }
         return true;
     }

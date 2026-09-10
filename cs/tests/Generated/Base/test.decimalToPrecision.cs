@@ -143,8 +143,14 @@ public partial class BaseTest
             Assert(isEqual(exchange.decimalToPrecision("0.000123456789", TRUNCATE, 1.2e-7, TICK_SIZE), "0.00012336"));
             Assert(isEqual(exchange.decimalToPrecision("0.000273398", ROUND, 1e-7, TICK_SIZE), "0.0002734"));
             Assert(isEqual(exchange.decimalToPrecision("0.00005714", TRUNCATE, 1e-8, TICK_SIZE), "0.00005714"));
-            // this line causes problems in JS, fix with Precise
-            // Assert (exchange.decimalToPrecision ('0.0000571495257361', TRUNCATE, 0.00000001, TICK_SIZE) === '0.00005714');
+            Assert(isEqual(exchange.decimalToPrecision("0.0000571495257361", TRUNCATE, 1e-8, TICK_SIZE), "0.00005714"));
+            // A result under 1e-6 is a decimal, not an exponent: '1e-8' is not a number
+            // decimalToPrecision accepts back, and it is what reaches an order body.
+            Assert(isEqual(exchange.decimalToPrecision("0.00000001", TRUNCATE, 1e-8, TICK_SIZE), "0.00000001"));
+            Assert(isEqual(exchange.decimalToPrecision("0.000000123", TRUNCATE, 1e-8, TICK_SIZE), "0.00000012"));
+            Assert(isEqual(exchange.decimalToPrecision("0.0000009", TRUNCATE, 1e-7, TICK_SIZE), "0.0000009"));
+            Assert(isEqual(exchange.decimalToPrecision("0.0000005", TRUNCATE, 1e-7, TICK_SIZE), "0.0000005"));
+            Assert(isEqual(exchange.decimalToPrecision("0.00000001", TRUNCATE, 1e-8, TICK_SIZE, PAD_WITH_ZERO), "0.00000001"));
             Assert(isEqual(exchange.decimalToPrecision("0.01", ROUND, 0.0001, TICK_SIZE, PAD_WITH_ZERO), "0.0100"));
             Assert(isEqual(exchange.decimalToPrecision("0.01", TRUNCATE, 0.0001, TICK_SIZE, PAD_WITH_ZERO), "0.0100"));
             Assert(isEqual(exchange.decimalToPrecision("-0.000123456789", ROUND, 1.2e-7, TICK_SIZE), "-0.00012348"));
