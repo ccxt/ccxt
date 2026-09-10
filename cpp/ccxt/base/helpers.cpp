@@ -1079,11 +1079,13 @@ std::any wsClientReusableFuture (const std::any& client, const std::any& message
 std::any makeExchangeError (const std::any& errorClass, const std::any& message) {
     // pro venues materialise the stored error CLASS NAME into an error OBJECT
     // (assigned and passed to client.reject). Build it by throwing through the
-    // Errors.h registry and catching the concrete exception instance.
+    // Errors.h registry and capturing the exception_ptr -- copying the caught
+    // concrete exception into a BaseError SLICES the dynamic type away, and
+    // reasonToException's first branch rethrows exception_ptr payloads intact.
     try {
         ccxt::throwByName (anyToString (errorClass), anyToString (message));
-    } catch (const ccxt::BaseError& e) {
-        return std::any (std::make_shared<ccxt::BaseError> (e));
+    } catch (...) {
+        return std::any (std::current_exception ());
     }
     return std::any {};
 }

@@ -240,7 +240,20 @@ int main (int argc, char** argv) {
                 }
             } joinGuard { watchDone, injector };
             try {
-                const ccxt::Ticker wsTicker = pro.WatchTicker ("BTC/EUR");
+                // run the typed watch on a worker so MAIN can bound it: if the
+                // future never registers (a registration bug is exactly what the
+                // rejection backstop cannot catch), main would otherwise block
+                // forever with nothing left to unblock it
+                auto watchTask = std::async (std::launch::async, [&] () {
+                    return pro.WatchTicker ("BTC/EUR");
+                });
+                if (watchTask.wait_for (45s) != std::future_status::ready) {
+                    check (false, "typed WatchTicker timed out (watch future never registered)");
+                    // hard exit: the async worker is still blocked and its future's
+                    // destructor would join it, hanging the gate on the way out
+                    std::_Exit (1);
+                }
+                const ccxt::Ticker wsTicker = watchTask.get ();
                 watchDone.store (true);
                 injector.join ();
                 check (injectorError.empty (), "ws injector ran clean (" + injectorError + ")");

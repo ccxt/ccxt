@@ -22,4 +22,8 @@ for ex in $EXES; do
     fi
 done
 echo "==== SWEEP: $PASS pass, $FAIL fail ===="
-[ -n "$FAILED_NAMES" ] && echo "failed:$FAILED_NAMES"
+if [ -n "$FAILED_NAMES" ]; then
+    echo "failed:$FAILED_NAMES"
+    exit 1
+fi
+exit 0
