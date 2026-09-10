@@ -32,6 +32,11 @@ impl KrakenCore {
         self.call_method(Value::Str("public_get_system_status".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetMaintenanceSchedule` implicit endpoint.
+    pub async fn public_get_maintenance_schedule(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_maintenance_schedule".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetAssets` implicit endpoint.
     pub async fn public_get_assets(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_assets".to_string()), optional_args).await
@@ -180,6 +185,11 @@ impl KrakenCore {
     /// Auto-generated wrapper for the `privatePostGetApiKeyInfo` implicit endpoint.
     pub async fn private_post_get_api_key_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_get_api_key_info".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostListWalletAccounts` implicit endpoint.
+    pub async fn private_post_list_wallet_accounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_list_wallet_accounts".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAddOrder` implicit endpoint.

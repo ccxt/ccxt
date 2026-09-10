@@ -591,6 +591,11 @@ impl DeltaCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("users/trading_preferences".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({

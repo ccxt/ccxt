@@ -603,6 +603,11 @@ impl BittradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("retail/maintain/time".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -731,6 +736,11 @@ impl BittradeCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("retail/order/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -833,6 +843,11 @@ impl BittradeCore {
         m.insert("subuser/transfer".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("retail/order/place".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
     m

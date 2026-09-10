@@ -728,6 +728,11 @@ impl BitfinexCore {
         m.insert("cost".to_string(), Value::Float(2.7));
     m
 }));
+        m.insert("auth/r/orders/otc/{symbol}/hist".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
         m.insert("auth/r/order/{symbol}:{id}/trades".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(2.7));
@@ -799,6 +804,11 @@ impl BitfinexCore {
     m
 }));
         m.insert("auth/r/positions/snap".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
+        m.insert("auth/w/position/update/funding/type".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(2.7));
     m
@@ -958,9 +968,19 @@ impl BitfinexCore {
         m.insert("cost".to_string(), Value::Int(24));
     m
 }));
+        m.insert("auth/r/deposit/address/all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(24));
+    m
+}));
         m.insert("auth/w/deposit/invoice".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(24));
+    m
+}));
+        m.insert("auth/r/ext/invoice/payments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
     m
 }));
         m.insert("auth/w/withdraw".to_string(), Value::Map({
@@ -974,6 +994,11 @@ impl BitfinexCore {
     m
 }));
         m.insert("auth/r/movements/hist".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
+        m.insert("auth/r/movements/info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(2.7));
     m
@@ -1029,6 +1054,21 @@ impl BitfinexCore {
     m
 }));
         m.insert("auth/w/pulse/del".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
+        m.insert("auth/w/ext/wallets/deposits/request".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
+        m.insert("auth/w/ext/wallets/withdrawals/request".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(2.7));
+    m
+}));
+        m.insert("auth/r/ext/wallets/transfers/free/count".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(2.7));
     m
@@ -2536,7 +2576,7 @@ impl BitfinexCore {
 
     pub fn parse_order_status(&self, mut status: Value) -> Value {
         if is_equal(&status, &Value::Null) {
-            return status;
+            return Value::Null;
         }
         let mut parts: Value = split(&status, &Value::Str(" ".to_string()));
         let mut state: Value = self.safe_string(parts.clone(), Value::Int(0), &[]);

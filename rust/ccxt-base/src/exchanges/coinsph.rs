@@ -675,6 +675,16 @@ impl CoinsphCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("openapi/fiat/v2/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("openapi/fiat/v1/cancel_qr_code".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("openapi/migration/v4/sellorder".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));

@@ -212,4 +212,14 @@ impl BitsoCore {
         self.call_method(Value::Str("private_delete_orders_all".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePatchOrders` implicit endpoint.
+    pub async fn private_patch_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_patch_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePatchOrdersOid` implicit endpoint.
+    pub async fn private_patch_orders_oid(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_patch_orders_oid".to_string()), optional_args).await
+    }
+
 }

@@ -576,6 +576,11 @@ impl HitbtcCore {
         m.insert("cost".to_string(), Value::Int(15));
     m
 }));
+        m.insert("margin-settings".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
         m.insert("futures/balance".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(15));
@@ -641,12 +646,22 @@ impl HitbtcCore {
         m.insert("cost".to_string(), Value::Int(15));
     m
 }));
+        m.insert("user/api-keys".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
         m.insert("wallet/balance".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(30));
     m
 }));
         m.insert("wallet/balance/{currency}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("wallet/crypto/address/white-list".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(30));
     m
@@ -682,6 +697,11 @@ impl HitbtcCore {
     m
 }));
         m.insert("wallet/crypto/fee/estimate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("wallet/crypto/fee/withdraw/hash".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(30));
     m
@@ -785,6 +805,11 @@ impl HitbtcCore {
         m.insert("cost".to_string(), Value::Int(30));
     m
 }));
+        m.insert("wallet/crypto/fee/estimate/bulk".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
         m.insert("wallet/airdrops/{id}/claim".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(30));
@@ -801,6 +826,16 @@ impl HitbtcCore {
     m
 }));
         m.insert("sub-account/transfer".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
+        m.insert("sub-account/transfer/sub-to-super".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
+        m.insert("sub-account/transfer/sub-to-sub".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(15));
     m
@@ -897,9 +932,24 @@ impl HitbtcCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("margin-settings/amm".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
+        m.insert("margin/margin-settings/amr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
+    m
+}));
         m.insert("futures/account/isolated/{symbol}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("futures/margin-settings/amr".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(15));
     m
 }));
         m.insert("wallet/crypto/withdraw/{id}".to_string(), Value::Map({

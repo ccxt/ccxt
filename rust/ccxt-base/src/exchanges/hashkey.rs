@@ -649,6 +649,11 @@ impl HashkeyCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("api/v1/affiliate/inviteeInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -751,6 +756,11 @@ impl HashkeyCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("api/v1/spot/cancelAllOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
         m.insert("api/v1/futures/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -762,6 +772,11 @@ impl HashkeyCore {
     m
 }));
         m.insert("api/v1/futures/cancelOrderByIds".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("api/v1/futures/cancelAllOpenOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

@@ -523,6 +523,11 @@ impl CoinbaseCore {
         m.insert("cost".to_string(), Value::Float(10.6));
     m
 }));
+        m.insert("subscriptions/coinbase-one".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(10.6));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -770,6 +775,21 @@ impl CoinbaseCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("brokerage/cfm/intraday/current_margin_window".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("brokerage/cfm/intraday/margin_setting".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("brokerage/intx/balances/{portfolio_uuid}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("brokerage/intx/portfolio/{portfolio_uuid}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -854,7 +874,17 @@ impl CoinbaseCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("brokerage/cfm/intraday/margin_setting".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("brokerage/intx/allocate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("brokerage/intx/multi_asset_collateral".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

@@ -360,7 +360,17 @@ impl IndodaxCore {
         m.insert("cost".to_string(), Value::Int(4));
     m
 }));
+        m.insert("getOrderByClientOrderId".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
         m.insert("cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
+        m.insert("cancelByClientOrderId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(4));
     m

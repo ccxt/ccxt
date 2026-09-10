@@ -431,6 +431,16 @@ impl BithumbCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v2/orders/pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v2/orders/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("v1/twap".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -588,6 +598,11 @@ impl BithumbCore {
         m.insert("v2/orders/cancel".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("v2/orders/search".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
     m
 }));
         m.insert("v1/twap".to_string(), Value::Map({

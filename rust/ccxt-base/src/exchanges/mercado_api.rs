@@ -117,4 +117,24 @@ impl MercadoCore {
         self.call_method(Value::Str("v4_public_net_get_candles".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v4PrivatePostAccounts` implicit endpoint.
+    pub async fn v4_private_post_accounts(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_accounts".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostAccountsAccountIdSymbolTransfersInternal` implicit endpoint.
+    pub async fn v4_private_post_accounts_account_id_symbol_transfers_internal(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_accounts_account_id_symbol_transfers_internal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePostOauth2Token` implicit endpoint.
+    pub async fn v4_private_post_oauth2_token(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_post_oauth2_token".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId` implicit endpoint.
+    pub async fn v4_private_patch_accounts_account_id_wallet_symbol_deposits_deposit_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v4_private_patch_accounts_account_id_wallet_symbol_deposits_deposit_id".to_string()), optional_args).await
+    }
+
 }

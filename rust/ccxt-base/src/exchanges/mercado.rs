@@ -243,6 +243,7 @@ impl MercadoCore {
         m.insert("private".to_string(), Value::Str("https://www.mercadobitcoin.net/tapi".to_string()));
         m.insert("v4Public".to_string(), Value::Str("https://www.mercadobitcoin.com.br/v4".to_string()));
         m.insert("v4PublicNet".to_string(), Value::Str("https://api.mercadobitcoin.net/api/v4".to_string()));
+        m.insert("v4Private".to_string(), Value::Str("https://api.mercadobitcoin.net/api/v4".to_string()));
     m
 }));
         m.insert("www".to_string(), Value::Str("https://www.mercadobitcoin.com.br".to_string()));
@@ -380,6 +381,38 @@ impl MercadoCore {
         m.insert("get".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("v4Private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("accounts".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("accounts/{accountId}/{symbol}/transfers/internal".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("oauth2/token".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("patch".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("accounts/{accountId}/wallet/{symbol}/deposits/{depositId}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

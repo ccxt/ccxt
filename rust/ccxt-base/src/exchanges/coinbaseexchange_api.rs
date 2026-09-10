@@ -67,9 +67,29 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("public_get_products_volume_summary".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetWrappedAssets` implicit endpoint.
+    pub async fn public_get_wrapped_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_wrapped_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetWrappedAssetsWrappedAssetId` implicit endpoint.
+    pub async fn public_get_wrapped_assets_wrapped_asset_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_wrapped_assets_wrapped_asset_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetWrappedAssetsWrappedAssetIdConversionRate` implicit endpoint.
+    pub async fn public_get_wrapped_assets_wrapped_asset_id_conversion_rate(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_wrapped_assets_wrapped_asset_id_conversion_rate".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetAddressBook` implicit endpoint.
     pub async fn private_get_address_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_address_book".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetAddressBookCounterparty` implicit endpoint.
+    pub async fn private_get_address_book_counterparty(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_address_book_counterparty".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetAccounts` implicit endpoint.
@@ -217,6 +237,11 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("private_get_transfers_transfer_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetTravelRules` implicit endpoint.
+    pub async fn private_get_travel_rules(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_travel_rules".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetUsersSelfExchangeLimits` implicit endpoint.
     pub async fn private_get_users_self_exchange_limits(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_users_self_exchange_limits".to_string()), optional_args).await
@@ -230,6 +255,11 @@ impl CoinbaseexchangeCore {
     /// Auto-generated wrapper for the `privateGetUsersSelfTrailingVolume` implicit endpoint.
     pub async fn private_get_users_self_trailing_volume(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_users_self_trailing_volume".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersUserIdTradingVolumes` implicit endpoint.
+    pub async fn private_get_users_user_id_trading_volumes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_user_id_trading_volumes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWithdrawalsFeeEstimate` implicit endpoint.
@@ -307,6 +337,31 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("private_get_loans".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetLoansOptions` implicit endpoint.
+    pub async fn private_get_loans_options(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_loans_options".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWrappedAssetsRedeem` implicit endpoint.
+    pub async fn private_get_wrapped_assets_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wrapped_assets_redeem".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWrappedAssetsRedeemRedeemId` implicit endpoint.
+    pub async fn private_get_wrapped_assets_redeem_redeem_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wrapped_assets_redeem_redeem_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWrappedAssetsStakeWrap` implicit endpoint.
+    pub async fn private_get_wrapped_assets_stake_wrap(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wrapped_assets_stake_wrap".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetWrappedAssetsStakeWrapStakeWrapId` implicit endpoint.
+    pub async fn private_get_wrapped_assets_stake_wrap_stake_wrap_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_wrapped_assets_stake_wrap_stake_wrap_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostConversions` implicit endpoint.
     pub async fn private_post_conversions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_conversions".to_string()), optional_args).await
@@ -325,6 +380,11 @@ impl CoinbaseexchangeCore {
     /// Auto-generated wrapper for the `privatePostCoinbaseAccountsIdAddresses` implicit endpoint.
     pub async fn private_post_coinbase_accounts_id_addresses(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_coinbase_accounts_id_addresses".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAddressBook` implicit endpoint.
+    pub async fn private_post_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_address_book".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostFundingRepay` implicit endpoint.
@@ -372,6 +432,11 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("private_post_withdrawals_coinbase_account".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostWithdrawalsCounterparty` implicit endpoint.
+    pub async fn private_post_withdrawals_counterparty(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_withdrawals_counterparty".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostWithdrawalsCrypto` implicit endpoint.
     pub async fn private_post_withdrawals_crypto(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdrawals_crypto".to_string()), optional_args).await
@@ -380,6 +445,31 @@ impl CoinbaseexchangeCore {
     /// Auto-generated wrapper for the `privatePostWithdrawalsPaymentMethod` implicit endpoint.
     pub async fn private_post_withdrawals_payment_method(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_withdrawals_payment_method".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTransfersTransferIdTravelRules` implicit endpoint.
+    pub async fn private_post_transfers_transfer_id_travel_rules(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_transfers_transfer_id_travel_rules".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostTravelRules` implicit endpoint.
+    pub async fn private_post_travel_rules(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_travel_rules".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostUsersUserIdSettlementPreferences` implicit endpoint.
+    pub async fn private_post_users_user_id_settlement_preferences(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_users_user_id_settlement_preferences".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostWrappedAssetsRedeem` implicit endpoint.
+    pub async fn private_post_wrapped_assets_redeem(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_wrapped_assets_redeem".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostWrappedAssetsStakeWrap` implicit endpoint.
+    pub async fn private_post_wrapped_assets_stake_wrap(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_wrapped_assets_stake_wrap".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostLoansOpen` implicit endpoint.
@@ -412,6 +502,16 @@ impl CoinbaseexchangeCore {
         self.call_method(Value::Str("private_delete_orders_id".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateDeleteAddressBookId` implicit endpoint.
+    pub async fn private_delete_address_book_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_address_book_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteTravelRulesId` implicit endpoint.
+    pub async fn private_delete_travel_rules_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_travel_rules_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePutProfilesIdDeactivate` implicit endpoint.
     pub async fn private_put_profiles_id_deactivate(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_profiles_id_deactivate".to_string()), optional_args).await
@@ -420,6 +520,11 @@ impl CoinbaseexchangeCore {
     /// Auto-generated wrapper for the `privatePutProfilesId` implicit endpoint.
     pub async fn private_put_profiles_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_profiles_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutAddressBookId` implicit endpoint.
+    pub async fn private_put_address_book_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_address_book_id".to_string()), optional_args).await
     }
 
 }

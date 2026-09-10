@@ -122,6 +122,36 @@ impl BydfiCore {
         self.call_method(Value::Str("private_get_v1_fapi_trade_positions".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetV2FapiTradeOpenOrder` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_open_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_open_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2FapiTradePlanOrder` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_plan_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_plan_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2FapiTradeHistoryOrder` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_history_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_history_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2FapiTradeHistoryTrade` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_history_trade(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_history_trade".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2FapiTradePositionHistory` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_position_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_position_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetV2FapiTradePositions` implicit endpoint.
+    pub async fn private_get_v2_fapi_trade_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_v2_fapi_trade_positions".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetV1FapiAccountBalance` implicit endpoint.
     pub async fn private_get_v1_fapi_account_balance(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_v1_fapi_account_balance".to_string()), optional_args).await
@@ -220,6 +250,41 @@ impl BydfiCore {
     /// Auto-generated wrapper for the `privatePostV1FapiTradeBatchLeverageMargin` implicit endpoint.
     pub async fn private_post_v1_fapi_trade_batch_leverage_margin(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_v1_fapi_trade_batch_leverage_margin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradePlaceOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_place_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_place_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeBatchPlaceOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_batch_place_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_batch_place_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeEditOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_edit_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_edit_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeBatchEditOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_batch_edit_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_batch_edit_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeCancelOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_cancel_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeBatchCancelOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_batch_cancel_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_batch_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostV2FapiTradeCancelAllOrder` implicit endpoint.
+    pub async fn private_post_v2_fapi_trade_cancel_all_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_v2_fapi_trade_cancel_all_order".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostV1FapiUserDataMarginType` implicit endpoint.

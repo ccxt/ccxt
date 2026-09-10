@@ -52,6 +52,26 @@ impl CoinbaseinternationalCore {
         self.call_method(Value::Str("v1_public_get_instruments_instrument_candles".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PublicGetInstrumentsVolumesDaily` implicit endpoint.
+    pub async fn v1_public_get_instruments_volumes_daily(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_instruments_volumes_daily".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetPositionOffsets` implicit endpoint.
+    pub async fn v1_public_get_position_offsets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_position_offsets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PublicGetFeeRateTiers` implicit endpoint.
+    pub async fn v1_public_get_fee_rate_tiers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_public_get_fee_rate_tiers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetAddressBook` implicit endpoint.
+    pub async fn v1_private_get_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_address_book".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetOrders` implicit endpoint.
     pub async fn v1_private_get_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_orders".to_string()), optional_args).await
@@ -60,6 +80,26 @@ impl CoinbaseinternationalCore {
     /// Auto-generated wrapper for the `v1PrivateGetOrdersId` implicit endpoint.
     pub async fn v1_private_get_orders_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_orders_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetIndexIndexComposition` implicit endpoint.
+    pub async fn v1_private_get_index_index_composition(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_index_index_composition".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetIndexIndexCompositionHistory` implicit endpoint.
+    pub async fn v1_private_get_index_index_composition_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_index_index_composition_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetIndexIndexPrice` implicit endpoint.
+    pub async fn v1_private_get_index_index_price(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_index_index_price".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetIndexIndexCandles` implicit endpoint.
+    pub async fn v1_private_get_index_index_candles(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_index_index_candles".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivateGetPortfolios` implicit endpoint.
@@ -102,6 +142,21 @@ impl CoinbaseinternationalCore {
         self.call_method(Value::Str("v1_private_get_portfolios_portfolio_positions_instrument".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioPositionLimits` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_position_limits(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_position_limits".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioPositionLimitsPositions` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_position_limits_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_position_limits_positions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioPositionLimitsPositionsInstrument` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_position_limits_positions_instrument(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_position_limits_positions_instrument".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetPortfoliosFills` implicit endpoint.
     pub async fn v1_private_get_portfolios_fills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_portfolios_fills".to_string()), optional_args).await
@@ -112,6 +167,31 @@ impl CoinbaseinternationalCore {
         self.call_method(Value::Str("v1_private_get_portfolios_portfolio_fills".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosFeeRates` implicit endpoint.
+    pub async fn v1_private_get_portfolios_fee_rates(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_fee_rates".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioLoans` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_loans(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_loans".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioLoansAsset` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_loans_asset(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_loans_asset".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioLoansAssetAvailability` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_loans_asset_availability(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_loans_asset_availability".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetPortfoliosPortfolioMarginCallStatus` implicit endpoint.
+    pub async fn v1_private_get_portfolios_portfolio_margin_call_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_portfolios_portfolio_margin_call_status".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivateGetTransfers` implicit endpoint.
     pub async fn v1_private_get_transfers(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_transfers".to_string()), optional_args).await
@@ -120,6 +200,11 @@ impl CoinbaseinternationalCore {
     /// Auto-generated wrapper for the `v1PrivateGetTransfersTransferUuid` implicit endpoint.
     pub async fn v1_private_get_transfers_transfer_uuid(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_get_transfers_transfer_uuid".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivateGetTransfersWithdrawPortfolioAssetCounterpartyWithdrawalLimit` implicit endpoint.
+    pub async fn v1_private_get_transfers_withdraw_portfolio_asset_counterparty_withdrawal_limit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_get_transfers_withdraw_portfolio_asset_counterparty_withdrawal_limit".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostOrders` implicit endpoint.
@@ -137,9 +222,34 @@ impl CoinbaseinternationalCore {
         self.call_method(Value::Str("v1_private_post_portfolios_margin".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivatePostPortfoliosPortfolioCrossCollateralEnabled` implicit endpoint.
+    pub async fn v1_private_post_portfolios_portfolio_cross_collateral_enabled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_portfolios_portfolio_cross_collateral_enabled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPortfoliosPortfolioAutoMarginEnabled` implicit endpoint.
+    pub async fn v1_private_post_portfolios_portfolio_auto_margin_enabled(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_portfolios_portfolio_auto_margin_enabled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPortfoliosPortfolioLoansAsset` implicit endpoint.
+    pub async fn v1_private_post_portfolios_portfolio_loans_asset(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_portfolios_portfolio_loans_asset".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPortfoliosPortfolioLoansAssetPreview` implicit endpoint.
+    pub async fn v1_private_post_portfolios_portfolio_loans_asset_preview(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_portfolios_portfolio_loans_asset_preview".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePostPortfoliosTransfer` implicit endpoint.
     pub async fn v1_private_post_portfolios_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_portfolios_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPortfoliosTransferPosition` implicit endpoint.
+    pub async fn v1_private_post_portfolios_transfer_position(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_portfolios_transfer_position".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PrivatePostTransfersWithdraw` implicit endpoint.
@@ -185,6 +295,11 @@ impl CoinbaseinternationalCore {
     /// Auto-generated wrapper for the `v1PrivateDeleteOrdersId` implicit endpoint.
     pub async fn v1_private_delete_orders_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_delete_orders_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePatchPortfoliosPortfolio` implicit endpoint.
+    pub async fn v1_private_patch_portfolios_portfolio(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_patch_portfolios_portfolio".to_string()), optional_args).await
     }
 
 }

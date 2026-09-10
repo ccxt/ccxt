@@ -12,6 +12,81 @@ use super::alpaca::AlpacaCore;
 use crate::exchange::ExchangeRuntime;
 
 impl AlpacaCore {
+    /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequests` implicit endpoint.
+    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsTokenizationRequestId` implicit endpoint.
+    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests_tokenization_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests_tokenization_request_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByClientRequestId` implicit endpoint.
+    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests_by_client_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests_by_client_request_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1AccountsAccountIdTokenizationRequestsByIssuerRequestId` implicit endpoint.
+    pub async fn broker_private_get_v1_accounts_account_id_tokenization_requests_by_issuer_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_accounts_account_id_tokenization_requests_by_issuer_request_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1FpslAnalyticsAccountIdLoans` implicit endpoint.
+    pub async fn broker_private_get_v1_fpsl_analytics_account_id_loans(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_fpsl_analytics_account_id_loans".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1Ipos` implicit endpoint.
+    pub async fn broker_private_get_v1_ipos(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_ipos".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1IposOfferingReference` implicit endpoint.
+    pub async fn broker_private_get_v1_ipos_offering_reference(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_ipos_offering_reference".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1WalletsTravelRuleVasps` implicit endpoint.
+    pub async fn broker_private_get_v1_wallets_travel_rule_vasps(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1_wallets_travel_rule_vasps".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1beta1Acats` implicit endpoint.
+    pub async fn broker_private_get_v1beta1_acats(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1beta1_acats".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1beta1AcatsContrabrokers` implicit endpoint.
+    pub async fn broker_private_get_v1beta1_acats_contrabrokers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1beta1_acats_contrabrokers".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1beta1AcatsAccountId` implicit endpoint.
+    pub async fn broker_private_get_v1beta1_acats_account_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1beta1_acats_account_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1beta1AcatsAccountIdAcatsId` implicit endpoint.
+    pub async fn broker_private_get_v1beta1_acats_account_id_acats_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1beta1_acats_account_id_acats_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivateGetV1beta1AcatsAccountIdAcatsIdAssets` implicit endpoint.
+    pub async fn broker_private_get_v1beta1_acats_account_id_acats_id_assets(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_get_v1beta1_acats_account_id_acats_id_assets".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivatePostV1beta1AcatsAccountId` implicit endpoint.
+    pub async fn broker_private_post_v1beta1_acats_account_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_post_v1beta1_acats_account_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `brokerPrivatePatchV1AccountsAccountIdWalletsWhitelistsWhitelistedAddressIdTravelRuleInfo` implicit endpoint.
+    pub async fn broker_private_patch_v1_accounts_account_id_wallets_whitelists_whitelisted_address_id_travel_rule_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("broker_private_patch_v1_accounts_account_id_wallets_whitelists_whitelisted_address_id_travel_rule_info".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `traderPrivateGetV2Account` implicit endpoint.
     pub async fn trader_private_get_v2_account(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_get_v2_account".to_string()), optional_args).await
@@ -112,6 +187,41 @@ impl AlpacaCore {
         self.call_method(Value::Str("trader_private_get_v2_wallets_transfers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `traderPrivateGetV1Locates` implicit endpoint.
+    pub async fn trader_private_get_v1_locates(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v1_locates".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV1LocatesLocateId` implicit endpoint.
+    pub async fn trader_private_get_v1_locates_locate_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v1_locates_locate_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV1LocatesQuotes` implicit endpoint.
+    pub async fn trader_private_get_v1_locates_quotes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v1_locates_quotes".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV2TokenizationRequests` implicit endpoint.
+    pub async fn trader_private_get_v2_tokenization_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v2_tokenization_requests".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV2TokenizationRequestsTokenizationRequestId` implicit endpoint.
+    pub async fn trader_private_get_v2_tokenization_requests_tokenization_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v2_tokenization_requests_tokenization_request_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV2TokenizationRequestsByClientRequestId` implicit endpoint.
+    pub async fn trader_private_get_v2_tokenization_requests_by_client_request_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v2_tokenization_requests_by_client_request_id".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivateGetV2WalletsTravelRuleVasps` implicit endpoint.
+    pub async fn trader_private_get_v2_wallets_travel_rule_vasps(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_get_v2_wallets_travel_rule_vasps".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `traderPrivatePostV2Orders` implicit endpoint.
     pub async fn trader_private_post_v2_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_post_v2_orders".to_string()), optional_args).await
@@ -137,6 +247,11 @@ impl AlpacaCore {
         self.call_method(Value::Str("trader_private_post_v2_wallets_transfers".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `traderPrivatePostV1Locates` implicit endpoint.
+    pub async fn trader_private_post_v1_locates(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_post_v1_locates".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `traderPrivatePutV2OrdersOrderId` implicit endpoint.
     pub async fn trader_private_put_v2_orders_order_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_put_v2_orders_order_id".to_string()), optional_args).await
@@ -160,6 +275,11 @@ impl AlpacaCore {
     /// Auto-generated wrapper for the `traderPrivatePatchV2AccountConfigurations` implicit endpoint.
     pub async fn trader_private_patch_v2_account_configurations(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("trader_private_patch_v2_account_configurations".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `traderPrivatePatchV2WalletsWhitelistsWhitelistedAddressIdTravelRuleInfo` implicit endpoint.
+    pub async fn trader_private_patch_v2_wallets_whitelists_whitelisted_address_id_travel_rule_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("trader_private_patch_v2_wallets_whitelists_whitelisted_address_id_travel_rule_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `traderPrivateDeleteV2Orders` implicit endpoint.
@@ -240,6 +360,16 @@ impl AlpacaCore {
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1CorporateActions` implicit endpoint.
     pub async fn market_private_get_v1beta1_corporate_actions(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("market_private_get_v1beta1_corporate_actions".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `marketPrivateGetV1beta1FixedIncomeLatestPrices` implicit endpoint.
+    pub async fn market_private_get_v1beta1_fixed_income_latest_prices(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("market_private_get_v1beta1_fixed_income_latest_prices".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `marketPrivateGetV1beta1FixedIncomeLatestQuotes` implicit endpoint.
+    pub async fn market_private_get_v1beta1_fixed_income_latest_quotes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("market_private_get_v1beta1_fixed_income_latest_quotes".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `marketPrivateGetV1beta1ForexLatestRates` implicit endpoint.

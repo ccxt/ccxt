@@ -578,6 +578,11 @@ impl CryptocomCore {
         m.insert("cost".to_string(), Value::Int(2));
     m
 }));
+        m.insert("private/get-fee-credit-balances".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
         m.insert("private/fiat/fiat-deposit-info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
@@ -669,6 +674,41 @@ impl CryptocomCore {
     m
 }));
         m.insert("private/change-isolated-margin-leverage".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/create-trading-bot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/update-trading-bot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/terminate-trading-bot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/pause-trading-bot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/resume-trading-bot".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/get-trading-bots".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
+    m
+}));
+        m.insert("private/bot/get-trading-bot-executions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(10), &Value::Int(3)));
     m

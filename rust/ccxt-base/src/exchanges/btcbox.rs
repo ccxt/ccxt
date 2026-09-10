@@ -272,6 +272,11 @@ impl BtcboxCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("order_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("trade_add".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));

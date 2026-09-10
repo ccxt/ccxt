@@ -328,6 +328,16 @@ impl FoxbitCore {
         m.insert("cost".to_string(), Value::Int(15));
     m
 }));
+        m.insert("markets/sparkline/{window}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("travel_rule/operation_reasons".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
     m
 }));
     m
@@ -381,6 +391,11 @@ impl FoxbitCore {
         m.insert("cost".to_string(), Value::Int(60));
     m
 }));
+        m.insert("prime_desk/executions/{quote_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -403,6 +418,11 @@ impl FoxbitCore {
         m.insert("withdrawals".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
+        m.insert("deposits/{deposit_sn}/travel_rule".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
     m
 }));
     m

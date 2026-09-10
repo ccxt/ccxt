@@ -591,6 +591,16 @@ impl CoinoneCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("event/order-reward/programs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("event/order-reward/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m

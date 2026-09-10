@@ -1722,6 +1722,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Int(150));
     m
 }));
+        m.insert("portfolio/margin-call-level".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(150));
+    m
+}));
         m.insert("staking/productList".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
@@ -2511,6 +2516,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Int(150));
     m
 }));
+        m.insert("portfolio/margin-call-level".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(150));
+    m
+}));
         m.insert("lending/auto-invest/plan/add".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
@@ -2639,6 +2649,11 @@ impl BinanceCore {
 }));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("portfolio/margin-call-level".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(150));
+    m
+}));
         m.insert("margin/openOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.1));
@@ -4076,6 +4091,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("stock/contract".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
@@ -4207,9 +4227,30 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Int(4));
     m
 }));
+        m.insert("executionRules".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+        m.insert("noSymbol".to_string(), Value::Int(8));
+    m
+}));
         m.insert("avgPrice".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("referencePrice".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("referencePrice/calculation".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("historicalBlockTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
     m
 }));
     m
@@ -4461,6 +4502,21 @@ impl BinanceCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
         m.insert("noSymbol".to_string(), Value::Int(40));
+    m
+}));
+        m.insert("um/algo/algoOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("um/algo/openAlgoOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("um/algo/allAlgoOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
     m
 }));
         m.insert("cm/conditional/openOrder".to_string(), Value::Map({
@@ -4751,6 +4807,11 @@ impl BinanceCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("um/algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("cm/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -4885,6 +4946,16 @@ impl BinanceCore {
     m
 }));
         m.insert("um/conditional/allOpenOrders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("um/algo/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("um/algo/allOpenOrders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

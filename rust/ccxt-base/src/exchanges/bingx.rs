@@ -629,6 +629,46 @@ impl BingxCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("quote/bookTicker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/depth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/historicalKlines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/historicalTrades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/klines".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/price".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/ticker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("quote/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -968,6 +1008,11 @@ impl BingxCore {
         m.insert("cost".to_string(), Value::Int(2));
     m
 }));
+        m.insert("trade/positionHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
         m.insert("user/income/export".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -1229,6 +1274,23 @@ impl BingxCore {
     m
 }));
         m.insert("trade/cancelOrder".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("v2".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("trade/order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
     m
@@ -1741,6 +1803,51 @@ impl BingxCore {
         m.insert("account/superiorCheck".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+    m
+}));
+    m
+}));
+    m
+}));
+    m
+}));
+        m.insert("wealth".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("v1".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("private".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("product/dual-currency/pre-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("product/dual-currency/position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("product/dual-currency/order-records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("product/dual-currency/invest-asset-list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+    m
+}));
+        m.insert("product/dual-currency/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
     m
 }));
     m
@@ -2365,8 +2472,8 @@ impl BingxCore {
         let mut currency: Value = self.safe_string_k(market.clone(), "currency", &[]);
         let mut checkIsInverse: Value = Value::Bool(false);
         let mut checkIsLinear: Value = Value::Bool(true);
-        let mut minTickSize: Value = self.safe_number_k(market.clone(), "minTickSize", &[]);
-        if !is_equal(&minTickSize, &Value::Null) {
+        let mut inverseContractSize: Value = self.safe_number_k(market.clone(), "minTickSize", &[]);
+        if !is_equal(&inverseContractSize, &Value::Null) {
             // inverse swap market
             currency = baseId.clone();
             checkIsInverse = Value::Bool(true);
@@ -2392,7 +2499,10 @@ impl BingxCore {
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        let mut contractSize: Value = ternary(is_true(&(swap)), self.parse_number(Value::Str("1".to_string()), &[]), Value::Null);
+        let mut contractSize: Value = Value::Null;
+        if is_true(&swap) {
+            contractSize = ternary(is_true(&(checkIsInverse)), inverseContractSize.clone(), self.parse_number(Value::Str("1".to_string()), &[]));
+        }
         let mut isActive: Value = Value::Bool(false);
         if is_true(&(is_equal(&self.safe_string_k(market.clone(), "apiStateOpen", &[]), &Value::Str("true".to_string())))) && is_true(&(is_equal(&self.safe_string_k(market.clone(), "apiStateClose", &[]), &Value::Str("true".to_string())))) {
             isActive = Value::Bool(true); // swap active
@@ -2461,7 +2571,7 @@ impl BingxCore {
 }));
         m.insert("price".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
-        m.insert("min".to_string(), minTickSize.clone());
+        m.insert("min".to_string(), Value::Null);
         m.insert("max".to_string(), Value::Null);
     m
 }));

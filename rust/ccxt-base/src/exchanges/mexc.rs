@@ -489,6 +489,11 @@ impl MexcCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("apiKeyInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("order".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -789,6 +794,11 @@ impl MexcCore {
     m
 }));
         m.insert("strategy/group".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("strategy/group/uid".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
     m

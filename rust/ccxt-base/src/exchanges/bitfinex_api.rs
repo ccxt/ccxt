@@ -387,6 +387,11 @@ impl BitfinexCore {
         self.call_method(Value::Str("private_post_auth_r_orders_hist".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostAuthROrdersOtcSymbolHist` implicit endpoint.
+    pub async fn private_post_auth_r_orders_otc_symbol_hist(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_r_orders_otc_symbol_hist".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAuthROrderSymbolIdTrades` implicit endpoint.
     pub async fn private_post_auth_r_order_symbol_id_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_r_order_symbol_id_trades".to_string()), optional_args).await
@@ -460,6 +465,11 @@ impl BitfinexCore {
     /// Auto-generated wrapper for the `privatePostAuthRPositionsSnap` implicit endpoint.
     pub async fn private_post_auth_r_positions_snap(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_r_positions_snap".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthWPositionUpdateFundingType` implicit endpoint.
+    pub async fn private_post_auth_w_position_update_funding_type(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_w_position_update_funding_type".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAuthWDerivCollateralSet` implicit endpoint.
@@ -617,9 +627,19 @@ impl BitfinexCore {
         self.call_method(Value::Str("private_post_auth_w_deposit_address".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostAuthRDepositAddressAll` implicit endpoint.
+    pub async fn private_post_auth_r_deposit_address_all(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_r_deposit_address_all".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostAuthWDepositInvoice` implicit endpoint.
     pub async fn private_post_auth_w_deposit_invoice(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_w_deposit_invoice".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthRExtInvoicePayments` implicit endpoint.
+    pub async fn private_post_auth_r_ext_invoice_payments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_r_ext_invoice_payments".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAuthWWithdraw` implicit endpoint.
@@ -635,6 +655,11 @@ impl BitfinexCore {
     /// Auto-generated wrapper for the `privatePostAuthRMovementsHist` implicit endpoint.
     pub async fn private_post_auth_r_movements_hist(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_r_movements_hist".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthRMovementsInfo` implicit endpoint.
+    pub async fn private_post_auth_r_movements_info(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_r_movements_info".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostAuthRAlerts` implicit endpoint.
@@ -690,6 +715,21 @@ impl BitfinexCore {
     /// Auto-generated wrapper for the `privatePostAuthWPulseDel` implicit endpoint.
     pub async fn private_post_auth_w_pulse_del(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_auth_w_pulse_del".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthWExtWalletsDepositsRequest` implicit endpoint.
+    pub async fn private_post_auth_w_ext_wallets_deposits_request(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_w_ext_wallets_deposits_request".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthWExtWalletsWithdrawalsRequest` implicit endpoint.
+    pub async fn private_post_auth_w_ext_wallets_withdrawals_request(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_w_ext_wallets_withdrawals_request".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostAuthRExtWalletsTransfersFreeCount` implicit endpoint.
+    pub async fn private_post_auth_r_ext_wallets_transfers_free_count(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_auth_r_ext_wallets_transfers_free_count".to_string()), optional_args).await
     }
 
 }

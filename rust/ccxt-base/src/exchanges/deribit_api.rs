@@ -77,6 +77,11 @@ impl DeribitCore {
         self.call_method(Value::Str("public_get_get_announcements".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetGetAprHistory` implicit endpoint.
+    pub async fn public_get_get_apr_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_apr_history".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetGetBookSummaryByCurrency` implicit endpoint.
     pub async fn public_get_get_book_summary_by_currency(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_book_summary_by_currency".to_string()), optional_args).await
@@ -102,6 +107,11 @@ impl DeribitCore {
         self.call_method(Value::Str("public_get_get_delivery_prices".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetGetExpirations` implicit endpoint.
+    pub async fn public_get_get_expirations(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_expirations".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetGetFundingChartData` implicit endpoint.
     pub async fn public_get_get_funding_chart_data(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_funding_chart_data".to_string()), optional_args).await
@@ -125,6 +135,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `publicGetGetIndex` implicit endpoint.
     pub async fn public_get_get_index(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_index".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetGetIndexChartData` implicit endpoint.
+    pub async fn public_get_get_index_chart_data(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_index_chart_data".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetIndexPrice` implicit endpoint.
@@ -185,6 +200,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `publicGetGetOrderBook` implicit endpoint.
     pub async fn public_get_get_order_book(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_get_order_book".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `publicGetGetSupportedIndexNames` implicit endpoint.
+    pub async fn public_get_get_supported_index_names(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_get_supported_index_names".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `publicGetGetTradeVolumes` implicit endpoint.
@@ -307,6 +327,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_affiliate_program_info".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetCurrencies` implicit endpoint.
+    pub async fn private_get_get_currencies(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_currencies".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetEmailLanguage` implicit endpoint.
     pub async fn private_get_get_email_language(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_email_language".to_string()), optional_args).await
@@ -377,6 +402,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_set_api_key_as_default".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetSetDisabledTradingProducts` implicit endpoint.
+    pub async fn private_get_set_disabled_trading_products(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_set_disabled_trading_products".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetSetEmailForSubaccount` implicit endpoint.
     pub async fn private_get_set_email_for_subaccount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_set_email_for_subaccount".to_string()), optional_args).await
@@ -392,6 +422,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_set_password_for_subaccount".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetSimulatePortfolio` implicit endpoint.
+    pub async fn private_get_simulate_portfolio(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_simulate_portfolio".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetToggleNotificationsFromSubaccount` implicit endpoint.
     pub async fn private_get_toggle_notifications_from_subaccount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_toggle_notifications_from_subaccount".to_string()), optional_args).await
@@ -400,6 +435,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetToggleSubaccountLogin` implicit endpoint.
     pub async fn private_get_toggle_subaccount_login(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_toggle_subaccount_login".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApproveBlockTrade` implicit endpoint.
+    pub async fn private_get_approve_block_trade(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_approve_block_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetExecuteBlockTrade` implicit endpoint.
@@ -412,6 +452,16 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_block_trade".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetBlockTradeRequests` implicit endpoint.
+    pub async fn private_get_get_block_trade_requests(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_block_trade_requests".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetGetBlockTrades` implicit endpoint.
+    pub async fn private_get_get_block_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_block_trades".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetLastBlockTradesByCurrency` implicit endpoint.
     pub async fn private_get_get_last_block_trades_by_currency(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_last_block_trades_by_currency".to_string()), optional_args).await
@@ -420,6 +470,16 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetInvalidateBlockTradeSignature` implicit endpoint.
     pub async fn private_get_invalidate_block_trade_signature(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_invalidate_block_trade_signature".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetRejectBlockTrade` implicit endpoint.
+    pub async fn private_get_reject_block_trade(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_reject_block_trade".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSimulateBlockTrade` implicit endpoint.
+    pub async fn private_get_simulate_block_trade(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_simulate_block_trade".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetVerifyBlockTrade` implicit endpoint.
@@ -472,6 +532,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_cancel_by_label".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetCancelQuotes` implicit endpoint.
+    pub async fn private_get_cancel_quotes(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_cancel_quotes".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetClosePosition` implicit endpoint.
     pub async fn private_get_close_position(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_close_position".to_string()), optional_args).await
@@ -487,6 +552,16 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_mmp_config".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetMmpStatus` implicit endpoint.
+    pub async fn private_get_get_mmp_status(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_mmp_status".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetGetOpenOrders` implicit endpoint.
+    pub async fn private_get_get_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_open_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetOpenOrdersByCurrency` implicit endpoint.
     pub async fn private_get_get_open_orders_by_currency(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_open_orders_by_currency".to_string()), optional_args).await
@@ -495,6 +570,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetGetOpenOrdersByInstrument` implicit endpoint.
     pub async fn private_get_get_open_orders_by_instrument(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_open_orders_by_instrument".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetGetOpenOrdersByLabel` implicit endpoint.
+    pub async fn private_get_get_open_orders_by_label(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_open_orders_by_label".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetOrderHistoryByCurrency` implicit endpoint.
@@ -515,6 +595,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetGetOrderState` implicit endpoint.
     pub async fn private_get_get_order_state(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_order_state".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetGetOrderStateByLabel` implicit endpoint.
+    pub async fn private_get_get_order_state_by_label(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_order_state_by_label".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetStopOrderHistory` implicit endpoint.
@@ -552,6 +637,16 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_user_trades_by_order".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetMassQuote` implicit endpoint.
+    pub async fn private_get_mass_quote(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_mass_quote".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetMovePositions` implicit endpoint.
+    pub async fn private_get_move_positions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_move_positions".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetResetMmp` implicit endpoint.
     pub async fn private_get_reset_mmp(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_reset_mmp".to_string()), optional_args).await
@@ -572,6 +667,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_settlement_history_by_currency".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetAddToAddressBook` implicit endpoint.
+    pub async fn private_get_add_to_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_add_to_address_book".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetCancelTransferById` implicit endpoint.
     pub async fn private_get_cancel_transfer_by_id(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_cancel_transfer_by_id".to_string()), optional_args).await
@@ -587,6 +687,11 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_create_deposit_address".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetGetAddressBook` implicit endpoint.
+    pub async fn private_get_get_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_address_book".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetGetCurrentDepositAddress` implicit endpoint.
     pub async fn private_get_get_current_deposit_address(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_current_deposit_address".to_string()), optional_args).await
@@ -595,6 +700,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetGetDeposits` implicit endpoint.
     pub async fn private_get_get_deposits(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_get_deposits".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetGetRewardEligibility` implicit endpoint.
+    pub async fn private_get_get_reward_eligibility(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_get_reward_eligibility".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetGetTransfers` implicit endpoint.
@@ -607,6 +717,16 @@ impl DeribitCore {
         self.call_method(Value::Str("private_get_get_withdrawals".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRemoveFromAddressBook` implicit endpoint.
+    pub async fn private_get_remove_from_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_remove_from_address_book".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetSetClearanceOriginator` implicit endpoint.
+    pub async fn private_get_set_clearance_originator(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_set_clearance_originator".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetSubmitTransferToSubaccount` implicit endpoint.
     pub async fn private_get_submit_transfer_to_subaccount(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_submit_transfer_to_subaccount".to_string()), optional_args).await
@@ -615,6 +735,11 @@ impl DeribitCore {
     /// Auto-generated wrapper for the `privateGetSubmitTransferToUser` implicit endpoint.
     pub async fn private_get_submit_transfer_to_user(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_submit_transfer_to_user".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUpdateInAddressBook` implicit endpoint.
+    pub async fn private_get_update_in_address_book(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_update_in_address_book".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateGetWithdraw` implicit endpoint.

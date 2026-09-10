@@ -9010,7 +9010,9 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         let mut year: Value = slice(&date, &Value::Int(0), &Value::Int(2));
         let mut month: Value = slice(&date, &Value::Int(2), &Value::Int(4));
         let mut day: Value = slice(&date, &Value::Int(4), &Value::Int(6));
-        let mut reconstructedDate: Value = add(&add(&add(&add(&add(&add(&Value::Str("20".to_string()), &year), &Value::Str("-".to_string())), &month), &Value::Str("-".to_string())), &day), &Value::Str("T00:00:00Z".to_string()));
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        let mut reconstructedDate: Value = add(&add(&add(&add(&add(&add(&Value::Str("20".to_string()), &year), &Value::Str("-".to_string())), &month), &Value::Str("-".to_string())), &day), &Value::Str("T00:00:00.000Z".to_string()));
         return reconstructedDate;
 
     Value::Null

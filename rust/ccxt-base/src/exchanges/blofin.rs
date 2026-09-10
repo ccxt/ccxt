@@ -367,6 +367,11 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("market/instruments-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("market/tickers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -417,6 +422,31 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("spot/market/instruments".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/market/tickers".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/market/books".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/market/trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("spot/market/candles".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -445,6 +475,11 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("asset/deposit-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("account/config".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -466,6 +501,11 @@ impl BlofinCore {
     m
 }));
         m.insert("account/positions-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("account/funding-fees".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -645,6 +685,36 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("spot/trade/orders-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/order-detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/orders-algo-pending".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/orders-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/orders-algo-history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/order/price-range".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -655,6 +725,11 @@ impl BlofinCore {
     m
 }));
         m.insert("asset/demo-apply-money".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("asset/withdrawal-apply".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -714,7 +789,57 @@ impl BlofinCore {
         m.insert("cost".to_string(), Value::Float(1.67));
     m
 }));
+        m.insert("trade/amend-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("trade/amend-batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("trade/amend-tpsl".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("trade/amend-algo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
         m.insert("trade/close-position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/order-algo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/cancel-order".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/cancel-batch-orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(1.67));
+    m
+}));
+        m.insert("spot/trade/cancel-algo".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(1.67));
     m

@@ -582,6 +582,16 @@ impl WooCore {
         self.call_method(Value::Str("v3_private_post_spot_margin_interest_repay".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v3PrivatePostFuturesDefaultMarginModeReset` implicit endpoint.
+    pub async fn v3_private_post_futures_default_margin_mode_reset(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_post_futures_default_margin_mode_reset".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PrivatePostIsolatedMarginMargin` implicit endpoint.
+    pub async fn v3_private_post_isolated_margin_margin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_post_isolated_margin_margin".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v3PrivatePostAlgoOrder` implicit endpoint.
     pub async fn v3_private_post_algo_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_post_algo_order".to_string()), optional_args).await
@@ -610,6 +620,16 @@ impl WooCore {
     /// Auto-generated wrapper for the `v3PrivatePutFuturesPositionMode` implicit endpoint.
     pub async fn v3_private_put_futures_position_mode(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_put_futures_position_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PrivatePutFuturesDefaultMarginMode` implicit endpoint.
+    pub async fn v3_private_put_futures_default_margin_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_put_futures_default_margin_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PrivatePutFuturesDefaultMarginModeSymbol` implicit endpoint.
+    pub async fn v3_private_put_futures_default_margin_mode_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_put_futures_default_margin_mode_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v3PrivatePutOrderOid` implicit endpoint.
@@ -675,6 +695,11 @@ impl WooCore {
     /// Auto-generated wrapper for the `v3PrivateDeleteOrdersPending` implicit endpoint.
     pub async fn v3_private_delete_orders_pending(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v3_private_delete_orders_pending".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v3PrivateDeleteAssetWalletWithdrawWithdrawId` implicit endpoint.
+    pub async fn v3_private_delete_asset_wallet_withdraw_withdraw_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v3_private_delete_asset_wallet_withdraw_withdraw_id".to_string()), optional_args).await
     }
 
 }

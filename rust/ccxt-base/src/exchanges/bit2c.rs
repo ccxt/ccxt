@@ -247,6 +247,11 @@ impl Bit2cCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("Exchanges/{pair}/orderbook-top".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("Exchanges/{pair}/trades".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -271,6 +276,11 @@ impl Bit2cCore {
     m
 }));
         m.insert("Funds/AddCoinFundsRequest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Funds/WithdrawCoin".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -360,6 +370,11 @@ impl Bit2cCore {
     m
 }));
         m.insert("Order/OrderHistory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("Order/HistoryByOrderId".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

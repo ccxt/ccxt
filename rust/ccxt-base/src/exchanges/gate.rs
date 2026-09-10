@@ -697,6 +697,20 @@ impl GateCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("{settle}/adl_risk_states".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+    m
+}));
+        m.insert("post".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("{settle}/funding_rates".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -837,6 +851,21 @@ impl GateCore {
     m
 }));
         m.insert("structured/products".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("dual/project-recommend".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fixed-term/product".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("fixed-term/product/{asset}/list".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -994,6 +1023,11 @@ impl GateCore {
     m
 }));
         m.insert("getLowCapExchangeList".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("transfers".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -1175,6 +1209,16 @@ impl GateCore {
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
+        m.insert("delta_neutral".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("estimated_quick_repayment".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
         m.insert("account_mode".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -1200,6 +1244,21 @@ impl GateCore {
     m
 }));
         m.insert("collateral_currencies".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("delta_neutral".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("leverage/user_setting".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("quick_repayment".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
@@ -1276,6 +1335,16 @@ impl GateCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("pov_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("pov_orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -1315,6 +1384,11 @@ impl GateCore {
         m.insert("cost".to_string(), Value::Float(0.4));
     m
 }));
+        m.insert("pov_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
     m
 }));
         m.insert("delete".to_string(), Value::Map({
@@ -1335,6 +1409,16 @@ impl GateCore {
     m
 }));
         m.insert("price_orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(75)));
+    m
+}));
+        m.insert("pov_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(75)));
+    m
+}));
+        m.insert("pov_orders/{order_id}".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(75)));
     m
@@ -1688,6 +1772,31 @@ impl GateCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("{settle}/autoorder/v1/trail/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/change_log".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/chase/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/chase/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -1778,6 +1887,41 @@ impl GateCore {
     m
 }));
         m.insert("{settle}/price_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/stop".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/stop_all".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/trail/update".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/chase/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/chase/stop".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Float(0.4));
+    m
+}));
+        m.insert("{settle}/autoorder/v1/chase/stop_all".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Float(0.4));
     m
@@ -2025,6 +2169,15 @@ impl GateCore {
 }));
     m
 }));
+        m.insert("put".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("orders/{order_id}".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+    m
+}));
         m.insert("delete".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("orders".to_string(), Value::Map({
@@ -2120,6 +2273,51 @@ impl GateCore {
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
+        m.insert("dual/order-refund-preview".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("fixed-term/user/lend".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("fixed-term/user/history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/coins".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/config".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/list_info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/records".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
         m.insert("uni/currencies".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
@@ -2155,6 +2353,51 @@ impl GateCore {
     m
 }));
         m.insert("staking/swap".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("dual/order-refund".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("dual/modify-order-reinvest".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("fixed-term/user/lend".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("fixed-term/user/pre-redeem".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/min_invest_amount".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/add_position".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/stop".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
+        m.insert("autoinvest/plans/update".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
@@ -2423,6 +2666,11 @@ impl GateCore {
         m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
     m
 }));
+        m.insert("partner/data/aggregated".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), divide(&Value::Int(20), &Value::Int(15)));
+    m
+}));
     m
 }));
     m
@@ -2447,6 +2695,16 @@ impl GateCore {
     m
 }));
         m.insert("order/detail".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/list".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/bank_supplement_checklist".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -2476,6 +2734,36 @@ impl GateCore {
     m
 }));
         m.insert("order/cancel".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/create".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/delete".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/set_default".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/personal/bank_supplement".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("bank/enterprise/bank_supplement".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("upload/pre_upload".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m

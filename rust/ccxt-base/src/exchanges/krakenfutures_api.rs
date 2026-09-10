@@ -142,6 +142,11 @@ impl KrakenfuturesCore {
         self.call_method(Value::Str("private_get_subaccount_uid_trading_enabled".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetRfqAssignmentMaxLeverage` implicit endpoint.
+    pub async fn private_get_rfq_assignment_max_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_rfq_assignment_max_leverage".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostSendorder` implicit endpoint.
     pub async fn private_post_sendorder(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_sendorder".to_string()), optional_args).await
@@ -215,6 +220,16 @@ impl KrakenfuturesCore {
     /// Auto-generated wrapper for the `privatePutSubaccountUidTradingEnabled` implicit endpoint.
     pub async fn private_put_subaccount_uid_trading_enabled(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_put_subaccount_uid_trading_enabled".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePutRfqAssignmentMaxLeverage` implicit endpoint.
+    pub async fn private_put_rfq_assignment_max_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_put_rfq_assignment_max_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateDeleteRfqAssignmentMaxLeverage` implicit endpoint.
+    pub async fn private_delete_rfq_assignment_max_leverage(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_delete_rfq_assignment_max_leverage".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `chartsGetPriceTypeSymbolInterval` implicit endpoint.

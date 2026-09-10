@@ -287,6 +287,45 @@ impl GrvtCore {
     let mut m = indexmap::IndexMap::new();
         m.insert("privateEdge".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("get".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("api/v1/deposit/addresses".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/epochs".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/points".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("api/v1/referral/indirect_data".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+    m
+}));
         m.insert("post".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("auth/api_key/login".to_string(), Value::Map({
@@ -295,6 +334,26 @@ impl GrvtCore {
     m
 }));
         m.insert("auth/wallet/login".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("auth/builder/authorize".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/deposit/generate-address".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/bridge/withdrawal-quote".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
+    m
+}));
+        m.insert("api/v1/bridge/withdraw".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(100));
     m
@@ -363,6 +422,16 @@ impl GrvtCore {
     m
 }));
         m.insert("full/v1/funding".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/supported_assets".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(12));
+    m
+}));
+        m.insert("full/v1/get_all_collateral_asset_info".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(12));
     m
@@ -553,6 +622,56 @@ impl GrvtCore {
         m.insert("full/v1/builder_fill_history".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/create_rfq".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/cancel_rfq".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(5));
+    m
+}));
+        m.insert("full/v1/ecn_from_broker".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v2/bulk_orders".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(50));
+    m
+}));
+        m.insert("full/v1/position_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOrders.clone());
+    m
+}));
+        m.insert("full/v1/interest_payment_history".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/get_collateral_preference".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/spot_account_summary".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/set_indicative_prices".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), rlOthers.clone());
+    m
+}));
+        m.insert("full/v1/withdrawal_fee".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(100));
     m
 }));
     m

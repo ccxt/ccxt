@@ -273,6 +273,11 @@ impl MudrexCore {
         m.insert("cost".to_string(), Value::Int(5));
     m
 }));
+        m.insert("futures/transactions".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("futures/orders".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -792,13 +797,12 @@ impl MudrexCore {
         let mut ms: Value = self.safe_string_k(ticker.clone(), "symbol", &[]);
         market = self.safe_market(&[ms.clone(), market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
-        let mut ts: Value = self.milliseconds();
         let mut pct: Value = self.safe_number_k(ticker.clone(), "change_perc", &[]);
         return self.safe_ticker(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("timestamp".to_string(), ts.clone());
-        m.insert("datetime".to_string(), self.iso8601(ts.clone()));
+        m.insert("timestamp".to_string(), Value::Null);
+        m.insert("datetime".to_string(), Value::Null);
         m.insert("high".to_string(), Value::Null);
         m.insert("low".to_string(), Value::Null);
         m.insert("bid".to_string(), Value::Null);
@@ -1032,12 +1036,9 @@ impl MudrexCore {
     m
 })]);
         let mut currency: Value = self.safe_string_k(response.clone(), "currency", &[Value::Str("USDT".to_string())]);
-        let mut timestamp: Value = self.milliseconds();
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("info".to_string(), response.clone());
-                m.insert("timestamp".to_string(), timestamp.clone());
-                m.insert("datetime".to_string(), self.iso8601(timestamp.clone()));
             m
         });
         let mut account: Value = self.account();
@@ -1233,10 +1234,16 @@ impl MudrexCore {
         let __ws_arg_10 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.private_post_futures_asset_id_order(&[__ws_arg_10]).await;
         let mut data: Value = self.safe_dict_k(response.clone(), "data", &[response.clone()]);
-        // the create response omits the order/trigger type, so restore them from the request
-        add_element_to_object(&mut data, &Value::Str("order_type".to_string()), get_value(&request, &Value::Str("order_type".to_string())));
-        add_element_to_object(&mut data, &Value::Str("trigger_type".to_string()), get_value(&request, &Value::Str("trigger_type".to_string())));
-        return self.parse_order(data.clone(), &[market.clone()]);
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        let mut merged: Value = self.extend(data.clone(), &[Value::Map({
+            let mut m = indexmap::IndexMap::new();
+                m.insert("order_type".to_string(), get_value(&request, &Value::Str("order_type".to_string())));
+                m.insert("trigger_type".to_string(), get_value(&request, &Value::Str("trigger_type".to_string())));
+            m
+        })]);
+        let mut order: Value = self.parse_order(merged.clone(), &[market.clone()]);
+        add_element_to_object(&mut order, &Value::Str("info".to_string()), data.clone());
+        return order;
 
     Value::Null
 }
@@ -1321,6 +1328,22 @@ impl MudrexCore {
         }  else if is_equal(&rawSide, &Value::Str("SHORT".to_string())) {
             side = Value::Str("sell".to_string());
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        let mut isRiskOrder: bool = is_true(&(is_equal(&rawSide, &Value::Str("STOPLOSS".to_string())))) || is_true(&(is_equal(&rawSide, &Value::Str("TAKEPROFIT".to_string()))));
+        let mut priceString: Value = self.safe_string2(order.clone(), Value::Str("price".to_string()), Value::Str("order_price".to_string()), &[]);
+        let mut orderPrice: Value = priceString.clone();
+        let mut triggerPrice: Value = Value::Null;
+        let mut stopLossPrice: Value = Value::Null;
+        let mut takeProfitPrice: Value = Value::Null;
+        if is_true(&isRiskOrder) {
+            triggerPrice = priceString.clone();
+            orderPrice = Value::Null;
+            if is_equal(&rawSide, &Value::Str("STOPLOSS".to_string())) {
+                stopLossPrice = priceString.clone();
+            }  else {
+                takeProfitPrice = priceString.clone();
+            }
+        }
         let mut trig: Value = self.safe_string_upper(order.clone(), Value::Str("trigger_type".to_string()), &[]);
         let mut typ: Value = Value::Null;
         if is_equal(&trig, &Value::Str("MARKET".to_string())) {
@@ -1329,9 +1352,6 @@ impl MudrexCore {
             typ = Value::Str("limit".to_string());
         }
         let mut ts: Value = self.parse8601(self.safe_string_k(order.clone(), "created_at", &[]));
-        if is_equal(&ts, &Value::Null) {
-            ts = self.milliseconds();
-        }
         let mut status: Value = self.parse_order_status(self.safe_string_lower(order.clone(), Value::Str("status".to_string()), &[]));
         let mut sym: Value = get_value(&market, &Value::Str("symbol".to_string()));
         return self.safe_order(Value::Map({
@@ -1347,19 +1367,20 @@ impl MudrexCore {
         m.insert("timeInForce".to_string(), Value::Null);
         m.insert("postOnly".to_string(), Value::Null);
         m.insert("side".to_string(), side.clone());
-        m.insert("price".to_string(), self.safe_number2(order.clone(), Value::Str("price".to_string()), Value::Str("order_price".to_string()), &[]));
-        m.insert("stopPrice".to_string(), Value::Null);
-        m.insert("triggerPrice".to_string(), Value::Null);
-        m.insert("amount".to_string(), self.safe_number2(order.clone(), Value::Str("quantity".to_string()), Value::Str("amount".to_string()), &[]));
+        m.insert("price".to_string(), orderPrice.clone());
+        m.insert("triggerPrice".to_string(), triggerPrice.clone());
+        m.insert("stopLossPrice".to_string(), stopLossPrice.clone());
+        m.insert("takeProfitPrice".to_string(), takeProfitPrice.clone());
+        m.insert("amount".to_string(), self.safe_string2(order.clone(), Value::Str("quantity".to_string()), Value::Str("amount".to_string()), &[]));
         m.insert("cost".to_string(), Value::Null);
-        m.insert("average".to_string(), Value::Null);
-        m.insert("filled".to_string(), Value::Null);
+        m.insert("average".to_string(), self.safe_string_k(order.clone(), "filled_price", &[]));
+        m.insert("filled".to_string(), self.safe_string_k(order.clone(), "filled_quantity", &[]));
         m.insert("remaining".to_string(), Value::Null);
         m.insert("status".to_string(), status.clone());
         m.insert("fee".to_string(), Value::Null);
         m.insert("trades".to_string(), Value::List(vec![]));
         m.insert("fees".to_string(), Value::List(vec![]));
-        m.insert("lastUpdateTimestamp".to_string(), Value::Null);
+        m.insert("lastUpdateTimestamp".to_string(), self.parse8601(self.safe_string_k(order.clone(), "updated_at", &[])));
         m.insert("reduceOnly".to_string(), self.safe_bool_k(order.clone(), "reduce_only", &[]));
     m
 }), &[market.clone()]);
@@ -1880,13 +1901,14 @@ impl MudrexCore {
 /*
  * @method
  * @name mudrex#fetchMyTrades
- * @description fetch all trades made by the user
- * @see https://docs.trade.mudrex.com/docs
- * @param {string} [symbol] unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
- * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+ * @see https://docs.trade.mudrex.com/docs/fees
+ * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+ * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+ * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.trade_currency] the settlement currency to filter trades by
+ * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+ * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
  * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
     pub async fn fetch_my_trades(&mut self, optional_args: &[Value]) -> Value {
@@ -1904,17 +1926,106 @@ impl MudrexCore {
         if !is_equal(&symbol, &Value::Null) {
             market = self.market(symbol.clone());
         }
-        let mut request: Value = Value::Map({
-            let mut m = indexmap::IndexMap::new();
-            m
-        });
+        let mut maxCalls: Value = Value::Null;
+        { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchMyTrades".to_string()), Value::Str("paginationCalls".to_string()), &[Value::Int(10)]); maxCalls = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut pageSize: Value = Value::Int(0);
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = multiply(&limit, &Value::Int(2));
         }
-        let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
-        let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;
-        let mut data: Value = self.safe_value_k(response.clone(), "data", &[Value::List(vec![])]);
-        let mut rows: Value = self.to_array(data.clone());
+        let mut allRows: Value = Value::List(vec![]);
+        let mut transactionsCount: Value = Value::Int(0);
+        let mut calls: Value = Value::Int(0);
+        let mut offset: Value = Value::Int(0);
+        let mut paging: Value = Value::Bool(true);
+        while is_equal(&paging, &Value::Bool(true)) {
+            let mut request: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            if is_greater_than(&pageSize, &Value::Int(0)) {
+                add_element_to_object(&mut request, &Value::Str("limit".to_string()), pageSize.clone());
+                add_element_to_object(&mut request, &Value::Str("offset".to_string()), offset.clone());
+            }
+            let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
+            let mut response: Value = self.private_get_futures_fee_history(&[__ws_arg_19]).await;
+            let mut data: Value = self.safe_list_k(response.clone(), "data", &[Value::List(vec![])]);
+            let mut dataLength: Value = get_array_length(&data);
+            {
+                                let mut i: Value = Value::Int(0);
+                let mut __for_first_962: bool = true;
+                while { if !__for_first_962 { i = add(&i, &Value::Int(1)); } __for_first_962 = false; is_less_than(&i, &dataLength) } {
+                let mut entry: Value = get_value(&data, &i);
+                let mut entry: Value = get_value(&data, &i);
+                append_to_array(&mut allRows, entry.clone());
+                if is_equal(&self.safe_string_k(entry.clone(), "fee_type", &[]), &Value::Str("TRANSACTION".to_string())) {
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if is_true(&(is_equal(&market, &Value::Null))) || is_true(&(is_equal(&self.safe_string_k(entry.clone(), "symbol", &[]), &get_value(&market, &Value::Str("id".to_string()))))) {
+                        transactionsCount = self.sum(&[transactionsCount.clone(), Value::Int(1)]);
+                    }
+                }
+            }
+            }
+            calls = self.sum(&[calls.clone(), Value::Int(1)]);
+            paging = Value::Bool(false);
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if is_true(&(!is_equal(&limit, &Value::Null))) && is_true(&(is_equal(&dataLength, &pageSize))) && is_true(&(is_less_than(&transactionsCount, &limit))) && is_true(&(is_less_than(&calls, &maxCalls))) {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = self.sum(&[offset.clone(), pageSize.clone()]);
+                paging = Value::Bool(true);
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        let mut rebateKeys: Value = Value::List(vec![]);
+        let mut rebateAmounts: Value = Value::List(vec![]);
+        let mut transactions: Value = Value::List(vec![]);
+        let mut transactionKeys: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_963: bool = true;
+            while { if !__for_first_963 { i = add(&i, &Value::Int(1)); } __for_first_963 = false; is_less_than(&i, &get_array_length(&allRows)) } {
+            let mut entry: Value = get_value(&allRows, &i);
+            let mut entry: Value = get_value(&allRows, &i);
+            let mut feeType: Value = self.safe_string_k(entry.clone(), "fee_type", &[]);
+            let mut pairKey: Value = add(&add(&add(&add(&self.safe_string_k(entry.clone(), "symbol", &[Value::Str("".to_string())]), &Value::Str(":".to_string())), &self.safe_string_k(entry.clone(), "created_at", &[Value::Str("".to_string())])), &Value::Str(":".to_string())), &self.safe_string_k(entry.clone(), "transaction_amount", &[Value::Str("".to_string())]));
+            if is_equal(&feeType, &Value::Str("TRANSACTION".to_string())) {
+                append_to_array(&mut transactions, entry.clone());
+                append_to_array(&mut transactionKeys, pairKey.clone());
+            }  else if is_equal(&feeType, &Value::Str("REBATE".to_string())) {
+                append_to_array(&mut rebateKeys, pairKey.clone());
+                append_to_array(&mut rebateAmounts, self.safe_string_k(entry.clone(), "fee_amount", &[Value::Str("0".to_string())]));
+            }
+        }
+        }
+        let mut rows: Value = Value::List(vec![]);
+        {
+                        let mut i: Value = Value::Int(0);
+            let mut __for_first_965: bool = true;
+            while { if !__for_first_965 { i = add(&i, &Value::Int(1)); } __for_first_965 = false; is_less_than(&i, &get_array_length(&transactions)) } {
+            let mut rebate: Value = Value::Null;
+            {
+                                let mut j: Value = Value::Int(0);
+                let mut __for_first_964: bool = true;
+                while { if !__for_first_964 { j = add(&j, &Value::Int(1)); } __for_first_964 = false; is_less_than(&j, &get_array_length(&rebateKeys)) } {
+                if is_equal(&get_value(&rebateKeys, &j), &get_value(&transactionKeys, &i)) {
+                    rebate = get_value(&rebateAmounts, &j);
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    add_element_to_object(&mut rebateKeys, &j, Value::Null);
+                    break;
+                }
+            }
+            }
+            if is_equal(&rebate, &Value::Null) {
+                append_to_array(&mut rows, get_value(&transactions, &i));
+            }  else {
+                append_to_array(&mut rows, self.extend(get_value(&transactions, &i), &[Value::Map({
+                    let mut m = indexmap::IndexMap::new();
+                        m.insert("rebate_amount".to_string(), rebate.clone());
+                    m
+                })]));
+            }
+        }
+        }
         return self.parse_trades(rows.clone(), &[market.clone(), since.clone(), limit.clone()]);
 
     Value::Null
@@ -1922,33 +2033,50 @@ impl MudrexCore {
 
     pub fn parse_trade(&self, mut trade: Value, optional_args: &[Value]) -> Value {
         let mut market = get_arg(optional_args, 0, Value::Null);
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         let mut ms: Value = self.safe_string_k(trade.clone(), "symbol", &[]);
         market = self.safe_market(&[ms.clone(), market.clone()]);
         let mut symbol: Value = get_value(&market, &Value::Str("symbol".to_string()));
         let mut ts: Value = self.parse8601(self.safe_string_k(trade.clone(), "created_at", &[]));
-        if is_equal(&ts, &Value::Null) {
-            ts = self.safe_integer_k(trade.clone(), "time", &[]);
-        }
-        let mut side: Value = self.safe_string_lower2(trade.clone(), Value::Str("side".to_string()), Value::Str("order_type".to_string()), &[]);
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        let mut side: Value = self.safe_string_lower(trade.clone(), Value::Str("order_type".to_string()), &[]);
         let mut tradeSide: Value = Value::Null;
-        if is_equal(&side, &Value::Str("buy".to_string())) || is_equal(&side, &Value::Str("long".to_string())) {
+        if is_equal(&side, &Value::Str("long".to_string())) {
             tradeSide = Value::Str("buy".to_string());
-        }  else if is_equal(&side, &Value::Str("sell".to_string())) || is_equal(&side, &Value::Str("short".to_string())) {
+        }  else if is_equal(&side, &Value::Str("short".to_string())) {
             tradeSide = Value::Str("sell".to_string());
         }
-        let mut feeType: Value = self.safe_string_upper(trade.clone(), Value::Str("fee_type".to_string()), &[]);
+        let mut trig: Value = self.safe_string_upper(trade.clone(), Value::Str("trigger_type".to_string()), &[]);
         let mut takerOrMaker: Value = Value::Null;
-        if is_equal(&feeType, &Value::Str("TRANSACTION".to_string())) {
+        if is_equal(&trig, &Value::Str("MARKET".to_string())) {
+            // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = Value::Str("taker".to_string());
-        }  else if is_equal(&feeType, &Value::Str("REBATE".to_string())) {
-            takerOrMaker = Value::Str("maker".to_string());
         }
         let mut fee: Value = Value::Null;
-        let mut feeCost: Value = self.safe_number_k(trade.clone(), "fee_amount", &[]);
-        if !is_equal(&feeCost, &Value::Null) {
+        let mut feeCostString: Value = self.safe_string_k(trade.clone(), "fee_amount", &[]);
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        let mut rebateString: Value = self.safe_string_k(trade.clone(), "rebate_amount", &[]);
+        if is_true(&(!is_equal(&feeCostString, &Value::Null))) && is_true(&(!is_equal(&rebateString, &Value::Null))) {
+            feeCostString = crate::precise::Precise::stringSub(&feeCostString, &rebateString);
+        }
+        if !is_equal(&feeCostString, &Value::Null) {
             fee = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("cost".to_string(), feeCost.clone());
+                    m.insert("cost".to_string(), feeCostString.clone());
                     m.insert("currency".to_string(), self.safe_string_k(trade.clone(), "trade_currency", &[]));
                 m
             });
@@ -1959,14 +2087,14 @@ impl MudrexCore {
         m.insert("timestamp".to_string(), ts.clone());
         m.insert("datetime".to_string(), self.iso8601(ts.clone()));
         m.insert("symbol".to_string(), symbol.clone());
-        m.insert("id".to_string(), self.safe_string2(trade.clone(), Value::Str("execId".to_string()), Value::Str("id".to_string()), &[]));
-        m.insert("order".to_string(), self.safe_string_k(trade.clone(), "order_id", &[]));
+        m.insert("id".to_string(), self.safe_string_k(trade.clone(), "id", &[]));
+        m.insert("order".to_string(), Value::Null);
         m.insert("type".to_string(), self.safe_string_lower(trade.clone(), Value::Str("trigger_type".to_string()), &[]));
         m.insert("side".to_string(), tradeSide.clone());
         m.insert("takerOrMaker".to_string(), takerOrMaker.clone());
-        m.insert("price".to_string(), self.safe_number_k(trade.clone(), "price", &[]));
-        m.insert("amount".to_string(), self.safe_number2(trade.clone(), Value::Str("size".to_string()), Value::Str("quantity".to_string()), &[]));
-        m.insert("cost".to_string(), self.safe_number_k(trade.clone(), "transaction_amount", &[]));
+        m.insert("price".to_string(), Value::Null);
+        m.insert("amount".to_string(), Value::Null);
+        m.insert("cost".to_string(), self.safe_string_k(trade.clone(), "transaction_amount", &[]));
         m.insert("fee".to_string(), fee.clone());
     m
 }), &[market.clone()]);

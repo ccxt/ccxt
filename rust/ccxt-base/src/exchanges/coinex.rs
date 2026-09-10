@@ -1146,6 +1146,11 @@ impl CoinexCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("assets/info".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -1679,6 +1684,16 @@ impl CoinexCore {
     m
 }));
         m.insert("futures/set-position-take-profit".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("futures/modify-position-stop-loss".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
+        m.insert("futures/modify-position-take-profit".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(20));
     m

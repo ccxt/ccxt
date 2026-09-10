@@ -330,6 +330,11 @@ impl BitbankCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("user/margin/status".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("user/margin/positions".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));

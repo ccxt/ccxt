@@ -348,6 +348,11 @@ impl KrakenCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("MaintenanceSchedule".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
         m.insert("Assets".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
@@ -502,6 +507,11 @@ impl KrakenCore {
     m
 }));
         m.insert("GetApiKeyInfo".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(3));
+    m
+}));
+        m.insert("ListWalletAccounts".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(3));
     m

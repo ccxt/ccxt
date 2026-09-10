@@ -284,6 +284,11 @@ impl NadoCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("edge/query".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
     m
@@ -360,6 +365,11 @@ impl NadoCore {
     m
 }));
         m.insert("trades".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("symbols".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -457,6 +467,7 @@ impl NadoCore {
         m.insert("1002".to_string(), Value::Str("RestrictedLocation".to_string()).clone());
         m.insert("1003".to_string(), Value::Str("RestrictedLocation".to_string()).clone());
         m.insert("1004".to_string(), Value::Str("OnMaintenance".to_string()).clone());
+        m.insert("1005".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("2000".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("2001".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("2002".to_string(), Value::Str("InvalidOrder".to_string()).clone());
@@ -580,6 +591,7 @@ impl NadoCore {
         m.insert("2123".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("2124".to_string(), Value::Str("InvalidOrder".to_string()).clone());
         m.insert("2125".to_string(), Value::Str("OperationRejected".to_string()).clone());
+        m.insert("2126".to_string(), Value::Str("OrderNotFound".to_string()).clone());
         m.insert("3000".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("3001".to_string(), Value::Str("BadRequest".to_string()).clone());
         m.insert("3002".to_string(), Value::Str("ArgumentsRequired".to_string()).clone());
@@ -628,7 +640,7 @@ impl NadoCore {
  * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
  * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
- * @param {string} [params.triggerDirection] trigger direction, above, below
+ * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -736,16 +748,15 @@ impl NadoCore {
         let mut isStopOrder: bool = !is_equal(&triggerPrice, &Value::Null);
         let mut isTriggerOrder: Value = Value::Bool(is_true(&isStopOrder) || is_true(&isStopLossOrder) || is_true(&isTakeProfitOrder));
         if is_true(&isStopOrder) {
-            let mut triggerDirection: Value = self.safe_string_lower(params.clone(), Value::Str("triggerDirection".to_string()), &[]);
-            if is_equal(&triggerDirection, &Value::Null) {
-                panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" createOrder() requires triggerDirection for trigger order".to_string()))));
-            }
+            let mut triggerDirection: Value = Value::Null;
+            { let __destr_tmp = self.handle_trigger_direction_and_params(params.clone(), &[]); triggerDirection = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+            let mut directionSuffix: Value = ternary(is_true(&(is_equal(&triggerDirection, &Value::Str("ascending".to_string())))), Value::Str("above".to_string()), Value::Str("below".to_string()));
             let mut triggerPriceX18: Value = self.convert_to_x18(triggerPrice.clone());
             let mut priceRequirement: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             });
-            add_element_to_object(&mut priceRequirement, &add(&Value::Str("oracle_price_".to_string()), &triggerDirection), triggerPriceX18.clone());
+            add_element_to_object(&mut priceRequirement, &add(&Value::Str("oracle_price_".to_string()), &directionSuffix), triggerPriceX18.clone());
             let mut trigger: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
                     m.insert("price_trigger".to_string(), Value::Map({
@@ -823,6 +834,7 @@ impl NadoCore {
  * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
  * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+ * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
     pub async fn edit_order(&mut self, mut id: Value, mut symbol: Value, mut type_var: Value, mut side: Value, optional_args: &[Value]) -> Value {
@@ -889,6 +901,10 @@ impl NadoCore {
         let mut market: Value = self.market(symbol.clone());
         if !is_equal(&type_var, &Value::Str("limit".to_string())) {
             panic!("{}", crate::exchange_errors::invalid_order(add(&self.id, &Value::Str(" editOrder() supports limit orders only".to_string()))));
+        }
+        let mut triggerPrice: Value = self.safe_string_n(params.clone(), Value::List(vec![Value::Str("triggerPrice".to_string()), Value::Str("stopPrice".to_string()), Value::Str("stopLossPrice".to_string()), Value::Str("takeProfitPrice".to_string())]), &[]);
+        if !is_equal(&triggerPrice, &Value::Null) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead".to_string()))));
         }
         if is_equal(&amount, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" editOrder() requires an amount argument".to_string()))));
@@ -1048,8 +1064,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_962: bool = true;
-            while { if !__for_first_962 { i = add(&i, &Value::Int(1)); } __for_first_962 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
+            let mut __for_first_966: bool = true;
+            while { if !__for_first_966 { i = add(&i, &Value::Int(1)); } __for_first_966 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
             let __ws_arg_2 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
@@ -1167,8 +1183,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_963: bool = true;
-            while { if !__for_first_963 { i = add(&i, &Value::Int(1)); } __for_first_963 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
+            let mut __for_first_967: bool = true;
+            while { if !__for_first_967 { i = add(&i, &Value::Int(1)); } __for_first_967 = false; is_less_than(&i, &get_array_length(&cancelledOrders)) } {
             let __ws_arg_3 = self.extend(Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("status".to_string(), Value::Str("canceled".to_string()));
@@ -1206,8 +1222,8 @@ impl NadoCore {
         let mut productIds: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_964: bool = true;
-            while { if !__for_first_964 { i = add(&i, &Value::Int(1)); } __for_first_964 = false; is_less_than(&i, &get_array_length(&ids)) } {
+            let mut __for_first_968: bool = true;
+            while { if !__for_first_968 { i = add(&i, &Value::Int(1)); } __for_first_968 = false; is_less_than(&i, &get_array_length(&ids)) } {
             append_to_array(&mut productIds, productId.clone());
         }
         }
@@ -1323,7 +1339,7 @@ impl NadoCore {
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1367,7 +1383,7 @@ impl NadoCore {
             m
         });
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         let mut contracts: Value = self.query_contracts(&[]).await;
         let mut chainId: Value = self.safe_string_k(contracts.clone(), "chain_id", &[]);
@@ -1451,7 +1467,7 @@ impl NadoCore {
         m.insert("status_types".to_string(), Value::List(vec![Value::Str("waiting_price".to_string()), Value::Str("waiting_dependency".to_string())]));
     m
 })]);
-            return self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, __ws_arg_6]).await;
+            return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_6]).await;
         }
         if is_equal(&symbol, &Value::Null) {
             panic!("{}", crate::exchange_errors::arguments_required(add(&self.id, &Value::Str(" fetchOpenOrders() requires a symbol argument".to_string()))));
@@ -1548,7 +1564,7 @@ impl NadoCore {
         m.insert("status_types".to_string(), Value::List(vec![Value::Str("triggered".to_string()), Value::Str("triggering".to_string()), Value::Str("twap_executing".to_string()), Value::Str("twap_completed".to_string())]));
     m
 })]);
-            return self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, __ws_arg_8]).await;
+            return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_8]).await;
         }
         let mut ordersRequest: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
@@ -1591,8 +1607,8 @@ impl NadoCore {
         let mut orders: Value = self.safe_list_k(response.clone(), "orders", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_965: bool = true;
-            while { if !__for_first_965 { i = add(&i, &Value::Int(1)); } __for_first_965 = false; is_less_than(&i, &get_array_length(&orders)) } {
+            let mut __for_first_969: bool = true;
+            while { if !__for_first_969 { i = add(&i, &Value::Int(1)); } __for_first_969 = false; is_less_than(&i, &get_array_length(&orders)) } {
             let mut order: Value = get_value(&orders, &i);
             let mut order: Value = get_value(&orders, &i);
             if is_true(&self.is_archive_order_closed(order.clone())) {
@@ -1612,13 +1628,12 @@ impl NadoCore {
 /*
  * @method
  * @name nado#fetchCanceledOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1631,10 +1646,11 @@ impl NadoCore {
 }));
         let __ws_arg_9 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("status_types".to_string(), Value::List(vec![Value::Str("cancelled".to_string()), Value::Str("internal_error".to_string())]));
     m
 })]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, __ws_arg_9]).await;
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_9]).await;
 
     Value::Null
 }
@@ -1642,13 +1658,12 @@ impl NadoCore {
 /*
  * @method
  * @name nado#fetchCanceledAndClosedOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
     pub async fn fetch_canceled_and_closed_orders(&mut self, optional_args: &[Value]) -> Value {
@@ -1661,10 +1676,11 @@ impl NadoCore {
 }));
         let __ws_arg_10 = self.extend(params.clone(), &[Value::Map({
     let mut m = indexmap::IndexMap::new();
+        m.insert("trigger".to_string(), Value::Bool(true));
         m.insert("status_types".to_string(), Value::List(vec![Value::Str("cancelled".to_string()), Value::Str("internal_error".to_string()), Value::Str("triggered".to_string()), Value::Str("triggering".to_string()), Value::Str("twap_executing".to_string()), Value::Str("twap_completed".to_string())]));
     m
 })]);
-        return self.fetch_orders(&[symbol.clone(), since.clone(), Value::Null, __ws_arg_10]).await;
+        return self.fetch_orders(&[symbol.clone(), since.clone(), limit.clone(), __ws_arg_10]).await;
 
     Value::Null
 }
@@ -1752,8 +1768,8 @@ impl NadoCore {
         let mut trades: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_966: bool = true;
-            while { if !__for_first_966 { i = add(&i, &Value::Int(1)); } __for_first_966 = false; is_less_than(&i, &get_array_length(&matches)) } {
+            let mut __for_first_970: bool = true;
+            while { if !__for_first_970 { i = add(&i, &Value::Int(1)); } __for_first_970 = false; is_less_than(&i, &get_array_length(&matches)) } {
             let mut match_val: Value = get_value(&matches, &i);
             let mut match_val: Value = get_value(&matches, &i);
             let mut submissionIdx: Value = self.safe_string_k(match_val.clone(), "submission_idx", &[]);
@@ -1953,8 +1969,8 @@ impl NadoCore {
         let mut transactions: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_968: bool = true;
-            while { if !__for_first_968 { i = add(&i, &Value::Int(1)); } __for_first_968 = false; is_less_than(&i, &get_array_length(&events)) } {
+            let mut __for_first_972: bool = true;
+            while { if !__for_first_972 { i = add(&i, &Value::Int(1)); } __for_first_972 = false; is_less_than(&i, &get_array_length(&events)) } {
             let mut event: Value = get_value(&events, &i);
             let mut event: Value = get_value(&events, &i);
             let mut submissionIdx: Value = self.safe_string_k(event.clone(), "submission_idx", &[]);
@@ -1964,8 +1980,8 @@ impl NadoCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_967: bool = true;
-                while { if !__for_first_967 { j = add(&j, &Value::Int(1)); } __for_first_967 = false; is_less_than(&j, &get_array_length(&txs)) } {
+                let mut __for_first_971: bool = true;
+                while { if !__for_first_971 { j = add(&j, &Value::Int(1)); } __for_first_971 = false; is_less_than(&j, &get_array_length(&txs)) } {
                 let mut rawTx: Value = get_value(&txs, &j);
                 let mut rawTx: Value = get_value(&txs, &j);
                 let mut txSubmissionIdx: Value = self.safe_string_k(rawTx.clone(), "submission_idx", &[]);
@@ -2056,8 +2072,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_970: bool = true;
-            while { if !__for_first_970 { i = add(&i, &Value::Int(1)); } __for_first_970 = false; is_less_than(&i, &get_array_length(&positions)) } {
+            let mut __for_first_974: bool = true;
+            while { if !__for_first_974 { i = add(&i, &Value::Int(1)); } __for_first_974 = false; is_less_than(&i, &get_array_length(&positions)) } {
             let mut position: Value = get_value(&positions, &i);
             let mut position: Value = get_value(&positions, &i);
             let mut balance: Value = self.safe_dict_k(position.clone(), "balance", &[Value::Map({
@@ -2075,8 +2091,8 @@ impl NadoCore {
             });
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_969: bool = true;
-                while { if !__for_first_969 { j = add(&j, &Value::Int(1)); } __for_first_969 = false; is_less_than(&j, &get_array_length(&products)) } {
+                let mut __for_first_973: bool = true;
+                while { if !__for_first_973 { j = add(&j, &Value::Int(1)); } __for_first_973 = false; is_less_than(&j, &get_array_length(&products)) } {
                 let mut rawProduct: Value = get_value(&products, &j);
                 let mut rawProduct: Value = get_value(&products, &j);
                 let mut rawProductId: Value = self.safe_string_k(rawProduct.clone(), "product_id", &[]);
@@ -2195,8 +2211,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_971: bool = true;
-            while { if !__for_first_971 { i = add(&i, &Value::Int(1)); } __for_first_971 = false; is_less_than(&i, &get_array_length(&pairs)) } {
+            let mut __for_first_975: bool = true;
+            while { if !__for_first_975 { i = add(&i, &Value::Int(1)); } __for_first_975 = false; is_less_than(&i, &get_array_length(&pairs)) } {
             let mut rawPair: Value = get_value(&pairs, &i);
             let mut rawPair: Value = get_value(&pairs, &i);
             let mut pairProductId: Value = self.safe_string_k(rawPair.clone(), "product_id", &[]);
@@ -2211,8 +2227,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_972: bool = true;
-            while { if !__for_first_972 { i = add(&i, &Value::Int(1)); } __for_first_972 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_976: bool = true;
+            while { if !__for_first_976 { i = add(&i, &Value::Int(1)); } __for_first_976 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut assetProductId: Value = self.safe_string_k(rawAsset.clone(), "product_id", &[]);
@@ -2227,8 +2243,8 @@ impl NadoCore {
         });
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_973: bool = true;
-            while { if !__for_first_973 { i = add(&i, &Value::Int(1)); } __for_first_973 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_977: bool = true;
+            while { if !__for_first_977 { i = add(&i, &Value::Int(1)); } __for_first_977 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut rawAsset: Value = get_value(&assets, &i);
             let mut assetSymbol: Value = self.safe_string_k(rawAsset.clone(), "symbol", &[]);
@@ -2253,8 +2269,8 @@ impl NadoCore {
         let mut markets: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_974: bool = true;
-            while { if !__for_first_974 { i = add(&i, &Value::Int(1)); } __for_first_974 = false; is_less_than(&i, &get_array_length(&symbols)) } {
+            let mut __for_first_978: bool = true;
+            while { if !__for_first_978 { i = add(&i, &Value::Int(1)); } __for_first_978 = false; is_less_than(&i, &get_array_length(&symbols)) } {
             let mut market: Value = get_value(&symbols, &i);
             let mut market: Value = get_value(&symbols, &i);
             let mut id: Value = self.safe_string_k(market.clone(), "product_id", &[]);
@@ -2394,8 +2410,8 @@ impl NadoCore {
         let mut assets: Value = self.to_array(response.clone());
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_975: bool = true;
-            while { if !__for_first_975 { i = add(&i, &Value::Int(1)); } __for_first_975 = false; is_less_than(&i, &get_array_length(&assets)) } {
+            let mut __for_first_979: bool = true;
+            while { if !__for_first_979 { i = add(&i, &Value::Int(1)); } __for_first_979 = false; is_less_than(&i, &get_array_length(&assets)) } {
             let mut currency: Value = get_value(&assets, &i);
             let mut currency: Value = get_value(&assets, &i);
             let mut parsed: Value = self.parse_currency(currency.clone());
@@ -2476,12 +2492,13 @@ impl NadoCore {
 }));
         self.load_markets(&[]).await;
         let mut market: Value = self.market(symbol.clone());
+        symbol = get_value(&market, &Value::Str("symbol".to_string()));
         let mut tickers: Value = self.fetch_tickers(&[Value::List(vec![symbol.clone()]), params.clone()]).await;
         let mut ticker: Value = self.safe_dict(tickers.clone(), symbol.clone(), &[]);
         if is_equal(&ticker, &Value::Null) {
             panic!("{}", crate::exchange_errors::bad_symbol(add(&add(&self.id, &Value::Str(" fetchTicker() ticker not found for ".to_string())), &symbol)));
         }
-        return self.safe_ticker(ticker.clone(), &[market.clone()]);
+        return ticker;
 
     Value::Null
 }
@@ -2606,8 +2623,8 @@ impl NadoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_976: bool = true;
-            while { if !__for_first_976 { i = add(&i, &Value::Int(1)); } __for_first_976 = false; is_less_than(&i, &get_array_length(&fundingPayments)) } {
+            let mut __for_first_980: bool = true;
+            while { if !__for_first_980 { i = add(&i, &Value::Int(1)); } __for_first_980 = false; is_less_than(&i, &get_array_length(&fundingPayments)) } {
             append_to_array(&mut result, self.parse_funding_history(get_value(&fundingPayments, &i), &[market.clone()]));
         }
         }
@@ -2663,8 +2680,8 @@ impl NadoCore {
         let mut rates: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_977: bool = true;
-            while { if !__for_first_977 { i = add(&i, &Value::Int(1)); } __for_first_977 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_981: bool = true;
+            while { if !__for_first_981 { i = add(&i, &Value::Int(1)); } __for_first_981 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
             append_to_array(&mut rates, self.safe_dict(response.clone(), ticker.clone(), &[Value::Map({
@@ -2778,8 +2795,8 @@ impl NadoCore {
         let mut interests: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_978: bool = true;
-            while { if !__for_first_978 { i = add(&i, &Value::Int(1)); } __for_first_978 = false; is_less_than(&i, &get_array_length(&tickers)) } {
+            let mut __for_first_982: bool = true;
+            while { if !__for_first_982 { i = add(&i, &Value::Int(1)); } __for_first_982 = false; is_less_than(&i, &get_array_length(&tickers)) } {
             let mut ticker: Value = get_value(&tickers, &i);
             let mut ticker: Value = get_value(&tickers, &i);
             append_to_array(&mut interests, self.safe_dict(response.clone(), ticker.clone(), &[Value::Map({
@@ -2886,7 +2903,7 @@ impl NadoCore {
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2914,7 +2931,7 @@ impl NadoCore {
             m
         });
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(get_value_mut(&mut request, &Value::Str("candlesticks".to_string())), &Value::Str("limit".to_string()), limit.clone());
+            add_element_to_object(get_value_mut(&mut request, &Value::Str("candlesticks".to_string())), &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(500)));
         }
         if !is_equal(&until, &Value::Null) {
             add_element_to_object(get_value_mut(&mut request, &Value::Str("candlesticks".to_string())), &Value::Str("max_time".to_string()), self.parse_to_int(divide(&until, &Value::Int(1000))));
@@ -3294,8 +3311,8 @@ impl NadoCore {
         let mut balances: Value = self.safe_list_k(response.clone(), "spot_balances", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_979: bool = true;
-            while { if !__for_first_979 { i = add(&i, &Value::Int(1)); } __for_first_979 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_983: bool = true;
+            while { if !__for_first_983 { i = add(&i, &Value::Int(1)); } __for_first_983 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut rawBalance: Value = get_value(&balances, &i);
             let mut rawBalance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(rawBalance.clone(), "product_id", &[]);
@@ -3759,7 +3776,12 @@ impl NadoCore {
 
     pub fn create_order_nonce(&self, mut recvWindow: Value) -> Value {
         let mut expires: Value = self.sum(&[self.milliseconds(), recvWindow.clone()]);
-        return crate::precise::Precise::stringMul(&self.number_to_string(expires.clone()), &Value::Str("1048576".to_string()));
+        let mut highBits: Value = crate::precise::Precise::stringMul(&self.number_to_string(expires.clone()), &Value::Str("1048576".to_string()));
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        let mut entropy: Value = self.rand_number(Value::Int(6));
+        return crate::precise::Precise::stringAdd(&highBits, &self.number_to_string(entropy.clone()));
 
     Value::Null
 }

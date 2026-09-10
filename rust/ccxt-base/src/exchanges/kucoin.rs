@@ -564,6 +564,11 @@ impl KucoinCore {
         m.insert("cost".to_string(), Value::Int(10));
     m
 }));
+        m.insert("margin/available-inventory".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(10));
+    m
+}));
         m.insert("convert/symbol".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(5));
@@ -946,6 +951,11 @@ impl KucoinCore {
         m.insert("cost".to_string(), Value::Int(20));
     m
 }));
+        m.insert("margin/borrowRate".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(20));
+    m
+}));
         m.insert("project/list".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(10));
@@ -1022,6 +1032,31 @@ impl KucoinCore {
     m
 }));
         m.insert("affiliate/inviter/statistics".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("affiliate/queryInvitees".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("affiliate/queryMyCommission".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("affiliate/queryTransactionByUid".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("affiliate/queryTransactionByTime".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(30));
+    m
+}));
+        m.insert("affiliate/queryKumining".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(30));
     m
@@ -1898,6 +1933,11 @@ impl KucoinCore {
         m.insert("cost".to_string(), Value::Int(4));
     m
 }));
+        m.insert("broker/nd/mark-up".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(4));
+    m
+}));
         m.insert("asset/ndbroker/deposit/list".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(2));
@@ -1938,6 +1978,11 @@ impl KucoinCore {
     m
 }));
         m.insert("broker/nd/account/update-apikey".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(6));
+    m
+}));
+        m.insert("broker/nd/mark-up".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(6));
     m
@@ -2653,6 +2698,7 @@ impl KucoinCore {
         m.insert("symbols".to_string(), Value::Str("v2".to_string()));
         m.insert("mark-price/all-symbols".to_string(), Value::Str("v3".to_string()));
         m.insert("announcements".to_string(), Value::Str("v3".to_string()));
+        m.insert("margin/available-inventory".to_string(), Value::Str("v3".to_string()));
     m
 }));
     m
@@ -2693,6 +2739,7 @@ impl KucoinCore {
         m.insert("margin/borrow".to_string(), Value::Str("v3".to_string()));
         m.insert("margin/repay".to_string(), Value::Str("v3".to_string()));
         m.insert("margin/interest".to_string(), Value::Str("v3".to_string()));
+        m.insert("margin/borrowRate".to_string(), Value::Str("v3".to_string()));
         m.insert("project/list".to_string(), Value::Str("v3".to_string()));
         m.insert("project/marketInterestRate".to_string(), Value::Str("v3".to_string()));
         m.insert("redeem/orders".to_string(), Value::Str("v3".to_string()));
@@ -2700,6 +2747,11 @@ impl KucoinCore {
         m.insert("migrate/user/account/status".to_string(), Value::Str("v3".to_string()));
         m.insert("margin/symbols".to_string(), Value::Str("v3".to_string()));
         m.insert("affiliate/inviter/statistics".to_string(), Value::Str("v2".to_string()));
+        m.insert("affiliate/queryInvitees".to_string(), Value::Str("v2".to_string()));
+        m.insert("affiliate/queryMyCommission".to_string(), Value::Str("v2".to_string()));
+        m.insert("affiliate/queryTransactionByUid".to_string(), Value::Str("v2".to_string()));
+        m.insert("affiliate/queryTransactionByTime".to_string(), Value::Str("v2".to_string()));
+        m.insert("affiliate/queryKumining".to_string(), Value::Str("v2".to_string()));
         m.insert("asset/ndbroker/deposit/list".to_string(), Value::Str("v1".to_string()));
     m
 }));
