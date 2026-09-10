@@ -305,7 +305,7 @@ public partial class bitflyer : Exchange
             { "NOV", "11" },
             { "DEC", "12" },
         };
-        object month = this.safeString(months, monthName);
+        string? month = this.safeString(months, monthName);
         return this.parse8601(add(add(add(add(add(year, "-"), month), "-"), day), "T00:00:00Z"));
     }
 
@@ -362,7 +362,7 @@ public partial class bitflyer : Exchange
         object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
         markets = this.arrayConcat(markets, this.toArray(eu_markets));
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "product_code");
@@ -372,7 +372,7 @@ public partial class bitflyer : Exchange
             bool future = (isEqual(marketType, "Futures"));
             bool spot = !isTrue(swap) && !isTrue(future);
             string type = "spot";
-            object settle = null;
+            string? settle = null;
             object baseId = null;
             object quoteId = null;
             object expiry = null;
@@ -487,7 +487,7 @@ public partial class bitflyer : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency_code");
@@ -852,7 +852,7 @@ public partial class bitflyer : Exchange
         string? side = this.safeStringLower(order, "side");
         string? marketId = this.safeString(order, "product_code");
         object symbol = this.safeSymbol(marketId, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(order, "total_commission");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1286,7 +1286,7 @@ public partial class bitflyer : Exchange
         string? rawStatus = this.safeString(transaction, "status");
         string? type = null;
         object status = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(inOp(transaction, "fee")))
         {
             type = "withdrawal";

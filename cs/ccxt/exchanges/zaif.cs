@@ -392,7 +392,7 @@ public partial class zaif : Exchange
         };
         object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object code = this.safeCurrencyCode(currencyId);
@@ -886,7 +886,7 @@ public partial class zaif : Exchange
         //     }
         //
         currency = this.safeCurrency(null, currency);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeValue(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -987,7 +987,7 @@ public partial class zaif : Exchange
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             throw new ExchangeError ((string)feedback) ;

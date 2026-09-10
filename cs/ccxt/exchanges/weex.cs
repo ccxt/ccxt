@@ -966,7 +966,7 @@ public partial class weex : Exchange
         string? name = this.safeString(rawCurrency, "name");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object chains = this.safeList(rawCurrency, "networkList", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = this.safeDict(chains, j);
             string? networkId = this.safeString(chain, "network");
@@ -1342,7 +1342,7 @@ public partial class weex : Exchange
             response = new List<object>() {response};
         }
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(response, i);
             // book tickers have no markPrice, so resolve the market from the endpoint type to disambiguate the spot/swap market id in parseTicker
@@ -1423,7 +1423,7 @@ public partial class weex : Exchange
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        Int64? timestamp = this.safeInteger2(ticker, "closeTime", "time");
         string? percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", getValue(market, "symbol") },
@@ -1938,9 +1938,9 @@ public partial class weex : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(trade, "time");
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = this.safeStringLower(trade, "side");
-        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
@@ -1960,7 +1960,7 @@ public partial class weex : Exchange
         {
             isSpot = getValue(market, "spot");
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? commission = this.safeString(trade, "commission");
         if (isTrue(!isEqual(commission, null)))
         {
@@ -1981,7 +1981,7 @@ public partial class weex : Exchange
                 { "currency", feeCurrency },
             };
         }
-        object isMaker = this.safeBool(trade, "maker");
+        bool? isMaker = this.safeBool(trade, "maker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -2219,7 +2219,7 @@ public partial class weex : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isTrue((isEqual(sandboxMode, true))) && isTrue((isEqual(requestedType, null)))))
         {
             type = "swap"; // the demo trading API only provides the swap account, don't let the default spot type break a bare fetchBalance() call
@@ -2287,9 +2287,9 @@ public partial class weex : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object balances = this.safeList(response, "balances", response);
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = this.safeDict(balances, i);
             string? currencyId = this.safeString(entry, "asset");
@@ -2431,7 +2431,7 @@ public partial class weex : Exchange
             return await this.CreateContractOrder(symbol, type, side, amount,ccxt.BaseExchange.ToDoubleArg(price), parameters);
         } else
         {
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (isTrue(isEqual(sandboxMode, true)))
             {
                 throw new NotSupported ((string)add(this.id, " createOrder() only supports swap markets in sandbox mode")) ;
@@ -2559,7 +2559,7 @@ public partial class weex : Exchange
         object market = this.market(symbol);
         object request = this.createContractOrderRequest(symbol, type, side, amount, price, parameters);
         string? triggerPrice = this.safeString(request, "triggerPrice");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object response = null;
         if (isTrue(!isEqual(triggerPrice, null)))
         {
@@ -2621,7 +2621,7 @@ public partial class weex : Exchange
         {
             throw new BadRequest ((string)add(this.id, " createOrder() cannot use the triggerPrice parameter together with the stopLossPrice or takeProfitPrice parameters")) ;
         }
-        object reduceOnly = this.safeBool(query, "reduceOnly");
+        bool? reduceOnly = this.safeBool(query, "reduceOnly");
         if (isTrue(isTrue(isStopLoss) || isTrue(isTakeProfit)))
         {
             reduceOnly = true;
@@ -2824,7 +2824,7 @@ public partial class weex : Exchange
         var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
-        object trigger = this.safeBool(parameters, "trigger", false);
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         if (isTrue(isTrue((isEqual(trigger, true))) && isTrue(isEqual(id, null))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires an id argument for trigger orders")) ;
@@ -2905,7 +2905,7 @@ public partial class weex : Exchange
         var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
         marketType = ((IList<object>)marketTypeparametersVariable)[0];
         parameters = ((IList<object>)marketTypeparametersVariable)[1];
-        object trigger = this.safeBool(parameters, "trigger", false);
+        bool? trigger = this.safeBool(parameters, "trigger", false);
         parameters = this.omit(parameters, "trigger");
         object response = null;
         if (isTrue(isEqual(marketType, "spot")))
@@ -3165,7 +3165,7 @@ public partial class weex : Exchange
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((IList<object>)requestparametersVariable)[0];
             parameters = ((IList<object>)requestparametersVariable)[1];
-            object trigger = this.safeBool(parameters, "trigger", false);
+            bool? trigger = this.safeBool(parameters, "trigger", false);
             if (isTrue(isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
@@ -3464,7 +3464,7 @@ public partial class weex : Exchange
         var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
         request = ((IList<object>)requestparametersVariable)[0];
         parameters = ((IList<object>)requestparametersVariable)[1];
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object response = null;
         if (isTrue(isEqual(sandboxMode, true)))
         {
@@ -3615,11 +3615,11 @@ public partial class weex : Exchange
             string marketType = ((bool) isTrue((isEqual(positionSide, null)))) ? "spot" : "swap";
             market = this.safeMarket(marketId, null, null, marketType);
         }
-        object timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"transactTime", "time", "createTime"});
         string? rawStatus = this.safeStringLower2(order, "status", "algoStatus"); // algo (trigger) order payloads carry algoStatus instead of status
         object triggerPrice = this.omitZero(this.safeString2(order, "triggerPrice", "stopPrice"));
         string? rawType = this.safeStringUpper2(order, "type", "orderType");
-        object isReduceOnly = this.safeBool(order, "reduceOnly");
+        bool? isReduceOnly = this.safeBool(order, "reduceOnly");
         // entry conditional orders reuse the STOP/TAKE_PROFIT types with reduceOnly set to false, their trigger price is not a stop loss / take profit price
         // a missing reduceOnly counts as reduce-only to keep the legacy mapping for responses that omit the field
         bool isEntryTrigger = !isTrue(this.safeBool(order, "reduceOnly", true));
@@ -4010,7 +4010,7 @@ public partial class weex : Exchange
         string? currencyId = this.safeString2(item, "coinName", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        object timestamp = this.safeInteger2(item, "cTime", "time");
+        Int64? timestamp = this.safeInteger2(item, "cTime", "time");
         string? amountRaw = this.safeString2(item, "deltaAmount", "income");
         string? after = this.safeString2(item, "afterAmount", "balance");
         string? before = Precise.stringSub(after, amountRaw);
@@ -4091,7 +4091,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         symbols = this.marketSymbols(symbols);
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object response = null;
         if (isTrue(isEqual(sandboxMode, true)))
         {
@@ -4137,7 +4137,7 @@ public partial class weex : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isEqual(sandboxMode, true)))
         {
             // the demo trading API does not provide a single-position endpoint
@@ -4796,7 +4796,7 @@ public partial class weex : Exchange
      */
     public virtual object toSandboxMarketId(object market)
     {
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         object baseId = this.safeString(market, "baseId");
         if (isTrue(isTrue((isEqual(sandboxMode, true))) && isTrue((!isEqual(baseId, null)))))
         {
@@ -4816,7 +4816,7 @@ public partial class weex : Exchange
      */
     public virtual object fromSandboxMarketId(object marketId)
     {
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isTrue((!isEqual(sandboxMode, true))) || isTrue((isEqual(marketId, null)))))
         {
             return marketId;
@@ -4856,7 +4856,7 @@ public partial class weex : Exchange
         }
         if (isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "contractPrivate")))))
         {
-            object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (isTrue(isTrue((isEqual(sandboxMode, true))) && isTrue((!isEqual(getIndexOf(path, "capi/v3/sim/"), 0)))))
             {
                 throw new NotSupported ((string)add(add(add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;

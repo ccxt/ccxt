@@ -97,7 +97,7 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -182,7 +182,7 @@ public partial class apex : ccxt.apex
         string? marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market, null);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"t", "T", "createdAt"});
         string? side = this.safeStringLower2(trade, "S", "side");
         string? price = this.safeString2(trade, "p", "price");
         string? amount = this.safeStringN(trade, new List<object>() {"q", "v", "size"});
@@ -246,7 +246,7 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -274,7 +274,7 @@ public partial class apex : ccxt.apex
         var client = this.client(url);
         List<object> newTopics = new List<object>() {};
         object newTopicsCount = 0;
-        for (object i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
         {
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, getValue(messageHashes, i)))))
             {
@@ -282,7 +282,7 @@ public partial class apex : ccxt.apex
                 newTopicsCount = add(newTopicsCount, 1);
             }
         }
-        object message = null;
+        Dictionary<string, object> message = null;
         if (isTrue(isGreaterThan(newTopicsCount, 0)))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -395,7 +395,7 @@ public partial class apex : ccxt.apex
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -447,7 +447,7 @@ public partial class apex : ccxt.apex
         List<object> messageHashes = new List<object>() {};
         object url = this.getWsPublicUrl();
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -561,14 +561,14 @@ public partial class apex : ccxt.apex
         object url = this.getWsPublicUrl();
         List<object> rawHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object data = getValue(symbolsAndTimeframes, i);
             object symbolString = this.safeString(data, 0);
             object market = this.market(symbolString);
             symbolString = getValue(market, "id2");
-            object unfiedTimeframe = this.safeString(data, 1, "1");
-            object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
+            string? unfiedTimeframe = this.safeString(data, 1, "1");
+            string? timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
             ((IList<object>)rawHashes).Add(add(add(add("candle.", timeframeId), "."), symbolString));
             ((IList<object>)messageHashes).Add(add(add(add("ohlcv::", getValue(market, "symbol")), "::"), unfiedTimeframe));
         }
@@ -629,7 +629,7 @@ public partial class apex : ccxt.apex
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = new ArrayCacheByTimestamp(limit);
         }
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i));
             callDynamically(stored, "append", new object[] {parsed});
@@ -803,7 +803,7 @@ public partial class apex : ccxt.apex
         }
         object trades = this.myTrades;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(lists, i);
             object parsed = this.parseWsTrade(rawTrade);
@@ -812,7 +812,7 @@ public partial class apex : ccxt.apex
             callDynamically(trades, "append", new object[] {parsed});
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object currentMessageHash = add("myTrades:", getValue(keys, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {trades, currentMessageHash});
@@ -860,7 +860,7 @@ public partial class apex : ccxt.apex
         }
         object orders = this.orders;
         Dictionary<string, object> symbols = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object parsed = this.parseOrder(getValue(lists, i));
             object symbol = getValue(parsed, "symbol");
@@ -868,7 +868,7 @@ public partial class apex : ccxt.apex
             callDynamically(orders, "append", new object[] {parsed});
         }
         List<object> symbolsArray = new List<object>(((IDictionary<string,object>)symbols).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsArray)); postFixIncrement(ref i))
         {
             object currentMessageHash = add("orders:", getValue(symbolsArray, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {orders, currentMessageHash});
@@ -898,10 +898,10 @@ public partial class apex : ccxt.apex
         object promises = await promiseAll(fetchFunctions);
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             object positions = getValue(promises, i);
-            for (object ii = 0; isLessThan(ii, getArrayLength(positions)); postFixIncrement(ref ii))
+            for (int ii = 0; isLessThan(ii, getArrayLength(positions)); postFixIncrement(ref ii))
             {
                 object position = getValue(positions, ii);
                 callDynamically(cache, "append", new object[] {position});
@@ -946,7 +946,7 @@ public partial class apex : ccxt.apex
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(lists)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(lists, i);
             object position = this.parsePosition(rawPosition);
@@ -970,7 +970,7 @@ public partial class apex : ccxt.apex
             }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1020,7 +1020,7 @@ public partial class apex : ccxt.apex
         return await (future as Exchange.Future);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //   {
@@ -1079,7 +1079,7 @@ public partial class apex : ccxt.apex
             object success = this.safeValue(message, "success");
             if (isTrue(isTrue((!isEqual(success, null))) && isTrue((!isEqual(success, true)))))
             {
-                object ret_msg = this.safeString(message, "ret_msg");
+                string? ret_msg = this.safeString(message, "ret_msg");
                 object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
                 string? op = this.safeString(request, "op");
                 // Benign re-subscribe notice (same shape as bitmart 90008 /
@@ -1090,7 +1090,7 @@ public partial class apex : ccxt.apex
                 // because apex doesn't echo a `reqId` on these warnings.
                 if (isTrue(isTrue(!isEqual(ret_msg, null)) && isTrue(isGreaterThanOrEqual(getIndexOf(ret_msg, "already subscribed"), 0))))
                 {
-                    return false;
+                    return ((bool?)((object)(false)));
                 }
                 if (isTrue(isEqual(op, "auth")))
                 {
@@ -1100,7 +1100,7 @@ public partial class apex : ccxt.apex
                     throw new ExchangeError ((string)add(add(this.id, " "), ret_msg)) ;
                 }
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             if (isTrue(error is AuthenticationError))
@@ -1116,7 +1116,7 @@ public partial class apex : ccxt.apex
                 string? messageHash = this.safeString(message, "reqId");
                 ((WebSocketClient)client).reject(error, messageHash);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 
@@ -1155,7 +1155,7 @@ public partial class apex : ccxt.apex
             return;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)methods).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, getValue(keys, i)), 0)))

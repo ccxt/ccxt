@@ -1292,11 +1292,11 @@ public partial class bullish : Exchange
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
         string? side = this.safeStringLower(trade, "side");
-        object isTaker = this.safeBool(trade, "isTaker");
+        bool? isTaker = this.safeBool(trade, "isTaker");
         object currency = getValue(market, "quote");
         object code = this.safeCurrencyCode(currency);
         object feeCost = this.safeNumber(trade, "quoteFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1648,7 +1648,7 @@ public partial class bullish : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> result = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? datetime = this.safeString(entry, "updatedAtDatetime");
@@ -1687,7 +1687,7 @@ public partial class bullish : Exchange
         parameters ??= new Dictionary<string, object>();
         await promiseAll(new List<object> {this.loadMarkets(), this.handleToken()});
         object tradingAccountId = await this.loadAccount(parameters);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2079,7 +2079,7 @@ public partial class bullish : Exchange
         {
             ((IDictionary<string,object>)request)["type"] = ((string)type).ToUpper();
         }
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isEqual(postOnly, true)))
         {
             parameters = this.omit(parameters, "postOnly");
@@ -2541,7 +2541,7 @@ public partial class bullish : Exchange
         {
             object response = await this.privateGetV1AccountsTradingAccounts(parameters);
             IList<object> accounts = this.toArray(response);
-            for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
             {
                 object account = getValue(accounts, i);
                 string? name = this.safeString(account, "tradingAccountName");
@@ -2712,7 +2712,7 @@ public partial class bullish : Exchange
             if (isTrue(!isEqual(network, null)))
             {
                 // find the entry that matches the network or return first entry if not found and user did not specify a network
-                for (object i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
                 {
                     object entry = this.safeDict(safeResponse, i, new Dictionary<string, object>() {});
                     string? networkId = this.safeString(entry, "network");
@@ -2812,7 +2812,7 @@ public partial class bullish : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "assetSymbol");
@@ -3043,7 +3043,7 @@ public partial class bullish : Exchange
         //     }
         //
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         object transfer = this.parseTransfer(response, currency);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
@@ -3367,7 +3367,7 @@ public partial class bullish : Exchange
         }
         if (isTrue(isEqual(method, "GET")))
         {
-            object query = this.urlencode(request);
+            string query = this.urlencode(request);
             if (isTrue(isGreaterThan(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));

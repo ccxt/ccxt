@@ -553,7 +553,7 @@ public partial class lbank : Exchange
         object code = this.safeCurrencyCode(id);
         object networksRaw = rawCurrency;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networksRaw)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networksRaw, j);
             string? networkId = this.safeString(networkEntry, "chain");
@@ -649,7 +649,7 @@ public partial class lbank : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? marketId = this.safeString(market, "symbol");
@@ -749,7 +749,7 @@ public partial class lbank : Exchange
         //
         object data = this.safeValue(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object market = getValue(data, i);
             string? marketId = this.safeString(market, "symbol");
@@ -1160,7 +1160,7 @@ public partial class lbank : Exchange
         //          "tradeType":"sell_market"
         //      }
         //
-        object timestamp = this.safeInteger2(trade, "date_ms", "time");
+        Int64? timestamp = this.safeInteger2(trade, "date_ms", "time");
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(trade, "dealTime");
@@ -1208,7 +1208,7 @@ public partial class lbank : Exchange
         }
         string? order = this.safeString(trade, "orderUuid");
         object symbol = this.safeSymbol(null, market);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "tradeFee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1481,7 +1481,7 @@ public partial class lbank : Exchange
             object used = this.safeValue(data, "freeze", new Dictionary<string, object>() {});
             object free = this.safeValue(data, "free", new Dictionary<string, object>() {});
             List<object> currencies = new List<object>(((IDictionary<string,object>)free).Keys);
-            for (object i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(currencies)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencies, i);
                 object code = this.safeCurrencyCode(currencyId);
@@ -1499,7 +1499,7 @@ public partial class lbank : Exchange
         object balances = this.safeValue(data, "balances");
         if (isTrue(!isEqual(balances, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object item = getValue(balances, i);
                 string? currencyId = this.safeString(item, "asset");
@@ -1518,7 +1518,7 @@ public partial class lbank : Exchange
         bool isArray = ((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         if (isTrue(isEqual(isArray, true)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object item = getValue(data, i);
                 string? currencyId = this.safeString(item, "coin");
@@ -1782,7 +1782,7 @@ public partial class lbank : Exchange
         object response = await this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters));
         object fees = this.safeValue(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -1841,7 +1841,7 @@ public partial class lbank : Exchange
         }
         object market = this.market(symbol);
         string? clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         parameters = this.omit(parameters, new List<object>() {"custom_id", "clientOrderId", "timeInForce", "postOnly"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -2043,7 +2043,7 @@ public partial class lbank : Exchange
         //
         string? id = this.safeString2(order, "orderId", "order_id");
         string? clientOrderId = this.safeString2(order, "clientOrderId", "custom_id");
-        object timestamp = this.safeInteger2(order, "time", "create_time");
+        Int64? timestamp = this.safeInteger2(order, "time", "create_time");
         string? rawStatus = this.safeString(order, "status");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
@@ -2761,7 +2761,7 @@ public partial class lbank : Exchange
             type = "withdrawal";
         }
         string? txid = this.safeString(transaction, "txId");
-        object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
+        Int64? timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         string? address = this.safeString(transaction, "address");
         object addressFrom = null;
         object addressTo = null;
@@ -2776,7 +2776,7 @@ public partial class lbank : Exchange
         string? currencyId = this.safeString2(transaction, "coin", "coid");
         object code = this.safeCurrencyCode(currencyId, currency);
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -3009,7 +3009,7 @@ public partial class lbank : Exchange
         //
         object result = this.safeValue(response, "data", new List<object>() {});
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? currencyId = this.safeString(entry, "coin");
@@ -3019,7 +3019,7 @@ public partial class lbank : Exchange
             {
                 ((IDictionary<string,object>)withdrawFees)[(string)code] = new Dictionary<string, object>() {};
             }
-            for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
             {
                 object networkEntry = getValue(networkList, j);
                 object fee = this.safeNumber(networkEntry, "withdrawFee");
@@ -3080,7 +3080,7 @@ public partial class lbank : Exchange
         //
         object result = this.safeValue(response, "data", new List<object>() {});
         Dictionary<string, object> withdrawFees = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object item = getValue(result, i);
             object canWithdraw = this.safeValue(item, "canWithDraw");
@@ -3248,7 +3248,7 @@ public partial class lbank : Exchange
         //    ]
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object fee = getValue(response, i);
             object canWithdraw = this.safeValue(fee, "canWithDraw");
@@ -3328,7 +3328,7 @@ public partial class lbank : Exchange
         object result = this.depositWithdrawFee(fee);
         string? code = this.safeString(currency, "code");
         object networkList = this.safeValue(fee, "networkList", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networkList, j);
             object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
@@ -3404,13 +3404,13 @@ public partial class lbank : Exchange
                 { "signature_method", finalSig },
                 { "timestamp", timestamp },
             }, query)));
-            object encoded = this.encode(auth);
+            string? encoded = this.encode(auth);
             object hash = this.hash(encoded, md5);
             string uppercaseHash = ((string)hash).ToUpper();
             object sign = null;
             if (isTrue(isEqual(signatureMethod, "RSA")))
             {
-                object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
+                bool? cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
                 object pem = null;
                 if (isTrue(isEqual(cacheSecretAsPem, true)))
                 {
@@ -3453,7 +3453,7 @@ public partial class lbank : Exchange
         object numLines = this.parseToInt(divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
         object pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
-        for (object i = 0; isLessThan(i, numLines); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, numLines); postFixIncrement(ref i))
         {
             object start = multiply(i, lineLength);
             object end = this.sum(start, lineLength);

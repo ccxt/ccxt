@@ -1199,7 +1199,7 @@ public partial class bingx : Exchange
         {
             return new Dictionary<string, object>() {};
         }
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(isEqual(isSandbox, true)))
         {
             return new Dictionary<string, object>() {};
@@ -1263,7 +1263,7 @@ public partial class bingx : Exchange
         string? name = this.safeString(rawCurrency, "name");
         object networkList = this.safeList(rawCurrency, "networkList");
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(networkList, j);
             string? network = this.safeString(rawNetwork, "network");
@@ -1539,7 +1539,7 @@ public partial class bingx : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> requests = new List<object> {this.FetchSwapMarkets(parameters)};
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         if (isTrue(!isEqual(isSandbox, true)))
         {
             ((IList<object>)requests).Add(this.FetchInverseSwapMarkets(parameters));
@@ -1602,7 +1602,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = requestLimit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -1919,7 +1919,7 @@ public partial class bingx : Exchange
         //         "tradeTime": 1722146730000
         //     }
         //
-        object time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T", "tradeTime"});
+        Int64? time = this.safeIntegerN(trade, new List<object>() {"time", "filledTm", "T", "tradeTime"});
         string? datetimeId = this.safeString(trade, "filledTm");
         if (isTrue(!isEqual(datetimeId, null)))
         {
@@ -1933,9 +1933,9 @@ public partial class bingx : Exchange
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         string? currencyId = this.safeStringN(trade, new List<object>() {"currency", "N", "commissionAsset"});
         object currencyCode = this.safeCurrencyCode(currencyId);
-        object m = this.safeBool(trade, "m");
+        bool? m = this.safeBool(trade, "m");
         string? marketId = this.safeString2(trade, "s", "symbol");
-        object isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
+        bool? isBuyerMaker = this.safeBoolN(trade, new List<object>() {"buyerMaker", "isBuyerMaker", "maker"});
         string? takeOrMaker = null;
         bool isMakerSide = isTrue((isEqual(isBuyerMaker, true))) || isTrue((isEqual(m, true)));
         if (isTrue(isTrue((!isEqual(isBuyerMaker, null))) || isTrue((!isEqual(m, null)))))
@@ -1951,12 +1951,12 @@ public partial class bingx : Exchange
                 takeOrMaker = "taker";
             }
         }
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takeOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
@@ -2125,7 +2125,7 @@ public partial class bingx : Exchange
         //
         object orderbook = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Int64? nonce = this.safeInteger(orderbook, "lastUpdateId");
-        object timestamp = this.safeInteger2(orderbook, "T", "ts");
+        Int64? timestamp = this.safeInteger2(orderbook, "T", "ts");
         object result = this.parseOrderBook(orderbook, getValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         ((IDictionary<string,object>)result)["nonce"] = nonce;
         return ccxt.BaseExchange.ToOrderBook(result);
@@ -2405,7 +2405,7 @@ public partial class bingx : Exchange
         {
             ((IDictionary<string,object>)request)["limit"] = limit;
         }
-        object until = this.safeInteger2(parameters, "until", "endTime");
+        Int64? until = this.safeInteger2(parameters, "until", "endTime");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2547,11 +2547,11 @@ public partial class bingx : Exchange
         //         "timestamp": 1720310400000
         //     }
         //
-        object timestamp = this.safeInteger2(interest, "time", "timestamp");
+        Int64? timestamp = this.safeInteger2(interest, "time", "timestamp");
         string? id = this.safeString(interest, "symbol");
         object symbol = this.safeSymbol(id, market, "-", "swap");
         object openInterest = this.safeNumber(interest, "openInterest");
-        object inverse = this.safeBool(market, "inverse", false);
+        bool? inverse = this.safeBool(market, "inverse", false);
         bool isInverse = (isEqual(inverse, true));
         object openInterestAmount = ((bool) isTrue(isInverse)) ? openInterest : null;
         object openInterestValue = ((bool) isTrue(isInverse)) ? null : openInterest;
@@ -3086,7 +3086,7 @@ public partial class bingx : Exchange
         object spotBalances = this.safeList2(spotData, "balances", "assets", new List<object>() {});
         if (isTrue(isContract))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(contractBalances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(contractBalances)); postFixIncrement(ref i))
             {
                 object balance = getValue(contractBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -3106,7 +3106,7 @@ public partial class bingx : Exchange
             }
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(spotBalances)); postFixIncrement(ref i))
             {
                 object balance = getValue(spotBalances, i);
                 string? currencyId = this.safeString(balance, "asset");
@@ -3379,7 +3379,7 @@ public partial class bingx : Exchange
         //
         object marketId = ((string)this.safeString(position, "symbol", ""));
         marketId = ((string)marketId).Replace((string)"/", (string)"-"); // standard return different format
-        object isolated = this.safeBool(position, "isolated");
+        bool? isolated = this.safeBool(position, "isolated");
         string? marginMode = null;
         if (isTrue(!isEqual(isolated, null)))
         {
@@ -3636,7 +3636,7 @@ public partial class bingx : Exchange
             {
                 ((IDictionary<string,object>)request)["price"] = this.parseToNumeric(this.priceToPrecision(symbol, price));
             }
-            object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             if (isTrue(isTriggerOrder))
             {
                 ((IDictionary<string,object>)request)["stopPrice"] = this.parseToNumeric(this.priceToPrecision(symbol, triggerPrice));
@@ -3727,7 +3727,7 @@ public partial class bingx : Exchange
                 }
             }
             string? positionSide = null;
-            object hedged = this.safeBool(parameters, "hedged", false);
+            bool? hedged = this.safeBool(parameters, "hedged", false);
             if (isTrue(isEqual(hedged, true)))
             {
                 parameters = this.omit(parameters, "reduceOnly");
@@ -3743,7 +3743,7 @@ public partial class bingx : Exchange
                 positionSide = "BOTH";
             }
             ((IDictionary<string,object>)request)["positionSide"] = positionSide;
-            object closePosition = this.safeBool(parameters, "closePosition", false);
+            bool? closePosition = this.safeBool(parameters, "closePosition", false);
             if (isTrue(!isEqual(closePosition, true)))
             {
                 object amountReq = amount;
@@ -3800,7 +3800,7 @@ public partial class bingx : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
         object response = null;
@@ -3948,7 +3948,7 @@ public partial class bingx : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         List<object> marketIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol", "");
@@ -3980,7 +3980,7 @@ public partial class bingx : Exchange
             response = await this.swapV2PrivatePostTradeBatchOrders(request);
         } else
         {
-            object sync = this.safeBool(parameters, "sync", false);
+            bool? sync = this.safeBool(parameters, "sync", false);
             if (isTrue(isEqual(sync, true)))
             {
                 ((IDictionary<string,object>)request)["sync"] = true;
@@ -4371,8 +4371,8 @@ public partial class bingx : Exchange
             market = this.safeMarket(marketId, null, null, marketType);
         }
         string? side = this.safeStringLower2(order, "side", "S");
-        object timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E", "createdTime"});
-        object lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"time", "transactTime", "E", "createdTime"});
+        Int64? lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
         string? statusId = this.safeStringUpperN(order, new List<object>() {"status", "X", "orderStatus"});
         object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         string? feeCost = this.safeStringN(order, new List<object>() {"fee", "commission", "n"});
@@ -4506,7 +4506,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        bool? isTwapOrder = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         object response = null;
         object market = null;
@@ -4753,7 +4753,7 @@ public partial class bingx : Exchange
             idsToParse = clientOrderIds;
         }
         List<object> parsedIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(idsToParse)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(idsToParse)); postFixIncrement(ref i))
         {
             object id = getValue(idsToParse, i);
             string stringId = ((object)id).ToString();
@@ -4863,7 +4863,7 @@ public partial class bingx : Exchange
         {
             await this.loadMarkets();
         }
-        object isTwapOrder = this.safeBool(parameters, "twap", false);
+        bool? isTwapOrder = this.safeBool(parameters, "twap", false);
         parameters = this.omit(parameters, "twap");
         object response = null;
         object market = null;
@@ -5059,7 +5059,7 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetTradeOpenOrders(this.extend(request, parameters));
         } else
         {
-            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            bool? isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (isTrue(isEqual(isTwapOrder, true)))
             {
@@ -5327,7 +5327,7 @@ public partial class bingx : Exchange
             response = await this.spotV1PrivateGetTradeHistoryOrders(this.extend(request, parameters));
         } else
         {
-            object isTwapOrder = this.safeBool(parameters, "twap", false);
+            bool? isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (isTrue(isEqual(isTwapOrder, true)))
             {
@@ -5837,7 +5837,7 @@ public partial class bingx : Exchange
         string? id = this.safeString(transaction, "id", dataId);
         string? address = this.safeString(transaction, "address");
         string? tag = this.safeString(transaction, "addressTag");
-        object timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
+        Int64? timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
         string? datetime = this.iso8601(timestamp);
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -6270,7 +6270,7 @@ public partial class bingx : Exchange
         };
         if (isTrue(!isEqual(networksLength, 0)))
         {
-            for (object i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, networksLength); postFixIncrement(ref i))
             {
                 object networkCode = getValue(networkCodes, i);
                 object network = getValue(networks, networkCode);
@@ -6313,7 +6313,7 @@ public partial class bingx : Exchange
         object response = await this.fetchCurrencies(parameters);
         Dictionary<string, object> depositWithdrawFees = new Dictionary<string, object>() {};
         List<object> responseCodes = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(responseCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseCodes)); postFixIncrement(ref i))
         {
             object code = getValue(responseCodes, i);
             if (isTrue(isTrue((isEqual(codes, null))) || isTrue((this.inArray(code, codes)))))
@@ -6398,14 +6398,14 @@ public partial class bingx : Exchange
         object copied = this.clone(parameters);
         List<object> rawKeys = new List<object>(((IDictionary<string,object>)parameters).Keys);
         object keys = this.sort(rawKeys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = "[";
-                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     object arrayElement = getValue(value, j);
                     if (isTrue(isGreaterThan(j, 0)))
@@ -6670,7 +6670,7 @@ public partial class bingx : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object success = this.safeList(data, "success", new List<object>() {});
         List<object> positions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(success)); postFixIncrement(ref i))
         {
             object position = this.parsePosition(new Dictionary<string, object>() {
                 { "positionId", getValue(success, i) },
@@ -6978,14 +6978,14 @@ public partial class bingx : Exchange
         object keys = this.sort(rawKeys);
         object adjustedValue = null;
         object result = null;
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(parameters, key);
             if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
             {
                 object arrStr = null;
-                for (object j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(value)); postFixIncrement(ref j))
                 {
                     object arrayElement = getValue(value, j);
                     bool isString = ((arrayElement is string));
@@ -7088,7 +7088,7 @@ public partial class bingx : Exchange
         //     ]
         //
         List<object> tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(info)); postFixIncrement(ref i))
         {
             object tier = this.safeDict(info, i);
             object tierString = ((string)this.safeString(tier, "tier"));
@@ -7117,7 +7117,7 @@ public partial class bingx : Exchange
         object type = getValue(section, 0);
         object version = getValue(section, 1);
         object access = getValue(section, 2);
-        object isSandbox = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandbox = this.safeBool(this.options, "sandboxMode", false);
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), type));
         if (isTrue(isTrue((isEqual(isSandbox, true))) && isTrue(isEqual(url, null))))
         {
@@ -7186,7 +7186,7 @@ public partial class bingx : Exchange
                 body = this.json(parameters);
             } else
             {
-                object query = this.urlencode(parsedParams, true);
+                string query = this.urlencode(parsedParams, true);
                 url = add(url, add(add(add(add("?", query), "&"), "signature="), signature));
             }
         }

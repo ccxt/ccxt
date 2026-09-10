@@ -673,12 +673,12 @@ public partial class pacifica : Exchange
         {
             return false;
         }
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(!isEqual(buildFee, true)))
         {
             return false;  // skip if builder fee is not enabled
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -824,7 +824,7 @@ public partial class pacifica : Exchange
             List<object> idParts = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
             quoteId = this.safeString(idParts, 1, quoteId);
         }
-        object isolatedOnly = this.safeBool(market, "isolated_only", false);
+        bool? isolatedOnly = this.safeBool(market, "isolated_only", false);
         if (isTrue(isSwap))
         {
             settleId = quoteId;
@@ -1027,7 +1027,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //    },
         // }
-        object isIsolated = this.safeBool(setting, "isolated", false);
+        bool? isIsolated = this.safeBool(setting, "isolated", false);
         Int64? leverage = this.safeInteger(setting, "leverage");
         string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
@@ -1110,7 +1110,7 @@ public partial class pacifica : Exchange
             return new Dictionary<string, object>() {};
         }
         Dictionary<string, object> settingsBySymbol = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settings)); postFixIncrement(ref i))
         {
             object marketId = getValue(getValue(settings, i), "symbol");
             object market = this.safeMarket(marketId);
@@ -1181,7 +1181,7 @@ public partial class pacifica : Exchange
         //       "updated_at": 1758086074002
         //
         // }
-        object isIsolated = this.safeBool(setting, "isolated", false);
+        bool? isIsolated = this.safeBool(setting, "isolated", false);
         string marginMode = ((bool) isTrue((isEqual(isIsolated, true)))) ? "isolated" : "cross";
         return new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -1732,7 +1732,7 @@ public partial class pacifica : Exchange
         //    },
         // }
         //
-        object success = this.safeBool(response, "success", false);
+        bool? success = this.safeBool(response, "success", false);
         string? status = null;
         if (isTrue(!isEqual(success, true)))
         {
@@ -1787,7 +1787,7 @@ public partial class pacifica : Exchange
             { "side", this.mapSide(side) },
         };
         string? operationType = null;
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         string orderType = ((string)type).ToUpper();
         string? triggerPrice = this.safeString(parameters, "triggerPrice");
         string? stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1933,13 +1933,13 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
         Int64 timestamp = this.milliseconds(); // unified sequence
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
             string? side = this.safeString(order, "side");
             string? price = this.safeString(order, "price");
-            object type = this.safeString(order, "type", "limit");
+            string? type = this.safeString(order, "type", "limit");
             object orderParams = this.safeDict(order, "params", new Dictionary<string, object>() {});
             ((IDictionary<string,object>)orderParams)["timestamp"] = timestamp;
             string? amount = this.safeString(order, "amount");
@@ -1999,11 +1999,11 @@ public partial class pacifica : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
-            object success = this.safeBool(order, "success", false);
+            bool? success = this.safeBool(order, "success", false);
             string? status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isEqual(success, true)))))
             {
@@ -2071,11 +2071,11 @@ public partial class pacifica : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object results = this.safeList(data, "results", new List<object>() {});
         List<object> ordersToReturn = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object order = getValue(results, i);
             string? error = this.safeString(order, "error");
-            object success = this.safeBool(order, "success", false);
+            bool? success = this.safeBool(order, "success", false);
             string? status = null;
             if (isTrue(isTrue((!isEqual(error, null))) || isTrue((!isEqual(success, true)))))
             {
@@ -2097,7 +2097,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> actions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object request = this.cancelOrderRequest(id, symbol, parameters);
@@ -2109,7 +2109,7 @@ public partial class pacifica : Exchange
         }
         object clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         parameters = this.omit(parameters, "clientOrderIds");
-        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
         {
             object cloid = getValue(clientOrderIds, i);
             Dictionary<string, object> cloidParams = new Dictionary<string, object>() {
@@ -2165,7 +2165,7 @@ public partial class pacifica : Exchange
         parameters ??= new Dictionary<string, object>();
         string operationType = "cancel_all_orders";
         Dictionary<string, object> sigPayload = new Dictionary<string, object>() {};
-        object excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
+        bool? excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
         ((IDictionary<string,object>)sigPayload)["exclude_reduce_only"] = excludeReduceOnly;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -2207,7 +2207,7 @@ public partial class pacifica : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
         object request = this.cancelOrderRequest(id, symbol, parameters);
-        object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"expiryWindow", "trigger", "stop", "clientOrderId"});
         object response = null;
         if (isTrue(isEqual(isStopOrder, true)))
@@ -2224,7 +2224,7 @@ public partial class pacifica : Exchange
         //   "data": null
         // }
         //
-        object success = this.safeBool(response, "success", false);
+        bool? success = this.safeBool(response, "success", false);
         string status = ((bool) isTrue((isEqual(success, true)))) ? "canceled" : "closed";
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "id", id },             { "status", status },             { "info", response },             { "symbol", symbol },         }));
     }
@@ -2233,7 +2233,7 @@ public partial class pacifica : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object market = this.market(symbol);
-        object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
         string? operationType = null;
         if (isTrue(isEqual(isStopOrder, true)))
         {
@@ -2398,7 +2398,7 @@ public partial class pacifica : Exchange
         //
         object data = this.addPaginationCursorToResult(response);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "created_at");
@@ -2455,7 +2455,7 @@ public partial class pacifica : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object info = getValue(data, i);
             object ticker = this.parseTicker(info);
@@ -2719,7 +2719,7 @@ public partial class pacifica : Exchange
     {
         object data = this.safeList(response, "data", new List<object>() {});
         string? paginationCursor = this.safeString(response, "next_cursor");
-        object hasMore = this.safeBool(response, "has_more", false);
+        bool? hasMore = this.safeBool(response, "has_more", false);
         int dataLength = getArrayLength(data);
         if (isTrue(isEqual(hasMore, true)))
         {
@@ -2961,7 +2961,7 @@ public partial class pacifica : Exchange
         string? marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "created_at", "ct");
+        Int64? timestamp = this.safeInteger2(order, "created_at", "ct");
         string? status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         string? side = this.safeString(order, "side", "d");
         if (isTrue(!isEqual(side, null)))
@@ -3062,7 +3062,7 @@ public partial class pacifica : Exchange
         // }
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i), null));
         }
@@ -3952,7 +3952,7 @@ public partial class pacifica : Exchange
             object result = new Dictionary<string, object>() {};
             List<object> keys = new List<object>(((IDictionary<string,object>)value).Keys);
             object sortedKeys = this.sort(keys);
-            for (object i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedKeys)); postFixIncrement(ref i))
             {
                 object key = getValue(sortedKeys, i);
                 ((IDictionary<string,object>)result)[(string)key] = this.sortJsonKeys(getValue(value, key));
@@ -3961,7 +3961,7 @@ public partial class pacifica : Exchange
         } else if (isTrue(((value is IList<object>) || (value.GetType().IsGenericType && value.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             List<object> result = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(value)); postFixIncrement(ref i))
             {
                 ((IList<object>)result).Add(this.sortJsonKeys(getValue(value, i)));
             }
@@ -3988,7 +3988,7 @@ public partial class pacifica : Exchange
     public virtual object signMessage(object header, object payload, object privateKey)
     {
         object message = this.prepareMessage(header, payload);
-        object messageBytes = this.encode(message);
+        string? messageBytes = this.encode(message);
         object secretBytes = this.base58ToBinary(privateKey);
         object seed = this.arraySlice(secretBytes, 0, 32);
         object signatureBase64 = eddsa(messageBytes, seed, ed25519);
@@ -4014,7 +4014,7 @@ public partial class pacifica : Exchange
             }
             if (isTrue(!isEqual(builderCode, null)))
             {
-                object isOperationSupportBuilder = this.safeBool(getValue(this.options, "builderSupportOperations"), operationType, false);
+                bool? isOperationSupportBuilder = this.safeBool(getValue(this.options, "builderSupportOperations"), operationType, false);
                 if (isTrue(isEqual(isOperationSupportBuilder, true)))
                 {
                     ((IDictionary<string,object>)sigPayload)["builder_code"] = builderCode;

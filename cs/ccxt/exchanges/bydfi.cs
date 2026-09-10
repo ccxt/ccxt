@@ -570,7 +570,7 @@ public partial class bydfi : Exchange
         object quote = this.safeCurrencyCode(quoteId);
         object settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(add(add(bs, "/"), quote), ":"), settle);
-        object inverse = this.safeBool(market, "reverse");
+        bool? inverse = this.safeBool(market, "reverse");
         string? limitMaxQty = this.safeString(market, "limitMaxQty");
         string? marketMaxQty = this.safeString(market, "marketMaxQty");
         string? maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
@@ -704,7 +704,7 @@ public partial class bydfi : Exchange
     {
         List<object> limits = new List<object>() {5, 10, 20, 50, 100, 500, 1000};
         object result = 1000;
-        for (object i = 0; isLessThan(i, getArrayLength(limits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(limits)); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(limit, null)))
             {
@@ -790,7 +790,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 500;
@@ -885,7 +885,7 @@ public partial class bydfi : Exchange
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "time");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? rawType = this.safeString(trade, "type");
         string? feeCost = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCost, null)))
@@ -1121,7 +1121,7 @@ public partial class bydfi : Exchange
         //
         string? marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(ticker, "time", "E");
+        Int64? timestamp = this.safeInteger2(ticker, "time", "E");
         string? last = this.safeString2(ticker, "last", "c");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", this.safeSymbol(marketId, market) },
@@ -1466,7 +1466,7 @@ public partial class bydfi : Exchange
         var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = ((IList<object>)hedgedparametersVariable)[0];
         parameters = ((IList<object>)hedgedparametersVariable)[1];
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (isTrue(hedged))
         {
             parameters = this.omit(parameters, "reduceOnly");
@@ -1478,7 +1478,7 @@ public partial class bydfi : Exchange
                 ((IDictionary<string,object>)request)["positionSide"] = ((bool) isTrue((isEqual(reduceOnly, true)))) ? "LONG" : "SHORT";
             }
         }
-        object closePosition = this.safeBool(parameters, "closePosition", false);
+        bool? closePosition = this.safeBool(parameters, "closePosition", false);
         if (isTrue(!isEqual(closePosition, true)))
         {
             parameters = this.omit(parameters, "closePosition");
@@ -1547,7 +1547,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((string)add(this.id, " createOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -1629,7 +1629,7 @@ public partial class bydfi : Exchange
             throw new BadRequest ((string)add(this.id, " editOrders() accepts a maximum of 5 orders")) ;
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? id = this.safeString(rawOrder, "id");
@@ -1913,7 +1913,7 @@ public partial class bydfi : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 500;
@@ -2101,7 +2101,7 @@ public partial class bydfi : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "createTime", "ctime");
+        Int64? timestamp = this.safeInteger2(order, "createTime", "ctime");
         string? rawType = this.safeString(order, "orderType");
         string? stopPrice = this.safeStringN(order, new List<object>() {"stopPrice", "activatePrice", "triggerPrice"});
         bool isStopLossOrder = isTrue(isTrue((isEqual(rawType, "STOP"))) || isTrue((isEqual(rawType, "STOP_MARKET")))) || isTrue((isEqual(rawType, "TRAILING_STOP_MARKET")));
@@ -2935,7 +2935,7 @@ public partial class bydfi : Exchange
             { "timestamp", timestamp },
             { "datetime", this.iso8601(timestamp) },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? symbol = this.safeString(balance, "asset");
@@ -2990,7 +2990,7 @@ public partial class bydfi : Exchange
         //
         object transfer = this.parseTransfer(response, currency);
         object transferOptions = this.safeDict(this.options, "transfer", new Dictionary<string, object>() {});
-        object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+        bool? fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
         if (isTrue(isEqual(fillResponseFromRequest, true)))
         {
             Int64 timestamp = this.milliseconds();
@@ -3029,7 +3029,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 50;
@@ -3174,7 +3174,7 @@ public partial class bydfi : Exchange
 
     public async virtual Task<List<ccxt.Transaction>> FetchTransactionsHelper(object type, object code, object since, object limit, object parameters)
     {
-        object methodName = ((bool) isTrue((isEqual(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
+        string methodName = ((bool) isTrue((isEqual(type, "deposit")))) ? "fetchDeposits" : "fetchWithdrawals";
         if (isTrue(isEqual(code, null)))
         {
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a code argument")) ;
@@ -3184,7 +3184,7 @@ public partial class bydfi : Exchange
             await this.loadMarkets();
         }
         object currency = this.currency(code);
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             int maxLimit = 50;
@@ -3296,7 +3296,7 @@ public partial class bydfi : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         string? rawStatus = this.safeStringLower(transaction, "status");
         Int64? timestamp = this.safeInteger(transaction, "createTime");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -3346,7 +3346,7 @@ public partial class bydfi : Exchange
         parameters ??= new Dictionary<string, object>();
         object url = getValue(getValue(this.urls, "api"), api);
         object endpoint = add("/", path);
-        object query = "";
+        string query = "";
         Dictionary<string, object> sortedParams = this.keysort(parameters);
         if (isTrue(isEqual(method, "GET")))
         {

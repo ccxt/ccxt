@@ -804,10 +804,10 @@ public partial class btse : Exchange
         string? minPriceString = this.safeString(market, "minOrderPrice");
         string? pricePrecision = this.safeString(market, "minPriceIncrement");
         string? amountPrecision = this.safeString(market, "minSizeIncrement");
-        object active = this.safeBool(market, "active");
+        bool? active = this.safeBool(market, "active");
         string type = "spot";
-        object expiry = null;
-        object contractSize = null;
+        Int64? expiry = null;
+        string? contractSize = null;
         if (!isTrue(isSpot))
         {
             symbol = add(symbol, add(":", quote));
@@ -1110,7 +1110,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToFundingRateHistoryList(rates);
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rates)); postFixIncrement(ref i))
         {
             object rate = getValue(rates, i);
             Int64? timestamp = this.safeInteger(rate, "timestamp");
@@ -1204,7 +1204,7 @@ public partial class btse : Exchange
         Dictionary<string, object> totals = new Dictionary<string, object>() {};
         Dictionary<string, object> frees = new Dictionary<string, object>() {};
         Dictionary<string, object> useds = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object row = getValue(response, i);
             object assets = this.safeList(row, "assets");
@@ -1213,7 +1213,7 @@ public partial class btse : Exchange
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
                 object inUse = this.safeList(row, "assetsInUse", new List<object>() {});
-                for (object j = 0; isLessThan(j, getArrayLength(inUse)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(inUse)); postFixIncrement(ref j))
                 {
                     object usedRow = getValue(inUse, j);
                     object usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
@@ -1223,7 +1223,7 @@ public partial class btse : Exchange
                     }
                     ((IDictionary<string,object>)useds)[(string)usedCode] = Precise.stringAdd(this.safeString(useds, usedCode, "0"), this.safeString(usedRow, "balance"));
                 }
-                for (object j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
                 {
                     object assetRow = getValue(assets, j);
                     object code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
@@ -1248,7 +1248,7 @@ public partial class btse : Exchange
             }
         }
         List<object> codes = new List<object>(((IDictionary<string,object>)totals).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             object account = this.account();
@@ -1312,7 +1312,7 @@ public partial class btse : Exchange
             data = new List<object>() {single};
         }
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1345,7 +1345,7 @@ public partial class btse : Exchange
         // is derived from the previous tier: 0 for the first tier, and the
         // previous tier's maxNotional for every subsequent tier
         List<object> symbolKeys = new List<object>(((IDictionary<string,object>)result).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolKeys)); postFixIncrement(ref i))
         {
             object symbolKey = getValue(symbolKeys, i);
             object tiersList = getValue(result, symbolKey);
@@ -1563,7 +1563,7 @@ public partial class btse : Exchange
         object response = await this.publicGetPublicApiMarketV1Ticker24hr(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object row = getValue(data, i);
             // spot rows do not carry an open interest
@@ -1641,7 +1641,7 @@ public partial class btse : Exchange
         object response = await this.publicGetPublicApiMarketV1Ticker24hr(parameters);
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object row = getValue(data, i);
             // spot rows do not carry a funding rate
@@ -1773,7 +1773,7 @@ public partial class btse : Exchange
             return ccxt.BaseExchange.ToTradeList(trades);
         }
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(trades)); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             Int64? timestamp = this.safeInteger(trade, "timestamp");
@@ -1803,7 +1803,7 @@ public partial class btse : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object paginate = this.safeBool(parameters, "paginate", false);
+        bool? paginate = this.safeBool(parameters, "paginate", false);
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.omit(parameters, "paginate");
@@ -2036,7 +2036,7 @@ public partial class btse : Exchange
         string? marketId = this.safeString2(trade, "positionId", "symbol");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "timestamp");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeNumber(trade, "feeAmount");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -2712,7 +2712,7 @@ public partial class btse : Exchange
         {
             ((IDictionary<string,object>)request)["orderPrice"] = this.priceToPrecision(symbol, price);
         }
-        object isSlide = this.safeBool(parameters, "slide", false);
+        bool? isSlide = this.safeBool(parameters, "slide", false);
         if (isTrue(isTrue(isTrue(isTrue((isEqual(amount, null))) && isTrue((isEqual(price, null)))) && isTrue((isEqual(triggerPrice, null)))) && isTrue((!isEqual(isSlide, true)))))
         {
             throw new ArgumentsRequired ((string)add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
@@ -3147,7 +3147,7 @@ public partial class btse : Exchange
         object rows = this.safeList(response, "data", ((object)response));
         object responseList = this.arrayConcat(new List<object>() {}, rows);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
         {
             object feeInfo = getValue(responseList, i);
             string? marketId = this.safeString(feeInfo, "symbol");
@@ -3242,14 +3242,14 @@ public partial class btse : Exchange
         // and the unified enum vocabularies as the legacy endpoint ignored the
         // filter and returned the whole mixed ledger
         Dictionary<string, object> allowed = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(typesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(typesList)); postFixIncrement(ref i))
         {
             object historyType = getValue(typesList, i);
             ((IDictionary<string,object>)allowed)[(string)historyType] = true;
             ((IDictionary<string,object>)allowed)[(string)this.capitalize(((string)historyType).ToLower())] = true;
         }
         List<object> rows = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawRows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawRows)); postFixIncrement(ref i))
         {
             object entry = getValue(rawRows, i);
             string? type = this.safeString(entry, "type", "");
@@ -3353,7 +3353,7 @@ public partial class btse : Exchange
         //
         string? currencyId = this.safeString2(transaction, "currency", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "timestamp", "transactionTime");
+        Int64? timestamp = this.safeInteger2(transaction, "timestamp", "transactionTime");
         string? networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new Dictionary<string, object>() {
             { "info", transaction },
@@ -3482,7 +3482,7 @@ public partial class btse : Exchange
     {
         string? currencyId = this.safeString2(item, "currency", "asset");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(item, "timestamp", "transactionTime");
+        Int64? timestamp = this.safeInteger2(item, "timestamp", "transactionTime");
         string? type = this.safeString(item, "type");
         return new Dictionary<string, object>() {
             { "info", item },
@@ -3916,7 +3916,7 @@ public partial class btse : Exchange
         {
             throw new BadRequest ((string)add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
         }
-        object hedged = this.safeBool(parameters, "hedged");
+        bool? hedged = this.safeBool(parameters, "hedged");
         if (isTrue(isEqual(marginModeVar, "cross")))
         {
             if (!isTrue((inOp(parameters, "hedged"))))
@@ -4038,8 +4038,8 @@ public partial class btse : Exchange
         };
         object longLeverage = null;
         object shortLeverage = null;
-        object marginMode = null;
-        for (object i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
+        string? marginMode = null;
+        for (int i = 0; isLessThan(i, getArrayLength(safeResponse)); postFixIncrement(ref i))
         {
             object entrty = getValue(safeResponse, i);
             Int64? leverageValue = this.safeInteger(entrty, "leverage");
@@ -4121,7 +4121,7 @@ public partial class btse : Exchange
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             string? spotErrorCode = this.safeString(response, "code");
@@ -4170,7 +4170,7 @@ public partial class btse : Exchange
         {
             rows = new List<object>() {response};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             string? status = this.safeString(row, "status");
@@ -4203,7 +4203,7 @@ public partial class btse : Exchange
         // legacy apis keep DELETE params in the query string, verified live
         // in both directions
         bool isBodyDelete = isTrue((isEqual(method, "DELETE"))) && isTrue((isEqual(((string)path).StartsWith(((string)"futures/api/v3/")), true)));
-        object queryString = "";
+        string queryString = "";
         if (isTrue(isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE"))))) && !isTrue(isBodyDelete)))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

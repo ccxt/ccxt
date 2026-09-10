@@ -98,7 +98,7 @@ public partial class lbank : ccxt.lbank
         object url = getValue(getValue(this.urls, "api"), "ws");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("fetchOHLCV:", getValue(market, "symbol")), ":"), timeframeId);
         Dictionary<string, object> message = new Dictionary<string, object>() {
             { "action", "request" },
@@ -145,7 +145,7 @@ public partial class lbank : ccxt.lbank
         this.checkContractMarket(market, "watchOHLCV");
         object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new Dictionary<string, object>() {});
         object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new Dictionary<string, object>() {});
-        object timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? timeframeId = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("ohlcv:", getValue(market, "symbol")), ":"), timeframeId);
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
@@ -225,7 +225,7 @@ public partial class lbank : ccxt.lbank
         {
             object rawOHLCV = this.safeValue(records, 0, new List<object>() {});
             List<object> parsed = new List<object> {this.safeInteger(rawOHLCV, 0), this.safeNumber(rawOHLCV, 1), this.safeNumber(rawOHLCV, 2), this.safeNumber(rawOHLCV, 3), this.safeNumber(rawOHLCV, 4), this.safeNumber(rawOHLCV, 5)};
-            object timeframeId = this.safeString(message, "kbar");
+            string? timeframeId = this.safeString(message, "kbar");
             object timeframe = this.findTimeframe(timeframeId, timeframes);
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
             object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe);
@@ -241,7 +241,7 @@ public partial class lbank : ccxt.lbank
         } else
         {
             object rawOHLCV = this.safeValue(message, "kbar", new Dictionary<string, object>() {});
-            object timeframeId = this.safeString(rawOHLCV, "slot");
+            string? timeframeId = this.safeString(rawOHLCV, "slot");
             string? datetime = this.safeString(rawOHLCV, "t");
             List<object> parsed = new List<object> {this.parse8601(datetime), this.safeNumber(rawOHLCV, "o"), this.safeNumber(rawOHLCV, "h"), this.safeNumber(rawOHLCV, "l"), this.safeNumber(rawOHLCV, "c"), this.safeNumber(rawOHLCV, "v")};
             object timeframe = this.findTimeframe(timeframeId, timeframes);
@@ -513,7 +513,7 @@ public partial class lbank : ccxt.lbank
         }
         object rawTrade = this.safeValue(message, "trade");
         object rawTrades = this.safeValue(message, "trades", new List<object>() {rawTrade});
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseWsTrade(getValue(rawTrades, i), market);
             ((IDictionary<string,object>)trade)["symbol"] = symbol;
@@ -981,7 +981,7 @@ public partial class lbank : ccxt.lbank
         //        TS: '2024-01-16T08:09:43.314'
         //    }
         //
-        object errMsg = this.safeString(message, "message", "");
+        string? errMsg = this.safeString(message, "message", "");
         var error = new ExchangeError(add(add(this.id, " "), errMsg));
         ((WebSocketClient)client).reject(error);
     }

@@ -881,7 +881,7 @@ public partial class derive : Exchange
         object expiry = null;
         object strike = null;
         string? optionType = null;
-        object optionLetter = null;
+        string? optionLetter = null;
         if (isTrue(isEqual(type, "erc20")))
         {
             spot = true;
@@ -1234,7 +1234,7 @@ public partial class derive : Exchange
         parameters ??= new Dictionary<string, object>();
         IList<object> tradesArray = this.toArray(trades);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tradesArray)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(tradesArray, i);
             bool isFetchTrades = !isTrue((inOp(rawTrade, "order_id")));
@@ -1357,7 +1357,7 @@ public partial class derive : Exchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object data = this.safeList(result, "funding_rate_history", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeInteger(entry, "timestamp");
@@ -1433,7 +1433,7 @@ public partial class derive : Exchange
     public virtual object hashOrderMessage(object order)
     {
         object accountHash = this.hash(this.ethAbiEncode(new List<object>() {"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string DOMAIN_SEPARATOR = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         object prefix = this.base16ToBinary("1901");
@@ -1448,7 +1448,7 @@ public partial class derive : Exchange
 
     public virtual object hashMessage(object message)
     {
-        object binaryMessage = this.encode(message);
+        string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
@@ -1462,7 +1462,7 @@ public partial class derive : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
@@ -1513,10 +1513,10 @@ public partial class derive : Exchange
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("createOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
-        object test = this.safeBool(parameters, "test", false);
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? test = this.safeBool(parameters, "test", false);
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
         bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1524,7 +1524,7 @@ public partial class derive : Exchange
         // Order signature expiry must be between 2592000 and 7776000 sec from now
         Int64? signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         string? priceString = this.numberToString(price);
         object maxFee = null;
@@ -1707,9 +1707,9 @@ public partial class derive : Exchange
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("editOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-        object postOnly = this.safeBool(parameters, "postOnly");
+        bool? postOnly = this.safeBool(parameters, "postOnly");
         string orderType = ((string)type).ToLower();
         string orderSide = ((string)((string)side)).ToLower();
         bool orderSideIsBuy = (isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1717,7 +1717,7 @@ public partial class derive : Exchange
         object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", add(this.seconds(), 7776000));
         // TODO: subaccount id / trade module address
         object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-        object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? sandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string TRADE_MODULE_ADDRESS = ((bool) isTrue((isEqual(sandboxMode, true)))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
         object priceString = ((string)this.numberToString(price));
         string? maxFeeString = this.safeString(parameters, "max_fee", "0");
@@ -1868,7 +1868,7 @@ public partial class derive : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("cancelOrder", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
@@ -2036,7 +2036,7 @@ public partial class derive : Exchange
         {
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500));
         }
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object subaccountId = null;
         var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchOrders", parameters);
@@ -2283,7 +2283,7 @@ public partial class derive : Exchange
         {
             order = rawOrder;
         }
-        object timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
+        Int64? timestamp = this.safeInteger2(rawOrder, "creation_timestamp", "nonce");
         string? orderId = this.safeString(order, "order_id");
         string? marketId = this.safeString(order, "instrument_name");
         if (isTrue(!isEqual(marketId, null)))
@@ -2297,7 +2297,7 @@ public partial class derive : Exchange
         string? filled = this.safeString(order, "filled_amount");
         string? fee = this.safeString(order, "order_fee");
         string? orderType = this.safeStringLower(order, "order_type");
-        object isBid = this.safeBool(order, "is_bid");
+        bool? isBid = this.safeBool(order, "is_bid");
         string? side = this.safeString(order, "direction");
         if (isTrue(isEqual(side, null)))
         {
@@ -2895,11 +2895,11 @@ public partial class derive : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object subaccount = getValue(response, i);
             object collaterals = this.safeList(subaccount, "collaterals", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(collaterals)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(collaterals)); postFixIncrement(ref j))
             {
                 object balance = getValue(collaterals, j);
                 object code = this.safeCurrencyCode(this.safeString(balance, "currency"));

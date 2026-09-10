@@ -169,7 +169,7 @@ public partial class bitrue : ccxt.bitrue
         //     }]
         //
         ((IDictionary<string,object>)this.balance)["info"] = balances;
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "a");
@@ -356,15 +356,15 @@ public partial class bitrue : ccxt.bitrue
         object cbId = null;
         if (isTrue(isEqual(getValue(market, "swap"), true)))
         {
-            object baseIdLower = this.safeStringLower(market, "baseId");
-            object quoteIdLower = this.safeStringLower(market, "quoteId");
+            string? baseIdLower = this.safeStringLower(market, "baseId");
+            string? quoteIdLower = this.safeStringLower(market, "quoteId");
             object wsId = add(add("e_", baseIdLower), quoteIdLower);
             channel = add(add("market_", wsId), "_depth_step0");
             cbId = wsId;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "futurePublic");
         } else
         {
-            object marketIdLowercase = this.safeStringLower(market, "id");
+            string? marketIdLowercase = this.safeStringLower(market, "id");
             channel = add(add("market_", marketIdLowercase), "_simple_depth_step0");
             cbId = marketIdLowercase;
             url = getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
@@ -460,7 +460,7 @@ public partial class bitrue : ccxt.bitrue
             return null;
         }
         List<object> symbols = new List<object>(((IDictionary<string,object>)markets).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object candidate = getValue(markets, getValue(symbols, i));
             if (isTrue(!isEqual(getValue(candidate, "swap"), true)))
@@ -468,7 +468,7 @@ public partial class bitrue : ccxt.bitrue
                 continue;
             }
             string? baseId = this.safeStringLower(candidate, "baseId", "");
-            object quoteId = this.safeStringLower(candidate, "quoteId", "");
+            string? quoteId = this.safeStringLower(candidate, "quoteId", "");
             if (isTrue(isEqual(add(((string)baseId), quoteId), wsBaseQuote)))
             {
                 return candidate;
@@ -480,7 +480,7 @@ public partial class bitrue : ccxt.bitrue
     public virtual object parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
         {
             object level = getValue(bidsAsks, i);
             object price = this.safeNumber(level, 0);
@@ -532,8 +532,8 @@ public partial class bitrue : ccxt.bitrue
         {
             throw new NotSupported ((string)add(this.id, " watchTrades is only supported for swap markets")) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
         object wsId = add(add("e_", baseIdLower), quoteIdLower);
         object channel = add(add("market_", wsId), "_trade_ticker");
         object messageHash = add("trades:", symbolVar);
@@ -589,7 +589,7 @@ public partial class bitrue : ccxt.bitrue
         object data = this.safeList(tick, "data", new List<object>() {});
         bool appended = false;
         object stored = this.safeValue(this.trades, symbol);
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(stored, null)))
             {
@@ -663,13 +663,13 @@ public partial class bitrue : ccxt.bitrue
             throw new NotSupported ((string)add(this.id, " watchOHLCV is only supported for swap markets")) ;
         }
         object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(futuresTimeframes, timeframeVar);
+        string? interval = this.safeString(futuresTimeframes, timeframeVar);
         if (isTrue(isEqual(interval, null)))
         {
             throw new NotSupported ((string)add(add(this.id, " watchOHLCV does not support timeframe "), timeframeVar)) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
         object wsId = add(add("e_", baseIdLower), quoteIdLower);
         object channel = add(add(add("market_", wsId), "_kline_"), interval);
         object messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
@@ -780,8 +780,8 @@ public partial class bitrue : ccxt.bitrue
         {
             throw new NotSupported ((string)add(this.id, " watchTicker is only supported for swap markets")) ;
         }
-        object baseIdLower = this.safeStringLower(market, "baseId");
-        object quoteIdLower = this.safeStringLower(market, "quoteId");
+        string? baseIdLower = this.safeStringLower(market, "baseId");
+        string? quoteIdLower = this.safeStringLower(market, "quoteId");
         object wsId = add(add("e_", baseIdLower), quoteIdLower);
         object channel = add(add("market_", wsId), "_ticker");
         object messageHash = add("ticker:", symbolVar);
@@ -987,7 +987,7 @@ public partial class bitrue : ccxt.bitrue
                 //     }
                 //
                 object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
-                object key = this.safeString(data, "listenKey");
+                string? key = this.safeString(data, "listenKey");
                 if (isTrue(isEqual(key, null)))
                 {
                     throw new AuthenticationError ((string)add(this.id, " authenticate() received an empty listenKey")) ;

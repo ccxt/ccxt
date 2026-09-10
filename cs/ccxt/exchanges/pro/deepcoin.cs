@@ -540,7 +540,7 @@ public partial class deepcoin : ccxt.deepcoin
         string? direction = this.safeString(trade, "D");
         object timestamp = this.safeTimestamp2(trade, "TT", "T");
         string? matchRole = this.safeString(trade, "m");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "F");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -610,7 +610,7 @@ public partial class deepcoin : ccxt.deepcoin
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add("ohlcv", "::"), symbolVar), "::"), timeframeVar);
         object suffix = add("_", interval);
         object ohlcv = await this.watchPublic(market, messageHash, "11", parameters, suffix);
@@ -642,7 +642,7 @@ public partial class deepcoin : ccxt.deepcoin
         object market = this.market(symbol);
         symbol = getValue(market, "symbol");
         object timeframes = this.safeDict(this.options, "timeframes", new Dictionary<string, object>() {});
-        object interval = this.safeString(timeframes, timeframe, timeframe);
+        string? interval = this.safeString(timeframes, timeframe, timeframe);
         object messageHash = add(add(add(add("ohlcv", "::"), symbol), "::"), timeframe);
         object suffix = add("_", interval);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
@@ -833,7 +833,7 @@ public partial class deepcoin : ccxt.deepcoin
             { "bids", new List<object>() {} },
             { "asks", new List<object>() {} },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(entries)); postFixIncrement(ref i))
         {
             object entry = getValue(entries, i);
             object entryData = this.safeDict(entry, "d", new Dictionary<string, object>() {});
@@ -854,7 +854,7 @@ public partial class deepcoin : ccxt.deepcoin
         object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         (orderbook as IOrderBook).reset(snapshot);
         object cachedMessages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (object j = 0; isLessThan(j, getArrayLength(cachedMessages)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(cachedMessages)); postFixIncrement(ref j))
         {
             object cachedMessage = getValue(cachedMessages, j);
             this.handleOrderBookMessage(client as WebSocketClient, cachedMessage, orderbook);
@@ -1177,7 +1177,7 @@ public partial class deepcoin : ccxt.deepcoin
         List<object> messageHashes = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 object symbolMessageHash = add(add(messageHash, "::"), symbol);
@@ -1389,7 +1389,7 @@ public partial class deepcoin : ccxt.deepcoin
             Dictionary<string, object> subscriptionsById = this.indexBy(((WebSocketClient)client).subscriptions, "id");
             Int64? subId = this.safeInteger(data, "L");
             object subscription = this.safeDict(subscriptionsById, subId, new Dictionary<string, object>() {}); // original watch subscription
-            object subHash = this.safeString(subscription, "subHash");
+            string? subHash = this.safeString(subscription, "subHash");
             object unsubHash = add("unsubscribe::", subHash);
             object unsubsciption = this.safeDict(((WebSocketClient)client).subscriptions, unsubHash, new Dictionary<string, object>() {}); // unWatch subscription
             this.handleUnSubscription(client as WebSocketClient, unsubsciption);

@@ -884,7 +884,7 @@ public partial class toobit : Exchange
         //
         object coins = this.safeList(response, "coins", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object coin = getValue(coins, i);
             object parsed = this.parseCurrency(coin);
@@ -903,7 +903,7 @@ public partial class toobit : Exchange
         object code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeList(rawCurrency, "chainTypes", new List<object>() {});
-        for (object j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(rawNetworks)); postFixIncrement(ref j))
         {
             object rawNetwork = getValue(rawNetworks, j);
             string? networkId = this.safeString(rawNetwork, "chainType");
@@ -1110,7 +1110,7 @@ public partial class toobit : Exchange
         object contracts = this.safeList(response, "contracts", new List<object>() {});
         object all = this.arrayConcat(symbols, contracts);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(all)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(all)); postFixIncrement(ref i))
         {
             object market = getValue(all, i);
             object parsed = this.parseMarket(market);
@@ -1142,7 +1142,7 @@ public partial class toobit : Exchange
         object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new Dictionary<string, object>() {});
         object symbol = add(add(bs, "/"), quote);
         bool isContract = (inOp(market, "contractMultiplier"));
-        object inverse = this.safeBool2(market, "isInverse", "inverse");
+        bool? inverse = this.safeBool2(market, "isInverse", "inverse");
         if (isTrue(isContract))
         {
             symbol = add(symbol, add(":", settle));
@@ -1340,15 +1340,15 @@ public partial class toobit : Exchange
         //            "realizedPnl": "0",                      // only in CONTRACT
         //        },
         //
-        object timestamp = this.safeInteger2(trade, "t", "time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? priceString = this.safeString2(trade, "p", "price");
         string? amountString = this.safeString2(trade, "q", "qty");
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         string? side = null;
-        object isBuyerMaker = this.safeBool(trade, "ibm");
+        bool? isBuyerMaker = this.safeBool(trade, "ibm");
         if (isTrue(isEqual(isBuyerMaker, null)))
         {
-            object isBuyerTaker = this.safeBool(trade, "m");
+            bool? isBuyerTaker = this.safeBool(trade, "m");
             if (isTrue(!isEqual(isBuyerTaker, null)))
             {
                 isBuyerMaker = !isTrue(isBuyerTaker);
@@ -1375,7 +1375,7 @@ public partial class toobit : Exchange
         }
         string? feeCurrencyId = this.safeString(trade, "feeCoinId");
         string? feeAmount = this.safeString(trade, "feeAmount");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeAmount, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1383,7 +1383,7 @@ public partial class toobit : Exchange
                 { "cost", feeAmount },
             };
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -1680,7 +1680,7 @@ public partial class toobit : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
@@ -1881,7 +1881,7 @@ public partial class toobit : Exchange
             { "datetime", null },
         };
         object balances = this.safeList(response, "balances", response);
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             object code = this.safeCurrencyCode(this.safeString(balance, "asset"));
@@ -2174,7 +2174,7 @@ public partial class toobit : Exchange
         //        "activeStatus": "0"                  // only in CONTRACT fetchClosedOrders
         //    }
         //
-        object timestamp = this.safeInteger2(order, "transactTime", "time");
+        Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         string? rawType = this.safeString(order, "type");
@@ -2612,7 +2612,7 @@ public partial class toobit : Exchange
         {
             responseList = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseList)); postFixIncrement(ref i))
         {
             ((IList<object>)ordersList).Add(new Dictionary<string, object>() {
                 { "result", getValue(responseList, i) },
@@ -3033,7 +3033,7 @@ public partial class toobit : Exchange
         object code = this.safeCurrencyCode(currencyId, currency);
         string? feeString = this.safeString(transaction, "fee");
         string? feeCoin = this.safeString(transaction, "feeCoinName");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeString, null)))
         {
             fee = new Dictionary<string, object>() {

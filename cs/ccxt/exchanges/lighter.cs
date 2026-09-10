@@ -721,7 +721,7 @@ public partial class lighter : Exchange
         {
             throw new BadRequest ((string)add(this.id, " pow() requires m < 100.")) ;
         }
-        for (object i = 1; isLessThan(i, c); postFixIncrement(ref i))
+        for (int i = 1; isLessThan(i, c); postFixIncrement(ref i))
         {
             r = Precise.stringMul(r, n);
         }
@@ -730,7 +730,7 @@ public partial class lighter : Exchange
 
     public virtual object hashMessage(object message)
     {
-        object binaryMessage = this.encode(message);
+        string? binaryMessage = this.encode(message);
         object binaryMessageLength = this.binaryLength(binaryMessage);
         object x19 = this.base16ToBinary("19");
         object newline = this.base16ToBinary("0a");
@@ -744,7 +744,7 @@ public partial class lighter : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
@@ -759,12 +759,12 @@ public partial class lighter : Exchange
 
     public async virtual Task<object> handleBuilderFeeApproval(object accountIndex, object apiKeyIndex)
     {
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(!isEqual(buildFee, true)))
         {
             return false;
         }
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;
@@ -894,7 +894,7 @@ public partial class lighter : Exchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires a price argument")) ;
         }
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         string orderType = ((string)type).ToUpper();
         object market = this.market(symbol);
         string orderSide = ((string)((string)side)).ToUpper();
@@ -978,7 +978,7 @@ public partial class lighter : Exchange
         object priceScale = this.pow("10", getValue(marketInfo, "price_decimals"));
         object triggerPriceStr = "0"; // default is 0
         object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
-        object clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
+        Int64? clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = this.omit(parameters, new List<object>() {"reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId"});
         if (isTrue(isConditional))
         {
@@ -1423,7 +1423,7 @@ public partial class lighter : Exchange
         object swapMarkets = this.safeList(response, "order_book_details", new List<object>() {});
         object markets = this.arrayConcat(spotMarkets, swapMarkets);
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
@@ -1546,7 +1546,7 @@ public partial class lighter : Exchange
     {
         string? id = this.safeString(rawCurrency, "asset_id");
         object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
-        object decimals = this.safeString(rawCurrency, "decimals");
+        string? decimals = this.safeString(rawCurrency, "decimals");
         bool isUSDC = (isEqual(code, "USDC"));
         object depositMin = null;
         object withdrawMin = null;
@@ -2021,7 +2021,7 @@ public partial class lighter : Exchange
         //
         object data = this.safeList(response, "funding_rates", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? exchange = this.safeString(getValue(data, i), "exchange");
             if (isTrue(isEqual(exchange, "lighter")))
@@ -2109,13 +2109,13 @@ public partial class lighter : Exchange
             { "info", response },
         };
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             if (isTrue(isEqual(type, "spot")))
             {
                 object assets = this.safeList(account, "assets", new List<object>() {});
-                for (object j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(assets)); postFixIncrement(ref j))
                 {
                     object asset = getValue(assets, j);
                     string? codeId = this.safeString(asset, "symbol");
@@ -2239,11 +2239,11 @@ public partial class lighter : Exchange
         //
         List<object> allPositions = new List<object>() {};
         object accounts = this.safeList(response, "accounts", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             object positions = this.safeList(account, "positions", new List<object>() {});
-            for (object j = 0; isLessThan(j, getArrayLength(positions)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(positions)); postFixIncrement(ref j))
             {
                 ((IList<object>)allPositions).Add(getValue(positions, j));
             }
@@ -2639,7 +2639,7 @@ public partial class lighter : Exchange
         string? marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeTimestamp(order, "timestamp");
-        object isAsk = this.safeBool(order, "is_ask");
+        bool? isAsk = this.safeBool(order, "is_ask");
         if (isTrue(isEqual(isAsk, null)))
         {
             Int64? isAskAsInteger = this.safeInteger(order, "is_ask");
@@ -2683,7 +2683,7 @@ public partial class lighter : Exchange
         {
             tif = this.safeString(order, "time_in_force");
         }
-        object reduceOnly = this.safeBool(order, "reduce_only");
+        bool? reduceOnly = this.safeBool(order, "reduce_only");
         if (isTrue(isEqual(reduceOnly, null)))
         {
             Int64? reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
@@ -3388,7 +3388,7 @@ public partial class lighter : Exchange
         //     }
         //
         object data = this.safeList(response, "trades", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(data, i))["account_index"] = accountIndex;
         }
@@ -3435,7 +3435,7 @@ public partial class lighter : Exchange
         string? accountIndex = this.safeString(trade, "account_index");
         string? askAccountId = this.safeString(trade, "ask_account_id");
         string? bidAccountId = this.safeString(trade, "bid_account_id");
-        object isMakerAsk = this.safeBool(trade, "is_maker_ask");
+        bool? isMakerAsk = this.safeBool(trade, "is_maker_ask");
         string? side = null;
         string? orderId = null;
         if (isTrue(!isEqual(accountIndex, null)))

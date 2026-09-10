@@ -243,7 +243,7 @@ public partial class gate : ccxt.gate
             await this.loadMarkets();
         }
         object market = ((bool) isTrue((isEqual(symbol, null)))) ? null : this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_cancel_cp");
         var channelparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
@@ -618,7 +618,7 @@ public partial class gate : ccxt.gate
         //      "event":"update"
         //   }
         object result = this.safeDict(message, "result", new Dictionary<string, object>() {});
-        object full = this.safeBool(result, "full", false);
+        bool? full = this.safeBool(result, "full", false);
         string? marketIdWithPrefix = this.safeString(result, "s");
         if (isTrue(isEqual(marketIdWithPrefix, null)))
         {
@@ -772,7 +772,7 @@ public partial class gate : ccxt.gate
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
@@ -787,7 +787,7 @@ public partial class gate : ccxt.gate
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
             object bidAsk = getValue(bidAsks, i);
             if (isTrue(((bidAsk is IList<object>) || (bidAsk.GetType().IsGenericType && bidAsk.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
@@ -948,7 +948,7 @@ public partial class gate : ccxt.gate
         bool isWatchTickers = isGreaterThanOrEqual(getIndexOf(callerMethodName, "watchTicker"), 0);
         object prefix = ((bool) isTrue(isWatchTickers)) ? "ticker" : "bidask";
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add(add(prefix, ":"), symbol));
@@ -981,7 +981,7 @@ public partial class gate : ccxt.gate
             results = new List<object>() {rawTicker};
         }
         bool isTicker = (isEqual(objectName, "ticker")); // whether ticker or bid-ask
-        for (object i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(results)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(results, i);
             string? marketId = this.safeString(rawTicker, "s");
@@ -1054,7 +1054,7 @@ public partial class gate : ccxt.gate
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".trades");
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
@@ -1092,7 +1092,7 @@ public partial class gate : ccxt.gate
         object channel = add(messageType, ".trades");
         List<object> subMessageHashes = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)subMessageHashes).Add(add("trades:", symbol));
@@ -1140,7 +1140,7 @@ public partial class gate : ccxt.gate
             result = new List<object>() {result};
         }
         object parsedTrades = this.parseTrades(result);
-        for (object i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
         {
             object trade = getValue(parsedTrades, i);
             object symbol = getValue(trade, "symbol");
@@ -1189,7 +1189,7 @@ public partial class gate : ccxt.gate
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object marketId = getValue(market, "id");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".candlesticks");
         object messageHash = add(add(add("candles:", interval), ":"), getValue(market, "symbol"));
@@ -1231,7 +1231,7 @@ public partial class gate : ccxt.gate
             result = new List<object>() {result};
         }
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object ohlcv = getValue(result, i);
             string? subscription = this.safeString(ohlcv, "n", "");
@@ -1257,7 +1257,7 @@ public partial class gate : ccxt.gate
             ((IDictionary<string,object>)marketIds)[(string)symbol] = timeframe;
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object symbol = getValue(keys, i);
             object timeframe = getValue(marketIds, symbol);
@@ -1368,7 +1368,7 @@ public partial class gate : ccxt.gate
         }
         object parsed = this.parseTrades(result);
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object trade = getValue(parsed, i);
             callDynamically(cachedTrades, "append", new object[] {trade});
@@ -1379,7 +1379,7 @@ public partial class gate : ccxt.gate
             }
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object market = getValue(keys, i);
             object hash = add("myTrades:", market);
@@ -1498,13 +1498,13 @@ public partial class gate : ccxt.gate
         //
         object result = this.safeValue(message, "result", new List<object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = result;
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(result, i);
             object account = this.account();
             string? currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
             object code = this.safeCurrencyCode(currencyId);
-            object timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
+            Int64? timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             ((IDictionary<string,object>)this.balance)["timestamp"] = timestamp;
             ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(timestamp);
             ((IDictionary<string,object>)account)["used"] = this.safeString(rawBalance, "freeze");
@@ -1632,7 +1632,7 @@ public partial class gate : ccxt.gate
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "type", type }, }));
         ((IDictionary<string,object>)this.positions)[(string)type] = new ArrayCacheBySymbolBySide();
         object cache = getValue(this.positions, type);
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
@@ -1686,7 +1686,7 @@ public partial class gate : ccxt.gate
         object data = this.safeValue(message, "result", new List<object>() {});
         object cache = getValue(this.positions, type);
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(data, i);
             object position = this.parsePosition(rawPosition);
@@ -1723,7 +1723,7 @@ public partial class gate : ccxt.gate
             }
         }
         object messageHashes = this.findMessageHashes(client as WebSocketClient, add(type, ":positions::"));
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             List<object> parts = ((string)messageHash).Split(new [] {((string)"::")}, StringSplitOptions.None).ToList<object>();
@@ -1794,7 +1794,7 @@ public partial class gate : ccxt.gate
         }
         // gate pushes trigger orders on dedicated channels, spot.priceorders and futures.autoorders,
         // see https://github.com/ccxt/ccxt/issues/27202
-        object suffix = ".orders";
+        string suffix = ".orders";
         if (isTrue(isEqual(isTrigger, true)))
         {
             suffix = ((bool) isTrue((isEqual(typeId, "spot")))) ? ".priceorders" : ".autoorders";
@@ -1884,7 +1884,7 @@ public partial class gate : ccxt.gate
         object stored = ((bool) isTrue(isTrigger)) ? this.triggerOrders : this.orders;
         Dictionary<string, object> marketIds = new Dictionary<string, object>() {};
         object parsedOrders = this.parseOrders(orders);
-        for (object i = 0; isLessThan(i, getArrayLength(parsedOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsedOrders)); postFixIncrement(ref i))
         {
             object parsed = getValue(parsedOrders, i);
             // inject order status
@@ -1911,7 +1911,7 @@ public partial class gate : ccxt.gate
             }
         }
         List<object> keys = new List<object>(((IDictionary<string,object>)marketIds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object messageHash = add(add(hashPrefix, ":"), getValue(keys, i));
             callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -2058,12 +2058,12 @@ public partial class gate : ccxt.gate
             this.liquidations = new ArrayCache(limit);
         }
         object cache = this.liquidations;
-        for (object i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
             object liquidation = this.parseWsLiquidation(rawLiquidation);
             callDynamically(cache, "append", new object[] {liquidation});
-            object symbol = this.safeString(liquidation, "symbol");
+            string? symbol = this.safeString(liquidation, "symbol");
             object symbolLiquidations = this.safeValue(cache, symbol, new List<object>() {});
             callDynamically(client as WebSocketClient, "resolve", new object[] {symbolLiquidations, add("myLiquidations::", symbol)});
         }
@@ -2119,7 +2119,7 @@ public partial class gate : ccxt.gate
         });
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2200,7 +2200,7 @@ public partial class gate : ccxt.gate
                 {
                     List<object> parsedChannel = ((string)channel).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
                     object payload = this.safeList(message, "payload", new List<object>() {});
-                    for (object i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
+                    for (int i = 0; isLessThan(i, getArrayLength(payload)); postFixIncrement(ref i))
                     {
                         object marketType = ((bool) isTrue(isEqual(getValue(parsedChannel, 0), "futures"))) ? "swap" : getValue(parsedChannel, 0);
                         object symbol = this.safeSymbol(getValue(payload, i), null, "_", marketType);
@@ -2216,9 +2216,9 @@ public partial class gate : ccxt.gate
             {
                 ((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Remove((string)id);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public virtual void handleBalanceSubscription(WebSocketClient client, object message, object subscription = null)
@@ -2278,7 +2278,7 @@ public partial class gate : ccxt.gate
         //
         string? id = this.safeString(message, "id");
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object messageHash = getValue(keys, i);
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, messageHash))))
@@ -2295,7 +2295,7 @@ public partial class gate : ccxt.gate
                 }
                 object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
                 object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-                for (object j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(messageHashes)); postFixIncrement(ref j))
                 {
                     object unsubHash = getValue(messageHashes, j);
                     object subHash = getValue(subMessageHashes, j);
@@ -2451,7 +2451,7 @@ public partial class gate : ccxt.gate
             object data = this.safeDict(message, "data");
             // use safeValue as result may be Array or an Object
             object result = this.safeValue(data, "result");
-            object ack = this.safeBool(message, "ack");
+            bool? ack = this.safeBool(message, "ack");
             if (isTrue(!isEqual(ack, true)))
             {
                 callDynamically(client as WebSocketClient, "resolve", new object[] {result, requestId});
@@ -2511,7 +2511,7 @@ public partial class gate : ccxt.gate
             { "fx", "swap" },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)findBy).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(findBy, key);

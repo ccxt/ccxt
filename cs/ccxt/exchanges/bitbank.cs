@@ -519,7 +519,7 @@ public partial class bitbank : Exchange
         string? amountString = this.safeString(trade, "amount");
         string? id = this.safeString2(trade, "transaction_id", "trade_id");
         string? takerOrMaker = this.safeString(trade, "maker_taker");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee_amount_quote");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -623,7 +623,7 @@ public partial class bitbank : Exchange
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object pairs = this.safeValue(data, "pairs", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
             object pair = getValue(pairs, i);
             string? marketId = this.safeString(pair, "name");
@@ -729,7 +729,7 @@ public partial class bitbank : Exchange
         };
         object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
         object assets = this.safeValue(data, "assets", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object balance = getValue(assets, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -1215,7 +1215,7 @@ public partial class bitbank : Exchange
             string? authMethod = this.safeString(this.options, "authMethod", "timeWindow");
             bool isTimeWindow = (isEqual(authMethod, "timeWindow"));
             string requestTime = ((object)this.milliseconds()).ToString();
-            object timeWindow = this.safeString(this.options, "timeWindow", "5000");
+            string? timeWindow = this.safeString(this.options, "timeWindow", "5000");
             string nonce = ((object)this.nonce()).ToString();
             object auth = null;
             if (isTrue(isTimeWindow))

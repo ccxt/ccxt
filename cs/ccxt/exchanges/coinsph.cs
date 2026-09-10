@@ -752,10 +752,10 @@ public partial class coinsph : Exchange
     {
         string? id = this.safeString(rawCurrency, "coin");
         object code = this.safeCurrencyCode(id);
-        object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        bool? isFiat = this.safeBool(rawCurrency, "isLegalMoney");
         object networkList = this.safeList(rawCurrency, "networkList", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkList)); postFixIncrement(ref j))
         {
             object networkItem = getValue(networkList, j);
             string? network = this.safeString(networkItem, "network");
@@ -815,7 +815,7 @@ public partial class coinsph : Exchange
             object symbols = getValue(parameters, "symbols");
             int symbolsAmount = getArrayLength(symbols);
             object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byNumberOfSymbols)); postFixIncrement(ref i))
             {
                 object entry = getValue(byNumberOfSymbols, i);
                 if (isTrue(isGreaterThanOrEqual(symbolsAmount, getValue(entry, 0))))
@@ -827,7 +827,7 @@ public partial class coinsph : Exchange
         {
             object limit = getValue(parameters, "limit");
             object byLimit = this.safeList(config, "byLimit", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(byLimit)); postFixIncrement(ref i))
             {
                 object entry = getValue(byLimit, i);
                 if (isTrue(isGreaterThanOrEqual(limit, getValue(entry, 0))))
@@ -945,7 +945,7 @@ public partial class coinsph : Exchange
         //
         object markets = this.safeList(response, "symbols", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -1035,7 +1035,7 @@ public partial class coinsph : Exchange
         if (isTrue(!isEqual(symbols, null)))
         {
             List<object> ids = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
                 object id = getValue(market, "id");
@@ -1479,7 +1479,7 @@ public partial class coinsph : Exchange
                 { "currency", this.safeCurrencyCode(feeCurrencyId) },
             };
         }
-        object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
+        bool? isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         string? side = null;
         if (isTrue(!isEqual(isBuyer, null)))
         {
@@ -1561,7 +1561,7 @@ public partial class coinsph : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "asset");
@@ -1601,7 +1601,7 @@ public partial class coinsph : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object testOrder = this.safeBool(parameters, "test", false);
+        bool? testOrder = this.safeBool(parameters, "test", false);
         parameters = this.omit(parameters, "test");
         object orderType = this.safeString(parameters, "type", type);
         orderType = this.encodeOrderType(orderType);
@@ -1948,7 +1948,7 @@ public partial class coinsph : Exchange
         string? id = this.safeString(order, "orderId");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "time", "transactTime");
+        Int64? timestamp = this.safeInteger2(order, "time", "transactTime");
         object trades = this.safeValue(order, "fills");
         string? triggerPrice = this.safeString(order, "stopPrice");
         if (isTrue(Precise.stringEq(triggerPrice, "0")))
@@ -2139,7 +2139,7 @@ public partial class coinsph : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> fees = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -2189,7 +2189,7 @@ public partial class coinsph : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object options = this.safeValue(this.options, "withdraw");
-        object warning = this.safeBool(options, "warning", true);
+        bool? warning = this.safeBool(options, "warning", true);
         if (isTrue(isEqual(warning, true)))
         {
             throw new InvalidAddress ((string)add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
@@ -2409,7 +2409,7 @@ public partial class coinsph : Exchange
         string? txid = this.safeString(transaction, "txId");
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = null;
+        Int64? timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         object updated = null;
         string? type = null;
@@ -2425,7 +2425,7 @@ public partial class coinsph : Exchange
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber(transaction, "transactionFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2539,7 +2539,7 @@ public partial class coinsph : Exchange
         query ??= new Dictionary<string, object>();
         object encodedArrayParams = "";
         List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(((getValue(query, key) is IList<object>) || (getValue(query, key).GetType().IsGenericType && getValue(query, key).GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))

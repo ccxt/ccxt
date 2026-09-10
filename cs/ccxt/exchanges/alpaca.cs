@@ -743,7 +743,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbols", marketId },
             { "loc", loc },
@@ -909,7 +909,7 @@ public partial class alpaca : Exchange
         object market = this.market(symbol);
         object marketId = getValue(market, "id");
         string? loc = this.safeString(parameters, "loc", "us");
-        object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+        string? method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
         object paginate = false;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -977,7 +977,7 @@ public partial class alpaca : Exchange
             {
                 // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
                 string? pageToken = this.safeString(response, "next_page_token");
-                for (object i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
+                for (int i = 1; isLessThan(i, paginationCalls); postFixIncrement(ref i))
                 {
                     int ohlcvsLength = getArrayLength(ohlcvs);
                     if (isTrue(isTrue((isEqual(pageToken, null))) || isTrue((isTrue((!isEqual(limit, null))) && isTrue((isGreaterThanOrEqual(ohlcvsLength, limit)))))))
@@ -1155,7 +1155,7 @@ public partial class alpaca : Exchange
         List<object> results = new List<object>() {};
         object snapshots = this.safeDict(response, "snapshots", new Dictionary<string, object>() {});
         List<object> marketIds = new List<object>(((IDictionary<string,object>)snapshots).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
             object marketId = getValue(marketIds, i);
             object market = this.safeMarket(marketId);
@@ -1691,7 +1691,7 @@ public partial class alpaca : Exchange
         string? alpacaStatus = this.safeString(order, "status");
         object status = this.parseOrderStatus(alpacaStatus);
         string? feeValue = this.safeString(order, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeValue, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2042,7 +2042,7 @@ public partial class alpaca : Exchange
             {
                 ledger = activities;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ledger)); postFixIncrement(ref i))
             {
                 object entry = getValue(ledger, i);
                 string? activityType = this.safeString(entry, "activity_type");
@@ -2080,7 +2080,7 @@ public partial class alpaca : Exchange
         {
             transfers = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(transfers)); postFixIncrement(ref i))
         {
             object entry = getValue(transfers, i);
             string? direction = this.safeString(entry, "direction");
@@ -2191,7 +2191,7 @@ public partial class alpaca : Exchange
         object status = null;
         object comment = null;
         bool? intern = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(activityType, null)))
         {
             string? netAmount = this.safeString(transaction, "net_amount");

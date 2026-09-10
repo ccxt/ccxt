@@ -2186,8 +2186,8 @@ public partial class bybit : Exchange
         // SUB UID: "Account Transfer"
         // MASTER UID: "Account Transfer", "Subaccount Transfer", "Withdrawal"
         parameters ??= new Dictionary<string, object>();
-        object enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
-        object enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
+        bool? enableUnifiedMargin = this.safeBool(this.options, "enableUnifiedMargin");
+        bool? enableUnifiedAccount = this.safeBool(this.options, "enableUnifiedAccount");
         if (isTrue(isTrue(isEqual(enableUnifiedMargin, null)) || isTrue(isEqual(enableUnifiedAccount, null))))
         {
             if (isTrue(isEqual(getValue(this.options, "enableDemoTrading"), true)))
@@ -2317,8 +2317,8 @@ public partial class bybit : Exchange
                 settle = "USDC";
             }
         }
-        object strike = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         object amountPrecision = null;
@@ -2496,7 +2496,7 @@ public partial class bybit : Exchange
         string status = "ok";
         Int64? eta = null;
         string? url = null;
-        for (object i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(list)); postFixIncrement(ref i))
         {
             object eventVar = getValue(list, i);
             string? state = this.safeString(eventVar, "state");
@@ -2604,7 +2604,7 @@ public partial class bybit : Exchange
         string? name = this.safeString(currency, "name");
         object chains = this.safeList(currency, "chains", new List<object>() {});
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(chains)); postFixIncrement(ref j))
         {
             object chain = getValue(chains, j);
             string? networkId = this.safeString(chain, "chain");
@@ -2689,7 +2689,7 @@ public partial class bybit : Exchange
             // for backward-compatibility
             types = this.safeList(this.options, "fetchMarkets", defaultTypes);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "spot")))
@@ -2708,7 +2708,7 @@ public partial class bybit : Exchange
             } else if (isTrue(isEqual(marketType, "option")))
             {
                 object optionsCurrencies = this.safeList(fetchMarketsOptions, "options", new List<object>() {"BTC", "ETH", "SOL"});
-                for (object j = 0; isLessThan(j, getArrayLength(optionsCurrencies)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(optionsCurrencies)); postFixIncrement(ref j))
                 {
                     object currency = getValue(optionsCurrencies, j);
                     ((IList<object>)promisesUnresolved).Add(this.FetchOptionMarkets(new Dictionary<string, object>() {
@@ -2722,7 +2722,7 @@ public partial class bybit : Exchange
         }
         object promises = await promiseAll(promisesUnresolved);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             object parsedMarket = getValue(promises, i);
             result = this.arrayConcat(result, parsedMarket);
@@ -2792,7 +2792,7 @@ public partial class bybit : Exchange
         List<object> result = new List<object>() {};
         object takerFee = this.parseNumber("0.001");
         object makerFee = this.parseNumber("0.001");
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -2959,7 +2959,7 @@ public partial class bybit : Exchange
         markets = this.arrayConcat(markets, preLaunchMarketsList);
         List<object> result = new List<object>() {};
         string? category = this.safeString(data, "category");
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             if (isTrue(isEqual(category, null)))
@@ -3158,7 +3158,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "symbol");
@@ -3177,8 +3177,8 @@ public partial class bybit : Exchange
                 throw new ExchangeError ((string)add(this.id, " method() missing id")) ;
             }
             List<object> splitId = ((string)id).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
-            object strike = this.safeString(splitId, 2);
-            object optionLetter = this.safeString(splitId, 3);
+            string? strike = this.safeString(splitId, 2);
+            string? optionLetter = this.safeString(splitId, 3);
             bool isActive = (isEqual(status, "Trading"));
             bool isInverse = isEqual(bs, settle);
             object loadExpiredOptions = this.handleOption("fetchMarkets", "loadExpiredOptions");
@@ -3456,7 +3456,7 @@ public partial class bybit : Exchange
         }
         object code = this.safeStringN(parameters, new List<object>() {"code", "currency", "baseCoin"});
         object market = null;
-        object parsedSymbols = null;
+        List<object> parsedSymbols = null;
         if (isTrue(!isEqual(symbols, null)))
         {
             parsedSymbols = new List<object>() {};
@@ -3464,7 +3464,7 @@ public partial class bybit : Exchange
             object defaultType = getValue(marketTypeInfo, 0); // don't omit here
             // we can't use marketSymbols here due to the conflicting ids between markets
             object currentType = null;
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 // using safeMarket here because if the user provides for instance BTCUSDT and "type": "spot" in params we should
@@ -3588,7 +3588,7 @@ public partial class bybit : Exchange
         //         "2.4343353100000003"
         //     ]
         //
-        object isInverse = this.safeBool(market, "inverse");
+        bool? isInverse = this.safeBool(market, "inverse");
         int volumeIndex = ((bool) isTrue((isEqual(isInverse, true)))) ? 6 : 5;
         return new List<object> {this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)};
     }
@@ -3887,7 +3887,7 @@ public partial class bybit : Exchange
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object tickerList = this.safeList(data, "list", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "time");
-        for (object i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickerList)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(tickerList, i))["timestamp"] = timestamp; // will be removed inside the parser
         }
@@ -3993,7 +3993,7 @@ public partial class bybit : Exchange
         List<object> rates = new List<object>() {};
         object result = this.safeDict(response, "result");
         object resultList = this.safeList(result, "list", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(resultList)); postFixIncrement(ref i))
         {
             object entry = getValue(resultList, i);
             Int64? timestamp = this.safeInteger(entry, "fundingRateTimestamp");
@@ -4175,7 +4175,7 @@ public partial class bybit : Exchange
         string? amountString = this.safeStringN(trade, new List<object>() {"execQty", "orderQty", "size"});
         string? priceString = this.safeStringN(trade, new List<object>() {"execPrice", "orderPrice", "price"});
         string? costString = this.safeString(trade, "execValue");
-        object timestamp = this.safeIntegerN(trade, new List<object>() {"time", "execTime", "tradeTime"});
+        Int64? timestamp = this.safeIntegerN(trade, new List<object>() {"time", "execTime", "tradeTime"});
         string? side = this.safeStringLower(trade, "side");
         if (isTrue(isEqual(side, null)))
         {
@@ -4185,7 +4185,7 @@ public partial class bybit : Exchange
                 side = ((bool) isTrue((!isEqual(isBuyer, 0)))) ? "buy" : "sell";
             }
         }
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -4214,7 +4214,7 @@ public partial class bybit : Exchange
             orderType = null;
         }
         string? feeCostString = this.safeString(trade, "execFee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeRateString = this.safeString(trade, "feeRate");
@@ -4535,14 +4535,14 @@ public partial class bybit : Exchange
             ((IDictionary<string,object>)result)[(string)code] = account;
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(currencyList)); postFixIncrement(ref i))
             {
                 object entry = getValue(currencyList, i);
                 string? accountType = this.safeString(entry, "accountType");
                 if (isTrue(isTrue(isTrue(isEqual(accountType, "UNIFIED")) || isTrue(isEqual(accountType, "CONTRACT"))) || isTrue(isEqual(accountType, "SPOT"))))
                 {
                     object coins = this.safeList(entry, "coin", new List<object>() {});
-                    for (object j = 0; isLessThan(j, getArrayLength(coins)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(coins)); postFixIncrement(ref j))
                     {
                         object account = this.account();
                         object coinEntry = getValue(coins, j);
@@ -4958,7 +4958,7 @@ public partial class bybit : Exchange
         }
         market = this.safeMarket(marketId, market, null, marketType);
         object symbol = getValue(market, "symbol");
-        object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(order, "createdTime", "createdAt");
         string? marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
@@ -4980,10 +4980,10 @@ public partial class bybit : Exchange
         }
         string? filled = this.safeString(order, "cumExecQty");
         string? remaining = this.safeString(order, "leavesQty");
-        object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
+        Int64? lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
         string? rawStatus = this.safeString(order, "orderStatus");
         object status = this.parseOrderStatus(rawStatus);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new Dictionary<string, object>() {});
         List<object> feeCoins = new List<object>(((IDictionary<string,object>)cumFeeDetail).Keys);
         string? feeCoinId = this.safeString(feeCoins, 0);
@@ -5003,7 +5003,7 @@ public partial class bybit : Exchange
         string? rawTimeInForce = this.safeString(order, "timeInForce");
         object timeInForce = this.parseTimeInForce(rawTimeInForce);
         object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
-        object reduceOnly = this.safeBool(order, "reduceOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
         object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
         object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
         string? triggerDirection = this.safeString(order, "triggerDirection");
@@ -5232,8 +5232,8 @@ public partial class bybit : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object hedged = this.safeBool(parameters, "hedged", false);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly");
+        bool? hedged = this.safeBool(parameters, "hedged", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly");
         object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
         object stopLossTriggerPrice = this.safeValue(parameters, "stopLossPrice");
         object takeProfitTriggerPrice = this.safeValue(parameters, "takeProfitPrice");
@@ -5585,7 +5585,7 @@ public partial class bybit : Exchange
         object isUta = getValue(accounts, 1);
         List<object> ordersRequests = new List<object>() {};
         List<object> orderSymbols = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -5620,7 +5620,7 @@ public partial class bybit : Exchange
         object retInfo = this.safeDict(response, "retExtInfo", new Dictionary<string, object>() {});
         object codes = this.safeList(retInfo, "list", new List<object>() {});
         // extend the error with the unsuccessful orders
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             Int64? retCode = this.safeInteger(code, "code");
@@ -5823,7 +5823,7 @@ public partial class bybit : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         object orderSymbols = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -5859,7 +5859,7 @@ public partial class bybit : Exchange
         object retInfo = this.safeDict(response, "retExtInfo", new Dictionary<string, object>() {});
         object codes = this.safeList(retInfo, "list", new List<object>() {});
         // extend the error with the unsuccessful orders
-        for (object i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             object code = getValue(codes, i);
             Int64? retCode = this.safeInteger(code, "code");
@@ -5916,7 +5916,7 @@ public partial class bybit : Exchange
         if (isTrue(isEqual(getValue(market, "spot"), true)))
         {
             // only works for spot market
-            object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+            bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             ((IDictionary<string,object>)request)["orderFilter"] = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopOrder" : "Order";
         }
@@ -6015,14 +6015,14 @@ public partial class bybit : Exchange
         List<object> ordersRequests = new List<object>() {};
         object clientOrderIds = this.safeList2(parameters, "clientOrderIds", "clientOids", new List<object>() {});
         parameters = this.omit(parameters, new List<object>() {"clientOrderIds", "clientOids"});
-        for (object i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(clientOrderIds)); postFixIncrement(ref i))
         {
             ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
                 { "orderLinkId", this.safeString(clientOrderIds, i) },
             });
         }
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             ((IList<object>)ordersRequests).Add(new Dictionary<string, object>() {
                 { "symbol", getValue(market, "id") },
@@ -6143,7 +6143,7 @@ public partial class bybit : Exchange
         }
         List<object> ordersRequests = new List<object>() {};
         object category = null;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? symbol = this.safeString(order, "symbol");
@@ -6270,7 +6270,7 @@ public partial class bybit : Exchange
                 ((IDictionary<string,object>)request)["settleCoin"] = this.safeString(parameters, "settleCoin", defaultSettle);
             }
         }
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6347,8 +6347,8 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6467,7 +6467,7 @@ public partial class bybit : Exchange
         int innerListLength = getArrayLength(innerList);
         if (isTrue(isEqual(innerListLength, 0)))
         {
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         object order = this.safeDict(innerList, 0, new Dictionary<string, object>() {});
@@ -6523,7 +6523,7 @@ public partial class bybit : Exchange
             throw new NotSupported ((string)add(this.id, " fetchOrdersClassic() is not supported for spot markets")) ;
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6628,8 +6628,8 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6670,8 +6670,8 @@ public partial class bybit : Exchange
         int length = getArrayLength(result);
         if (isTrue(isEqual(length, 0)))
         {
-            object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
-            object extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
+            bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            string extra = ((bool) isTrue((isEqual(isTrigger, true)))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
             throw new OrderNotFound ((string)add(add(add("Order ", ((object)id).ToString()), " was not found."), extra)) ;
         }
         if (isTrue(isGreaterThan(length, 1)))
@@ -6726,7 +6726,7 @@ public partial class bybit : Exchange
         type = ((IList<object>)typeparametersVariable)[0];
         parameters = ((IList<object>)typeparametersVariable)[1];
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -6934,7 +6934,7 @@ public partial class bybit : Exchange
             }
         }
         ((IDictionary<string,object>)request)["category"] = type;
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isEqual(isTrigger, true)))
         {
@@ -7481,12 +7481,12 @@ public partial class bybit : Exchange
         //
         string? currencyId = this.safeString(transaction, "coin");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "createTime", "successAt");
+        Int64? timestamp = this.safeInteger2(transaction, "createTime", "successAt");
         Int64? updated = this.safeInteger(transaction, "updateTime");
         object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         object feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         string type = ((bool) isTrue((inOp(transaction, "depositFee")))) ? "deposit" : "withdrawal";
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -8082,7 +8082,7 @@ public partial class bybit : Exchange
         //
         object positions = this.addPaginationCursorToResult(response);
         List<object> results = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(positions, i);
             if (isTrue(isTrue((inOp(rawPosition, "data"))) && isTrue((inOp(rawPosition, "is_valid")))))
@@ -8273,8 +8273,8 @@ public partial class bybit : Exchange
         object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         string? initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         string? maintenanceMarginString = this.safeString(position, "positionMM");
-        object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
-        object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
+        Int64? timestamp = this.safeInteger2(position, "createdTime", "createdAt");
+        Int64? lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (isTrue(isEqual(lastUpdateTimestamp, null)))
         {
             lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
@@ -8288,7 +8288,7 @@ public partial class bybit : Exchange
             if (isTrue(isEqual(getValue(market, "settle"), "USDC")))
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
-                object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
+                bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
                 object price = ((bool) isTrue(useMarkPrice)) ? markPrice : entryPrice;
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
@@ -8730,7 +8730,7 @@ public partial class bybit : Exchange
         {
             throw new BadRequest ((string)add(this.id, " fetchOpenInterest() supports contract markets only")) ;
         }
-        object timeframe = this.safeString(parameters, "interval", "1h");
+        string? timeframe = this.safeString(parameters, "interval", "1h");
         object intervals = this.safeDict(this.options, "intervals");
         string? interval = this.safeString(intervals, timeframe); // 5min,15min,30min,1h,4h,1d
         if (isTrue(isEqual(interval, null)))
@@ -8801,7 +8801,7 @@ public partial class bybit : Exchange
         {
             await this.loadMarkets();
         }
-        object paginate = this.safeBool(parameters, "paginate");
+        bool? paginate = this.safeBool(parameters, "paginate");
         if (isTrue(isEqual(paginate, true)))
         {
             parameters = this.omit(parameters, "paginate");
@@ -9555,7 +9555,7 @@ public partial class bybit : Exchange
         object fees = this.safeDict(response, "result", new Dictionary<string, object>() {});
         fees = this.safeList(fees, "list", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = this.parseTradingFee(getValue(fees, i));
             object symbol = getValue(fee, "symbol");
@@ -9605,7 +9605,7 @@ public partial class bybit : Exchange
         };
         if (isTrue(!isEqual(chainsLength, 0)))
         {
-            for (object i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, chainsLength); postFixIncrement(ref i))
             {
                 object chain = getValue(chains, i);
                 string? networkId = this.safeString(chain, "chain");
@@ -9890,7 +9890,7 @@ public partial class bybit : Exchange
         //     ]
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -9948,7 +9948,7 @@ public partial class bybit : Exchange
         //     }
         //
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(volatility)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(volatility)); postFixIncrement(ref i))
         {
             object entry = getValue(volatility, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -10414,11 +10414,11 @@ public partial class bybit : Exchange
         object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         Dictionary<string, object> grouped = this.groupBy(filteredResults, idKey);
         List<object> keys = new List<object>(((IDictionary<string,object>)grouped).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object marketId = getValue(keys, i);
             object entry = getValue(grouped, marketId);
-            for (object j = 0; isLessThan(j, getArrayLength(entry)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(entry)); postFixIncrement(ref j))
             {
                 Int64? id = this.safeInteger(getValue(entry, j), "id");
                 ((IDictionary<string,object>)getValue(entry, j))["id"] = id;
@@ -10944,12 +10944,12 @@ public partial class bybit : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object coins = this.safeList(data, "coins", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object entry = getValue(coins, i);
             string? id = this.safeString(entry, "coin");
-            object disableFrom = this.safeBool(entry, "disableFrom");
-            object disableTo = this.safeBool(entry, "disableTo");
+            bool? disableFrom = this.safeBool(entry, "disableFrom");
+            bool? disableTo = this.safeBool(entry, "disableTo");
             bool inactive = isTrue((isEqual(disableFrom, true))) || isTrue((isEqual(disableTo, true)));
             object code = this.safeCurrencyCode(id);
             if (isTrue(!isEqual(code, null)))
@@ -11264,7 +11264,7 @@ public partial class bybit : Exchange
         //         "createdAt": "1727257904726"
         //     }
         //
-        object timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
         string? fromCoin = this.safeString(conversion, "fromCoin");
         object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
         string? to = this.safeString(conversion, "toCoin");
@@ -11628,7 +11628,7 @@ public partial class bybit : Exchange
                     ((IDictionary<string,object>)headers)["X-BAPI-SIGN-TYPE"] = "2";
                 }
                 Dictionary<string, object> query = this.extend(new Dictionary<string, object>() {}, parameters);
-                object queryEncoded = this.rawencode(query);
+                string queryEncoded = this.rawencode(query);
                 object auth_base = add(add(((object)timestamp).ToString(), this.apiKey), ((object)getValue(this.options, "recvWindow")).ToString());
                 object authFull = null;
                 if (isTrue(isEqual(method, "POST")))

@@ -512,7 +512,7 @@ public partial class bitteam : Exchange
         Int64? created = this.parse8601(timeStart);
         object minCost = null;
         object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new Dictionary<string, object>() {});
-        object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
+        bool? quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (isTrue(isEqual(quoteInUsd, true)))
         {
             object settings = this.safeValue(market, "settings", new Dictionary<string, object>() {});
@@ -709,7 +709,7 @@ public partial class bitteam : Exchange
         string? id = this.safeString(currency, "symbol");
         Int64? numericId = this.safeInteger(currency, "id");
         object code = this.safeCurrencyCode(id);
-        object active = this.safeBool(currency, "active", false);
+        bool? active = this.safeBool(currency, "active", false);
         object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         object txLimits = this.safeValue(currency, "txLimits", new Dictionary<string, object>() {});
         string? minWithdraw = this.safeString(txLimits, "minWithdraw");
@@ -735,7 +735,7 @@ public partial class bitteam : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         string? typeRaw = this.safeString(currency, "type");
-        for (object j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networkIds)); postFixIncrement(ref j))
         {
             object networkId = getValue(networkIds, j);
             object networkCode = this.networkIdToCode(networkId, code);
@@ -1433,7 +1433,7 @@ public partial class bitteam : Exchange
         string? price = this.safeString(order, "price");
         string? amount = this.safeString(order, "quantity");
         string? filled = this.safeString(order, "executed");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeRaw, null)))
         {
             string? feeCost = this.safeString(feeRaw, "amount");
@@ -1560,7 +1560,7 @@ public partial class bitteam : Exchange
         {
             rawTickers = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTickers)); postFixIncrement(ref i))
         {
             object rawTicker = getValue(rawTickers, i);
             object ticker = this.parseTicker(rawTicker);
@@ -2308,7 +2308,7 @@ public partial class bitteam : Exchange
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
         object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
         List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(rawCurrencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawCurrencyIds)); postFixIncrement(ref i))
         {
             object rawCurrencyId = getValue(rawCurrencyIds, i);
             object currencyBalance = this.safeValue(result, rawCurrencyId);
@@ -2570,7 +2570,7 @@ public partial class bitteam : Exchange
         object request = this.omit(parameters, this.extractParams(path));
         object endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
-        object query = this.urlencode(request);
+        string query = this.urlencode(request);
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -2582,7 +2582,7 @@ public partial class bitteam : Exchange
                 url = add(url, add("?", query));
             }
             object auth = add(add(this.apiKey, ":"), this.secret);
-            object auth64 = this.stringToBase64(auth);
+            string auth64 = this.stringToBase64(auth);
             object signature = add("Basic ", auth64);
             headers = new Dictionary<string, object>() {
                 { "Authorization", signature },
@@ -2613,13 +2613,13 @@ public partial class bitteam : Exchange
                 if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(url, "/ccxt/order/"), 0))) && isTrue((isEqual(method, "GET")))))
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/order/")}, StringSplitOptions.None).ToList<object>();
-                    object orderId = this.safeString(parts, 1);
+                    string? orderId = this.safeString(parts, 1);
                     throw new OrderNotFound ((string)add(add(add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
                     List<object> parts = ((string)url).Split(new [] {((string)"/cmc/orderbook/")}, StringSplitOptions.None).ToList<object>();
-                    object symbolId = this.safeString(parts, 1);
+                    string? symbolId = this.safeString(parts, 1);
                     throw new BadSymbol ((string)add(add(add(this.id, " symbolId "), symbolId), " not found")) ;
                 }
             }

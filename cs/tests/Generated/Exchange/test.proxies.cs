@@ -61,9 +61,9 @@ public partial class testMainClass : BaseTest
         var httpsProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[2];
         var socksProxy = ((IList<object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable)[3];
         List<object> possibleOptionsArray = new List<object>() {"proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"};
-        for (object i = 0; isLessThan(i, getArrayLength(possibleOptionsArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(possibleOptionsArray)); postFixIncrement(ref i))
         {
-            for (object j = 0; isLessThan(j, getArrayLength(possibleOptionsArray)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(possibleOptionsArray)); postFixIncrement(ref j))
             {
                 if (isTrue(!isEqual(j, i)))
                 {

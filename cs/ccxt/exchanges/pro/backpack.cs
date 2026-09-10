@@ -87,7 +87,7 @@ public partial class backpack : ccxt.backpack
         string instruction = "subscribe";
         string ts = ((object)this.nonce()).ToString();
         string method = ((bool) isTrue(unwatch)) ? "UNSUBSCRIBE" : "SUBSCRIBE";
-        object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+        string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
         object payload = add(add(add(add(add(add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
         object secretBytes = this.base64ToBinary(this.secret);
         object seed = this.arraySlice(secretBytes, 0, 32);
@@ -110,7 +110,7 @@ public partial class backpack : ccxt.backpack
     {
         var client = this.client(url);
         this.watchMultiple(url, messageHashes, message, messageHashes);
-        for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
             string subMessageHash = ((string)messageHash).Replace((string)"unsubscribe:", (string)"");
@@ -163,7 +163,7 @@ public partial class backpack : ccxt.backpack
                     if (isTrue(!isEqual(cache, null)))
                     {
                         List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
-                        for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                        for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                         {
                             object symbol = getValue(keys, j);
                             ((IDictionary<string,object>)cache).Remove((string)symbol);
@@ -184,7 +184,7 @@ public partial class backpack : ccxt.backpack
                 {
                     object cache = this.positions;
                     List<object> keys = new List<object>(((IDictionary<string,object>)cache).Keys);
-                    for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+                    for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
                     {
                         object symbol = getValue(keys, j);
                         ((IDictionary<string,object>)this.positions).Remove((string)symbol);
@@ -259,7 +259,7 @@ public partial class backpack : ccxt.backpack
         symbols = this.marketSymbols(symbols, null, false);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -289,7 +289,7 @@ public partial class backpack : ccxt.backpack
         symbols = this.marketSymbols(symbols, null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -394,7 +394,7 @@ public partial class backpack : ccxt.backpack
         symbols = this.marketSymbols(symbols, null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -423,7 +423,7 @@ public partial class backpack : ccxt.backpack
         symbols = this.marketSymbols(symbols, null, false);
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -559,13 +559,13 @@ public partial class backpack : ccxt.backpack
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("candles:", getValue(market, "symbol")), ":"), interval));
         }
@@ -604,13 +604,13 @@ public partial class backpack : ccxt.backpack
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             string? marketId = this.safeString(symbolAndTimeframe, 0);
             object market = this.market(marketId);
             string? tf = this.safeString(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, tf, tf);
+            string? interval = this.safeString(this.timeframes, tf, tf);
             ((IList<object>)topics).Add(add(add(add("kline.", interval), "."), getValue(market, "id")));
             ((IList<object>)messageHashes).Add(add(add(add("unsubscribe:candles:", getValue(market, "symbol")), ":"), interval));
         }
@@ -644,7 +644,7 @@ public partial class backpack : ccxt.backpack
         object symbol = getValue(market, "symbol");
         string? stream = this.safeString(message, "stream", "");
         List<object> parts = ((string)stream).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
-        object timeframe = this.safeString(parts, 1, "");
+        string? timeframe = this.safeString(parts, 1, "");
         if (!isTrue((inOp(this.ohlcvs, symbol))))
         {
             ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = new Dictionary<string, object>() {};
@@ -742,7 +742,7 @@ public partial class backpack : ccxt.backpack
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -784,7 +784,7 @@ public partial class backpack : ccxt.backpack
         }
         List<object> topics = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object marketId = this.marketId(symbol);
@@ -852,7 +852,7 @@ public partial class backpack : ccxt.backpack
         string? id = this.safeString(trade, "t");
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        object isBuyerMaker = this.safeBool(trade, "m");
+        bool? isBuyerMaker = this.safeBool(trade, "m");
         string? side = null;
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isBuyerMaker, null)))
@@ -934,7 +934,7 @@ public partial class backpack : ccxt.backpack
         object marketIds = this.marketIds(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
@@ -980,7 +980,7 @@ public partial class backpack : ccxt.backpack
         object marketIds = this.marketIds(symbols);
         List<object> messageHashes = new List<object>() {};
         List<object> topics = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
@@ -1058,7 +1058,7 @@ public partial class backpack : ccxt.backpack
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
             object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -1084,7 +1084,7 @@ public partial class backpack : ccxt.backpack
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
             Int64? deltaStart = this.safeInteger(delta, "U");
@@ -1263,7 +1263,7 @@ public partial class backpack : ccxt.backpack
         string? amount = this.safeString(order, "q");
         string? cost = this.safeString(order, "Z");
         string? filled = this.safeString(order, "l");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCurrency = this.safeString(order, "N");
         if (isTrue(!isEqual(feeCurrency, null)))
         {
@@ -1343,7 +1343,7 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add("positions", ":"), symbol));
@@ -1383,7 +1383,7 @@ public partial class backpack : ccxt.backpack
         List<object> topics = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add("unsubscribe:positions", ":"), symbol));
@@ -1552,7 +1552,7 @@ public partial class backpack : ccxt.backpack
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //     {
@@ -1569,14 +1569,14 @@ public partial class backpack : ccxt.backpack
         {
             if (isTrue(!isEqual(code, null)))
             {
-                object msg = this.safeString(error, "message");
+                string? msg = this.safeString(error, "message");
                 throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
             }
-            return true;
+            return ((bool?)((object)(true)));
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e);
         }
-        return true;
+        return ((bool?)((object)(true)));
     }
 }

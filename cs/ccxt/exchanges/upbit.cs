@@ -640,7 +640,7 @@ public partial class upbit : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
@@ -757,7 +757,7 @@ public partial class upbit : Exchange
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> orderbooks = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(orderbooks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orderbooks)); postFixIncrement(ref i))
         {
             object orderbook = getValue(orderbooks, i);
             string? marketId = this.safeString(orderbook, "market");
@@ -878,7 +878,7 @@ public partial class upbit : Exchange
             // ticker/all returns every market of the requested quote currencies with a single request
             List<object> quoteIds = new List<object>() {};
             object marketSymbols = this.symbols;
-            for (object i = 0; isLessThan(i, getArrayLength(marketSymbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(marketSymbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(marketSymbols, i));
                 object quoteId = getValue(market, "quoteId");
@@ -889,7 +889,7 @@ public partial class upbit : Exchange
             }
             object sortedQuoteIds = this.sort(quoteIds); // market iteration order differs per language
             object quoteCurrencies = "";
-            for (object i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(sortedQuoteIds)); postFixIncrement(ref i))
             {
                 if (isTrue(!isEqual(quoteCurrencies, "")))
                 {
@@ -906,7 +906,7 @@ public partial class upbit : Exchange
             object ids = this.marketIds(symbols);
             List<object> promises = new List<object>() {};
             object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
-            for (object i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
             {
                 object idsQuery = getValue(queries, i);
                 ((IList<object>)promises).Add(this.publicGetTicker(this.extend(new Dictionary<string, object>() {
@@ -955,7 +955,7 @@ public partial class upbit : Exchange
         }
         object idsString = "";
         List<object> queries = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             if (isTrue(!isEqual(idsString, "")))
@@ -1044,7 +1044,7 @@ public partial class upbit : Exchange
         string? amount = this.safeString2(trade, "trade_volume", "volume");
         string? marketId = this.safeString2(trade, "market", "code");
         market = this.safeMarket(marketId, market, "-");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, add(askOrBid, "_fee"));
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1206,7 +1206,7 @@ public partial class upbit : Exchange
         }
         object fetchMarketResponse = ccxt.BaseExchange.FromMarketInterfaceList(await this.FetchMarkets(parameters));
         Dictionary<string, object> response = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fetchMarketResponse)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fetchMarketResponse)); postFixIncrement(ref i))
         {
             Dictionary<string, object> element = new Dictionary<string, object>() {};
             ((IDictionary<string,object>)element)["maker"] = this.safeNumber(getValue(fetchMarketResponse, i), "maker");
@@ -1396,7 +1396,7 @@ public partial class upbit : Exchange
         object postOnly = this.isPostOnly(isEqual(type, "market"), false, parameters);
         string? timeInForce = this.safeStringLower2(parameters, "timeInForce", "time_in_force");
         string? selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
-        object test = this.safeBool(parameters, "test", false);
+        bool? test = this.safeBool(parameters, "test", false);
         if (isTrue(isTrue(postOnly) && isTrue((!isEqual(selfTradePrevention, null)))))
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
@@ -2106,7 +2106,7 @@ public partial class upbit : Exchange
             price = null;
         }
         string? average = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(order, "paid_fee");
         string? marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
@@ -2127,7 +2127,7 @@ public partial class upbit : Exchange
                 feeCost = "0";
             }
             cost = "0";
-            for (object i = 0; isLessThan(i, numTrades); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, numTrades); postFixIncrement(ref i))
             {
                 object trade = getValue(trades, i);
                 cost = Precise.stringAdd(cost, this.safeString(trade, "cost"));

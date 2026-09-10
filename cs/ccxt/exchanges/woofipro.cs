@@ -931,7 +931,7 @@ public partial class woofipro : Exchange
         object chainData = this.safeDict(chainResponse, "data", new Dictionary<string, object>() {});
         object chainRows = this.safeList(chainData, "rows", new List<object>() {});
         Dictionary<string, object> indexedChains = this.indexBy(chainRows, "chain_id");
-        for (object i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
             object parsed = this.parseCurrency(new Dictionary<string, object>() {
@@ -955,7 +955,7 @@ public partial class woofipro : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object indexedChains = this.safeDict(rawCurrency, "_indexedChains", new Dictionary<string, object>() {});
         Dictionary<string, object> resultingNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object networkEntry = getValue(networks, j);
             string? networkId = this.safeString(networkEntry, "chain_id");
@@ -1016,7 +1016,7 @@ public partial class woofipro : Exchange
     public virtual object parseTokenAndFeeTemp(object item, object feeTokenKey, object feeAmountKey)
     {
         string? feeCost = this.safeString(item, feeAmountKey);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             string? feeCurrencyId = this.safeString(item, feeTokenKey);
@@ -1438,7 +1438,7 @@ public partial class woofipro : Exchange
         object rows = this.safeList(data, "rows", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             string? marketId = this.safeString(row, "symbol", "");
@@ -1562,7 +1562,7 @@ public partial class woofipro : Exchange
         object rows = this.safeList(data, "rows", new List<object>() {});
         Int64? timestamp = this.safeInteger(response, "timestamp");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object row = getValue(rows, i);
             string? marketId = this.safeString(row, "symbol", "");
@@ -1644,7 +1644,7 @@ public partial class woofipro : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object result = this.safeList(data, "rows", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object entry = getValue(result, i);
             string? marketId = this.safeString(entry, "symbol");
@@ -1820,7 +1820,7 @@ public partial class woofipro : Exchange
         string? taker = this.safeString(data, "futures_taker_fee_rate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1993,7 +1993,7 @@ public partial class woofipro : Exchange
         //       "updatedTime": "1686149903.362"
         //   }
         //
-        object timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
+        Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
         string? orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
         object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
@@ -2004,7 +2004,7 @@ public partial class woofipro : Exchange
         string? cost = this.safeString2(order, "order_amount", "amount"); // This is quote amount
         string? orderType = this.safeStringLower2(order, "order_type", "type");
         object status = this.safeValue2(order, "status", "algoStatus");
-        object success = this.safeBool(order, "success");
+        bool? success = this.safeBool(order, "success");
         if (isTrue(!isEqual(success, null)))
         {
             status = ((bool) isTrue((success))) ? "NEW" : "REJECTED";
@@ -2033,7 +2033,7 @@ public partial class woofipro : Exchange
                 stopLossPrice = this.safeNumber(stopLossOrder, "triggerPrice");
             }
         }
-        object lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
+        Int64? lastUpdateTimestamp = this.safeInteger2(order, "updatedTime", "updated_time");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", orderId },
             { "clientOrderId", clientOrderId },
@@ -2130,7 +2130,7 @@ public partial class woofipro : Exchange
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string orderType = ((string)type).ToUpper();
         if (isTrue(isEqual(side, null)))
         {
@@ -2301,7 +2301,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2464,7 +2464,7 @@ public partial class woofipro : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(isTrue((!isEqual(trigger, true))) && isTrue((isEqual(symbol, null)))))
         {
@@ -2607,7 +2607,7 @@ public partial class woofipro : Exchange
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
@@ -2668,7 +2668,7 @@ public partial class woofipro : Exchange
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         Dictionary<string, object> request = new Dictionary<string, object>() {};
         string? clientOrderId = this.safeStringN(parameters, new List<object>() {"clOrdID", "clientOrderId", "client_order_id"});
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger", "clOrdID", "clientOrderId", "client_order_id"});
@@ -2753,7 +2753,7 @@ public partial class woofipro : Exchange
             await this.loadMarkets();
         }
         object paginate = false;
-        object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
         int maxLimit = ((bool) isTrue((isEqual(isTrigger, true)))) ? 100 : 500;
         var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
         paginate = ((IList<object>)paginateparametersVariable)[0];
@@ -3036,7 +3036,7 @@ public partial class woofipro : Exchange
             { "info", response },
         };
         object balances = this.safeList(response, "holding", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             object code = this.safeCurrencyCode(this.safeString(balance, "token"));
@@ -3355,7 +3355,7 @@ public partial class woofipro : Exchange
         object signature = ecdsa(slice(hash, -64, null), slice(privateKey, -64, null), secp256k1, null);
         object r = getValue(signature, "r");
         object s = getValue(signature, "s");
-        object v = this.intToBase16(this.sum(27, getValue(signature, "v")));
+        string v = this.intToBase16(this.sum(27, getValue(signature, "v")));
         return add(add(add("0x", (r as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), (s as String).PadLeft(Convert.ToInt32(64), Convert.ToChar("0"))), v);
     }
 
@@ -3595,7 +3595,7 @@ public partial class woofipro : Exchange
         //     }
         //
         Int64? timestamp = this.safeInteger(data, "timestamp");
-        object success = this.safeBool(data, "success", false);
+        bool? success = this.safeBool(data, "success", false);
         return new Dictionary<string, object>() {
             { "info", data },
             { "symbol", this.safeString(market, "symbol") },
@@ -3981,14 +3981,14 @@ public partial class woofipro : Exchange
             this.checkRequiredCredentials();
             if (isTrue(isTrue((isTrue(isEqual(method, "POST")) || isTrue(isEqual(method, "PUT")))) && isTrue((isTrue(isTrue(isEqual(path, "algo/order")) || isTrue(isEqual(path, "order"))) || isTrue(isEqual(path, "batch-order"))))))
             {
-                object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+                bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
                 if (isTrue(!isEqual(isSandboxMode, true)))
                 {
                     string? brokerId = this.safeString(this.options, "brokerId", "CCXT");
                     if (isTrue(isEqual(path, "batch-order")))
                     {
                         object ordersList = this.safeList(parameters, "orders", new List<object>() {});
-                        for (object i = 0; isLessThan(i, getArrayLength(ordersList)); postFixIncrement(ref i))
+                        for (int i = 0; isLessThan(i, getArrayLength(ordersList)); postFixIncrement(ref i))
                         {
                             ((IDictionary<string,object>)getValue(getValue(parameters, "orders"), i))["order_tag"] = brokerId;
                         }
@@ -4058,7 +4058,7 @@ public partial class woofipro : Exchange
         //     400 Bad Request {"success":false,"code":-1012,"message":"Amount is required for buy market orders when margin disabled."}
         //                     {"code":"-1011","message":"The system is under maintenance.","success":false}
         //
-        object success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success");
         string? errorCode = this.safeString(response, "code");
         if (isTrue(!isEqual(success, true)))
         {

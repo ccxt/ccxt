@@ -751,8 +751,8 @@ public partial class deribit : Exchange
             List<object> splitSymbol = ((string)bs).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>();
             splitBase = this.safeString(splitSymbol, 0);
         }
-        object strike = this.safeString(optionParts, 2);
-        object optionType = this.safeString(optionParts, 3);
+        string? strike = this.safeString(optionParts, 2);
+        string? optionType = this.safeString(optionParts, 3);
         object datetime = this.convertExpireDate(expiry);
         Int64? timestamp = this.parse8601(datetime);
         object id = add(add(add(add(add(add(bs, "-"), this.convertExpireDateToMarketIdDate(expiry)), "-"), strike), "-"), optionType);
@@ -1080,7 +1080,7 @@ public partial class deribit : Exchange
             //     }
             //
             object currenciesResult = this.safeValue(currenciesResponse, "result", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(currenciesResult)); postFixIncrement(ref i))
             {
                 string? currencyId = this.safeString(getValue(currenciesResult, i), "currency");
                 Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1163,10 +1163,10 @@ public partial class deribit : Exchange
                 ((IList<object>)instrumentsResponses).Add(instrumentsResponse);
             }
         }
-        for (object i = 0; isLessThan(i, getArrayLength(instrumentsResponses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(instrumentsResponses)); postFixIncrement(ref i))
         {
             object instrumentsResult = this.safeValue(getValue(instrumentsResponses, i), "result", new List<object>() {});
-            for (object k = 0; isLessThan(k, getArrayLength(instrumentsResult)); postFixIncrement(ref k))
+            for (int k = 0; isLessThan(k, getArrayLength(instrumentsResult)); postFixIncrement(ref k))
             {
                 object market = getValue(instrumentsResult, k);
                 string? kind = this.safeString(market, "kind");
@@ -1225,7 +1225,7 @@ public partial class deribit : Exchange
                         {
                             strike = this.safeNumber(market, "strike");
                             optionType = this.safeString(market, "option_type");
-                            object letter = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
+                            string letter = ((bool) isTrue((isEqual(optionType, "call")))) ? "C" : "P";
                             symbol = add(add(add(add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                         }
                     }
@@ -1312,7 +1312,7 @@ public partial class deribit : Exchange
         {
             summaries = new List<object>() {balance};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(summaries)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(summaries)); postFixIncrement(ref i))
         {
             object data = getValue(summaries, i);
             string? currencyId = this.safeString(data, "currency");
@@ -1538,7 +1538,7 @@ public partial class deribit : Exchange
         //         "ask_price": 0.021
         //     },
         //
-        object timestamp = this.safeInteger2(ticker, "timestamp", "creation_timestamp");
+        Int64? timestamp = this.safeInteger2(ticker, "timestamp", "creation_timestamp");
         string? marketId = this.safeString(ticker, "instrument_name");
         object symbol = this.safeSymbol(marketId, market);
         string? last = this.safeString2(ticker, "last_price", "last");
@@ -1645,7 +1645,7 @@ public partial class deribit : Exchange
         parameters = this.omit(parameters, new List<object>() {"code"});
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object market = this.market(getValue(symbols, i));
                 if (isTrue(isTrue(!isEqual(code, null)) && isTrue(!isEqual(code, getValue(market, "base")))))
@@ -1718,7 +1718,7 @@ public partial class deribit : Exchange
         //
         object result = this.safeList(response, "result", new List<object>() {});
         Dictionary<string, object> tickers = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object ticker = this.parseTicker(getValue(result, i));
             object symbol = getValue(ticker, "symbol");
@@ -1888,7 +1888,7 @@ public partial class deribit : Exchange
             takerOrMaker = ((bool) isTrue((isEqual(liquidity, "M")))) ? "maker" : "taker";
         }
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             string? feeCurrencyId = this.safeString(trade, "fee_currency");
@@ -1948,7 +1948,7 @@ public partial class deribit : Exchange
         {
             ((IDictionary<string,object>)request)["count"] = mathMin(limit, 1000); // default 10
         }
-        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -2068,7 +2068,7 @@ public partial class deribit : Exchange
         Dictionary<string, object> perpetualFee = new Dictionary<string, object>() {};
         Dictionary<string, object> futureFee = new Dictionary<string, object>() {};
         Dictionary<string, object> optionFee = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fees)); postFixIncrement(ref i))
         {
             object fee = getValue(fees, i);
             string? instrumentType = this.safeString(fee, "instrument_type");
@@ -2097,7 +2097,7 @@ public partial class deribit : Exchange
         }
         Dictionary<string, object> parsedFees = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -2294,7 +2294,7 @@ public partial class deribit : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "order_state"));
         string? side = this.safeStringLower(order, "direction");
         string? feeCostString = this.safeString(order, "commission");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             feeCostString = Precise.stringAbs(feeCostString);
@@ -3089,13 +3089,13 @@ public partial class deribit : Exchange
         //
         string? currencyId = this.safeString(transaction, "currency");
         object code = this.safeCurrencyCode(currencyId, currency);
-        object timestamp = this.safeInteger2(transaction, "created_timestamp", "received_timestamp");
+        Int64? timestamp = this.safeInteger2(transaction, "created_timestamp", "received_timestamp");
         Int64? updated = this.safeInteger(transaction, "updated_timestamp");
         object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         string? address = this.safeString(transaction, "address");
         object feeCost = this.safeNumber(transaction, "fee");
         string type = "deposit";
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             type = "withdrawal";
@@ -3365,7 +3365,7 @@ public partial class deribit : Exchange
         //
         object volatilityResult = this.safeValue(volatility, "result", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(volatilityResult)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(volatilityResult)); postFixIncrement(ref i))
         {
             Int64? timestamp = this.safeInteger(getValue(volatilityResult, i), 0);
             object volatilityObj = this.safeNumber(getValue(volatilityResult, i), 1);
@@ -3752,7 +3752,7 @@ public partial class deribit : Exchange
             { "instrument_name", getValue(market, "id") },
             { "start_timestamp", subtract(sinceVar, 1) },
         };
-        object until = this.safeInteger2(parameters, "until", "end_timestamp");
+        Int64? until = this.safeInteger2(parameters, "until", "end_timestamp");
         if (isTrue(!isEqual(until, null)))
         {
             parameters = this.omit(parameters, new List<object>() {"until"});
@@ -3789,7 +3789,7 @@ public partial class deribit : Exchange
         //
         List<object> rates = new List<object>() {};
         object result = this.safeValue(response, "result", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object fr = getValue(result, i);
             object rate = this.parseFundingRate(fr, market);

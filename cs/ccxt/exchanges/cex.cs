@@ -417,7 +417,7 @@ public partial class cex : Exchange
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
         object rawNetworks = this.safeDict(rawCurrency, "blockchains", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)rawNetworks).Keys);
-        for (object j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
         {
             object networkId = getValue(keys, j);
             object rawNetwork = getValue(rawNetworks, networkId);
@@ -961,7 +961,7 @@ public partial class cex : Exchange
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object market = null;
@@ -976,7 +976,7 @@ public partial class cex : Exchange
             }
         }
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             if (!isTrue((inOp(result, symbol))))
@@ -1111,7 +1111,7 @@ public partial class cex : Exchange
             { "info", response },
         };
         List<object> keys = new List<object>(((IDictionary<string,object>)response).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object balance = this.safeDict(response, key, new Dictionary<string, object>() {});
@@ -1357,7 +1357,7 @@ public partial class cex : Exchange
         //                "effectiveTime": null
         //
         object currency1 = this.safeString(order, "currency1");
-        object currency2 = this.safeString(order, "currency2");
+        string? currency2 = this.safeString(order, "currency2");
         object marketId = null;
         if (isTrue(isTrue(!isEqual(currency1, null)) && isTrue(!isEqual(currency2, null))))
         {
@@ -1582,7 +1582,7 @@ public partial class cex : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object ids = this.safeList(data, "clientOrderIds", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             ((IList<object>)orders).Add(new Dictionary<string, object>() {
@@ -2090,7 +2090,7 @@ public partial class cex : Exchange
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "do_my_new_order"), 0)))
         {
             object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
-            object rejectReason = this.safeString(data, "rejectReason");
+            string? rejectReason = this.safeString(data, "rejectReason");
             if (isTrue(!isEqual(rejectReason, null)))
             {
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), rejectReason, rejectReason);

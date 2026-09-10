@@ -609,7 +609,7 @@ public partial class hibachi : Exchange
         Int64? timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         string? cost = Precise.stringMul(price, amount);
         string? side = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? orderType = null;
         string? orderId = null;
         string? takerOrMaker = null;
@@ -898,7 +898,7 @@ public partial class hibachi : Exchange
         object takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1017,7 +1017,7 @@ public partial class hibachi : Exchange
             { "maxFeesPercent", this.numberToString(feeRate) },
         };
         object postOnly = this.isPostOnly(isEqual(((string)type).ToUpper(), "MARKET"), null, parameters);
-        object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         if (isTrue(postOnly))
@@ -1088,7 +1088,7 @@ public partial class hibachi : Exchange
         }
         object nonce = this.nonce();
         List<object> requestOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -1111,7 +1111,7 @@ public partial class hibachi : Exchange
         //
         List<object> ret = new List<object>() {};
         object responseOrders = this.safeList(response, "orders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -1203,7 +1203,7 @@ public partial class hibachi : Exchange
         }
         object nonce = this.nonce();
         List<object> requestOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? id = this.safeString(rawOrder, "id");
@@ -1227,7 +1227,7 @@ public partial class hibachi : Exchange
         //
         List<object> ret = new List<object>() {};
         object responseOrders = this.safeList(response, "orders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -1289,7 +1289,7 @@ public partial class hibachi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object orderRequest = this.cancelOrderRequest(getValue(ids, i));
             ((IDictionary<string,object>)orderRequest)["action"] = "cancel";
@@ -1305,7 +1305,7 @@ public partial class hibachi : Exchange
         //
         List<object> ret = new List<object>() {};
         object responseOrders = this.safeList(response, "orders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(responseOrders)); postFixIncrement(ref i))
         {
             object responseOrder = getValue(responseOrders, i);
             ((IList<object>)ret).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -1962,7 +1962,7 @@ public partial class hibachi : Exchange
         if (isTrue(isEqual(method, "GET")))
         {
             object request = this.omit(parameters, this.extractParams(path));
-            object query = this.urlencode(request);
+            string query = this.urlencode(request);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));
@@ -2041,7 +2041,7 @@ public partial class hibachi : Exchange
         object type = null;
         string? direction = null;
         object amount = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? referenceId = null;
         string? referenceAccount = null;
         object status = null;
@@ -2388,7 +2388,7 @@ public partial class hibachi : Exchange
     public virtual object parseSettlements(object settlements, object market = null)
     {
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(settlements)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseSettlement(getValue(settlements, i), market));
         }
@@ -2583,7 +2583,7 @@ public partial class hibachi : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             Int64? timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);

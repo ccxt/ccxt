@@ -311,7 +311,7 @@ public partial class woofipro : ccxt.woofipro
         object data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
             object market = this.safeMarket(marketId);
@@ -373,7 +373,7 @@ public partial class woofipro : ccxt.woofipro
         object data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "ts", timestamp },
@@ -432,7 +432,7 @@ public partial class woofipro : ccxt.woofipro
             throw new NotSupported ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
         object market = this.market(symbol);
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
         object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -609,12 +609,12 @@ public partial class woofipro : ccxt.woofipro
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? takerOrMaker = null;
-        object maker = this.safeBool(trade, "maker");
+        bool? maker = this.safeBool(trade, "maker");
         if (isTrue(!isEqual(maker, null)))
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeValue = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeValue, null)))
         {
@@ -751,7 +751,7 @@ public partial class woofipro : ccxt.woofipro
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object messageHash = topic;
@@ -796,7 +796,7 @@ public partial class woofipro : ccxt.woofipro
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
         object messageHash = "myTrades";
@@ -978,7 +978,7 @@ public partial class woofipro : ccxt.woofipro
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // algoexecutionreport
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
                 object tradeId = this.omitZero(this.safeString(data, "tradeId"));
@@ -1003,7 +1003,7 @@ public partial class woofipro : ccxt.woofipro
     public virtual void handleOrder(WebSocketClient client, object message, object topic)
     {
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1112,7 +1112,7 @@ public partial class woofipro : ccxt.woofipro
             {
                 throw new ArgumentsRequired ((string)add(this.id, " watchPositions() symbols is required")) ;
             }
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 if (isTrue(isEqual(symbols, null)))
                 {
@@ -1169,7 +1169,7 @@ public partial class woofipro : ccxt.woofipro
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             string? contracts = this.safeString(position, "contracts", "0");
@@ -1229,7 +1229,7 @@ public partial class woofipro : ccxt.woofipro
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             string? marketId = this.safeString(rawPosition, "symbol");
@@ -1380,7 +1380,7 @@ public partial class woofipro : ccxt.woofipro
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(balances, key);
@@ -1404,19 +1404,19 @@ public partial class woofipro : ccxt.woofipro
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!isTrue((inOp(message, "success"))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
-        object success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success");
         if (isTrue(isEqual(success, true)))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
@@ -1426,7 +1426,7 @@ public partial class woofipro : ccxt.woofipro
                 object feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             if (isTrue(error is AuthenticationError))
@@ -1441,7 +1441,7 @@ public partial class woofipro : ccxt.woofipro
             {
                 ((WebSocketClient)client).reject(error);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

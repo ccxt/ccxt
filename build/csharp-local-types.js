@@ -16,17 +16,23 @@
 // EXCEPT where C# resolves something at compile time against the declared type. Those cases
 // are rejected by csharpLocalIsSafeToRetype():
 //   - a later assignment whose value has another (or an unprovable) type
-//   - `ref` sinks: x++ / x-- / -x / +x print postFixIncrement(ref x) etc. (`ref object`)
+//   - `ref` sinks: -x / +x print prefixUnaryNeg(ref x) / prefixUnaryPlus(ref x) (`ref object`
+//     only). x++ / x-- print postFixIncrement(ref x) / postFixDecrement(ref x), which have
+//     exact (ref int) / (ref Int64) twins in Exchange.TranspileHelpers.cs, so an int / Int64
+//     local (the `for` counter family) is accepted there and rejected for every other type
 //   - compound assignment, spread, destructuring assignment
-//   - operands of `+` when the type is a string (add(string,string)/add(string,object)
-//     overloads have different null semantics than add(object,object)) and operands of `-`
-//     when the type is int/Int64 (subtract(int,int) returns an Int32 box, not Int64)
+//   - LEFT operands of `+` / `+=` when the type is a string: the left operand's static
+//     type picks the add overload, and add(object,object) returns null for a null left
+//     where add(string,*) returns the right operand. RIGHT operands are fine: no
+//     add(object,string) overload exists, and add(string,string) / add(string,object) are
+//     identical for every input (Exchange.TranspileHelpers.cs). Operands of `-` when the
+//     type is int/Int64 (subtract(int,int) returns an Int32 box, not Int64)
 //   - typeof on a non-nullable value type (`x is int` is CS0183, an error under
 //     TreatWarningsAsErrors)
 //   - a local/parameter in the same method literally named like a C# type token
 //
 // Helpers whose C# signature is `object` (safeDict, safeList, safeValue, safeNumber,
-// safeBool, safeCurrencyCode, safeSymbol, market, currency, getValue, add, every parse*,
+// safeCurrencyCode, safeSymbol, market, currency, getValue, add, every parse*,
 // anything awaited, ...) stay `object` on purpose: their box holds a value this module
 // cannot name without retyping the base.
 //
@@ -57,30 +63,58 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'safeStringUpper2': 'string?',
     'safeStringUpperN': 'string?',
     'safeInteger': 'Int64?',
+    'safeInteger2': 'Int64?',
+    'safeIntegerN': 'Int64?',
     'safeIntegerProduct': 'Int64?',
     'safeFloat': 'double?',
     'safeFloat2': 'double?',
     'safeFloatN': 'double?',
-    // Exchange.Time.cs (iso8601 is declared `string` but returns null for a null input)
+    // Exchange.BaseMethods.cs — generated `bool?` (the printer honours a `: boolean | undefined`
+    // return annotation; the nullable spelling is what keeps a missing key null, not false)
+    'safeBool': 'bool?',
+    'safeBool2': 'bool?',
+    'safeBoolN': 'bool?',
+    // Exchange.Time.cs (iso8601/ymd* are declared `string` but return null for a null input)
     'parse8601': 'Int64?',
     'iso8601': 'string?',
+    'ymdhms': 'string?',
+    'yyyymmdd': 'string?',
+    'yymmdd': 'string?',
+    'microseconds': 'Int64',
+    // Exchange.cs
+    'seconds': 'Int64',
+    'parseTimeframe': 'int',
+    'isEmpty': 'bool',
     // Exchange.Number.cs (numberToString is declared `string` but returns null for null)
     'numberToString': 'string?',
     'decimalToPrecision': 'string',
+    'precisionFromString': 'int',
     // Exchange.Encode.cs
     'urlencode': 'string',
+    'urlencodeWithArrayRepeat': 'string',
+    'urlencodeNested': 'string',
     'rawencode': 'string',
     'intToBase16': 'string',
     'stringToBase64': 'string',
-    // Exchange.cs
-    'parseTimeframe': 'int',
+    'binaryToBase64': 'string',
+    'binaryToString': 'string',
+    'encode': 'string?', // `(string)data` pass-through: null in, null out
+    'decode': 'string?',
+    // Exchange.String.cs
+    'uuid': 'string',
+    'uuid16': 'string',
+    'uuid22': 'string',
+    'capitalize': 'string',
     // Exchange.Functions.cs / Exchange.Generic.cs
     'keysort': 'Dictionary<string, object>',
     'sortBy': 'List<object>',
     'sortBy2': 'List<object>',
     'filterBy': 'List<object>',
+    'extractParams': 'List<object>',
     'toArray': 'IList<object>',
     'isArray': 'bool',
+    'inArray': 'bool',
+    'isJsonEncodedObject': 'bool',
 };
 
 // <Identifier>.<name>(...) -> C# type, keyed on the full callee text
@@ -128,6 +162,11 @@ const LIST_TYPES = [ 'List<object>', 'IList<object>' ];
 
 function isNullable (type) {
     return type.endsWith ('?') || type.startsWith ('Dictionary<') || type.startsWith ('List<') || type.startsWith ('IList<');
+}
+
+// the nullable spelling of a C# type (a `= null` / `= undefined` declaration needs one)
+function nullableOf (type) {
+    return isNullable (type) ? type : type + '?';
 }
 
 // can a value of `source` be stored in a local declared `target` WITHOUT changing the
@@ -378,7 +417,15 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
         }
         switch (parent.kind) {
         case ts.SyntaxKind.PostfixUnaryExpression:
-            return false; // postFixIncrement(ref x)
+            // x++ / x-- print postFixIncrement(ref x) / postFixDecrement(ref x). A `ref`
+            // argument binds only to its exact type; Exchange.TranspileHelpers.cs has the
+            // (ref object) overload plus (ref int) and (ref Int64) twins with the same
+            // unchecked +1 / -1, so an exact int / Int64 local binds. Nullable (Int64?),
+            // double and string locals have no twin and must stay `object`.
+            if (!isInt) {
+                return false;
+            }
+            break;
         case ts.SyntaxKind.PrefixUnaryExpression:
             if (parent.operator !== ts.SyntaxKind.ExclamationToken) {
                 return false; // prefixUnaryNeg(ref x) / prefixUnaryPlus(ref x)
@@ -421,8 +468,16 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
                 }
             }
             // overload resolution against the declared type: add(string, ...) and
-            // subtract(int, int) exist next to the (object, object) versions
-            if (isString && (op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken)) {
+            // subtract(int, int) exist next to the (object, object) versions.
+            // `+`: the LEFT operand's static type selects the add overload family —
+            // add(object, object) returns null for a null left, add(string, *) returns
+            // the right operand — so a string local on the left (or `x += ...`, which
+            // prints `x = add(x, ...)`) must stay `object`. A string local on the RIGHT
+            // cannot change the family: with an `object` left only add(object, object)
+            // is applicable (there is no add(object, string)); with a `string` left the
+            // call moves from add(string, object) to add(string, string), which are
+            // identical for every input (Exchange.TranspileHelpers.cs).
+            if (isString && isLeftPlusOperand (n)) {
                 return false;
             }
             if (isInt && (op === ts.SyntaxKind.MinusToken || op === ts.SyntaxKind.MinusEqualsToken)) {
@@ -430,6 +485,12 @@ export function csharpLocalIsSafeToRetype (csharp, scope, declaration, varName, 
             }
             break;
         }
+        case ts.SyntaxKind.ParenthesizedExpression:
+            // `(x) + y` prints `add((x), y)`: the parentheses keep x's static type
+            if (isString && isLeftPlusOperand (unwrapParens (n))) {
+                return false;
+            }
+            break;
         }
     }
     // `T x = <literal>;` that is never read is CS0219 (an error under TreatWarningsAsErrors)
@@ -447,6 +508,27 @@ function unwrapValue (node) {
         current = current.parent;
     }
     return current;
+}
+
+// climb through `(x)` only — `x as string` prints `((string)x)`, whose static type is
+// string whatever x was declared as, so it is not the local's type that matters there
+function unwrapParens (node) {
+    let current = node;
+    while (current.parent && current.parent.kind === ts.SyntaxKind.ParenthesizedExpression) {
+        current = current.parent;
+    }
+    return current;
+}
+
+// is `value` the LEFT operand of a `+` / `+=`? (prints `add(value, ...)`, so value's
+// static type picks the overload)
+function isLeftPlusOperand (value) {
+    const parent = value.parent;
+    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
+        return false;
+    }
+    const op = parent.operatorToken.kind;
+    return op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken;
 }
 
 // is `identifier` (possibly wrapped) the key of a `delete obj[key]`?
@@ -481,18 +563,53 @@ export function csharpLocalType (csharp, declaration) {
         return undefined;
     }
     const sourceName = declaration.name.escapedText;
+    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     let csharpType = csharpTypeOfValue (csharp, declaration.initializer);
     if (csharpType === 'null') {
-        csharpType = annotationType (declaration);
+        csharpType = annotationType (declaration) ?? typeFromLaterWrites (csharp, scope, declaration, sourceName);
     }
     if (csharpType === undefined || csharpType === csharp.VAR_TOKEN) {
         return undefined;
     }
-    const scope = (typeof csharp.csharpEnclosingFunction === 'function') ? csharp.csharpEnclosingFunction (declaration) : enclosingFunction (declaration);
     if (!csharpLocalIsSafeToRetype (csharp, scope, declaration, sourceName, csharpType)) {
         return undefined;
     }
     return csharpType;
+}
+
+// `let x = undefined; ... x = <a>; ... x = <b>;` — the nullable type of the writes when
+// every plain `x = ...` in the method has the same provable C# type (null writes are fine,
+// an unprovable or divergent write is not). The declaration is `= null`, so the result is
+// always the nullable spelling; csharpLocalIsSafeToRetype() re-checks every write and every
+// read afterwards exactly as for an initialised local.
+function typeFromLaterWrites (csharp, scope, declaration, varName) {
+    if (scope === undefined) {
+        return undefined;
+    }
+    const index = indexScope (csharp, scope);
+    let type = undefined;
+    for (const n of (index.identifiers.get (varName) ?? [])) {
+        if (n === declaration.name || isNotAUse (n)) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== n || parent.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+            continue;
+        }
+        const written = csharpTypeOfValue (csharp, parent.right);
+        if (written === undefined) {
+            return undefined;
+        }
+        if (written === 'null') {
+            continue;
+        }
+        if (type === undefined) {
+            type = written;
+        } else if (type !== written) {
+            return undefined;
+        }
+    }
+    return (type === undefined) ? undefined : nullableOf (type);
 }
 
 // wrap printVariableDeclarationList on a Transpiler's C# printer. Idempotent. Everything

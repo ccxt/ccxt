@@ -150,7 +150,7 @@ public partial class bithumb : ccxt.bithumb
         object url = ((bool) isTrue(isGenerationTwo)) ? getValue(getValue(getValue(this.urls, "api"), "ws"), "publicGen2") : getValue(getValue(getValue(this.urls, "api"), "ws"), "public");
         List<object> streamMarketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, symbolsLengthDefined); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, symbolsLengthDefined); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -539,7 +539,7 @@ public partial class bithumb : ccxt.bithumb
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
         object units = this.safeList(message, "orderbook_units", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(units)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(units)); postFixIncrement(ref i))
         {
             object entry = getValue(units, i);
             object bidPrice = this.safeNumber(entry, "bid_price");
@@ -591,7 +591,7 @@ public partial class bithumb : ccxt.bithumb
 
     public override void handleDeltas(object orderbook, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(orderbook, getValue(deltas, i));
         }
@@ -700,7 +700,7 @@ public partial class bithumb : ccxt.bithumb
         {
             rawTrades = new List<object>() {message};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object rawTrade = getValue(rawTrades, i);
             string? marketId = this.safeString2(rawTrade, "symbol", "code");
@@ -719,7 +719,7 @@ public partial class bithumb : ccxt.bithumb
                 fallbackSymbol = this.safeSymbol(marketId, null, "_");
             }
             object parsed = this.parseWsTrade(rawTrade);
-            object symbol = this.safeString(parsed, "symbol", fallbackSymbol);
+            string? symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!isTrue((inOp(this.trades, symbol))))
             {
                 Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -799,7 +799,7 @@ public partial class bithumb : ccxt.bithumb
         }, market);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -810,8 +810,8 @@ public partial class bithumb : ccxt.bithumb
         object error = this.safeDict(message, "error");
         if (isTrue(!isEqual(error, null)))
         {
-            object errorName = this.safeString(error, "name", "Error");
-            object errorMessage = this.safeString(error, "message", "");
+            string? errorName = this.safeString(error, "name", "Error");
+            string? errorMessage = this.safeString(error, "message", "");
             object addedMessage = null;
             if (isTrue((isGreaterThan(((string)errorMessage).Length, 0))))
             {
@@ -821,29 +821,29 @@ public partial class bithumb : ccxt.bithumb
                 addedMessage = "";
             }
             ((WebSocketClient)client).reject(new ExchangeError(add(add(add(this.id, " websocket error "), errorName), addedMessage)));
-            return false;
+            return ((bool?)((object)(false)));
         }
         if (!isTrue((inOp(message, "status"))))
         {
-            return true;
+            return ((bool?)((object)(true)));
         }
         string? errorCode = this.safeString(message, "status");
         try
         {
             if (isTrue(isTrue((isEqual(errorCode, "UP"))) || isTrue((isEqual(errorCode, "0000")))))
             {
-                return true;
+                return ((bool?)((object)(true)));
             }
             if (isTrue(!isEqual(errorCode, "0000")))
             {
-                object msg = this.safeString(message, "resmsg");
+                string? msg = this.safeString(message, "resmsg");
                 throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
             }
-            return true;
+            return ((bool?)((object)(true)));
         } catch(Exception e)
         {
             ((WebSocketClient)client).reject(e);
-            return false;
+            return ((bool?)((object)(false)));
         }
     }
 
@@ -904,7 +904,7 @@ public partial class bithumb : ccxt.bithumb
         {
             this.balance = new Dictionary<string, object>() {};
         }
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object asset = getValue(assets, i);
             string? currencyId = this.safeString(asset, "currency");
@@ -948,7 +948,7 @@ public partial class bithumb : ccxt.bithumb
     { "ticket", "ccxt" },
 }};
         List<object> keys = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
         }
@@ -1062,7 +1062,7 @@ public partial class bithumb : ccxt.bithumb
         //
         string messageHash = "myOrder";
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         // const orderId = this.safeString (parsed, 'id');
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1144,7 +1144,7 @@ public partial class bithumb : ccxt.bithumb
         string? filled = this.safeString(order, "executed_volume");
         string? cost = this.safeString(order, "executed_funds");
         string? feeCost = this.safeString(order, "paid_fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             object marketForFee = this.safeMarket(marketId, market);

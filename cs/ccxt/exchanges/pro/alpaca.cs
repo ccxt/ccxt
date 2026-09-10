@@ -280,7 +280,7 @@ public partial class alpaca : ccxt.alpaca
         object symbol = this.safeSymbol(marketId);
         string? datetime = this.safeString(message, "t");
         Int64? timestamp = this.parse8601(datetime);
-        object isSnapshot = this.safeBool(message, "r", false);
+        bool? isSnapshot = this.safeBool(message, "r", false);
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
@@ -312,7 +312,7 @@ public partial class alpaca : ccxt.alpaca
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -708,7 +708,7 @@ public partial class alpaca : ccxt.alpaca
         return await (future as Exchange.Future);
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -717,7 +717,7 @@ public partial class alpaca : ccxt.alpaca
         //        "msg": "invalid syntax"
         //    }
         //
-        object code = this.safeString(message, "code");
+        string? code = this.safeString(message, "code");
         object msg = this.safeValue(message, "msg", new Dictionary<string, object>() {});
         throw new ExchangeError ((string)add(add(add(add(this.id, " code: "), code), " message: "), msg)) ;
     }
@@ -735,7 +735,7 @@ public partial class alpaca : ccxt.alpaca
 
     public virtual void handleCryptoMessage(WebSocketClient client, object message)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(message)); postFixIncrement(ref i))
         {
             object data = getValue(message, i);
             string? T = this.safeString(data, "T");

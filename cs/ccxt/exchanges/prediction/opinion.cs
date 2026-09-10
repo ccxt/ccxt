@@ -187,7 +187,7 @@ public partial class opinion : PredictionExchange
             // unflattened row count in 'total' must be compared against fetchedRawCount, not
             // flatMarkets.length - otherwise expansion makes the comparison meaningless
             Int64? total = this.safeInteger(result, "total");
-            for (object i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, rawMarketsLength); postFixIncrement(ref i))
             {
                 object raw = getValue(rawMarkets, i);
                 Int64? marketType = this.safeInteger(raw, "marketType");
@@ -196,7 +196,7 @@ public partial class opinion : PredictionExchange
                     object eventVar = this.parseEvent(raw);
                     object childMarkets = getValue(eventVar, "markets");
                     int childMarketsLength = getArrayLength(childMarkets);
-                    for (object ci = 0; isLessThan(ci, childMarketsLength); postFixIncrement(ref ci))
+                    for (int ci = 0; isLessThan(ci, childMarketsLength); postFixIncrement(ref ci))
                     {
                         ((IList<object>)flatMarkets).Add(getValue(childMarkets, ci));
                     }
@@ -303,13 +303,13 @@ public partial class opinion : PredictionExchange
         List<object> outcomeTokenIds = new List<object> {this.safeString(raw, "yesTokenId"), this.safeString(raw, "noTokenId")};
         List<object> outcomes = new List<object>() {};
         object resolvedOutcome = null;
-        for (object i = 0; isLessThan(i, getArrayLength(outcomeLabels)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomeLabels)); postFixIncrement(ref i))
         {
             object label = getValue(outcomeLabels, i);
             object tokenId = getValue(outcomeTokenIds, i);
             object outcomeHandle = this.slugToOutcomeSymbol(effectiveEventSlug, slug, label);
-            object winner = null;
-            object settleFraction = null;
+            bool? winner = null;
+            int? settleFraction = null;
             if (isTrue(hasResult))
             {
                 winner = (isEqual(tokenId, resultTokenId));
@@ -477,7 +477,7 @@ public partial class opinion : PredictionExchange
             object pageEvents = this.safeList(result, "list", new List<object>() {});
             int pageEventsLength = getArrayLength(pageEvents);
             fetchedRawCount = this.sum(fetchedRawCount, pageEventsLength);
-            for (object i = 0; isLessThan(i, pageEventsLength); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, pageEventsLength); postFixIncrement(ref i))
             {
                 ((IList<object>)rawEvents).Add(getValue(pageEvents, i));
             }
@@ -494,14 +494,14 @@ public partial class opinion : PredictionExchange
         {
             this.markets = this.createSafeDictionary();
         }
-        for (object i = 0; isLessThan(i, rawEventsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, rawEventsLength); postFixIncrement(ref i))
         {
             object eventVar = this.parseEvent(getValue(rawEvents, i));
             ((IList<object>)parsedEvents).Add(eventVar);
             // register the parsed markets so populateOutcomes can index their outcomes
             object eventMarkets = this.safeList(eventVar, "markets", new List<object>() {});
             int eventMarketsLength = getArrayLength(eventMarkets);
-            for (object mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
+            for (int mi = 0; isLessThan(mi, eventMarketsLength); postFixIncrement(ref mi))
             {
                 object m = getValue(eventMarkets, mi);
                 ((IDictionary<string,object>)this.markets)[(string)getValue(m, "market")] = m;
@@ -648,7 +648,7 @@ public partial class opinion : PredictionExchange
         object rawChildren = this.safeList(rawEvent, "childMarkets", new List<object>() {});
         int rawChildrenLength = getArrayLength(rawChildren);
         List<object> marketsList = new List<object>() {};
-        for (object i = 0; isLessThan(i, rawChildrenLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, rawChildrenLength); postFixIncrement(ref i))
         {
             ((IList<object>)marketsList).Add(this.parseOpinionMarket(getValue(rawChildren, i), slug));
         }
@@ -792,7 +792,7 @@ public partial class opinion : PredictionExchange
         await this.loadOutcomes(outcomes);
         int outcomesLength = getArrayLength(outcomes);
         List<object> promises = new List<object>() {};
-        for (object i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(outcomes, i));
             object tokenId = ((string)getValue(outcomeObj, "outcomeId"));
@@ -805,7 +805,7 @@ public partial class opinion : PredictionExchange
         }
         object responses = await promiseAll(promises);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(outcomes, i));
             object priceIndex = multiply(i, 2);
@@ -909,7 +909,7 @@ public partial class opinion : PredictionExchange
         object history = this.safeList(result, "history", new List<object>() {});
         List<object> candles = new List<object>() {};
         int historyLength = getArrayLength(history);
-        for (object i = 0; isLessThan(i, historyLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, historyLength); postFixIncrement(ref i))
         {
             object point = getValue(history, i);
             object price = this.safeNumber(point, "p");
@@ -967,7 +967,7 @@ public partial class opinion : PredictionExchange
         object list = this.safeList(result, "list", new List<object>() {});
         int listLength = getArrayLength(list);
         Dictionary<string, object> quoteTokens = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, listLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, listLength); postFixIncrement(ref i))
         {
             object entry = getValue(list, i);
             string? address = this.safeStringLower(entry, "quoteTokenAddress");
@@ -1062,7 +1062,7 @@ public partial class opinion : PredictionExchange
     public virtual object opinionOrderRawAmounts(object isMarket, object side, object amount, object price, object decimals)
     {
         object decimalsStr = "1";
-        for (object i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
         {
             decimalsStr = add(decimalsStr, "0");
         }
@@ -1075,7 +1075,7 @@ public partial class opinion : PredictionExchange
                 { "takerAmount", "0" },
             };
         }
-        object priceStr = this.decimalToPrecision(this.numberToString(price), ROUND, 6, DECIMAL_PLACES);
+        string priceStr = this.decimalToPrecision(this.numberToString(price), ROUND, 6, DECIMAL_PLACES);
         List<object> priceParts = ((string)priceStr).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? priceInt = this.safeString(priceParts, 0, "0");
         string? priceFrac = this.safeString(priceParts, 1, "");
@@ -1160,7 +1160,7 @@ public partial class opinion : PredictionExchange
         string? takerAmount = this.safeString(amounts, "takerAmount");
         int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         object rest = this.omit(parameters, new List<object>() {"postOnly"});
         object maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
@@ -1235,7 +1235,7 @@ public partial class opinion : PredictionExchange
         };
         object response = await this.opinionPrivatePostOrderCancel(this.extend(request, parameters));
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object canceled = this.safeBool(result, "result", false);
+        bool? canceled = this.safeBool(result, "result", false);
         // a false result does NOT mean the order is still open — it may already be filled,
         // already cancelled, or unknown; don't invent a status the venue didn't report.
         // error responses with an errno never reach this line, handleErrors throws on them
@@ -1455,7 +1455,7 @@ public partial class opinion : PredictionExchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object trades = this.safeList(result, "list", new List<object>() {});
         int tradesLength = getArrayLength(trades);
-        for (object i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, tradesLength); postFixIncrement(ref i))
         {
             object trade = getValue(trades, i);
             string? tokenId = this.safeString(trade, "tokenId");
@@ -1567,7 +1567,7 @@ public partial class opinion : PredictionExchange
         object result = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object rawBalances = this.safeList(result, "balances", new List<object>() {});
         int rawBalancesLength = getArrayLength(rawBalances);
-        for (object i = 0; isLessThan(i, rawBalancesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, rawBalancesLength); postFixIncrement(ref i))
         {
             object rawBalance = getValue(rawBalances, i);
             string? quoteTokenAddress = this.safeString(rawBalance, "quoteToken");
@@ -1593,7 +1593,7 @@ public partial class opinion : PredictionExchange
         object data = this.safeDict(response, "result", new Dictionary<string, object>() {});
         object balances = this.safeList(data, "balances", new List<object>() {});
         int balancesLength = getArrayLength(balances);
-        for (object i = 0; isLessThan(i, balancesLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, balancesLength); postFixIncrement(ref i))
         {
             object balance = getValue(balances, i);
             string? code = this.safeString(balance, "symbol", "USDT");
@@ -1643,7 +1643,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> wantedTokenIds = new Dictionary<string, object>() {};
         // copy to a plain list so the strict null checks see one shape
         object outcomesList = ((bool) isTrue((isEqual(outcomes, null)))) ? new List<object>() {} : outcomes;
-        for (object i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
         {
             object outcomeObj = this.outcome(getValue(outcomesList, i));
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
@@ -1653,7 +1653,7 @@ public partial class opinion : PredictionExchange
             }
         }
         List<object> filtered = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsed)); postFixIncrement(ref i))
         {
             object position = getValue(parsed, i);
             object info = this.safeDict(position, "info", new Dictionary<string, object>() {});
@@ -1951,7 +1951,7 @@ public partial class opinion : PredictionExchange
         }
         List<object> marketKeys = new List<object>(((IDictionary<string,object>)this.markets).Keys);
         int marketKeysLength = getArrayLength(marketKeys);
-        for (object i = 0; isLessThan(i, marketKeysLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, marketKeysLength); postFixIncrement(ref i))
         {
             object market = getValue(this.markets, getValue(marketKeys, i));
             object info = this.safeDict(market, "info", new Dictionary<string, object>() {});
@@ -2032,7 +2032,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;
@@ -2087,7 +2087,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;
@@ -2148,7 +2148,7 @@ public partial class opinion : PredictionExchange
         //
         string? tokenId = this.safeString(message, "tokenId");
         object outcomeObj = this.safeDict(this.outcomes_by_id, tokenId);
-        object sym = this.safeString(outcomeObj, "outcome");
+        string? sym = this.safeString(outcomeObj, "outcome");
         if (isTrue(isEqual(sym, null)))
         {
             return;

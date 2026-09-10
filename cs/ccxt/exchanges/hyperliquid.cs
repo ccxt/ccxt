@@ -376,7 +376,7 @@ public partial class hyperliquid : Exchange
             if (isTrue(inOp(spotCurrencyMapping, ((string)baseName))))
             {
                 string? unifiedBaseName = this.safeString(spotCurrencyMapping, baseName);
-                object quote = this.safeString(symbolParts, 1);
+                string? quote = this.safeString(symbolParts, 1);
                 object newSymbol = add(add(this.safeCurrencyCode(unifiedBaseName), "/"), quote);
                 if (isTrue(inOp(this.markets, newSymbol)))
                 {
@@ -509,7 +509,7 @@ public partial class hyperliquid : Exchange
             {
                 List<object> parts = ((string)name).Split(new [] {((string)"U")}, StringSplitOptions.None).ToList<object>();
                 object nameWithoutU = "";
-                for (object j = 0; isLessThan(j, getArrayLength(parts)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(parts)); postFixIncrement(ref j))
                 {
                     nameWithoutU = add(nameWithoutU, getValue(parts, j));
                 }
@@ -538,7 +538,7 @@ public partial class hyperliquid : Exchange
         object options = this.safeDict(this.options, "fetchMarkets", new Dictionary<string, object>() {});
         object types = this.safeList(options, "types", new List<object>() {});
         List<object> rawPromises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(types)); postFixIncrement(ref i))
         {
             object marketType = getValue(types, i);
             if (isTrue(isEqual(marketType, "swap")))
@@ -554,7 +554,7 @@ public partial class hyperliquid : Exchange
         }
         object promises = await promiseAll(rawPromises);
         object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             result = this.arrayConcat(result, getValue(promises, i));
         }
@@ -657,7 +657,7 @@ public partial class hyperliquid : Exchange
             List<object> result = new List<object>() {};
             // helper because some endpoints return just the coin name like: flx:crcl
             // and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
-            for (object j = 0; isLessThan(j, getArrayLength(universe)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(universe)); postFixIncrement(ref j))
             {
                 Dictionary<string, object> data = this.extend(this.safeDict(universe, j, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, j, new Dictionary<string, object>() {}));
                 ((IDictionary<string,object>)data)["baseId"] = this.sum(j, offset);
@@ -767,7 +767,7 @@ public partial class hyperliquid : Exchange
         object universe = this.safeList(meta, "universe", new List<object>() {});
         object assetCtxs = this.safeList(response, 1, new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
         {
             Dictionary<string, object> data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             ((IDictionary<string,object>)data)["baseId"] = i;
@@ -894,7 +894,7 @@ public partial class hyperliquid : Exchange
         object meta = this.safeList(first, "universe", new List<object>() {});
         object tokens = this.safeList(first, "tokens", new List<object>() {});
         List<object> markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(meta)); postFixIncrement(ref i))
         {
             object market = this.safeDict(meta, i, new Dictionary<string, object>() {});
             Int64? index = this.safeInteger(market, "index");
@@ -1057,7 +1057,7 @@ public partial class hyperliquid : Exchange
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
         string? pricePrecisionStr = this.numberToString(pricePrecision);
-        object isDelisted = this.safeBool(market, "isDelisted");
+        bool? isDelisted = this.safeBool(market, "isDelisted");
         bool active = true;
         if (isTrue(!isEqual(isDelisted, null)))
         {
@@ -1211,7 +1211,7 @@ public partial class hyperliquid : Exchange
             Dictionary<string, object> spotBalances = new Dictionary<string, object>() {
                 { "info", response },
             };
-            for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
             {
                 object balance = getValue(balances, i);
                 object unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
@@ -1360,7 +1360,7 @@ public partial class hyperliquid : Exchange
         }
         // same response as under "fetchMarkets"
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object market = getValue(response, i);
             object info = getValue(market, "info");
@@ -1445,7 +1445,7 @@ public partial class hyperliquid : Exchange
         object universe = this.safeList(meta, "universe", new List<object>() {});
         object assetCtxs = this.safeList(response, 1, new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(universe)); postFixIncrement(ref i))
         {
             Dictionary<string, object> data = this.extend(this.safeDict(universe, i, new Dictionary<string, object>() {}), this.safeDict(assetCtxs, i, new Dictionary<string, object>() {}));
             ((IList<object>)result).Add(data);
@@ -1788,7 +1788,7 @@ public partial class hyperliquid : Exchange
     public virtual object signL1Action(object action, object nonce, object vaultAdress = null, object expiresAfter = null)
     {
         object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
-        object isTestnet = this.safeBool(this.options, "sandboxMode", false);
+        bool? isTestnet = this.safeBool(this.options, "sandboxMode", false);
         object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
         //     'domain': {
@@ -2002,7 +2002,7 @@ public partial class hyperliquid : Exchange
     public async virtual Task<object> approveBuilderFee(object builder, object maxFeeRate)
     {
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         Dictionary<string, object> payload = new Dictionary<string, object>() {
             { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
             { "maxFeeRate", maxFeeRate },
@@ -2049,8 +2049,8 @@ public partial class hyperliquid : Exchange
 
     public async virtual Task<object> handleBuilderFeeApproval()
     {
-        object buildFee = this.safeBool(this.options, "builderFee", true);
-        object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
         if (isTrue(isEqual(approvedBuilderFee, true)))
         {
             return true;  // skip if builder fee is already approved
@@ -2158,7 +2158,7 @@ public partial class hyperliquid : Exchange
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(parameters, "type", "userSetAbstraction");
         parameters = this.omit(parameters, "type");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -2210,7 +2210,7 @@ public partial class hyperliquid : Exchange
         userAddress = ((IList<object>)userAddressparametersVariable)[0];
         parameters = ((IList<object>)userAddressparametersVariable)[1];
         Int64 nonce = this.milliseconds();
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
         string? type = this.safeString(parameters, "type", "userDexAbstraction");
         parameters = this.omit(parameters, "type");
         Dictionary<string, object> payload = new Dictionary<string, object>() {
@@ -2333,7 +2333,7 @@ public partial class hyperliquid : Exchange
         Int64 nonce = this.milliseconds();
         bool isBuy = (isEqual(side, "BUY"));
         object vaultAddress = null;
-        object randomize = this.safeBool(parameters, "randomize", false);
+        bool? randomize = this.safeBool(parameters, "randomize", false);
         parameters = this.omit(parameters, "randomize");
         var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
@@ -2431,7 +2431,7 @@ public partial class hyperliquid : Exchange
         object data = this.safeDict(responseObj, "data", new Dictionary<string, object>() {});
         object statuses = this.safeList(data, "statuses", new List<object>() {});
         List<object> ordersToBeParsed = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
             object order = getValue(statuses, i);
             if (isTrue(isEqual(order, "waitingForTrigger")))
@@ -2466,7 +2466,7 @@ public partial class hyperliquid : Exchange
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         string? slippage = this.safeString(parameters, "slippage");
         string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
-        object postOnly = this.safeBool(parameters, "postOnly", false);
+        bool? postOnly = this.safeBool(parameters, "postOnly", false);
         if (isTrue(isEqual(postOnly, true)))
         {
             defaultTimeInForce = "alo";
@@ -2491,7 +2491,7 @@ public partial class hyperliquid : Exchange
             px = this.priceToPrecision(symbol, price);
         }
         object sz = this.amountToPrecision(symbol, amount);
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Dictionary<string, object> orderType = new Dictionary<string, object>() {};
         if (isTrue(isTrigger))
         {
@@ -2547,7 +2547,7 @@ public partial class hyperliquid : Exchange
         string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
         defaultSlippage = this.safeString(parameters, "slippage", defaultSlippage);
         bool hasClientOrderId = false;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -2559,7 +2559,7 @@ public partial class hyperliquid : Exchange
         }
         if (isTrue(hasClientOrderId))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
                 object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -2574,7 +2574,7 @@ public partial class hyperliquid : Exchange
         Int64 nonce = this.milliseconds();
         List<object> orderReq = new List<object>() {};
         object grouping = "na";
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2756,7 +2756,7 @@ public partial class hyperliquid : Exchange
         object data = this.safeDict(innerResponse, "data");
         object statuses = this.safeList(data, "statuses", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
         {
             object status = getValue(statuses, i);
             ((IList<object>)orders).Add(this.safeOrder(new Dictionary<string, object>() {
@@ -2871,7 +2871,7 @@ public partial class hyperliquid : Exchange
                 clientOrderId = new List<object>() {clientOrderId};
             }
             ((IDictionary<string,object>)cancelAction)["type"] = "cancelByCloid";
-            for (object i = 0; isLessThan(i, getArrayLength(clientOrderId)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(clientOrderId)); postFixIncrement(ref i))
             {
                 ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
                     { "asset", baseId },
@@ -2881,7 +2881,7 @@ public partial class hyperliquid : Exchange
         } else
         {
             ((IDictionary<string,object>)cancelAction)["type"] = "cancel";
-            for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
             {
                 object o = this.parseToNumeric(getValue(ids, i));
                 ((IList<object>)cancelReq).Add(new Dictionary<string, object>() {
@@ -2938,7 +2938,7 @@ public partial class hyperliquid : Exchange
             { "cancels", new List<object>() {} },
         };
         bool cancelByCloid = false;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             string? clientOrderId = this.safeString(order, "clientOrderId");
@@ -3052,7 +3052,7 @@ public partial class hyperliquid : Exchange
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
         bool hasClientOrderId = false;
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -3064,7 +3064,7 @@ public partial class hyperliquid : Exchange
         }
         if (isTrue(hasClientOrderId))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
                 object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
@@ -3077,7 +3077,7 @@ public partial class hyperliquid : Exchange
         }
         parameters = this.omit(parameters, new List<object>() {"slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce"});
         List<object> modifies = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? id = this.safeString(rawOrder, "id");
@@ -3094,7 +3094,7 @@ public partial class hyperliquid : Exchange
             string? defaultSlippage = this.safeString(this.options, "defaultSlippage");
             string? slippage = this.safeString(orderParams, "slippage", defaultSlippage);
             string defaultTimeInForce = ((bool) isTrue((isMarket))) ? "ioc" : "gtc";
-            object postOnly = this.safeBool(orderParams, "postOnly", false);
+            bool? postOnly = this.safeBool(orderParams, "postOnly", false);
             if (isTrue(isEqual(postOnly, true)))
             {
                 defaultTimeInForce = "alo";
@@ -3106,7 +3106,7 @@ public partial class hyperliquid : Exchange
             string? stopLossPrice = this.safeString(orderParams, "stopLossPrice", triggerPrice);
             string? takeProfitPrice = this.safeString(orderParams, "takeProfitPrice");
             bool isTrigger = (isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null))));
-            object reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
+            bool? reduceOnly = this.safeBool(orderParams, "reduceOnly", false);
             orderParams = this.omit(orderParams, new List<object>() {"slippage", "timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "clientOrderId", "client_id", "postOnly", "reduceOnly"});
             object px = this.numberToString(price);
             if (isTrue(isMarket))
@@ -3391,7 +3391,7 @@ public partial class hyperliquid : Exchange
         {
             fundings = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(fundings)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fundings)); postFixIncrement(ref i))
         {
             object entry = getValue(fundings, i);
             Int64? timestamp = this.safeInteger(entry, "time");
@@ -3484,7 +3484,7 @@ public partial class hyperliquid : Exchange
         {
             rawOrders = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object order = getValue(rawOrders, i);
             Dictionary<string, object> extendOrder = new Dictionary<string, object>() {};
@@ -3632,7 +3632,7 @@ public partial class hyperliquid : Exchange
         {
             historicalOrders = response;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(historicalOrders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(historicalOrders, i);
             object entry = this.safeDict(rawOrder, "order");
@@ -4070,7 +4070,7 @@ public partial class hyperliquid : Exchange
         }
         string? fee = this.safeString(trade, "fee");
         string? takerOrMaker = null;
-        object crossed = this.safeBool(trade, "crossed");
+        bool? crossed = this.safeBool(trade, "crossed");
         if (isTrue(!isEqual(crossed, null)))
         {
             takerOrMaker = ((bool) isTrue(crossed)) ? "taker" : "maker";
@@ -4130,7 +4130,7 @@ public partial class hyperliquid : Exchange
             return null;
         }
         object dexName = null;
-        for (object i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, symbolsLength); postFixIncrement(ref i))
         {
             if (isTrue(isEqual(dexName, null)))
             {
@@ -4230,7 +4230,7 @@ public partial class hyperliquid : Exchange
         //
         object data = this.safeList(response, "assetPositions", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parsePosition(getValue(data, i)));
         }
@@ -4581,7 +4581,7 @@ public partial class hyperliquid : Exchange
         {
             await this.loadMarkets();
         }
-        object isSandboxMode = this.safeBool(this.options, "sandboxMode");
+        bool? isSandboxMode = this.safeBool(this.options, "sandboxMode");
         Int64 nonce = this.milliseconds();
         if (isTrue(this.inArray(fromAccount, new List<object>() {"spot", "swap", "perp"})))
         {
@@ -4680,7 +4680,7 @@ public partial class hyperliquid : Exchange
             object currency = this.currency(code);
             object currencyInfo = this.safeDict(currency, "info", new Dictionary<string, object>() {});
             object tokenName = this.safeString(currencyInfo, "name");
-            object tokenId = this.safeString(currencyInfo, "tokenId");
+            string? tokenId = this.safeString(currencyInfo, "tokenId");
             object token = add(add(tokenName, ":"), tokenId);
             Dictionary<string, object> action = new Dictionary<string, object>() {
                 { "type", "subAccountSpotTransfer" },
@@ -4770,7 +4770,7 @@ public partial class hyperliquid : Exchange
             sig = this.signL1Action(action, nonce);
         } else
         {
-            object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            bool? isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Dictionary<string, object> payload = new Dictionary<string, object>() {
                 { "hyperliquidChain", ((bool) isTrue((isEqual(isSandboxMode, true)))) ? "Testnet" : "Mainnet" },
                 { "destination", address },
@@ -4814,7 +4814,7 @@ public partial class hyperliquid : Exchange
         //
         Int64? timestamp = this.safeInteger(transaction, "time");
         object delta = this.safeDict(transaction, "delta", new Dictionary<string, object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -5039,7 +5039,7 @@ public partial class hyperliquid : Exchange
         //
         Int64? timestamp = this.safeInteger(item, "time");
         object delta = this.safeDict(item, "delta", new Dictionary<string, object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         Int64? feeCost = this.safeInteger(delta, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -5148,7 +5148,7 @@ public partial class hyperliquid : Exchange
         object deposits = new List<object>() {};
         if (isTrue(!isEqual(vaultAddress, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
             {
                 object record = getValue(records, i);
                 if (isTrue(isEqual(getValue(record, "type"), "vaultDeposit")))
@@ -5233,7 +5233,7 @@ public partial class hyperliquid : Exchange
         object withdrawals = new List<object>() {};
         if (isTrue(!isEqual(vaultAddress, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(records)); postFixIncrement(ref i))
             {
                 object record = getValue(records, i);
                 if (isTrue(isEqual(getValue(record, "type"), "vaultWithdraw")))
@@ -5495,7 +5495,7 @@ public partial class hyperliquid : Exchange
     {
         data ??= new List<object>();
         List<object> records = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object record = getValue(data, i);
             ((IDictionary<string,object>)record)["type"] = getValue(getValue(record, "delta"), "type");
@@ -5549,7 +5549,7 @@ public partial class hyperliquid : Exchange
         if (isTrue(!isEqual(this.safeDict(hi3TokensByname, coin), null)))
         {
             object hip3Dict = this.safeDict(hi3TokensByname, coin);
-            object quote = this.safeString(hip3Dict, "quote", "USDC");
+            string? quote = this.safeString(hip3Dict, "quote", "USDC");
             object code = this.safeString(hip3Dict, "code", coin);
             return add(add(add(add(code, "/"), quote), ":"), quote);
         }
@@ -5597,7 +5597,7 @@ public partial class hyperliquid : Exchange
             object responsePayload = this.safeDict(response, "response", new Dictionary<string, object>() {});
             object data = this.safeDict(responsePayload, "data", new Dictionary<string, object>() {});
             object statuses = this.safeList(data, "statuses", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(statuses)); postFixIncrement(ref i))
             {
                 message = this.safeString(getValue(statuses, i), "error");
                 if (isTrue(!isEqual(message, null)))

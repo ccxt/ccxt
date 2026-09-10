@@ -448,7 +448,7 @@ public partial class cryptomus : Exchange
         string? id = null; // all entries have same id, as they were grouped by
         object code = null;
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
             object networkEntry = getValue(rawCurrency, i);
             // set ID on first loop
@@ -738,7 +738,7 @@ public partial class cryptomus : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", balance },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balance)); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
@@ -949,7 +949,7 @@ public partial class cryptomus : Exchange
         //
         object result = this.safeList(response, "result", new List<object>() {});
         List<object> orders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object order = getValue(result, i);
             ((IList<object>)orders).Add(this.parseOrder(order, market));
@@ -1083,7 +1083,7 @@ public partial class cryptomus : Exchange
         string? side = this.safeString(order, "direction");
         object price = this.safeNumber(order, "price");
         object transaction = this.safeList(deal, "transactions", new List<object>() {});
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object firstTx = this.safeDict(transaction, 0);
         string? feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (isTrue(!isEqual(feeCurrency, null)))
@@ -1214,7 +1214,7 @@ public partial class cryptomus : Exchange
         {
             return ccxt.BaseExchange.ToTradingFees(result);
         }
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1234,7 +1234,7 @@ public partial class cryptomus : Exchange
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(feeTiers)); postFixIncrement(ref i))
         {
             object tier = getValue(feeTiers, i);
             object turnover = this.safeNumber(tier, "from_turnover");
@@ -1273,7 +1273,7 @@ public partial class cryptomus : Exchange
                 ((IDictionary<string,object>)headers)["Content-Type"] = "application/json";
             } else
             {
-                object query = this.urlencode(parameters);
+                string query = this.urlencode(parameters);
                 if (isTrue(!isEqual(((string)query).Length, 0)))
                 {
                     url = add(url, add("?", query));
@@ -1285,7 +1285,7 @@ public partial class cryptomus : Exchange
             ((IDictionary<string,object>)headers)["sign"] = signature;
         } else
         {
-            object query = this.urlencode(parameters);
+            string query = this.urlencode(parameters);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 url = add(url, add("?", query));

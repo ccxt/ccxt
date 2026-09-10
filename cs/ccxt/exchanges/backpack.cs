@@ -643,7 +643,7 @@ public partial class backpack : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object networks = this.safeList(rawCurrency, "tokens", new List<object>() {});
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "blockchain");
@@ -831,7 +831,7 @@ public partial class backpack : Exchange
         object maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
         object minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         object amountPrecision = this.safeNumber(quantityFilter, "stepSize");
-        object type = null;
+        string? type = null;
         object typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
         bool? linear = null;
         bool? inverse = null;
@@ -1312,7 +1312,7 @@ public partial class backpack : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> rawRates = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawRates)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawRates)); postFixIncrement(ref i))
         {
             object rate = getValue(rawRates, i);
             string? datetime = this.safeString(rate, "intervalEndTimestamp");
@@ -1455,9 +1455,9 @@ public partial class backpack : Exchange
         market = this.safeMarket(marketId, market);
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "quantity");
-        object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        bool? isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
         object side = this.parseOrderSide(this.safeString(trade, "side"));
-        object isMaker = this.safeBool(trade, "isMaker");
+        bool? isMaker = this.safeBool(trade, "isMaker");
         string? takerOrMaker = null;
         if (isTrue(!isEqual(isMaker, null)))
         {
@@ -1468,7 +1468,7 @@ public partial class backpack : Exchange
             side = ((bool) isTrue(isBuyerMaker)) ? "sell" : "buy";
         }
         string? orderId = this.safeString(trade, "orderId");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmount = this.safeString(trade, "fee");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         if (isTrue(!isEqual(feeAmount, null)))
@@ -1579,7 +1579,7 @@ public partial class backpack : Exchange
         //
         List<object> balanceKeys = new List<object>(((IDictionary<string,object>)response).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balanceKeys)); postFixIncrement(ref i))
         {
             object id = getValue(balanceKeys, i);
             object code = this.safeCurrencyCode(id);
@@ -1818,8 +1818,8 @@ public partial class backpack : Exchange
         string? addressFrom = this.safeString(transaction, "fromAddress");
         string? tag = this.safeString(transaction, "platformMemo");
         object feeCost = this.safeNumber(transaction, "fee");
-        object intern = this.safeBool(transaction, "isInternal", false);
-        object fee = null;
+        bool? intern = this.safeBool(transaction, "isInternal", false);
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1978,7 +1978,7 @@ public partial class backpack : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? marketId = this.safeString(rawOrder, "symbol");
@@ -2373,8 +2373,8 @@ public partial class backpack : Exchange
         object status = this.parseOrderStatus(this.safeString(order, "status"));
         string? triggerPrice = this.safeString(order, "triggerPrice");
         string? filled = this.safeString(order, "executedQuantity");
-        object reduceOnly = this.safeBool(order, "reduceOnly");
-        object postOnly = this.safeBool(order, "postOnly");
+        bool? reduceOnly = this.safeBool(order, "reduceOnly");
+        bool? postOnly = this.safeBool(order, "postOnly");
         string? stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         string? takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -2624,10 +2624,10 @@ public partial class backpack : Exchange
         {
             this.checkRequiredCredentials();
             string ts = ((object)this.nonce()).ToString();
-            object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
+            string? recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             object optionInstructions = this.safeDict(this.options, "instructions", new Dictionary<string, object>() {});
             object optionPathInstructions = this.safeDict(optionInstructions, path, new Dictionary<string, object>() {});
-            object instruction = this.safeString(optionPathInstructions, method, "");
+            string? instruction = this.safeString(optionPathInstructions, method, "");
             object payload = "";
             if (isTrue(isTrue((isEqual(path, "api/v1/orders"))) && isTrue((isEqual(method, "POST")))))
             {
@@ -2659,7 +2659,7 @@ public partial class backpack : Exchange
         }
         if (isTrue(isEqual(method, "GET")))
         {
-            object query = this.urlencode(sortedParams);
+            string query = this.urlencode(sortedParams);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {
                 endpoint = add(endpoint, add("?", query));
@@ -2677,11 +2677,11 @@ public partial class backpack : Exchange
     public virtual object generateBatchPayload(object parameters, object ts, object recvWindow, object instruction)
     {
         object payload = "";
-        for (object i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parameters)); postFixIncrement(ref i))
         {
             object order = this.safeDict(parameters, i, new Dictionary<string, object>() {});
             Dictionary<string, object> sortedOrder = this.keysort(order);
-            object orderQuery = this.urlencode(sortedOrder);
+            string orderQuery = this.urlencode(sortedOrder);
             payload = add(payload, add(add(add(add("instruction=", instruction), "&"), orderQuery), "&"));
             if (isTrue(isEqual(i, (subtract(getArrayLength(parameters), 1)))))
             {

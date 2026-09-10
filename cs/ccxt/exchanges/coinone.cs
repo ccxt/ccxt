@@ -533,7 +533,7 @@ public partial class coinone : Exchange
         //
         object tickers = this.safeList(response, "tickers", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object entry = this.safeValue(tickers, i);
             string? id = this.safeString(entry, "id");
@@ -602,7 +602,7 @@ public partial class coinone : Exchange
         };
         object balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
             object currencyId = getValue(currencyIds, i);
             object balance = getValue(balances, currencyId);
@@ -909,7 +909,7 @@ public partial class coinone : Exchange
         //
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
-        object isSellerMaker = this.safeBool(trade, "is_seller_maker");
+        bool? isSellerMaker = this.safeBool(trade, "is_seller_maker");
         string? side = null;
         if (isTrue(!isEqual(isSellerMaker, null)))
         {
@@ -919,7 +919,7 @@ public partial class coinone : Exchange
         string? amountString = this.safeString(trade, "qty");
         string? orderId = this.safeString(trade, "orderId");
         string? feeCostString = this.safeString(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCostString, null)))
         {
             feeCostString = Precise.stringAbs(feeCostString);
@@ -1211,7 +1211,7 @@ public partial class coinone : Exchange
             }
         }
         status = this.parseOrderStatus(status);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(order, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -1424,7 +1424,7 @@ public partial class coinone : Exchange
         object walletAddress = this.safeDict(response, "walletAddress", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)walletAddress).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             object value = getValue(walletAddress, key);

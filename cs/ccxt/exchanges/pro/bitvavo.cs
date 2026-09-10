@@ -101,7 +101,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbols = this.marketSymbols(symbols);
         List<object> messageHashes = new List<object>() {methodName};
         List<object> args = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)args).Add(((string)getValue(market, "id")));
@@ -182,10 +182,10 @@ public partial class bitvavo : ccxt.bitvavo
         object eventVar = this.safeString(message, "event");
         object tickers = this.safeValue(message, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
-            object marketId = this.safeString(data, "market");
+            string? marketId = this.safeString(data, "market");
             object market = this.safeMarket(marketId, null, "-");
             object messageHash = add(add(eventVar, "@"), marketId);
             object ticker = this.parseTicker(data, market);
@@ -224,7 +224,7 @@ public partial class bitvavo : ccxt.bitvavo
         string eventVar = "bidask";
         object tickers = this.safeValue(message, "data", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object data = getValue(tickers, i);
             object ticker = this.parseWsBidAsk(data);
@@ -296,7 +296,7 @@ public partial class bitvavo : ccxt.bitvavo
         //         "side": "buy"
         //     }
         //
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         string name = "trades";
@@ -336,7 +336,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
@@ -396,7 +396,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "trades";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
@@ -438,7 +438,7 @@ public partial class bitvavo : ccxt.bitvavo
         symbolVar = getValue(market, "symbol");
         string name = "candles";
         object marketId = getValue(market, "id");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -495,10 +495,10 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string name = "candles";
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
-        object interval = this.safeString(message, "interval");
+        string? interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
         object timeframe = this.findTimeframe(interval);
         object messageHash = add(add(add(add(name, "@"), marketId), "_"), interval);
@@ -511,7 +511,7 @@ public partial class bitvavo : ccxt.bitvavo
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)((string)timeframe)] = stored;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
             object candle = getValue(candles, i);
             object parsed = this.parseOHLCV(candle, market);
@@ -543,12 +543,12 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> messageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -559,7 +559,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
             object interval = getValue(intervals, i);
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
@@ -622,12 +622,12 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "candles";
         List<object> subMessageHashes = new List<object>() {};
         Dictionary<string, object> marketIdsByInterval = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbolsAndTimeframes)); postFixIncrement(ref i))
         {
             object symbolAndTimeframe = getValue(symbolsAndTimeframes, i);
             object market = this.market(getValue(symbolAndTimeframe, 0));
             object timeframeString = getValue(symbolAndTimeframe, 1);
-            object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
+            string? interval = this.safeString(this.timeframes, timeframeString, timeframeString);
             if (!isTrue((inOp(marketIdsByInterval, interval))))
             {
                 ((IDictionary<string,object>)marketIdsByInterval)[(string)interval] = new List<object>() {};
@@ -640,7 +640,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
         List<object> channels = new List<object>() {};
         List<object> intervals = new List<object>(((IDictionary<string,object>)marketIdsByInterval).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(intervals)); postFixIncrement(ref i))
         {
             object interval = getValue(intervals, i);
             ((IList<object>)channels).Add(new Dictionary<string, object>() {
@@ -719,7 +719,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
@@ -781,7 +781,7 @@ public partial class bitvavo : ccxt.bitvavo
         string name = "book";
         List<object> marketIds = new List<object>() {};
         List<object> subMessageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = this.market(getValue(symbols, i));
             ((IList<object>)marketIds).Add(((string)getValue(market, "id")));
@@ -806,7 +806,7 @@ public partial class bitvavo : ccxt.bitvavo
 
     public override void handleDeltas(object bookside, object deltas)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(deltas)); postFixIncrement(ref i))
         {
             this.handleDelta(bookside, getValue(deltas, i));
         }
@@ -853,7 +853,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         object eventVar = this.safeString(message, "event");
-        object marketId = this.safeString(message, "market");
+        string? marketId = this.safeString(message, "market");
         object market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         object messageHash = add(add(eventVar, "@"), getValue(market, "id"));
@@ -891,7 +891,7 @@ public partial class bitvavo : ccxt.bitvavo
         object parameters = this.safeValue(subscription, "params");
         // multi-symbol watches share one subscription object without a marketId,
         // in that case the buffered delta message identifies the market
-        object marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
+        string? marketId = this.safeString2(subscription, "marketId", "market", this.safeString(message, "market"));
         object snapshotSymbol = this.safeSymbol(marketId, null, "-");
         if (!isTrue((inOp(this.orderbooks, snapshotSymbol))))
         {
@@ -936,7 +936,7 @@ public partial class bitvavo : ccxt.bitvavo
         {
             return;
         }
-        object marketId = this.safeString(response, "market");
+        string? marketId = this.safeString(response, "market");
         object symbol = this.safeSymbol(marketId, null, "-");
         string name = "book";
         object messageHash = add(add(name, "@"), marketId);
@@ -951,7 +951,7 @@ public partial class bitvavo : ccxt.bitvavo
         (orderbook as IOrderBook).reset(snapshot);
         // unroll the accumulated deltas
         object messages = (orderbook as ccxt.pro.OrderBook).cache;
-        for (object i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(messages)); postFixIncrement(ref i))
         {
             object messageItem = getValue(messages, i);
             this.handleOrderBookMessage(client as WebSocketClient, messageItem, orderbook);
@@ -982,9 +982,9 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual void handleOrderBookSubscriptions(WebSocketClient client, object message, object marketIds)
     {
         string name = "book";
-        for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = this.safeString(marketIds, i);
+            string? marketId = this.safeString(marketIds, i);
             object symbol = this.safeSymbol(marketId, null, "-");
             object messageHash = add(add(name, "@"), marketId);
             if (!isTrue((inOp(this.orderbooks, symbol))))
@@ -1014,7 +1014,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "channels", channels },
         };
         List<object> unsubHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subMessageHashes)); postFixIncrement(ref i))
         {
             ((IList<object>)unsubHashes).Add(add("unsubscribe:", getValue(subMessageHashes, i)));
         }
@@ -1038,7 +1038,7 @@ public partial class bitvavo : ccxt.bitvavo
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
         List<object> keys = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, key))))
@@ -1862,14 +1862,14 @@ public partial class bitvavo : ccxt.bitvavo
     public virtual object actionAndMarketMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object symbol = this.safeString(parameters, "market", "");
+        string? symbol = this.safeString(parameters, "market", "");
         return add(action, symbol);
     }
 
     public virtual object actionAndOrderIdMessageHash(object action, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object orderId = this.safeString(parameters, "orderId");
+        string? orderId = this.safeString(parameters, "orderId");
         if (isTrue(isEqual(orderId, null)))
         {
             throw new ExchangeError ((string)add(this.id, " privateUpdateOrderMessageHash requires a orderId parameter")) ;
@@ -1962,7 +1962,7 @@ public partial class bitvavo : ccxt.bitvavo
             { "book", this.handleOrderBookSubscriptions },
         };
         List<object> names = new List<object>(((IDictionary<string,object>)subscriptions).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(names)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(names)); postFixIncrement(ref i))
         {
             object name = getValue(names, i);
             object method = this.safeValue(methods, name);
@@ -2011,7 +2011,7 @@ public partial class bitvavo : ccxt.bitvavo
         //     }
         //
         string messageHash = "authenticated";
-        object authenticated = this.safeBool(message, "authenticated", false);
+        bool? authenticated = this.safeBool(message, "authenticated", false);
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -2028,7 +2028,7 @@ public partial class bitvavo : ccxt.bitvavo
         }
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -2062,9 +2062,9 @@ public partial class bitvavo : ccxt.bitvavo
         if (!isTrue(rejected))
         {
             ((WebSocketClient)client).reject(message, messageHash);
-            return true;
+            return ((bool?)((object)(true)));
         }
-        return null;
+        return ((bool?)((object)(null)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)

@@ -517,7 +517,7 @@ public partial class luno : Exchange
         string? id = this.safeString(getValue(rawCurrency, 0), "native_currency"); // first item is guaranteed
         object code = this.safeCurrencyCode(id);
         Dictionary<string, object> networks = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawCurrency)); postFixIncrement(ref i))
         {
             object networkEntry = getValue(rawCurrency, i);
             string? networkId = this.safeString(networkEntry, "name");
@@ -604,7 +604,7 @@ public partial class luno : Exchange
         //
         List<object> result = new List<object>() {};
         object markets = this.safeValue(response, "markets", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(markets)); postFixIncrement(ref i))
         {
             object market = getValue(markets, i);
             string? id = this.safeString(market, "market_id");
@@ -712,7 +712,7 @@ public partial class luno : Exchange
         object response = await this.privateGetBalance(parameters);
         object wallets = this.safeValue(response, "balance", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
         {
             object account = getValue(wallets, i);
             string? accountId = this.safeString(account, "account_id");
@@ -736,7 +736,7 @@ public partial class luno : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(wallets)); postFixIncrement(ref i))
         {
             object wallet = getValue(wallets, i);
             string? currencyId = this.safeString(wallet, "asset");
@@ -871,7 +871,7 @@ public partial class luno : Exchange
         object baseFee = this.safeNumber(order, "fee_base");
         string? filled = this.safeString(order, "base");
         string? cost = this.safeString(order, "counter");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(quoteFee, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -1070,7 +1070,7 @@ public partial class luno : Exchange
         Dictionary<string, object> tickers = this.indexBy(rawTickers, "pair");
         List<object> ids = new List<object>(((IDictionary<string,object>)tickers).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             object id = getValue(ids, i);
             object market = this.safeMarket(id);
@@ -1866,7 +1866,7 @@ public partial class luno : Exchange
         if (isTrue(isTrue((isEqual(api, "private"))) || isTrue((isEqual(api, "exchangePrivate")))))
         {
             this.checkRequiredCredentials();
-            object auth = this.stringToBase64(add(add(this.apiKey, ":"), this.secret));
+            string auth = this.stringToBase64(add(add(this.apiKey, ":"), this.secret));
             headers = new Dictionary<string, object>() {
                 { "Authorization", add("Basic ", auth) },
             };

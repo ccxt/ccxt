@@ -1112,7 +1112,7 @@ public partial class hashkey : Exchange
         string? marketId = this.safeString(market, "symbol");
         string? quoteId = this.safeString(market, "quoteAsset");
         object quote = this.safeCurrencyCode(quoteId);
-        object settleId = this.safeString(market, "marginToken");
+        string? settleId = this.safeString(market, "marginToken");
         object settle = this.safeCurrencyCode(settleId);
         string? baseId = this.safeString(market, "baseAsset");
         string marketType = "spot";
@@ -1134,8 +1134,8 @@ public partial class hashkey : Exchange
         string? status = this.safeString(market, "status");
         bool active = isEqual(status, "TRADING");
         bool? isLinear = null;
-        object subType = null;
-        object isInverse = this.safeBool(market, "inverse");
+        string? subType = null;
+        bool? isInverse = this.safeBool(market, "inverse");
         if (isTrue(!isEqual(isInverse, null)))
         {
             if (isTrue(isInverse))
@@ -1291,7 +1291,7 @@ public partial class hashkey : Exchange
         object code = this.safeCurrencyCode(currencyId);
         object networks = this.safeList(rawCurrency, "chainTypes");
         Dictionary<string, object> parsedNetworks = new Dictionary<string, object>() {};
-        for (object j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(networks)); postFixIncrement(ref j))
         {
             object network = getValue(networks, j);
             string? networkId = this.safeString(network, "chainType");
@@ -1579,7 +1579,7 @@ public partial class hashkey : Exchange
         //         "realizedPnl": "0",
         //         "isMarker": false
         //     }
-        object timestamp = this.safeInteger2(trade, "t", "time");
+        Int64? timestamp = this.safeInteger2(trade, "t", "time");
         string? marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         string? side = this.safeStringLower(trade, "side"); // swap trades have side param
@@ -1587,18 +1587,18 @@ public partial class hashkey : Exchange
         {
             side = this.safeString(((string)side).Split(new [] {((string)"_")}, StringSplitOptions.None).ToList<object>(), 0);
         }
-        object isBuyer = this.safeBool(trade, "isBuyer");
+        bool? isBuyer = this.safeBool(trade, "isBuyer");
         if (isTrue(!isEqual(isBuyer, null)))
         {
             side = ((bool) isTrue(isBuyer)) ? "buy" : "sell";
         }
         string? takerOrMaker = null;
-        object isMaker = this.safeBool2(trade, "isMaker", "isMarker");
+        bool? isMaker = this.safeBool2(trade, "isMaker", "isMarker");
         if (isTrue(!isEqual(isMaker, null)))
         {
             takerOrMaker = ((bool) isTrue(isMaker)) ? "maker" : "taker";
         }
-        object isBuyerMaker = this.safeBool(trade, "ibm");
+        bool? isBuyerMaker = this.safeBool(trade, "ibm");
         // if public trade
         if (isTrue(!isEqual(isBuyerMaker, null)))
         {
@@ -1608,7 +1608,7 @@ public partial class hashkey : Exchange
         string? feeCost = this.safeString(trade, "commission");
         string? feeCurrncyId = this.safeString(trade, "commissionAsset");
         object feeInfo = this.safeDict(trade, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeInfo, null)))
         {
             feeCost = this.safeString(feeInfo, "fee");
@@ -1978,7 +1978,7 @@ public partial class hashkey : Exchange
             { "info", balance },
         };
         object balances = this.safeList(balance, "balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object balanceEntry = getValue(balances, i);
             string? currencyId = this.safeString(balanceEntry, "asset");
@@ -2335,7 +2335,7 @@ public partial class hashkey : Exchange
         string? status = this.safeString(transaction, "status"); // for fetchDeposits
         if (isTrue(isEqual(status, null)))
         {
-            object success = this.safeBool(transaction, "success", false); // for withdraw
+            bool? success = this.safeBool(transaction, "success", false); // for withdraw
             if (isTrue(isEqual(success, true)))
             {
                 status = "ok";
@@ -2354,7 +2354,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(transaction, "time");
         object amount = this.safeNumber(transaction, "quantity");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2450,7 +2450,7 @@ public partial class hashkey : Exchange
         Int64? timestamp = this.safeInteger(transfer, "timestamp");
         string? currencyId = this.safeString(currency, "id");
         string? status = null;
-        object success = this.safeBool(transfer, "success", false);
+        bool? success = this.safeBool(transfer, "success", false);
         if (isTrue(isEqual(success, true)))
         {
             status = "ok";
@@ -2806,7 +2806,7 @@ public partial class hashkey : Exchange
         }
         object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
         object response = new Dictionary<string, object>() {};
-        object test = this.safeBool(parameters, "test");
+        bool? test = this.safeBool(parameters, "test");
         if (isTrue(isEqual(test, true)))
         {
             parameters = this.omit(parameters, "test");
@@ -3064,7 +3064,7 @@ public partial class hashkey : Exchange
             await this.loadMarkets();
         }
         List<object> ordersRequests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
             string? symbol = this.safeString(rawOrder, "symbol");
@@ -3100,7 +3100,7 @@ public partial class hashkey : Exchange
         }
         object result = this.safeList(response, "result", new List<object>() {});
         List<object> responseOrders = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
         {
             object responseEntry = this.safeDict(result, i, new Dictionary<string, object>() {});
             object responseOrder = this.safeDict(responseEntry, "order", new Dictionary<string, object>() {});
@@ -3624,7 +3624,7 @@ public partial class hashkey : Exchange
         // some hashkey endpoints have a type param for swap markets that defines the type of an order
         // type param is reserved in ccxt for defining the type of the market
         // current method warns user if he provides the exchange specific value in type parameter
-        object paramsType = this.safeString(parameters, "type");
+        string? paramsType = this.safeString(parameters, "type");
         if (isTrue(isTrue(isTrue((!isEqual(paramsType, null))) && isTrue((!isEqual(paramsType, "spot")))) && isTrue((!isEqual(paramsType, "swap")))))
         {
             throw new BadRequest ((string)add(add(add(add(add(this.id, " "), methodName), " () type parameter can not be \""), paramsType), "\". It should define the type of the market (\"spot\" or \"swap\"). To define the type of an order use the trigger parameter (true for trigger orders)")) ;
@@ -3753,7 +3753,7 @@ public partial class hashkey : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        object timestamp = this.safeInteger2(order, "transactTime", "time");
+        Int64? timestamp = this.safeInteger2(order, "transactTime", "time");
         string? status = this.safeString(order, "status");
         object type = this.safeString(order, "type");
         string? priceType = this.safeString(order, "priceType");
@@ -4028,7 +4028,7 @@ public partial class hashkey : Exchange
         //
         List<object> rates = new List<object>() {};
         IList<object> rows = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object entry = getValue(rows, i);
             Int64? timestamp = this.safeInteger(entry, "settleTime");
@@ -4509,7 +4509,7 @@ public partial class hashkey : Exchange
         string? marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         List<object> tiers = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(riskLimits)); postFixIncrement(ref i))
         {
             object tier = getValue(riskLimits, i);
             string? initialMarginRate = this.safeString(tier, "initialMargin");
@@ -4603,7 +4603,7 @@ public partial class hashkey : Exchange
         //
         object data = this.safeList(response, "data", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object fee = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsedFee = this.parseTradingFee(fee);
@@ -4732,7 +4732,7 @@ public partial class hashkey : Exchange
         if (isTrue(isEqual(responseCodeInteger, 0)))
         {
             object result = this.safeList(response, "result", new List<object>() {}); // for batch methods
-            for (object i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(result)); postFixIncrement(ref i))
             {
                 object entry = this.safeDict(result, i);
                 Int64? entryCodeInteger = this.safeInteger(entry, "code");

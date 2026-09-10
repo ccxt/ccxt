@@ -132,7 +132,7 @@ public partial class dydx : ccxt.dydx
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
         object parsedTrades = this.parseTrades(rawTrades, market);
-        for (object i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(parsedTrades)); postFixIncrement(ref i))
         {
             object parsed = getValue(parsedTrades, i);
             callDynamically(stored, "append", new object[] {parsed});
@@ -312,7 +312,7 @@ public partial class dydx : ccxt.dydx
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("ohlcv:", getValue(market, "symbol"));
-        object resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? resolution = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
             { "channel", "v4_candles" },
@@ -348,7 +348,7 @@ public partial class dydx : ccxt.dydx
         object url = getValue(getValue(this.urls, "api"), "ws");
         object market = this.market(symbol);
         object messageHash = add("ohlcv:", getValue(market, "symbol"));
-        object resolution = this.safeString(this.timeframes, timeframe, timeframe);
+        string? resolution = this.safeString(this.timeframes, timeframe, timeframe);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "unsubscribe" },
             { "channel", "v4_candles" },
@@ -438,7 +438,7 @@ public partial class dydx : ccxt.dydx
     {
         try
         {
-            object msg = this.safeString(message, "message");
+            string? msg = this.safeString(message, "message");
             throw new ExchangeError ((string)add(add(this.id, " "), msg)) ;
         } catch(Exception e)
         {

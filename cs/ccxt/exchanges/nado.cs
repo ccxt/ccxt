@@ -445,7 +445,7 @@ public partial class nado : Exchange
         parameters = ((IList<object>)recvWindowparametersVariable)[1];
         object nonce = this.createOrderNonce(recvWindow);
         Int64? requestId = this.safeInteger(parameters, "id");
-        object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
+        bool? spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> order = new Dictionary<string, object>() {
             { "sender", sender },
@@ -475,7 +475,7 @@ public partial class nado : Exchange
         bool isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
         if (isTrue(isStopOrder))
         {
-            object triggerDirection = this.safeStringLower(parameters, "triggerDirection");
+            string? triggerDirection = this.safeStringLower(parameters, "triggerDirection");
             if (isTrue(isEqual(triggerDirection, null)))
             {
                 throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
@@ -491,7 +491,7 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)placeOrder)["trigger"] = trigger;
         } else if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
-            object triggerDirection = "";
+            string triggerDirection = "";
             if (isTrue(isBuy))
             {
                 triggerDirection = ((bool) isTrue(isStopLossOrder)) ? "above" : "below";
@@ -634,8 +634,8 @@ public partial class nado : Exchange
             appendix = this.createOrderAppendix(false, parameters);
         }
         Int64? requestId = this.safeInteger(parameters, "id");
-        object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
-        object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
+        bool? spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
+        bool? placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
         parameters = this.omit(parameters, new List<object>() {"expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled"});
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         Dictionary<string, object> cancelTx = new Dictionary<string, object>() {
@@ -728,7 +728,7 @@ public partial class nado : Exchange
         {
             market = this.market(symbol);
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = ccxt.BaseExchange.FromDict(await this.CancelAllOrdersRequest(symbol, parameters));
         object response = null;
@@ -742,7 +742,7 @@ public partial class nado : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
@@ -832,7 +832,7 @@ public partial class nado : Exchange
         }
         await this.loadMarkets();
         object market = this.market(symbol);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         object request = ccxt.BaseExchange.FromDict(await this.CancelOrdersRequest(ids, symbol, parameters));
         object response = null;
@@ -846,7 +846,7 @@ public partial class nado : Exchange
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         object cancelledOrders = this.safeList(data, "cancelled_orders", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cancelledOrders)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseOrder(this.extend(new Dictionary<string, object>() {
                 { "status", "canceled" },
@@ -876,7 +876,7 @@ public partial class nado : Exchange
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
         List<object> productIds = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
             ((IList<object>)productIds).Add(productId);
         }
@@ -1001,7 +1001,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
         if (isTrue(!isEqual(trigger, true)))
         {
@@ -1091,7 +1091,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
@@ -1174,7 +1174,7 @@ public partial class nado : Exchange
         subaccount = ((IList<object>)subaccountparametersVariable)[0];
         parameters = ((IList<object>)subaccountparametersVariable)[1];
         object sender = this.createSubaccount(this.walletAddress, subaccount);
-        object trigger = this.safeBool2(parameters, "stop", "trigger");
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
             return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
@@ -1220,7 +1220,7 @@ public partial class nado : Exchange
         //
         List<object> closedOrders = new List<object>() {};
         object orders = this.safeList(response, "orders", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object order = getValue(orders, i);
             if (isTrue(this.isArchiveOrderClosed(order)))
@@ -1353,7 +1353,7 @@ public partial class nado : Exchange
         object txs = this.safeList(response, "txs", new List<object>() {});
         Dictionary<string, object> txsBySubmission = this.indexBy(txs, "submission_idx");
         List<object> trades = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(matches)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(matches)); postFixIncrement(ref i))
         {
             object match = getValue(matches, i);
             string? submissionIdx = this.safeString(match, "submission_idx");
@@ -1520,12 +1520,12 @@ public partial class nado : Exchange
         object events = this.safeList(response, "events", new List<object>() {});
         object txs = this.safeList(response, "txs", new List<object>() {});
         List<object> transactions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(events)); postFixIncrement(ref i))
         {
             object eventVar = getValue(events, i);
             string? submissionIdx = this.safeString(eventVar, "submission_idx");
             object tx = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(txs)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(txs)); postFixIncrement(ref j))
             {
                 object rawTx = getValue(txs, j);
                 string? txSubmissionIdx = this.safeString(rawTx, "submission_idx");
@@ -1602,7 +1602,7 @@ public partial class nado : Exchange
         object positions = this.safeList(data, "perp_balances", new List<object>() {});
         object products = this.safeList(data, "perp_products", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object balance = this.safeDict(position, "balance", new Dictionary<string, object>() {});
@@ -1613,7 +1613,7 @@ public partial class nado : Exchange
             }
             string? productId = this.safeString(position, "product_id");
             object product = new Dictionary<string, object>() {};
-            for (object j = 0; isLessThan(j, getArrayLength(products)); postFixIncrement(ref j))
+            for (int j = 0; isLessThan(j, getArrayLength(products)); postFixIncrement(ref j))
             {
                 object rawProduct = getValue(products, j);
                 string? rawProductId = this.safeString(rawProduct, "product_id");
@@ -1705,7 +1705,7 @@ public partial class nado : Exchange
         // product_id is a JSON number: JS object keys are always strings but a Python
         // dict keeps int keys, so indexBy would never match the safeString lookups below
         Dictionary<string, object> pairsById = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(pairs)); postFixIncrement(ref i))
         {
             object rawPair = getValue(pairs, i);
             string? pairProductId = this.safeString(rawPair, "product_id");
@@ -1715,7 +1715,7 @@ public partial class nado : Exchange
             }
         }
         Dictionary<string, object> assetsById = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object rawAsset = getValue(assets, i);
             string? assetProductId = this.safeString(rawAsset, "product_id");
@@ -1725,7 +1725,7 @@ public partial class nado : Exchange
             }
         }
         Dictionary<string, object> assetsByCode = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object rawAsset = getValue(assets, i);
             string? assetSymbol = this.safeString(rawAsset, "symbol");
@@ -1740,10 +1740,10 @@ public partial class nado : Exchange
                 ((IDictionary<string,object>)assetsByCode)[(string)assetCode] = rawAsset;
             } else
             {
-                object previousDeposit = this.safeBool(previous, "can_deposit", false);
-                object previousWithdraw = this.safeBool(previous, "can_withdraw", false);
-                object currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
-                object currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
+                bool? previousDeposit = this.safeBool(previous, "can_deposit", false);
+                bool? previousWithdraw = this.safeBool(previous, "can_withdraw", false);
+                bool? currentDeposit = this.safeBool(rawAsset, "can_deposit", false);
+                bool? currentWithdraw = this.safeBool(rawAsset, "can_withdraw", false);
                 if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(currentDeposit, true))) || isTrue((isEqual(currentWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)assetsByCode)[(string)assetCode] = rawAsset;
@@ -1751,7 +1751,7 @@ public partial class nado : Exchange
             }
         }
         List<object> markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object market = getValue(symbols, i);
             string? id = this.safeString(market, "product_id");
@@ -1860,7 +1860,7 @@ public partial class nado : Exchange
         object response = await this.gatewayV2PublicGetAssets(parameters);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         IList<object> assets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(assets)); postFixIncrement(ref i))
         {
             object currency = getValue(assets, i);
             object parsed = this.parseCurrency(currency);
@@ -1870,15 +1870,15 @@ public partial class nado : Exchange
                 continue;
             }
             object previous = this.safeDict(result, code);
-            object canDeposit = this.safeBool(currency, "can_deposit", false);
-            object canWithdraw = this.safeBool(currency, "can_withdraw", false);
+            bool? canDeposit = this.safeBool(currency, "can_deposit", false);
+            bool? canWithdraw = this.safeBool(currency, "can_withdraw", false);
             if (isTrue(isEqual(previous, null)))
             {
                 ((IDictionary<string,object>)result)[(string)code] = parsed;
             } else
             {
-                object previousDeposit = this.safeBool(previous, "deposit", false);
-                object previousWithdraw = this.safeBool(previous, "withdraw", false);
+                bool? previousDeposit = this.safeBool(previous, "deposit", false);
+                bool? previousWithdraw = this.safeBool(previous, "withdraw", false);
                 if (isTrue(isTrue(isTrue((!isEqual(previousDeposit, true))) && isTrue((!isEqual(previousWithdraw, true)))) && isTrue((isTrue((isEqual(canDeposit, true))) || isTrue((isEqual(canWithdraw, true)))))))
                 {
                     ((IDictionary<string,object>)result)[(string)code] = parsed;
@@ -2052,7 +2052,7 @@ public partial class nado : Exchange
         //
         object fundingPayments = this.safeList(response, "funding_payments", new List<object>() {});
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fundingPayments)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fundingPayments)); postFixIncrement(ref i))
         {
             ((IList<object>)result).Add(this.parseFundingHistory(getValue(fundingPayments, i), market));
         }
@@ -2101,7 +2101,7 @@ public partial class nado : Exchange
         //
         List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         List<object> rates = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
             ((IList<object>)rates).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
@@ -2198,7 +2198,7 @@ public partial class nado : Exchange
         //
         List<object> tickers = new List<object>(((IDictionary<string,object>)response).Keys);
         List<object> interests = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
             object ticker = getValue(tickers, i);
             ((IList<object>)interests).Add(this.safeDict(response, ticker, new Dictionary<string, object>() {}));
@@ -2423,7 +2423,7 @@ public partial class nado : Exchange
             price = ((bool) isTrue((isEqual(parsedPrice, null)))) ? null : this.numberToString(parsedPrice);
         }
         string? takerOrMaker = null;
-        object isTaker = this.safeBool(trade, "is_taker");
+        bool? isTaker = this.safeBool(trade, "is_taker");
         if (isTrue(!isEqual(isTaker, null)))
         {
             if (isTrue(isTaker))
@@ -2443,7 +2443,7 @@ public partial class nado : Exchange
         {
             feeCost = this.parseNumber(feeString);
         }
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2634,8 +2634,8 @@ public partial class nado : Exchange
 
     public override object parseCurrency(object rawCurrency)
     {
-        object canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
-        object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
+        bool? canDeposit = this.safeBool(rawCurrency, "can_deposit", false);
+        bool? canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         string? id = this.safeString(rawCurrency, "product_id");
         string? currencyId = this.safeString(rawCurrency, "symbol");
         object code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
@@ -2685,7 +2685,7 @@ public partial class nado : Exchange
             { "info", response },
         };
         object balances = this.safeList(response, "spot_balances", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(balances, i);
             string? currencyId = this.safeString(rawBalance, "product_id");
@@ -2859,15 +2859,15 @@ public partial class nado : Exchange
         });
     }
 
-    public virtual object isArchiveOrderClosed(object order)
+    public virtual bool isArchiveOrderClosed(object order)
     {
         string? amount = this.safeString(order, "amount");
         string? filled = this.safeString(order, "base_filled");
         if (isTrue(isTrue((isEqual(amount, null))) || isTrue((isEqual(filled, null)))))
         {
-            return false;
+            return ((bool)((object)(false))!);
         }
-        return Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount));
+        return ((bool)((object)(Precise.stringGe(Precise.stringAbs(filled), Precise.stringAbs(amount))))!);
     }
 
     public override object parseOrder(object order, object market = null)
@@ -2949,7 +2949,7 @@ public partial class nado : Exchange
         object remaining = null;
         object cost = null;
         string? average = null;
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object lastTradeTimestamp = null;
         object lastUpdateTimestamp = null;
         string? status = null;
@@ -3127,7 +3127,7 @@ public partial class nado : Exchange
         // | 64 bits | 16 bits | 10 bits          | 24 bits  | 2 bits  | 1 bit       | 2 bits     | 1 bit    | 8 bits  |
         // | 127..64 | 63..48  | 47..38           | 37..14   | 13..12  | 11          | 10..9      | 8        | 7..0    |
         parameters ??= new Dictionary<string, object>();
-        object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+        bool? reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         object postOnly = this.isPostOnly(false, null, parameters);
         string? timeInForce = this.safeStringUpper(parameters, "timeInForce");
         int orderType = 0;
@@ -3153,7 +3153,7 @@ public partial class nado : Exchange
         {
             appendix = Precise.stringAdd(appendix, "2048");
         }
-        object buildFee = this.safeBool(this.options, "builderFee", true);
+        bool? buildFee = this.safeBool(this.options, "builderFee", true);
         if (isTrue(isEqual(buildFee, true)))
         {
             string? builder = this.safeString(this.options, "builder", "4500");

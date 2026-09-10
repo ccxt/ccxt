@@ -392,7 +392,7 @@ public partial class coinbaseinternational : Exchange
             return new List<object>() {defaultPortfolio, parameters};
         }
         object accounts = ccxt.BaseExchange.FromAccountList(await this.FetchAccounts());
-        for (object i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(accounts)); postFixIncrement(ref i))
         {
             object account = getValue(accounts, i);
             object info = this.safeDict(account, "info", new Dictionary<string, object>() {});
@@ -619,7 +619,7 @@ public partial class coinbaseinternational : Exchange
         }
         object market = this.market(symbol);
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instrument", getValue(market, "id") },
             { "result_offset", offSet },
@@ -954,10 +954,10 @@ public partial class coinbaseinternational : Exchange
     public virtual object findDefaultNetwork(object networks)
     {
         IList<object> networksArray = this.toArray(networks);
-        for (object i = 0; isLessThan(i, getArrayLength(networksArray)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(networksArray)); postFixIncrement(ref i))
         {
             object info = getValue(getValue(networksArray, i), "info");
-            object is_default = this.safeBool(info, "is_default", false);
+            bool? is_default = this.safeBool(info, "is_default", false);
             if (isTrue(isEqual(is_default, true)))
             {
                 return getValue(networksArray, i);
@@ -1005,7 +1005,7 @@ public partial class coinbaseinternational : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(networks)); postFixIncrement(ref i))
         {
             Dictionary<string, object> network = this.extend(this.parseNetwork(getValue(networks, i)), parameters);
             ((IDictionary<string,object>)result)[(string)getValue(network, "network")] = network;
@@ -1124,7 +1124,7 @@ public partial class coinbaseinternational : Exchange
             return ccxt.BaseExchange.ToTransactionList(await this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest));
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };
@@ -1604,7 +1604,7 @@ public partial class coinbaseinternational : Exchange
         //
         string? marketId = this.safeString(market, "symbol");
         object baseId = this.safeString(market, "base_asset_name");
-        object quoteId = this.safeString(market, "quote_asset_name");
+        string? quoteId = this.safeString(market, "quote_asset_name");
         string? typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         bool isSpot = (isEqual(typeId, "SPOT"));
         object fees = this.fees;
@@ -1759,7 +1759,7 @@ public partial class coinbaseinternational : Exchange
         {
             rows = instruments;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rows)); postFixIncrement(ref i))
         {
             object instrument = getValue(rows, i);
             string? marketId = this.safeString(instrument, "symbol");
@@ -1904,7 +1904,7 @@ public partial class coinbaseinternational : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(response, i);
             string? currencyId = this.safeString(rawBalance, "asset_name");
@@ -1947,7 +1947,7 @@ public partial class coinbaseinternational : Exchange
             { "to", toAccount },
         };
         object response = await this.v1PrivatePostPortfoliosTransfer(this.extend(request, parameters));
-        object success = this.safeBool(response, "success");
+        bool? success = this.safeBool(response, "success");
         return ccxt.BaseExchange.ToTransferEntry(new Dictionary<string, object>() {             { "info", response },             { "id", null },             { "timestamp", null },             { "datetime", null },             { "currency", code },             { "amount", amount },             { "fromAccount", fromAccount },             { "toAccount", toAccount },             { "status", ((bool) isTrue((isEqual(success, true)))) ? "ok" : "failed" },         });
     }
 
@@ -2022,7 +2022,7 @@ public partial class coinbaseinternational : Exchange
         {
             ((IDictionary<string,object>)request)["portfolio"] = portfolio;
         }
-        object postOnly = this.safeBool2(parameters, "postOnly", "post_only");
+        bool? postOnly = this.safeBool2(parameters, "postOnly", "post_only");
         object tif = this.safeString2(parameters, "tif", "timeInForce");
         // market orders must be IOC
         if (isTrue(isEqual(typeId, "MARKET")))
@@ -2096,7 +2096,7 @@ public partial class coinbaseinternational : Exchange
         //
         string? marketId = this.safeString(order, "symbol");
         object feeCost = this.safeNumber(order, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2406,7 +2406,7 @@ public partial class coinbaseinternational : Exchange
             return ccxt.BaseExchange.ToOrderList(await this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest));
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "portfolio", portfolio },
             { "result_offset", offSet },
@@ -2507,7 +2507,7 @@ public partial class coinbaseinternational : Exchange
             market = this.market(symbol);
         }
         object page = subtract(this.safeInteger(parameters, pageKey, 1), 1);
-        object offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
+        Int64? offSet = this.safeInteger2(parameters, "offset", "result_offset", multiply(page, maxEntriesPerRequest));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "result_offset", offSet },
         };

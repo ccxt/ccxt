@@ -192,7 +192,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -220,7 +220,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -309,7 +309,7 @@ public partial class kucoin : ccxt.kucoin
         };
         Dictionary<string, object> message = this.extend(request, parameters);
         var client = this.client(url);
-        for (object i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionHash))))
@@ -336,7 +336,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)subscription)[(string)requestId] = requestId;
         }
         var client = this.client(url);
-        for (object i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(subscriptionHashes)); postFixIncrement(ref i))
         {
             object subscriptionHash = getValue(subscriptionHashes, i);
             if (!isTrue((inOp(((WebSocketClient)client).subscriptions, subscriptionHash))))
@@ -510,7 +510,7 @@ public partial class kucoin : ccxt.kucoin
         List<object> topics = new List<object>() {};
         if (isTrue(!isEqual(symbols, null)))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("ticker:", symbol));
@@ -554,7 +554,7 @@ public partial class kucoin : ccxt.kucoin
         object action = "subscribe";
         if (isTrue(!isEqual(subscription, null)))
         {
-            object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            bool? unsubscribe = this.safeBool(subscription, "unsubscribe", false);
             action = ((bool) isTrue((isEqual(unsubscribe, true)))) ? "unsubscribe" : action;
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -585,7 +585,7 @@ public partial class kucoin : ccxt.kucoin
         symbols = this.marketSymbols(symbols, null, false, true);
         string messageHash = "uta:ticker";
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             string? symbol = this.safeString(symbols, i);
             object market = this.market(symbol);
@@ -869,7 +869,7 @@ public partial class kucoin : ccxt.kucoin
             throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() accepts a maximum of 100 symbols")) ;
         }
         List<object> messageHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             object market = this.market(symbol);
@@ -998,7 +998,7 @@ public partial class kucoin : ccxt.kucoin
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? period = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object messageHash = add(add(add("candles:", symbolVar), ":"), timeframeVar);
         object uta = false;
         var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
@@ -1060,7 +1060,7 @@ public partial class kucoin : ccxt.kucoin
         var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
         uta = ((IList<object>)utaparametersVariable)[0];
         parameters = ((IList<object>)utaparametersVariable)[1];
-        object period = this.safeString(this.timeframes, timeframe, timeframe);
+        string? period = this.safeString(this.timeframes, timeframe, timeframe);
         List<object> symbolAndTimeframe = new List<object>() {symbol, timeframe};
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbols", new List<object>() {symbol} },
@@ -1288,7 +1288,7 @@ public partial class kucoin : ccxt.kucoin
             channelName = "/contractMarket/execution:";
         }
         object topic = add(channelName, String.Join(",", ((IList<object>)marketIds).ToArray()));
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("trades:", symbol));
@@ -1335,7 +1335,7 @@ public partial class kucoin : ccxt.kucoin
             channelName = "/contractMarket/execution:";
         }
         object topic = add(channelName, String.Join(",", ((IList<object>)marketIds).ToArray()));
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("unsubscribe:trades:", symbol));
@@ -1496,7 +1496,7 @@ public partial class kucoin : ccxt.kucoin
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         object timestamp = this.safeIntegerProduct2(trade, "M", "E", 0.000001);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCost = this.safeString(trade, "f");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -1694,7 +1694,7 @@ public partial class kucoin : ccxt.kucoin
         object topic = add(add(method, ":"), String.Join(",", ((IList<object>)marketIds).ToArray()));
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("orderbook:", symbol));
@@ -1762,7 +1762,7 @@ public partial class kucoin : ccxt.kucoin
         object topic = add(add(method, ":"), String.Join(",", ((IList<object>)marketIds).ToArray()));
         List<object> messageHashes = new List<object>() {};
         List<object> subscriptionHashes = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IList<object>)messageHashes).Add(add("unsubscribe:orderbook:", symbol));
@@ -1853,13 +1853,13 @@ public partial class kucoin : ccxt.kucoin
             }
             object orderbook = getValue(this.orderbooks, symbol);
             Int64? nonce = this.safeInteger(orderbook, "nonce");
-            object deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
+            Int64? deltaEnd = this.safeInteger2(data, "sequenceEnd", "timestamp");
             if (isTrue(isEqual(nonce, null)))
             {
                 int cacheLength = getArrayLength((orderbook as ccxt.pro.OrderBook).cache);
                 List<object> subscriptions = new List<object>(((IDictionary<string,object>)((WebSocketClient)client).subscriptions).Keys);
                 object subscription = null;
-                for (object i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(subscriptions)); postFixIncrement(ref i))
                 {
                     object key = getValue(subscriptions, i);
                     if (isTrue(isTrue((isGreaterThanOrEqual(getIndexOf(key, ((string)topicSymbol)), 0))) && isTrue((isGreaterThanOrEqual(getIndexOf(key, ((string)topicChannel)), 0)))))
@@ -1915,7 +1915,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         object orderbook = getValue(this.orderbooks, symbol);
-        object depth = this.safeString(message, "dp");
+        string? depth = this.safeString(message, "dp");
         object messageHash = add(add(add("uta:orderbook:", symbol), ":depth:"), depth);
         if (isTrue(isEqual(type, "snapshot")))
         {
@@ -1955,16 +1955,16 @@ public partial class kucoin : ccxt.kucoin
     {
         object firstDelta = this.safeValue(cache, 0);
         Int64? nonce = this.safeInteger(orderbook, "nonce");
-        object firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
+        Int64? firstDeltaStart = this.safeIntegerN(firstDelta, new List<object>() {"sequenceStart", "sequence", "O"});
         if (isTrue(isLessThan(nonce, subtract(firstDeltaStart, 1))))
         {
             return -1;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(cache)); postFixIncrement(ref i))
         {
             object delta = getValue(cache, i);
-            object deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
-            object deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
+            Int64? deltaStart = this.safeIntegerN(delta, new List<object>() {"sequenceStart", "sequence", "O"});
+            Int64? deltaEnd = this.safeIntegerN(delta, new List<object>() {"sequenceEnd", "sequence", "C"}); // todo check
             if (isTrue(isTrue((isGreaterThanOrEqual(nonce, subtract(deltaStart, 1)))) && isTrue((isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -1975,7 +1975,7 @@ public partial class kucoin : ccxt.kucoin
 
     public override void handleDelta(object orderbook, object delta)
     {
-        object timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
+        Int64? timestamp = this.safeIntegerProduct(delta, "M", 0.000001);
         if (isTrue(isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger2(delta, "time", "timestamp");
@@ -2020,7 +2020,7 @@ public partial class kucoin : ccxt.kucoin
 
     public virtual void handleBidAsks(object bookSide, object bidAsks)
     {
-        for (object i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
             object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
@@ -2037,7 +2037,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.orderbooks)[(string)((string)symbol)] = this.orderBook(new Dictionary<string, object>() {}, limit);
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
@@ -2073,12 +2073,12 @@ public partial class kucoin : ccxt.kucoin
         {
             DynamicInvoker.InvokeMethod(method, new object[] { client, message, subscription});
         }
-        object isUnSub = this.safeBool(subscription, "unsubscribe", false);
+        bool? isUnSub = this.safeBool(subscription, "unsubscribe", false);
         if (isTrue(isEqual(isUnSub, true)))
         {
             object messageHashes = this.safeList(subscription, "messageHashes", new List<object>() {});
             object subMessageHashes = this.safeList(subscription, "subMessageHashes", new List<object>() {});
-            for (object i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
             {
                 object messageHash = getValue(messageHashes, i);
                 object subHash = getValue(subMessageHashes, i);
@@ -2089,7 +2089,7 @@ public partial class kucoin : ccxt.kucoin
             {
                 // todo: add fundingRate topic to cleanCache
                 object symbols = this.safeList(subscription, "symbols", new List<object>() {});
-                for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
                 {
                     object symbol = getValue(symbols, i);
                     if (isTrue(inOp(this.fundingRates, symbol)))
@@ -2185,7 +2185,7 @@ public partial class kucoin : ccxt.kucoin
             orders = await this.subscribePrivateUta(new List<object>() {messageHash}, messageHash, channel, symbolVar, parameters);
         } else
         {
-            object trigger = this.safeBool2(parameters, "stop", "trigger");
+            bool? trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
             object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
@@ -2312,7 +2312,7 @@ public partial class kucoin : ccxt.kucoin
         //
         string? rawType = this.safeString(order, "type");
         object status = this.parseWsOrderStatus(rawType);
-        object timestamp = this.safeInteger2(order, "orderTime", "createdAt");
+        Int64? timestamp = this.safeInteger2(order, "orderTime", "createdAt");
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         if (isTrue(isEqual(getValue(market, "contract"), true)))
@@ -2320,7 +2320,7 @@ public partial class kucoin : ccxt.kucoin
             timestamp = this.safeIntegerProduct(order, "orderTime", 0.000001);
         }
         string? triggerPrice = this.safeString(order, "stopPrice");
-        object triggerSuccess = this.safeBool(order, "triggerSuccess");
+        bool? triggerSuccess = this.safeBool(order, "triggerSuccess");
         bool triggerFail = isTrue((!isEqual(triggerSuccess, true))) && isTrue((!isEqual(triggerSuccess, null))); // TODO: updated to triggerSuccess === False once transpiler transpiles it correctly
         if (isTrue(isTrue((isEqual(status, "triggered"))) && isTrue(triggerFail)))
         {
@@ -2467,7 +2467,7 @@ public partial class kucoin : ccxt.kucoin
             this.handleMyTrade(client as WebSocketClient, message);
         }
         object parsed = this.parseWsOrder(data);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         string? triggerPrice = this.safeString(parsed, "triggerPrice");
         bool isTriggerOrder = (!isEqual(triggerPrice, null));
@@ -2579,7 +2579,7 @@ public partial class kucoin : ccxt.kucoin
         //
         object data = this.safeDict(message, "d", new Dictionary<string, object>() {});
         object parsed = this.parseWsUtaOrder(data);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         if (isTrue(isEqual(this.orders, null)))
         {
             Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2892,8 +2892,8 @@ public partial class kucoin : ccxt.kucoin
         var client = this.client(url);
         this.setBalanceCache(client as WebSocketClient, uniformType);
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-        object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
         if (isTrue(isTrue((isEqual(fetchBalanceSnapshot, true))) && isTrue((isEqual(awaitBalanceSnapshot, true)))))
         {
             await client.future(add(uniformType, ":fetchBalanceSnapshot"));
@@ -2932,7 +2932,7 @@ public partial class kucoin : ccxt.kucoin
             return;
         }
         object options = this.safeDict(this.options, "watchBalance");
-        object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        bool? fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (isTrue(isEqual(fetchBalanceSnapshot, true)))
         {
             object messageHash = add(type, ":fetchBalanceSnapshot");
@@ -3055,7 +3055,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)this.balance)[(string)uniformType] = new Dictionary<string, object>() {};
         }
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["info"] = data;
-        object timestamp = this.safeInteger2(data, "time", "timestamp");
+        Int64? timestamp = this.safeInteger2(data, "time", "timestamp");
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["timestamp"] = timestamp;
         ((IDictionary<string,object>)getValue(this.balance, uniformType))["datetime"] = this.iso8601(timestamp);
         object code = this.safeCurrencyCode(currencyId);
@@ -3192,7 +3192,7 @@ public partial class kucoin : ccxt.kucoin
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add(messageHash, ":"), symbol));
@@ -3259,7 +3259,7 @@ public partial class kucoin : ccxt.kucoin
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions(null, new Dictionary<string, object>() { { "uta", uta }, }));
         this.positions = new ArrayCacheBySymbolById();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             object contracts = this.safeNumber(position, "contracts", 0);
@@ -3410,7 +3410,7 @@ public partial class kucoin : ccxt.kucoin
         object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object newPosition = this.parsePosition(data);
         List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(isEqual(getValue(newPosition, key), null)))
@@ -3461,7 +3461,7 @@ public partial class kucoin : ccxt.kucoin
         object currentPosition = this.getCurrentPosition(symbol);
         object newPosition = this.parseWsUtaPosition(data);
         List<object> keys = new List<object>(((IDictionary<string,object>)newPosition).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             if (isTrue(isEqual(getValue(newPosition, key), null)))
@@ -3819,7 +3819,7 @@ public partial class kucoin : ccxt.kucoin
         client.lastPong = this.milliseconds();
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         //    {
@@ -3852,7 +3852,7 @@ public partial class kucoin : ccxt.kucoin
             ((IDictionary<string,object>)getValue(this.options, "urls"))[(string)type] = null;
         }
         this.handleErrors(1, "", client.url, "", new Dictionary<string, object>() {}, data, message, new Dictionary<string, object>() {}, new Dictionary<string, object>() {});
-        return false;
+        return ((bool?)((object)(false)));
     }
 
     public override void handleMessage(WebSocketClient client, object message)
@@ -3874,7 +3874,7 @@ public partial class kucoin : ccxt.kucoin
             this.handleSubject(client as WebSocketClient, message);
         } else if (isTrue(inOp(message, "result")))
         {
-            object result = this.safeBool(message, "result", true);
+            bool? result = this.safeBool(message, "result", true);
             if (isTrue(!isEqual(result, true)))
             {
                 this.handleErrorMessage(client as WebSocketClient, message);

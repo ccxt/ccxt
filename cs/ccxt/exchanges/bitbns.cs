@@ -343,12 +343,12 @@ public partial class bitbns : Exchange
         //
         List<object> result = new List<object>() {};
         IList<object> rawMarkets = this.toArray(response);
-        for (object i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawMarkets)); postFixIncrement(ref i))
         {
             object market = getValue(rawMarkets, i);
             string? id = this.safeString(market, "id");
             object baseId = this.safeString(market, "base");
-            object quoteId = this.safeString(market, "quote");
+            string? quoteId = this.safeString(market, "quote");
             object bs = this.safeCurrencyCode(baseId);
             object quote = this.safeCurrencyCode(quoteId);
             object marketPrecision = this.safeDict(market, "precision", new Dictionary<string, object>() {});
@@ -580,14 +580,14 @@ public partial class bitbns : Exchange
         };
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
             object key = getValue(keys, i);
             List<object> parts = ((string)key).Split(new [] {((string)"availableorder")}, StringSplitOptions.None).ToList<object>();
             int numParts = getArrayLength(parts);
             if (isTrue(isGreaterThan(numParts, 1)))
             {
-                object currencyId = this.safeString(parts, 1);
+                string? currencyId = this.safeString(parts, 1);
                 // note that "Money" stands for INR - the only fiat in bitbns
                 object account = this.account();
                 ((IDictionary<string,object>)account)["free"] = this.safeString(data, key);
@@ -839,14 +839,14 @@ public partial class bitbns : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "entry_id", id },
             { "symbol", getValue(market, "uppercaseId") },
         };
         object response = null;
-        object tail = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopLossOrder" : "Order";
+        string tail = ((bool) isTrue((isEqual(isTrigger, true)))) ? "StopLossOrder" : "Order";
         object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtcancel" : "cancel";
         quoteSide = add(quoteSide, tail);
         ((IDictionary<string,object>)request)["side"] = quoteSide;
@@ -881,7 +881,7 @@ public partial class bitbns : Exchange
             { "symbol", getValue(market, "id") },
             { "entry_id", id },
         };
-        object trigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? trigger = this.safeBool2(parameters, "trigger", "stop");
         if (isTrue(isEqual(trigger, true)))
         {
             throw new BadRequest ((string)add(this.id, " fetchOrder cannot fetch stop orders")) ;
@@ -942,7 +942,7 @@ public partial class bitbns : Exchange
             await this.loadMarkets();
         }
         object market = this.market(symbol);
-        object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+        bool? isTrigger = this.safeBool2(parameters, "trigger", "stop");
         parameters = this.omit(parameters, new List<object>() {"trigger", "stop"});
         object quoteSide = ((bool) isTrue((isEqual(getValue(market, "quoteId"), "USDT")))) ? "usdtListOpen" : "listOpen";
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -1036,7 +1036,7 @@ public partial class bitbns : Exchange
             costString = this.safeString(trade, "quote_volume");
         }
         object symbol = getValue(market, "symbol");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeCostString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeCostString, null)))
         {
@@ -1329,7 +1329,7 @@ public partial class bitbns : Exchange
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
         object amount = this.safeNumber(transaction, "amount");
         object feeCost = this.safeNumber(transaction, "fee");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         if (isTrue(!isEqual(feeCost, null)))
         {
             fee = new Dictionary<string, object>() {

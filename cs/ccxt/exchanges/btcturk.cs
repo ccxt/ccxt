@@ -345,7 +345,7 @@ public partial class btcturk : Exchange
         object minAmount = null;
         object maxAmount = null;
         object minCost = null;
-        for (object j = 0; isLessThan(j, getArrayLength(filters)); postFixIncrement(ref j))
+        for (int j = 0; isLessThan(j, getArrayLength(filters)); postFixIncrement(ref j))
         {
             object filter = getValue(filters, j);
             string? filterType = this.safeString(filter, "filterType");
@@ -418,7 +418,7 @@ public partial class btcturk : Exchange
             { "timestamp", null },
             { "datetime", null },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
             string? currencyId = this.safeString(entry, "asset");
@@ -630,7 +630,7 @@ public partial class btcturk : Exchange
         //       "tax": "0"
         //     }
         //
-        object timestamp = this.safeInteger2(trade, "date", "timestamp");
+        Int64? timestamp = this.safeInteger2(trade, "date", "timestamp");
         string? id = this.safeString2(trade, "tid", "id");
         string? order = this.safeString(trade, "orderId");
         string? priceString = this.safeString(trade, "price");
@@ -638,7 +638,7 @@ public partial class btcturk : Exchange
         string? marketId = this.safeString(trade, "pair");
         object symbol = this.safeSymbol(marketId, market);
         string? side = this.safeString2(trade, "side", "orderType");
-        object fee = null;
+        Dictionary<string, object> fee = null;
         string? feeAmountString = this.safeString(trade, "fee");
         if (isTrue(!isEqual(feeAmountString, null)))
         {
@@ -839,7 +839,7 @@ public partial class btcturk : Exchange
         object low = this.safeList(ohlcvs, "l", new List<object>() {});
         object close = this.safeList(ohlcvs, "c", new List<object>() {});
         object volume = this.safeList(ohlcvs, "v", new List<object>() {});
-        for (object i = 0; isLessThan(i, getArrayLength(timestamp)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(timestamp)); postFixIncrement(ref i))
         {
             Dictionary<string, object> ohlcv = new Dictionary<string, object>() {
                 { "timestamp", this.safeInteger(timestamp, i) },
@@ -1069,7 +1069,7 @@ public partial class btcturk : Exchange
         string? side = this.safeString(order, "type");
         string? type = this.safeString(order, "method");
         string? clientOrderId = this.safeString(order, "orderClientId");
-        object timestamp = this.safeInteger2(order, "updateTime", "datetime");
+        Int64? timestamp = this.safeInteger2(order, "updateTime", "datetime");
         string? rawStatus = this.safeString(order, "status");
         object status = this.parseOrderStatus(rawStatus);
         return this.safeOrder(new Dictionary<string, object>() {

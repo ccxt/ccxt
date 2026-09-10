@@ -100,7 +100,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         object topic = add("kline_", interval);
         object messageHash = add(add(add("ohlcv:", symbolVar), ":"), timeframeVar);
         object ohlcv = await this.wathPublic(market, topic, messageHash, parameters);
@@ -156,7 +156,7 @@ public partial class hashkey : ccxt.hashkey
         }
         object data = this.safeList(message, "data", new List<object>() {});
         object stored = getValue(getValue(this.ohlcvs, symbol), ((string)timeframe));
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object candle = this.safeDict(data, i, new Dictionary<string, object>() {});
             object parsed = this.parseWsOHLCV(candle, market);
@@ -318,7 +318,7 @@ public partial class hashkey : ccxt.hashkey
         if (isTrue(!isEqual(data, null)))
         {
             data = this.sortBy(data, "t");
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object trade = this.safeDict(data, i);
                 object parsed = this.parseWsTrade(trade, market);
@@ -644,7 +644,7 @@ public partial class hashkey : ccxt.hashkey
         string? marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Int64? timestamp = this.safeInteger(trade, "t");
-        object isBuyerMaker = this.safeBool(trade, "m");
+        bool? isBuyerMaker = this.safeBool(trade, "m");
         bool isPublicTrade = isEqual(this.safeString(trade, "e"), null);
         string? side = null;
         string? takerOrMaker = null;
@@ -704,7 +704,7 @@ public partial class hashkey : ccxt.hashkey
             ((IList<object>)messageHashes).Add(messageHash);
         } else
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add(add(messageHash, ":"), symbol));
@@ -839,7 +839,7 @@ public partial class hashkey : ccxt.hashkey
             return;
         }
         object options = this.safeDict(this.options, "watchBalance");
-        object snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
+        bool? snapshot = this.safeBool(options, "fetchBalanceSnapshot", true);
         if (isTrue(isEqual(snapshot, true)))
         {
             object messageHash = add(add(type, ":"), "fetchBalanceSnapshot");
@@ -889,7 +889,7 @@ public partial class hashkey : ccxt.hashkey
         object data = this.safeList(message, "B", new List<object>() {});
         object balanceUpdate = this.safeDict(data, 0);
         bool isSpot = isEqual(eventVar, "outboundAccountInfo");
-        object type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
+        string type = ((bool) isTrue(isSpot)) ? "spot" : "swap";
         if (!isTrue((inOp(this.balance, type))))
         {
             ((IDictionary<string,object>)this.balance)[(string)type] = new Dictionary<string, object>() {};
