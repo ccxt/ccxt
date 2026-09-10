@@ -9,6 +9,7 @@ import assert from 'assert';
 import { WebSocketServer } from 'ws';
 import WsClient from '../../../base/ws/WsClient.js';
 import { RequestTimeout } from '../../../base/errors.js';
+// NO_AUTO_TRANSPILE
 // native ts test, intentionally not transpiled - pins the teardown half of the
 // base keepalive: when Client.onPingInterval decides the peer is dead (lastPong
 // older than keepAlive * maxPingPongMisses) it must close the socket, not just
