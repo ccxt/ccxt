@@ -3147,7 +3147,7 @@ public class OkxCore extends OkxApi
             Object response = null;
             if (Helpers.isTrue(rpi))
             {
-                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicGetMarketBooksRpi", new Object[] { this.extend(request, parameters) })).join();
+                response = (this.publicGetMarketBooksRpi(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "publicGetMarketBooksFull"))) || Helpers.isTrue((Helpers.isGreaterThan(limit, 400)))))
             {
                 response = (this.publicGetMarketBooksFull(this.extend(request, parameters))).join();
