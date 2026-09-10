@@ -10,17 +10,10 @@ import { WebSocketServer } from 'ws';
 import WsClient from '../../../base/ws/WsClient.js';
 import { RequestTimeout } from '../../../base/errors.js';
 // native ts test, intentionally not transpiled - pins the teardown half of the
-// base keepalive: when Client.onPingInterval decides the peer is dead
-// (lastPong older than keepAlive * maxPingPongMisses) it must not only reject
-// the pending futures, it must close the socket. before this test the timeout
-// left the ws OPEN: the exchange dropped the client from its registry, the next
-// watch call dialed a replacement, and the abandoned socket kept receiving and
-// dispatching frames into the shared caches next to the new one (a live probe
-// against kraken counted 45 frames on the abandoned socket in the 5 s after
-// the replacement connected). a local ws server stands in for the venue so the
-// test is offline and deterministic; keepAlive is set to a small value so the
-// scheduler fires within the test, and lastPong is pinned in the past so the
-// very first tick trips the timeout
+// base keepalive: when Client.onPingInterval decides the peer is dead (lastPong
+// older than keepAlive * maxPingPongMisses) it must close the socket, not just
+// reject pending futures, or the abandoned socket keeps dispatching frames into the
+// shared caches next to its replacement. a local ws server keeps the test offline.
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }

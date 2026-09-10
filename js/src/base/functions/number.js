@@ -5,18 +5,9 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 import { Precise } from '../Precise.js';
-// ------------------------------------------------------------------------
-//
-//  NB: initially, I used objects for options passing:
-//
-//          decimalToPrecision ('123.456', { digits: 2, round: true, afterPoint: true })
-//
-//  ...but it turns out it's hard to port that across different languages and it is also
-//     probably has a performance penalty -- while it's a performance critical code! So
-//     I switched to using named constants instead, as it is actually more readable and
-//     succinct, and surely doesn't come with any inherent performance downside:
-//
-//          decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+// NB: options are passed as named constants, not an options object:
+//         decimalToPrecision ('123.456', ROUND, 2, DECIMAL_PLACES)
+// object options are hard to port across languages and cost performance in this hot path
 const TRUNCATE = 0; // rounding mode
 const ROUND = 1;
 const ROUND_UP = 2;

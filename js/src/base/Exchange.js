@@ -661,20 +661,11 @@ export class BaseExchange {
                 }
                 // node: prefer the undici module for tunable pooling and proxy support
                 try {
-                    // undici is the engine behind node's built-in fetch - importing it directly gives us
-                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
-                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
-                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
-                    //
-                    // note: keep the undici dependency at >= 7.29.1 - the GHSA-35p6-xmwp-9g52 mitigation
-                    // ("idle socket validation", 7.28.0+) originally deferred every write on an idle
-                    // kept-alive socket behind a setTimeout(0) tick, ~1.3ms per sequential request, which
-                    // is why this codebase once pinned 7.27.x - resolved upstream by running the
-                    // validation off a ref'd setImmediate instead (issue
-                    // https://github.com/nodejs/undici/issues/5493, fixed via
-                    // https://github.com/nodejs/undici/pull/5499 and
-                    // https://github.com/nodejs/undici/pull/5707, in the 7.x line since 7.29.1) -
-                    // profiled: sequential keep-alive p50 1.74ms on 7.29.0 vs 0.43ms on 7.29.1
+                    // undici (the engine behind node's fetch) gives tunable keep-alive pooling, ProxyAgent,
+                    // and the low-level undici.request api used in undiciRequest (~2x faster than undici.fetch)
+                    // keep undici >= 7.29.1: 7.28.0-7.29.0 deferred every write on an idle kept-alive socket
+                    // behind setTimeout(0) (~1.3ms/request, p50 1.74ms vs 0.43ms), fixed upstream in
+                    // https://github.com/nodejs/undici/issues/5493 (PRs 5499 and 5707)
                     const undiciModule = await import(/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -1234,15 +1225,9 @@ export class BaseExchange {
     onJsonResponse(responseBody) {
         // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
-        //
-        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
-        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
-        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
-        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
-        //
-        // no quoteJsonNumbers guard needed here: parseJson returns early when
-        // quoteJsonNumbers is false, so this is only reached after an integer
-        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        // perf: this pass is ~43% of parseJson on 0.3-1.9MB payloads; JS scan/split/rope
+        // reimplementations all lose to the single C++ regex replace - keep the regex.
+        // no quoteJsonNumbers guard: parseJson only reaches this after finding an unsafe integer
         return responseBody.replace(QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
     async loadMarketsHelper(reload = false, params = {}) {
@@ -1513,21 +1498,9 @@ export class BaseExchange {
     }
     watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: Future.race over client.future (hash) for each messageHash, then
+        // client.connect ().then (send subscribe message once per subscribeHash);
+        // the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMultiple() requires a url argument');
@@ -1535,15 +1508,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         const future = Future.race(messageHashes.map((messageHash) => client.future(messageHash)));
         // read and write subscription, this is done before connecting the client
@@ -1614,21 +1580,8 @@ export class BaseExchange {
     }
     watch(url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: client.future (messageHash), then client.connect ().then (send subscribe
+        // message once per subscribeHash); the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired(this.id + ' watch() requires a url argument');
@@ -1639,15 +1592,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         if ((subscribeHash === undefined) && (messageHash !== undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
