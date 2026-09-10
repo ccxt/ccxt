@@ -6471,7 +6471,10 @@ export class BaseExchange {
         [ retryDelay, params ] = this.handleOptionAndParams (params, path, 'maxRetriesOnFailureDelay', retryDelay);
         const fetchDataCacheEnabled = this.fetchHistoryCacheSize > 0;
         for (let i = 0; i < retries + 1; i++) {
-            const fetchData: NullableDict = fetchDataCacheEnabled ? { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined } : undefined;
+            let fetchData: NullableDict = undefined;
+            if (fetchDataCacheEnabled) {
+                fetchData = { 'request': undefined, 'response': { 'body': undefined }, 'error': undefined };
+            }
             try {
                 this.setLastRestRequestTimestamp ();
                 const request = this.sign (path, api, method, params, headers, body);
