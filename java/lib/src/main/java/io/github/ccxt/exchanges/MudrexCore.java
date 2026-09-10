@@ -1679,13 +1679,14 @@ public class MudrexCore extends MudrexApi
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.trade.mudrex.com/docs
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+     * @see https://docs.trade.mudrex.com/docs/fees
+     * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+     * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
@@ -1706,14 +1707,100 @@ public class MudrexCore extends MudrexApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            Object maxCalls = null;
+            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+            maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
+            Object pageSize = 0;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+                pageSize = Helpers.multiply(limit, 2);
             }
-            Object response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rows = this.toArray(data);
+            Object allRows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object transactionsCount = 0;
+            Object calls = 0;
+            Object offset = 0;
+            Object paging = true;
+            while (Helpers.isEqual(paging, true))
+            {
+                Object request = new java.util.HashMap<String, Object>() {{}};
+                if (Helpers.isTrue(Helpers.isGreaterThan(pageSize, 0)))
+                {
+                    Helpers.addElementToObject(request, "limit", pageSize);
+                    Helpers.addElementToObject(request, "offset", offset);
+                }
+                Object response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
+                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object dataLength = Helpers.getArrayLength(data);
+                for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
+                {
+                    Object entry = Helpers.GetValue(data, i);
+                    ((java.util.List<Object>)allRows).add(entry);
+                    if (Helpers.isTrue(Helpers.isEqual(this.safeString(entry, "fee_type"), "TRANSACTION")))
+                    {
+                        // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(market, null))) || Helpers.isTrue((Helpers.isEqual(this.safeString(entry, "symbol"), Helpers.GetValue(market, "id"))))))
+                        {
+                            transactionsCount = this.sum(transactionsCount, 1);
+                        }
+                    }
+                }
+                calls = this.sum(calls, 1);
+                paging = false;
+                // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isEqual(dataLength, pageSize)))) && Helpers.isTrue((Helpers.isLessThan(transactionsCount, limit)))) && Helpers.isTrue((Helpers.isLessThan(calls, maxCalls)))))
+                {
+                    // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                    offset = this.sum(offset, pageSize);
+                    paging = true;
+                }
+            }
+            // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+            Object rebateKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rebateAmounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object transactionKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allRows)); i++)
+            {
+                Object entry = Helpers.GetValue(allRows, i);
+                String feeType = this.safeString(entry, "fee_type");
+                Object pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+                if (Helpers.isTrue(Helpers.isEqual(feeType, "TRANSACTION")))
+                {
+                    ((java.util.List<Object>)transactions).add(entry);
+                    ((java.util.List<Object>)transactionKeys).add(pairKey);
+                } else if (Helpers.isTrue(Helpers.isEqual(feeType, "REBATE")))
+                {
+                    ((java.util.List<Object>)rebateKeys).add(pairKey);
+                    ((java.util.List<Object>)rebateAmounts).add(this.safeString(entry, "fee_amount", "0"));
+                }
+            }
+            Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
+            {
+                Object rebate = null;
+                for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rebateKeys)); j++)
+                {
+                    if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(rebateKeys, j), Helpers.GetValue(transactionKeys, i))))
+                    {
+                        rebate = Helpers.GetValue(rebateAmounts, j);
+                        // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                        Helpers.addElementToObject(rebateKeys, j, null);
+                        break;
+                    }
+                }
+                if (Helpers.isTrue(Helpers.isEqual(rebate, null)))
+                {
+                    ((java.util.List<Object>)rows).add(Helpers.GetValue(transactions, i));
+                } else
+                {
+    final Object finalRebate = rebate;
+                                    ((java.util.List<Object>)rows).add(this.extend(Helpers.GetValue(transactions, i), new java.util.HashMap<String, Object>() {{
+                        put( "rebate_amount", finalRebate );
+                    }}));
+                }
+            }
             return this.parseTrades(rows, market, since, limit);
         });
 
@@ -1721,60 +1808,75 @@ public class MudrexCore extends MudrexApi
 
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ts = this.parse8601(this.safeString(trade, "created_at"));
-        if (Helpers.isTrue(Helpers.isEqual(ts, null)))
-        {
-            ts = this.safeInteger(trade, "time");
-        }
-        String side = (String)this.safeStringLower2(trade, "side", "order_type");
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        String side = (String)this.safeStringLower(trade, "order_type");
         Object tradeSide = null;
-        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "buy")) || Helpers.isTrue(Helpers.isEqual(side, "long"))))
+        if (Helpers.isTrue(Helpers.isEqual(side, "long")))
         {
             tradeSide = "buy";
-        } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(side, "sell")) || Helpers.isTrue(Helpers.isEqual(side, "short"))))
+        } else if (Helpers.isTrue(Helpers.isEqual(side, "short")))
         {
             tradeSide = "sell";
         }
-        String feeType = (String)this.safeStringUpper(trade, "fee_type");
+        String trig = (String)this.safeStringUpper(trade, "trigger_type");
         Object takerOrMaker = null;
-        if (Helpers.isTrue(Helpers.isEqual(feeType, "TRANSACTION")))
+        if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
+            // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = "taker";
-        } else if (Helpers.isTrue(Helpers.isEqual(feeType, "REBATE")))
-        {
-            takerOrMaker = "maker";
         }
         Object fee = null;
-        Object feeCost = this.safeNumber(trade, "fee_amount");
-        if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
+        String feeCostString = this.safeString(trade, "fee_amount");
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        String rebateString = this.safeString(trade, "rebate_amount");
+        if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCostString, null))) && Helpers.isTrue((!Helpers.isEqual(rebateString, null)))))
         {
-            final Object finalFeeCost = feeCost;
+            feeCostString = Precise.stringSub(feeCostString, rebateString);
+        }
+        if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
+        {
+            final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
-                put( "cost", finalFeeCost );
+                put( "cost", finalFeeCostString );
                 put( "currency", MudrexCore.this.safeString(trade, "trade_currency") );
             }};
         }
-        final Object finalTs = ts;
         final Object finalTradeSide = tradeSide;
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalFee = fee;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
-            put( "timestamp", finalTs );
-            put( "datetime", MudrexCore.this.iso8601(finalTs) );
+            put( "timestamp", ts );
+            put( "datetime", MudrexCore.this.iso8601(ts) );
             put( "symbol", symbol );
-            put( "id", MudrexCore.this.safeString2(trade, "execId", "id") );
-            put( "order", MudrexCore.this.safeString(trade, "order_id") );
+            put( "id", MudrexCore.this.safeString(trade, "id") );
+            put( "order", null );
             put( "type", MudrexCore.this.safeStringLower(trade, "trigger_type") );
             put( "side", finalTradeSide );
             put( "takerOrMaker", finalTakerOrMaker );
-            put( "price", MudrexCore.this.safeNumber(trade, "price") );
-            put( "amount", MudrexCore.this.safeNumber2(trade, "size", "quantity") );
-            put( "cost", MudrexCore.this.safeNumber(trade, "transaction_amount") );
+            put( "price", null );
+            put( "amount", null );
+            put( "cost", MudrexCore.this.safeString(trade, "transaction_amount") );
             put( "fee", finalFee );
         }}, market);
     }
