@@ -3052,8 +3052,9 @@ class testMainClass {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
             // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
-            const url = exchange.safeString (exchange, 'last_request_url', '');
+            const url = exchange.last_request_url as string;
             const urlParts = url.split ('?');
+            assert (urlParts.length > 1, 'last_request_url has no query string: ' + url);
             const query = this.urlencodedToDict (urlParts[1]);
             clientOrderId = query['label'];
         }

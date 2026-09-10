@@ -4,7 +4,7 @@
 import { sha256 } from '@noble/hashes/sha2.js';
 import { jwt } from './base/functions/rsa.js';
 import { ecdsa } from './base/functions/crypto.js';
-import { p256 as P256 } from '@noble/curves/nist.js';
+import { p256 } from '@noble/curves/nist.js';
 import Exchange from './abstract/coinbaseinternational.js';
 import { ExchangeError, ArgumentsRequired, InvalidOrder, AuthenticationError } from './base/errors.js';
 import { Precise } from './base/Precise.js';
@@ -2741,9 +2741,11 @@ export default class coinbaseinternational extends Exchange {
         const encodedHeader = this.urlencodeBase64 (this.json (header));
         const encodedRequest = this.urlencodeBase64 (this.json (request));
         const token = encodedHeader + '.' + encodedRequest;
-        const signedHash = ecdsa (token, this.secret, P256, sha256);
-        const r = signedHash['r'].padStart (64, '0');
-        const s = signedHash['s'].padStart (64, '0');
+        const signedHash = ecdsa (token, this.secret, p256, sha256);
+        const rawR = signedHash['r'];
+        const rawS = signedHash['s'];
+        const r = rawR.padStart (64, '0');
+        const s = rawS.padStart (64, '0');
         const signature = this.urlencodeBase64 (this.base16ToBinary (r + s));
         return token + '.' + signature;
     }

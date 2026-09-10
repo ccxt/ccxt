@@ -41,6 +41,7 @@ func Secp256k1() string { return "secp256k1" }
 func P256() string      { return "p256" }
 func keccak() string    { return "keccak" }
 func secp256k1() string { return "secp256k1" }
+func p256() string      { return "p256" }
 
 func (this *BaseExchange) Hmac(request2 any, secret2 any, algorithm2 func() string, args ...any) string {
 	digest := GetArg(args, 0, "hex").(string)
