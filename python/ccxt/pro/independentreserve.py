@@ -9,6 +9,9 @@ from ccxt.base.types import Int, Market, OrderBook, Trade
 from ccxt.async_support.base.ws.client import Client
 from ccxt.base.errors import NotSupported
 from ccxt.base.errors import ChecksumError
+from ccxt.base.decimal_to_precision import ROUND
+from ccxt.base.decimal_to_precision import DECIMAL_PLACES
+from ccxt.base.decimal_to_precision import PAD_WITH_ZERO
 
 
 class independentreserve(ccxt.async_support.independentreserve):
@@ -194,7 +197,11 @@ class independentreserve(ccxt.async_support.independentreserve):
         if event == 'OrderBookSnapshot':
             snapshot = self.parse_order_book(orderBook, symbol, timestamp, 'Bids', 'Offers', 'Price', 'Volume')
             orderbook.reset(snapshot)
-            subscription['receivedSnapshot'] = True
+            # write through the parent index: php copies arrays by value, so
+            # mutating the local bind would not persist the flag
+            client.subscriptions[messageHash] = self.extend(subscription, {
+                'receivedSnapshot': True,
+            })
         else:
             asks = self.safe_list(orderBook, 'Offers', [])
             bids = self.safe_list(orderBook, 'Bids', [])
@@ -215,7 +222,7 @@ class independentreserve(ccxt.async_support.independentreserve):
             for i in range(0, 10):
                 if i < asksLength:
                     payload = payload + self.value_to_checksum(storedAsks[i][0]) + self.value_to_checksum(storedAsks[i][1])
-            calculatedChecksum = self.crc32(payload, True)
+            calculatedChecksum = self.crc32(payload, False)
             responseChecksum = self.safe_integer(orderBook, 'Crc32')
             if calculatedChecksum != responseChecksum:
                 error = ChecksumError(self.id + ' ' + self.orderbook_checksum_message(symbol))
@@ -227,7 +234,10 @@ class independentreserve(ccxt.async_support.independentreserve):
             client.resolve(orderbook, messageHash)
 
     def value_to_checksum(self, value: object):
-        result = format(value, '.8f')
+        # toFixed returns a zero-padded *string* in js but a *number* in
+        # go/c#/java, dropping trailing zeros. decimalToPrecision with
+        # PAD_WITH_ZERO is string-typed everywhere and emits the same digits.
+        result = self.decimal_to_precision(value, ROUND, 8, DECIMAL_PLACES, PAD_WITH_ZERO)
         result = result.replace('.', '')
         # remove leading zeros
         result = self.parse_number(result)
