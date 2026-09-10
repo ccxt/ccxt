@@ -417,9 +417,7 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                const fetchCache = exchange.getFetchCache ();
-                const lastUrl = fetchCache.length > 0 ? fetchCache[fetchCache.length - 1]['request']['url'] : '';
-                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + lastUrl + ' )';
+                const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + this.getLastRequestUrl (exchange) + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if (i === maxRetries - 1) {
@@ -500,13 +498,13 @@ class testMainClass {
         const fetchCache = exchange.getFetchCache ();
         let url: string = '';
         if (fetchCache.length > 0) {
-            const lastEntry: dict = fetchCache[fetchCache.length - 1];
-            const 
+            const lastEntry: Dict = fetchCache[fetchCache.length - 1];
+            const lastRequest = lastEntry['request'];
             if (lastRequest !== undefined) {
-
+                url = exchange.safeString (lastRequest, 'url', '');
             }
         }
-        return fetchCache.length > 0 ? fetchCache[fetchCache.length - 1]['request']['url'] : '';
+        return url;
     }
 
     async runPublicTests (exchange: any, symbols: any) {
