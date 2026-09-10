@@ -734,18 +734,8 @@ class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV2)' => 'BSC',
                     'BNB Smart Chain(BEP20)' => 'BSC',
                     'Ethereum(ERC20)' => 'ERC20',
-                    // TODO => uncomment below after deciding unified name
-                    // 'PEPE COIN BSC':
-                    // 'SMART BLOCKCHAIN':
-                    // 'f(x)Core':
-                    // 'Syscoin Rollux':
-                    // 'Syscoin UTXO':
-                    // 'zkSync Era':
-                    // 'zkSync Lite':
-                    // 'Darwinia Smart Chain':
-                    // 'Arbitrum One(ARB-Bridged)':
-                    // 'Optimism(OP-Bridged)':
-                    // 'Polygon(MATIC-Bridged)':
+                    // TODO => unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 ),
                 'recvWindow' => 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd' => 90 * 86400 * 1000 - 1, // 90 days
@@ -2642,16 +2632,7 @@ class mexc extends Exchange {
             'vol' => floatval($volString),
             // 'leverage' => int, // required for isolated margin
             // 'side' => $side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 $market orders
-            //     6 convert $market $price to current $price
-            //
+            // order types => 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 $market, 6 convert $market $price to current $price
             'type' => $type,
             'openType' => $openType, // 1 isolated, 2 cross
             // 'positionId' => 1394650, // long, property_exists($this, filling) parameter when closing a position is recommended
