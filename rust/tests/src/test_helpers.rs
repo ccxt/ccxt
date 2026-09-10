@@ -540,6 +540,7 @@ pub trait ExchangeOps {
     /// the receiver and first arg are the same Value, hence the
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
+    fn get_fetch_cache(&mut self) -> Value;
     fn parse_timeframe(&self, tf: Value) -> Value;
     fn iso8601(&self, ts: Value) -> Value;
     fn milliseconds(&self) -> Value;
