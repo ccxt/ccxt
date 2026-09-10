@@ -3096,7 +3096,7 @@ impl ModetradeCore {
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -3137,7 +3137,7 @@ impl ModetradeCore {
             add_element_to_object(&mut request, &Value::Str("start_t".to_string()), since.clone());
         }
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("size".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("size".to_string()), crate::runtime::Math::min(&limit, &maxLimit));
         }  else {
             add_element_to_object(&mut request, &Value::Str("size".to_string()), maxLimit.clone());
         }
@@ -3202,7 +3202,7 @@ impl ModetradeCore {
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -3240,7 +3240,7 @@ impl ModetradeCore {
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
