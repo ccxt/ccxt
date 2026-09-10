@@ -138,8 +138,8 @@ A test passing only in TS means nothing — the regex transpiler can silently ma
 Primary regression net for per-exchange behaviour. Regenerated via CLI:
 
 ```bash
-npm run cli.js -- <exchange> <method> <args...> --request    # request entry
-npm run cli.js -- <exchange> <method> <args...> --response   # response entry
+npm run cli.ts -- <exchange> <method> <args...> --request    # request entry
+npm run cli.ts -- <exchange> <method> <args...> --response   # response entry
 ```
 
 Paste output into `methods.<methodName>` array of the respective JSON, then re-run:
