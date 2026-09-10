@@ -1378,7 +1378,9 @@ class pacifica(Exchange, ImplicitAPI):
         timestamp = self.safe_integer(trade, 'created_at')
         price = self.safe_string(trade, 'price')
         amount = self.safe_string(trade, 'amount')
-        symbol = self.safe_symbol(None, market)
+        marketId = self.safe_string(trade, 'symbol')
+        market = self.safe_market(marketId, market)
+        symbol = market['symbol']
         id = self.safe_string(trade, 'history_id')
         side = self.safe_string(trade, 'side')
         if side == 'open_long':

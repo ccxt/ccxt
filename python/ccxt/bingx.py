@@ -1041,8 +1041,8 @@ class bingx(Exchange, ImplicitAPI):
         currency = self.safe_string(market, 'currency')
         checkIsInverse = False
         checkIsLinear = True
-        minTickSize = self.safe_number(market, 'minTickSize')
-        if minTickSize is not None:
+        inverseContractSize = self.safe_number(market, 'minTickSize')
+        if inverseContractSize is not None:
             # inverse swap market
             currency = baseId
             checkIsInverse = True
@@ -1061,7 +1061,9 @@ class bingx(Exchange, ImplicitAPI):
         if settle is not None:
             symbol += ':' + settle
         fees = self.safe_dict(self.fees, type, {})
-        contractSize = self.parse_number('1') if (swap) else None
+        contractSize = None
+        if swap:
+            contractSize = inverseContractSize if (checkIsInverse) else self.parse_number('1')
         isActive = False
         if (self.safe_string(market, 'apiStateOpen') == 'true') and (self.safe_string(market, 'apiStateClose') == 'true'):
             isActive = True  # swap active
@@ -1118,7 +1120,7 @@ class bingx(Exchange, ImplicitAPI):
                     'max': None,
                 },
                 'price': {
-                    'min': minTickSize,
+                    'min': None,
                     'max': None,
                 },
                 'cost': {
