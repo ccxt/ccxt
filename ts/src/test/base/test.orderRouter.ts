@@ -288,6 +288,58 @@ test ('constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrai
     assert.throws (() => new OrderRouter ({ 'apiKey': 'k', 'maxNotionalUsd': -1 }), BadRequest);
 });
 
+//  A market that actually declares limits, unlike permissiveStubMarkets. A hand-built plan has
+//  to clear these the same way a routed one does.
+const boundedStubMarkets: any = {
+    'stub': {
+        'BTC/USDT': {
+            'symbol': 'BTC/USDT',
+            'base': 'BTC',
+            'quote': 'USDT',
+            'precision': { 'amount': 0, 'price': 0 },
+            'limits': {
+                'amount': { 'min': 0.0001, 'max': 0 },
+                'price': { 'min': 1, 'max': 1000000 },
+                'cost': { 'min': 10, 'max': 0 },
+            },
+        },
+    },
+};
+
+test ('a hand-built plan carrying only the required fields is executable', () => {
+    //  The manual documents limitPrice and notionalQuote as OPTIONAL, and its own worked example
+    //  omits both. Read as 0 they broke the "execute your own plans" path three ways at once: a
+    //  blocking cost_below_minimum (0 < any minimum cost), a blocking price_out_of_range (0 <
+    //  minPrice), and — before any strategy branch, so on every strategy — a rounded_to_zero when
+    //  placeStep snapped a price of 0. The documented example could not place a single order.
+    const plan = {
+        'requestId': 'hand-built-0001',
+        'calculatedAt': 1700000000000,
+        'steps': [
+            { 'exchangeId': 'stub', 'symbol': 'BTC/USDT', 'side': 'buy', 'amount': 1,
+              'base': 'BTC', 'quote': 'USDT', 'hopIndex': 0, 'expectedPrice': 100 },
+        ],
+    };
+    const violations = router.checkExecutionPlanSafety (plan, boundedStubMarkets, { 'usdRates': { 'USDT': 1 } });
+    const blocking = [];
+    for (let i = 0; i < violations.length; i++) {
+        if (violations[i]['blocking']) {
+            blocking.push (violations[i]['code']);
+        }
+    }
+    assert.deepStrictEqual (blocking, [], 'the manual\'s own minimal plan must not be refused: ' + blocking.join (', '));
+});
+
+test ('the derived limit price and notional follow amount and expectedPrice', () => {
+    const step = { 'amount': 2, 'expectedPrice': 100 };
+    assert.strictEqual (router.stepLimitPrice (step), 100, 'no limitPrice falls back to expectedPrice');
+    assert.strictEqual (router.stepNotionalQuote (step), 200, 'no notionalQuote is amount * expectedPrice');
+    //  An explicit value always wins, including one tighter than the expected price.
+    const explicit = { 'amount': 2, 'expectedPrice': 100, 'limitPrice': 99, 'notionalQuote': 1 };
+    assert.strictEqual (router.stepLimitPrice (explicit), 99);
+    assert.strictEqual (router.stepNotionalQuote (explicit), 1);
+});
+
 test ('the limit price sits on the side that costs you, and only there', () => {
     const buy = router.buildExecutionPlan (oneLegRoute ('buy', 'BTC', 'USDT', 1, 100), { 'slippageBps': 100 });
     assert.strictEqual (buy['steps'][0]['limitPrice'], 101, 'a buy pays up to 1% more');

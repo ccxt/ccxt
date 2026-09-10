@@ -211,6 +211,46 @@ class OrderRouter {
 
     /**
      * @ignore
+     * the price a step is sent at, derived from expectedPrice when the caller gave no limitPrice
+     * @param array $step one step of an execution plan
+     * @return float the limit price to use, 0 only when the step has neither field
+     */
+    public function stepLimitPrice($step) {
+        //  buildExecutionPlan always sets limitPrice, but a HAND-BUILT plan need not: the manual
+        //  documents it as optional, and the "execute your own plans" path is the whole point of
+        //  execute() taking a plan rather than a route. Reading it as 0 made every such plan fail
+        //  three different ways - a blocking price_out_of_range from checkExecutionPlanSafety, a
+        //  rounded_to_zero before any strategy branch in placeStep, and a buy-side balance
+        //  requirement of amount * 0 - so the documented example could not place one order.
+        //  expectedPrice is the honest fallback: it is what the caller says the step is worth, and
+        //  it is already guaranteed positive by the invalid_step guard. A caller wanting a tighter
+        //  or looser bound sets limitPrice explicitly.
+        $limitPrice = $this->numberAt($step, 'limitPrice', 0);
+        if ($limitPrice > 0) {
+            return $limitPrice;
+        }
+        return $this->numberAt($step, 'expectedPrice', 0);
+    }
+
+    /**
+     * @ignore
+     * the step's quote-side value, derived from amount and expectedPrice when absent
+     * @param array $step one step of an execution plan
+     * @return float the notional in the market's quote currency
+     */
+    public function stepNotionalQuote($step) {
+        //  Same reasoning as stepLimitPrice, and the same formula buildExecutionPlan uses. Read as
+        //  0, a hand-built plan tripped the BLOCKING cost_below_minimum on every market declaring
+        //  a minimum cost.
+        $notionalQuote = $this->numberAt($step, 'notionalQuote', 0);
+        if ($notionalQuote > 0) {
+            return $notionalQuote;
+        }
+        return $this->numberAt($step, 'amount', 0) * $this->numberAt($step, 'expectedPrice', 0);
+    }
+
+    /**
+     * @ignore
      * reads a numeric field out of a container, with a default for missing, null and unparseable values
      * @param mixed $container the container to read from
      * @param string $key the field name
@@ -989,8 +1029,8 @@ class OrderRouter {
             $symbol = $this->stringAt($step, 'symbol', '');
             $amount = $this->numberAt($step, 'amount', 0);
             $expectedPrice = $this->numberAt($step, 'expectedPrice', 0);
-            $limitPrice = $this->numberAt($step, 'limitPrice', 0);
-            $notionalQuote = $this->numberAt($step, 'notionalQuote', 0);
+            $limitPrice = $this->stepLimitPrice($step);
+            $notionalQuote = $this->stepNotionalQuote($step);
             $side = $this->stringAt($step, 'side', '');
             if (($amount <= 0) || ($expectedPrice <= 0) || (($side !== 'buy') && ($side !== 'sell'))) {
                 $violations[] = $this->violation($stepIndex, $exchangeId, $symbol, 'invalid_step', true, $amount, 0);
@@ -1792,8 +1832,8 @@ class OrderRouter {
                 'amount' => $this->numberAt($step, 'amount', 0),
                 'expectedPrice' => $this->numberAt($step, 'expectedPrice', 0),
                 'effectivePrice' => $this->numberAt($step, 'effectivePrice', 0),
-                'limitPrice' => $this->numberAt($step, 'limitPrice', 0),
-                'notionalQuote' => $this->numberAt($step, 'notionalQuote', 0),
+                'limitPrice' => $this->stepLimitPrice($step),
+                'notionalQuote' => $this->stepNotionalQuote($step),
             );
         }
         return $copies;
@@ -2158,7 +2198,7 @@ class OrderRouter {
                 return $result;
             }
             $amount = $this->parseNumber(strval($venue->amountToPrecision($symbol, $this->numberAt($step, 'amount', 0))), 0);
-            $price = $this->parseNumber(strval($venue->priceToPrecision($symbol, $this->numberAt($step, 'limitPrice', 0))), 0);
+            $price = $this->parseNumber(strval($venue->priceToPrecision($symbol, $this->stepLimitPrice($step))), 0);
             if (!($amount > 0) || !($price > 0)) {
                 $result['errorCode'] = 'rounded_to_zero';
                 $this->recordError($report, $stepIndex, $exchangeId, $symbol, 'rounded_to_zero');
@@ -2615,7 +2655,7 @@ class OrderRouter {
             $needed = 0;
             if ($this->stringAt($step, 'side', '') === 'buy') {
                 $asset = $this->stringAt($step, 'quote', '');
-                $needed = $amount * $this->numberAt($step, 'limitPrice', 0);
+                $needed = $amount * $this->stepLimitPrice($step);
             } else {
                 $asset = $this->stringAt($step, 'base', '');
                 $needed = $amount;

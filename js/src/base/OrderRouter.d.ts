@@ -31,6 +31,24 @@ declare class OrderRouter {
     /**
      * @ignore
      * @method
+     * @name OrderRouter#stepLimitPrice
+     * @description the price a step is sent at, derived from expectedPrice when the caller gave no limitPrice
+     * @param {object} step one step of an execution plan
+     * @returns {float} the limit price to use, 0 only when the step has neither field
+     */
+    stepLimitPrice(step: Dict): number;
+    /**
+     * @ignore
+     * @method
+     * @name OrderRouter#stepNotionalQuote
+     * @description the step's quote-side value, derived from amount and expectedPrice when absent
+     * @param {object} step one step of an execution plan
+     * @returns {float} the notional in the market's quote currency
+     */
+    stepNotionalQuote(step: Dict): number;
+    /**
+     * @ignore
+     * @method
      * @name OrderRouter#numberAt
      * @description reads a numeric field out of a container, with a default for missing, null and unparseable values
      * @param {object} container the dictionary to read from

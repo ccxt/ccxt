@@ -78,6 +78,8 @@ public class OrderRouterTest
         Run("a well-formed route still plans normally", RouteWellFormedStillPlans);
         //  2. invariants, asserted directly rather than through the fixture
         Run("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", ConstructorGuards);
+        Run("a hand-built plan carrying only the required fields is executable", HandBuiltPlanIsExecutable);
+        Run("the derived limit price and notional follow amount and expectedPrice", DerivedLimitPriceAndNotional);
         Run("the limit price sits on the side that costs you, and only there", LimitPriceSide);
         Run("a cap that IS set binds exactly, at whatever size, and includes the slippage", NotionalCap);
         Run("with no cap set, no notional check runs at all", NoCapMeansNoNotionalCheck);
@@ -123,7 +125,7 @@ public class OrderRouterTest
         RunAsync("onStep sees every step and can stop the route", OnStepSeesEveryStepAndCanStop);
         RunAsync("an onStep that throws is recorded, and does not take the run down with it", OnStepThatThrowsIsRecorded);
         RunAsync("onStep can only narrow: it cannot resume a route the reconciliation already halted", OnStepCanOnlyNarrow);
-        RunAsync("retryFailedSteps re-places a rejected step under a NEW client order id, and never retries an unknown outcome", RetryUsesANewClientOrderId);
+        RunAsync("retryFailedSteps re-places a rejected step as a fresh order, and never retries an unknown outcome", RetryPlacesAFreshOrder);
         Run("formatNumber never emits exponent notation", FormatNumberIsPlain);
         Console.WriteLine("[C#] OrderRouter: " + passes.ToString(CultureInfo.InvariantCulture) + " passed, " + failures.ToString(CultureInfo.InvariantCulture) + " failed");
         return failures;
@@ -922,6 +924,74 @@ public class OrderRouterTest
         return new dict() { { "stub", StubMarket() } };
     }
 
+    //  A market that actually declares limits, unlike PermissiveStubMarkets(). A hand-built plan
+    //  has to clear these the same way a routed one does.
+    private static dict BoundedStubMarkets()
+    {
+        return new dict()
+        {
+            {
+                "stub", new dict()
+                {
+                    {
+                        "BTC/USDT", new dict()
+                        {
+                            { "symbol", "BTC/USDT" },
+                            { "base", "BTC" },
+                            { "quote", "USDT" },
+                            { "precision", new dict() { { "amount", 0.0 }, { "price", 0.0 } } },
+                            { "limits", new dict() { { "amount", new dict() { { "min", 0.0001 }, { "max", 0.0 } } }, { "price", new dict() { { "min", 1.0 }, { "max", 1000000.0 } } }, { "cost", new dict() { { "min", 10.0 }, { "max", 0.0 } } } } },
+                        }
+                    },
+                }
+            },
+        };
+    }
+
+    private static void HandBuiltPlanIsExecutable()
+    {
+        //  The manual documents limitPrice and notionalQuote as OPTIONAL, and its own worked
+        //  example omits both. Read as 0 they broke the "execute your own plans" path three ways
+        //  at once: a blocking cost_below_minimum (0 < any minimum cost), a blocking
+        //  price_out_of_range (0 < minPrice), and — before any strategy branch, so on every
+        //  strategy — a rounded_to_zero when PlaceStep snapped a price of 0. The documented
+        //  example could not place a single order.
+        var router = NewRouter();
+        var plan = new dict()
+        {
+            { "requestId", "hand-built-0001" },
+            { "calculatedAt", 1700000000000.0 },
+            {
+                "steps", new list()
+                {
+                    new dict() { { "exchangeId", "stub" }, { "symbol", "BTC/USDT" }, { "side", "buy" }, { "amount", 1.0 }, { "base", "BTC" }, { "quote", "USDT" }, { "hopIndex", 0.0 }, { "expectedPrice", 100.0 } },
+                }
+            },
+        };
+        var violations = router.CheckExecutionPlanSafety(plan, BoundedStubMarkets(), new dict() { { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var blocking = new List<string>();
+        for (var i = 0; i < violations.Count; i++)
+        {
+            if ((bool)violations[i]["blocking"])
+            {
+                blocking.Add((string)violations[i]["code"]);
+            }
+        }
+        Ok(blocking.Count == 0, "the manual's own minimal plan must not be refused: " + string.Join(", ", blocking));
+    }
+
+    private static void DerivedLimitPriceAndNotional()
+    {
+        var router = NewRouter();
+        var step = new dict() { { "amount", 2.0 }, { "expectedPrice", 100.0 } };
+        EqualNumber(router.StepLimitPrice(step), 100, "no limitPrice falls back to expectedPrice");
+        EqualNumber(router.StepNotionalQuote(step), 200, "no notionalQuote is amount * expectedPrice");
+        //  An explicit value always wins, including one tighter than the expected price.
+        var explicitStep = new dict() { { "amount", 2.0 }, { "expectedPrice", 100.0 }, { "limitPrice", 99.0 }, { "notionalQuote", 1.0 } };
+        EqualNumber(router.StepLimitPrice(explicitStep), 99, "an explicit limitPrice wins");
+        EqualNumber(router.StepNotionalQuote(explicitStep), 1, "an explicit notionalQuote wins");
+    }
+
     private static void ConstructorGuards()
     {
         Throws<ArgumentsRequired>(() => new OrderRouter(new dict()), "an apiKey is required");
@@ -1217,7 +1287,7 @@ public class OrderRouterTest
         EqualString((string)ToDict(ToList(report["steps"])[1])["status"], "skipped", "the second hop never ran");
     }
 
-    private static async Task RetryUsesANewClientOrderId()
+    private static async Task RetryPlacesAFreshOrder()
     {
         //  A rejected order was not placed, so re-placing it cannot double-fill. Re-sending the
         //  original client order id would have the venue reject the retry as a duplicate of the
@@ -1237,11 +1307,13 @@ public class OrderRouterTest
         var first = ToDict(ToList(report["steps"])[0]);
         EqualString((string)first["status"], "filled", "the retry succeeded");
         EqualNumber(ToDouble(first["attempt"]), 1, "the report says which attempt won");
-        EqualNumber(relents.paramsSeen.Count, 2, "one rejection and one retry");
-        var firstId = (string)relents.paramsSeen[0]["clientOrderId"];
-        var secondId = (string)relents.paramsSeen[1]["clientOrderId"];
-        Ok(firstId != secondId, "a retry must not reuse the rejected order id");
-        Ok(secondId.IndexOf("-r1", StringComparison.Ordinal) != -1, "the retry is marked as such, got " + secondId);
+        EqualNumber(relents.paramsSeen.Count, 2, "two placements went out");
+        //  The router injects NO client order id, on the first try or the retry: venues disagree
+        //  on length and charset, and the derived <planId>-<stepIndex> scheme was rejected by the
+        //  ones where idempotency mattered most. This assertion is the inverse of what it used to
+        //  be; the C# suite kept the old one only because it never compiled to run.
+        Ok(!relents.paramsSeen[0].ContainsKey("clientOrderId"), "no client order id is injected on the first try");
+        Ok(!relents.paramsSeen[1].ContainsKey("clientOrderId"), "nor on the retry");
 
         //  the outcome the policy must NEVER touch
         var unknown = new StubVenue("stub");
@@ -1353,19 +1425,22 @@ public class OrderRouterTest
             return Convert.ToString(price, CultureInfo.InvariantCulture);
         }
 
-        public override async Task<object> fetchBalance(object parameters = null)
+        // Overrides the REAL signature: Exchange exposes FetchBalance returning the typed
+        // Balances, not a camelCase method returning object. The stub used to declare the latter,
+        // so it overrode nothing that exists and the library did not compile at all.
+        public override async Task<ccxt.Balances> FetchBalance(object parameters = null)
         {
             this.calls.Add("fetchBalance");
             await Task.CompletedTask;
             if (this.balanceOverride != null)
             {
-                return this.balanceOverride;
+                return new ccxt.Balances(this.balanceOverride);
             }
-            return new dict()
+            return new ccxt.Balances(new dict()
             {
                 { "free", new dict() { { "USDT", 1000.0 }, { "BTC", 1.0 }, { "ZERO", 0.0 } } },
                 { "total", new dict() { { "USDT", 1000.0 }, { "BTC", 1.0 } } },
-            };
+            });
         }
 
         public override async Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -2080,10 +2155,13 @@ public class OrderRouterTest
         EqualNumber(ToDouble(step["grossOutAmount"]), 0.2, "the gross figure is kept for the audit trail");
         EqualNumber(ToDouble(step["outAmount"]), 0.1998, "and what is carried forward is net of it");
 
-        //  A fee in any OTHER currency does not reduce what this hop hands to the next one.
+        //  A fee in any OTHER currency does not reduce what this hop hands to the next one. This
+        //  is the SAME plan a second time, deliberately, to isolate the fee currency as the only
+        //  variable — which is exactly what allowReexecution is for. Without it the idempotency
+        //  ledger refuses the second run, as it should.
         var other = new StubVenue("stub");
         other.feeOverride = new dict() { { "currency", "USDT" }, { "cost", 0.02 } };
-        var quoteFeeReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } } });
+        var quoteFeeReport = await router.Execute(plan, Venues(other), new dict() { { "strategy", "sequential" }, { "live", true }, { "usdRates", new dict() { { "USDT", 1.0 } } }, { "allowReexecution", true } });
         var quoteFeeStep = ToDict(ToList(quoteFeeReport["steps"])[0]);
         EqualNumber(ToDouble(quoteFeeStep["outAmount"]), 0.2, "a fee in the spent asset leaves the acquired amount alone");
     }

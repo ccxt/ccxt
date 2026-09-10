@@ -187,6 +187,26 @@ function order_router_permissive_markets() {
     );
 }
 
+//  A market that actually declares limits, unlike order_router_permissive_markets(). A hand-built
+//  plan has to clear these the same way a routed one does.
+function order_router_bounded_markets() {
+    return array(
+        'stub' => array(
+            'BTC/USDT' => array(
+                'symbol' => 'BTC/USDT',
+                'base' => 'BTC',
+                'quote' => 'USDT',
+                'precision' => array('amount' => 0, 'price' => 0),
+                'limits' => array(
+                    'amount' => array('min' => 0.0001, 'max' => 0),
+                    'price' => array('min' => 1, 'max' => 1000000),
+                    'cost' => array('min' => 10, 'max' => 0),
+                ),
+            ),
+        ),
+    );
+}
+
 //  every route the invariant tests build gets its own requestId: execute() derives the
 //  re-execution guard key from it, and refuses a live plan that carries none. A counter, not
 //  a random value — the ids stay reproducible.
@@ -625,6 +645,48 @@ function order_router_test_constructor_cap($router) {
     order_router_assert_throws(function () {
         new OrderRouter(array('apiKey' => 'k', 'maxNotionalUsd' => -1));
     }, BadRequest::class, 'a negative cap is a typo, not a policy');
+}
+
+function order_router_test_hand_built_plan_is_executable($router) {
+    //  The manual documents limitPrice and notionalQuote as OPTIONAL, and its own worked example
+    //  omits both. Read as 0 they broke the "execute your own plans" path three ways at once: a
+    //  blocking cost_below_minimum (0 < any minimum cost), a blocking price_out_of_range (0 <
+    //  minPrice), and — before any strategy branch, so on every strategy — a rounded_to_zero when
+    //  placeStep snapped a price of 0. The documented example could not place a single order.
+    $plan = array(
+        'requestId' => 'hand-built-0001',
+        'calculatedAt' => 1700000000000,
+        'steps' => array(
+            array(
+                'exchangeId' => 'stub',
+                'symbol' => 'BTC/USDT',
+                'side' => 'buy',
+                'amount' => 1,
+                'base' => 'BTC',
+                'quote' => 'USDT',
+                'hopIndex' => 0,
+                'expectedPrice' => 100,
+            ),
+        ),
+    );
+    $violations = $router->checkExecutionPlanSafety($plan, order_router_bounded_markets(), array('usdRates' => array('USDT' => 1)));
+    $blocking = array();
+    for ($i = 0; $i < count($violations); $i++) {
+        if ($violations[$i]['blocking']) {
+            $blocking[] = $violations[$i]['code'];
+        }
+    }
+    order_router_assert(count($blocking) === 0, 'the manual\'s own minimal plan must not be refused: ' . implode(', ', $blocking));
+}
+
+function order_router_test_derived_limit_price_and_notional($router) {
+    $step = array('amount' => 2, 'expectedPrice' => 100);
+    order_router_assert(order_router_numbers_match($router->stepLimitPrice($step), 100), 'no limitPrice falls back to expectedPrice');
+    order_router_assert(order_router_numbers_match($router->stepNotionalQuote($step), 200), 'no notionalQuote is amount * expectedPrice');
+    //  An explicit value always wins, including one tighter than the expected price.
+    $explicit = array('amount' => 2, 'expectedPrice' => 100, 'limitPrice' => 99, 'notionalQuote' => 1);
+    order_router_assert(order_router_numbers_match($router->stepLimitPrice($explicit), 99), 'an explicit limitPrice wins');
+    order_router_assert(order_router_numbers_match($router->stepNotionalQuote($explicit), 1), 'an explicit notionalQuote wins');
 }
 
 function order_router_test_limit_price_side($router) {
@@ -1605,6 +1667,8 @@ function test_order_router() {
         'fixture: a fee in the acquired asset resizes what the next hop is sized on' => 'ccxt\order_router_test_fixture_fee_netting',
         'fixture: numberAt reads one number grammar in all six languages' => 'ccxt\order_router_test_fixture_number_at',
         'constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size' => 'ccxt\order_router_test_constructor_cap',
+        'a hand-built plan carrying only the required fields is executable' => 'ccxt\order_router_test_hand_built_plan_is_executable',
+        'the derived limit price and notional follow amount and expectedPrice' => 'ccxt\order_router_test_derived_limit_price_and_notional',
         'the limit price sits on the side that costs you, and only there' => 'ccxt\order_router_test_limit_price_side',
         'a cap that IS set binds exactly, at whatever size, and includes the slippage' => 'ccxt\order_router_test_notional_cap',
         'with no cap set, no notional check runs at all' => 'ccxt\order_router_test_no_cap_means_no_check',

@@ -232,6 +232,41 @@ class OrderRouter:
             return None
         return getattr(container, key, None)
 
+    def step_limit_price(self, step):
+        """
+        the price a step is sent at, derived from expectedPrice when the caller gave no limitPrice
+
+        :param dict step: one step of an execution plan
+        :returns float: the limit price to use, 0 only when the step has neither field
+        """
+        # buildExecutionPlan always sets limitPrice, but a HAND-BUILT plan need not: the manual
+        # documents it as optional, and the "execute your own plans" path is the whole point of
+        # execute() taking a plan rather than a route. Reading it as 0 made every such plan fail
+        # three different ways — a blocking price_out_of_range from check_execution_plan_safety, a
+        # rounded_to_zero before any strategy branch in place_step, and a buy-side balance
+        # requirement of amount * 0 — so the documented example could not place one order.
+        # expectedPrice is the honest fallback: it is what the caller says the step is worth, and
+        # it is already guaranteed positive by the invalid_step guard.
+        limit_price = self.number_at(step, 'limitPrice', 0)
+        if limit_price > 0:
+            return limit_price
+        return self.number_at(step, 'expectedPrice', 0)
+
+    def step_notional_quote(self, step):
+        """
+        the step's quote-side value, derived from amount and expectedPrice when absent
+
+        :param dict step: one step of an execution plan
+        :returns float: the notional in the market's quote currency
+        """
+        # Same reasoning as step_limit_price, and the same formula build_execution_plan uses. Read
+        # as 0, a hand-built plan tripped the BLOCKING cost_below_minimum on every market
+        # declaring a minimum cost.
+        notional_quote = self.number_at(step, 'notionalQuote', 0)
+        if notional_quote > 0:
+            return notional_quote
+        return self.number_at(step, 'amount', 0) * self.number_at(step, 'expectedPrice', 0)
+
     def number_at(self, container, key, default_value):
         """
         reads a numeric field out of a container, with a default for missing, None and unparseable values
@@ -808,8 +843,8 @@ class OrderRouter:
             symbol = self.string_at(step, 'symbol', '')
             amount = self.number_at(step, 'amount', 0)
             expected_price = self.number_at(step, 'expectedPrice', 0)
-            limit_price = self.number_at(step, 'limitPrice', 0)
-            notional_quote = self.number_at(step, 'notionalQuote', 0)
+            limit_price = self.step_limit_price(step)
+            notional_quote = self.step_notional_quote(step)
             side = self.string_at(step, 'side', '')
             if amount <= 0 or expected_price <= 0 or (side != 'buy' and side != 'sell'):
                 violations.append(self.violation(step_index, exchange_id, symbol, 'invalid_step', True, amount, 0))
@@ -1470,8 +1505,8 @@ class OrderRouter:
                 'amount': self.number_at(step, 'amount', 0),
                 'expectedPrice': self.number_at(step, 'expectedPrice', 0),
                 'effectivePrice': self.number_at(step, 'effectivePrice', 0),
-                'limitPrice': self.number_at(step, 'limitPrice', 0),
-                'notionalQuote': self.number_at(step, 'notionalQuote', 0),
+                'limitPrice': self.step_limit_price(step),
+                'notionalQuote': self.step_notional_quote(step),
             })
         return copies
 
@@ -1834,7 +1869,7 @@ class OrderRouter:
                 self.record_error(report, step_index, exchange_id, symbol, 'venue_missing')
                 return result
             amount = self.parse_float(venue.amount_to_precision(symbol, self.number_at(step, 'amount', 0)))
-            price = self.parse_float(venue.price_to_precision(symbol, self.number_at(step, 'limitPrice', 0)))
+            price = self.parse_float(venue.price_to_precision(symbol, self.step_limit_price(step)))
             if not (amount > 0) or not (price > 0):
                 result['errorCode'] = 'rounded_to_zero'
                 self.record_error(report, step_index, exchange_id, symbol, 'rounded_to_zero')
@@ -2327,7 +2362,7 @@ class OrderRouter:
             amount = self.number_at(step, 'amount', 0)
             if self.string_at(step, 'side', '') == 'buy':
                 asset = self.string_at(step, 'quote', '')
-                needed = amount * self.number_at(step, 'limitPrice', 0)
+                needed = amount * self.step_limit_price(step)
             else:
                 asset = self.string_at(step, 'base', '')
                 needed = amount

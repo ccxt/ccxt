@@ -560,6 +560,85 @@ fn a_report_is_summarised_in_the_assets_it_names(r: &OrderRouter) -> Result<(), 
     Ok(())
 }
 
+/// A market that actually declares limits, unlike `permissive_stub_markets`.
+/// A hand-built plan has to clear these the same way a routed one does.
+fn bounded_stub_markets() -> Value {
+    let mut limits = HashMap::new();
+    limits.insert("amount".to_string(), config_with(&[("min", Value::Float(0.0001)), ("max", Value::Float(0.0))]));
+    limits.insert("price".to_string(), config_with(&[("min", Value::Float(1.0)), ("max", Value::Float(1000000.0))]));
+    limits.insert("cost".to_string(), config_with(&[("min", Value::Float(10.0)), ("max", Value::Float(0.0))]));
+    let mut market = HashMap::new();
+    market.insert("symbol".to_string(), Value::Str("BTC/USDT".into()));
+    market.insert("base".to_string(), Value::Str("BTC".into()));
+    market.insert("quote".to_string(), Value::Str("USDT".into()));
+    market.insert("precision".to_string(), config_with(&[("amount", Value::Float(0.0)), ("price", Value::Float(0.0))]));
+    market.insert("limits".to_string(), Value::Map(limits));
+    let mut venue = HashMap::new();
+    venue.insert("BTC/USDT".to_string(), Value::Map(market));
+    let mut markets = HashMap::new();
+    markets.insert("stub".to_string(), Value::Map(venue));
+    Value::Map(markets)
+}
+
+fn a_hand_built_plan_with_only_the_required_fields_is_executable(r: &OrderRouter) -> Result<(), String> {
+    // The manual documents limitPrice and notionalQuote as OPTIONAL, and its own
+    // worked example omits both. Read as 0 they broke the "execute your own
+    // plans" path three ways at once: a blocking cost_below_minimum (0 < any
+    // minimum cost), a blocking price_out_of_range (0 < minPrice), and — before
+    // any strategy branch, so on every strategy — a rounded_to_zero when
+    // place_step snapped a price of 0. The documented example could not place a
+    // single order.
+    let step = config_with(&[
+        ("exchangeId", Value::Str("stub".into())),
+        ("symbol", Value::Str("BTC/USDT".into())),
+        ("side", Value::Str("buy".into())),
+        ("amount", Value::Float(1.0)),
+        ("base", Value::Str("BTC".into())),
+        ("quote", Value::Str("USDT".into())),
+        ("hopIndex", Value::Float(0.0)),
+        ("expectedPrice", Value::Float(100.0)),
+    ]);
+    let plan = config_with(&[
+        ("requestId", Value::Str("hand-built-0001".into())),
+        ("calculatedAt", Value::Float(1700000000000.0)),
+        ("steps", Value::List(vec![step])),
+    ]);
+    let violations = r.check_execution_plan_safety(&plan, &bounded_stub_markets(), &uncapped_options(&[("USDT", 1.0)]));
+    let blocking: Vec<String> = violations
+        .iter()
+        .filter(|v| r.bool_at(v, "blocking", false))
+        .map(|v| text(v, "code"))
+        .collect();
+    if !blocking.is_empty() {
+        return Err(format!("the manual's own minimal plan must not be refused: {}", blocking.join(", ")));
+    }
+    Ok(())
+}
+
+fn derived_limit_price_and_notional_follow_amount_and_expected_price(r: &OrderRouter) -> Result<(), String> {
+    let step = config_with(&[("amount", Value::Float(2.0)), ("expectedPrice", Value::Float(100.0))]);
+    if !numbers_match(r.step_limit_price(&step), 100.0) {
+        return Err("no limitPrice falls back to expectedPrice".to_string());
+    }
+    if !numbers_match(r.step_notional_quote(&step), 200.0) {
+        return Err("no notionalQuote is amount * expectedPrice".to_string());
+    }
+    // An explicit value always wins, including one tighter than the expected price.
+    let explicit = config_with(&[
+        ("amount", Value::Float(2.0)),
+        ("expectedPrice", Value::Float(100.0)),
+        ("limitPrice", Value::Float(99.0)),
+        ("notionalQuote", Value::Float(1.0)),
+    ]);
+    if !numbers_match(r.step_limit_price(&explicit), 99.0) {
+        return Err("an explicit limitPrice wins".to_string());
+    }
+    if !numbers_match(r.step_notional_quote(&explicit), 1.0) {
+        return Err("an explicit notionalQuote wins".to_string());
+    }
+    Ok(())
+}
+
 fn limit_price_side(r: &OrderRouter) -> Result<(), String> {
     // The limit sits on the side that costs you, and only there.
     let options = config_with(&[("slippageBps", Value::Float(100.0))]);
@@ -1306,6 +1385,8 @@ pub fn run() -> Result<usize, String> {
         ("fixture: formatNumber spells one number one way in all six languages", Box::new(|| fixture_format_number(&router()?, &fixture()?))),
         ("fixture: a fee in the acquired asset resizes what the next hop is sized on", Box::new(|| fixture_fee_netting(&router()?, &fixture()?))),
         ("constructor: apiKey is required, and maxNotionalUsd is an opt-in guardrail at any size", Box::new(constructor_guards)),
+        ("a hand-built plan carrying only the required fields is executable", Box::new(|| a_hand_built_plan_with_only_the_required_fields_is_executable(&router()?))),
+        ("the derived limit price and notional follow amount and expectedPrice", Box::new(|| derived_limit_price_and_notional_follow_amount_and_expected_price(&router()?))),
         ("the limit price sits on the side that costs you, and only there", Box::new(|| limit_price_side(&router()?))),
         ("an empty plan is not a safe plan", Box::new(|| empty_plan_is_not_safe(&router()?))),
         ("a cap that IS set binds exactly, at whatever size, and includes the slippage", Box::new(|| a_cap_that_is_set_binds_exactly(&router()?))),

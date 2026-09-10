@@ -250,6 +250,42 @@ fn field<'a>(container: &'a Value, key: &str) -> Option<&'a Value> {
 }
 
 impl OrderRouter {
+    /// The price a step is sent at, derived from `expectedPrice` when the
+    /// caller gave no `limitPrice`. 0 only when the step has neither field.
+    ///
+    /// `build_execution_plan` always sets `limitPrice`, but a HAND-BUILT plan
+    /// need not: the manual documents it as optional, and the "execute your own
+    /// plans" path is the whole point of `execute` taking a plan rather than a
+    /// route. Reading it as 0 made every such plan fail three different ways —
+    /// a blocking `price_out_of_range` from `check_execution_plan_safety`, a
+    /// `rounded_to_zero` before any strategy branch in `place_step`, and a
+    /// buy-side balance requirement of `amount * 0` — so the documented example
+    /// could not place one order. `expectedPrice` is the honest fallback: it is
+    /// what the caller says the step is worth, and it is already guaranteed
+    /// positive by the `invalid_step` guard. A caller wanting a tighter or
+    /// looser bound sets `limitPrice` explicitly.
+    pub fn step_limit_price(&self, step: &Value) -> f64 {
+        let limit_price = self.number_at(step, "limitPrice", 0.0);
+        if limit_price > 0.0 {
+            return limit_price;
+        }
+        self.number_at(step, "expectedPrice", 0.0)
+    }
+
+    /// The step's quote-side value, derived from `amount` and `expectedPrice`
+    /// when absent.
+    ///
+    /// Same reasoning as `step_limit_price`, and the same formula
+    /// `build_execution_plan` uses. Read as 0, a hand-built plan tripped the
+    /// BLOCKING `cost_below_minimum` on every market declaring a minimum cost.
+    pub fn step_notional_quote(&self, step: &Value) -> f64 {
+        let notional_quote = self.number_at(step, "notionalQuote", 0.0);
+        if notional_quote > 0.0 {
+            return notional_quote;
+        }
+        self.number_at(step, "amount", 0.0) * self.number_at(step, "expectedPrice", 0.0)
+    }
+
     /// Reads a numeric field, with a default for missing, null and unparseable
     /// values.
     pub fn number_at(&self, container: &Value, key: &str, default_value: f64) -> f64 {
@@ -942,8 +978,8 @@ impl OrderRouter {
             let symbol = self.string_at(step, "symbol", "");
             let amount = self.number_at(step, "amount", 0.0);
             let expected_price = self.number_at(step, "expectedPrice", 0.0);
-            let limit_price = self.number_at(step, "limitPrice", 0.0);
-            let notional_quote = self.number_at(step, "notionalQuote", 0.0);
+            let limit_price = self.step_limit_price(step);
+            let notional_quote = self.step_notional_quote(step);
             let side = self.string_at(step, "side", "");
             if amount <= 0.0 || expected_price <= 0.0 || (side != "buy" && side != "sell") {
                 violations.push(self.violation(
@@ -2027,7 +2063,7 @@ impl OrderRouter {
             }
         };
         let amount = self.parse_number(&venue.amount_to_precision(&symbol, self.number_at(step, "amount", 0.0)), 0.0);
-        let price = self.parse_number(&venue.price_to_precision(&symbol, self.number_at(step, "limitPrice", 0.0)), 0.0);
+        let price = self.parse_number(&venue.price_to_precision(&symbol, self.step_limit_price(step)), 0.0);
         if !(amount > 0.0) || !(price > 0.0) {
             Self::put(&mut result, "errorCode", Value::Str("rounded_to_zero".into()));
             self.record_error(report, step_index, &exchange_id, &symbol, "rounded_to_zero");
@@ -2903,7 +2939,7 @@ impl OrderRouter {
             let exchange_id = self.string_at(step, "exchangeId", "");
             let amount = self.number_at(step, "amount", 0.0);
             let (asset, needed) = if self.string_at(step, "side", "") == "buy" {
-                (self.string_at(step, "quote", ""), amount * self.number_at(step, "limitPrice", 0.0))
+                (self.string_at(step, "quote", ""), amount * self.step_limit_price(step))
             } else {
                 (self.string_at(step, "base", ""), amount)
             };

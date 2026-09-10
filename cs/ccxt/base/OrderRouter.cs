@@ -228,6 +228,46 @@ public class OrderRouter
     //  language-specific crash.
     //  -----------------------------------------------------------------------
 
+    /// <summary>
+    /// The price a step is sent at, derived from expectedPrice when the caller
+    /// gave no limitPrice.
+    /// </summary>
+    public double StepLimitPrice(object step)
+    {
+        //  BuildExecutionPlan always sets limitPrice, but a HAND-BUILT plan need not: the manual
+        //  documents it as optional, and the "execute your own plans" path is the whole point of
+        //  Execute() taking a plan rather than a route. Reading it as 0 made every such plan fail
+        //  three different ways - a blocking price_out_of_range from CheckExecutionPlanSafety, a
+        //  rounded_to_zero before any strategy branch in PlaceStep, and a buy-side balance
+        //  requirement of amount * 0 - so the documented example could not place one order.
+        //  expectedPrice is the honest fallback: it is what the caller says the step is worth, and
+        //  it is already guaranteed positive by the invalid_step guard. A caller wanting a tighter
+        //  or looser bound sets limitPrice explicitly.
+        var limitPrice = this.NumberAt(step, "limitPrice", 0);
+        if (limitPrice > 0)
+        {
+            return limitPrice;
+        }
+        return this.NumberAt(step, "expectedPrice", 0);
+    }
+
+    /// <summary>
+    /// The step's quote-side value, derived from amount and expectedPrice when
+    /// absent.
+    /// </summary>
+    public double StepNotionalQuote(object step)
+    {
+        //  Same reasoning as StepLimitPrice, and the same formula BuildExecutionPlan uses. Read as
+        //  0, a hand-built plan tripped the BLOCKING cost_below_minimum on every market declaring
+        //  a minimum cost.
+        var notionalQuote = this.NumberAt(step, "notionalQuote", 0);
+        if (notionalQuote > 0)
+        {
+            return notionalQuote;
+        }
+        return this.NumberAt(step, "amount", 0) * this.NumberAt(step, "expectedPrice", 0);
+    }
+
     /// <summary>Reads a raw field out of a container, or null when it is absent.</summary>
     public object ValueAt(object container, string key)
     {
@@ -832,6 +872,38 @@ public class OrderRouter
     /// the RouteResult, with the client-side keys balancesUsed and
     /// balancesDropped added.
     /// </returns>
+    // FetchBalance returns the TYPED Balances, not the raw dictionary every other port gets from
+    // its own fetchBalance. Reading it with AsDict yields an empty dictionary — the venue looks
+    // like it holds nothing, silently, and balance-aware routing quietly stops working. The
+    // conversion lives here so both callers share one shape and one place to update if the typed
+    // model gains a field.
+    public dict BalancesAsDict(ccxt.Balances balances)
+    {
+        var free = new dict();
+        if (balances.free != null)
+        {
+            foreach (var entry in balances.free)
+            {
+                if (entry.Value != null)
+                {
+                    free[entry.Key] = entry.Value;
+                }
+            }
+        }
+        var total = new dict();
+        if (balances.total != null)
+        {
+            foreach (var entry in balances.total)
+            {
+                if (entry.Value != null)
+                {
+                    total[entry.Key] = entry.Value;
+                }
+            }
+        }
+        return new dict() { { "free", free }, { "total", total } };
+    }
+
     public async Task<dict> FetchRouteWithBalances(string fromAsset, string toAsset, Dictionary<string, Exchange> venues, dict parameters = null)
     {
         var requireApplied = this.BoolAt(parameters, "requireBalancesApplied", true);
@@ -842,7 +914,7 @@ public class OrderRouter
         {
             var exchangeId = exchangeIds[i];
             var venue = venues[exchangeId];
-            var balance = this.AsDict(await venue.fetchBalance());
+            var balance = this.BalancesAsDict(await venue.FetchBalance());
             var holdings = this.DictAt(balance, "free");
             if (holdings.Count == 0)
             {
@@ -1217,8 +1289,8 @@ public class OrderRouter
             var symbol = this.StringAt(step, "symbol", "");
             var amount = this.NumberAt(step, "amount", 0);
             var expectedPrice = this.NumberAt(step, "expectedPrice", 0);
-            var limitPrice = this.NumberAt(step, "limitPrice", 0);
-            var notionalQuote = this.NumberAt(step, "notionalQuote", 0);
+            var limitPrice = this.StepLimitPrice(step);
+            var notionalQuote = this.StepNotionalQuote(step);
             var side = this.StringAt(step, "side", "");
             if (amount <= 0 || expectedPrice <= 0 || (side != "buy" && side != "sell"))
             {
@@ -2111,8 +2183,8 @@ public class OrderRouter
                 { "amount", this.NumberAt(step, "amount", 0) },
                 { "expectedPrice", this.NumberAt(step, "expectedPrice", 0) },
                 { "effectivePrice", this.NumberAt(step, "effectivePrice", 0) },
-                { "limitPrice", this.NumberAt(step, "limitPrice", 0) },
-                { "notionalQuote", this.NumberAt(step, "notionalQuote", 0) },
+                { "limitPrice", this.StepLimitPrice(step) },
+                { "notionalQuote", this.StepNotionalQuote(step) },
             });
         }
         return copies;
@@ -2524,7 +2596,7 @@ public class OrderRouter
                 return result;
             }
             var amount = this.ParseNumber(Convert.ToString(venue.amountToPrecision(symbol, this.NumberAt(step, "amount", 0)), CultureInfo.InvariantCulture), 0);
-            var price = this.ParseNumber(Convert.ToString(venue.priceToPrecision(symbol, this.NumberAt(step, "limitPrice", 0)), CultureInfo.InvariantCulture), 0);
+            var price = this.ParseNumber(Convert.ToString(venue.priceToPrecision(symbol, this.StepLimitPrice(step)), CultureInfo.InvariantCulture), 0);
             if (!(amount > 0) || !(price > 0))
             {
                 result["errorCode"] = "rounded_to_zero";
@@ -3130,7 +3202,7 @@ public class OrderRouter
             if (this.StringAt(step, "side", "") == "buy")
             {
                 asset = this.StringAt(step, "quote", "");
-                needed = amount * this.NumberAt(step, "limitPrice", 0);
+                needed = amount * this.StepLimitPrice(step);
             }
             else
             {
@@ -3160,7 +3232,7 @@ public class OrderRouter
             var exchangeId = this.StringAt(entry, "exchangeId", "");
             if (this.ValueAt(balances, exchangeId) == null)
             {
-                balances[exchangeId] = this.AsDict(await venues[exchangeId].fetchBalance());
+                balances[exchangeId] = this.BalancesAsDict(await venues[exchangeId].FetchBalance());
             }
             var free = this.DictAt(this.DictAt(balances, exchangeId), "free");
             var asset = this.StringAt(entry, "asset", "");

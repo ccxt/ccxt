@@ -77,11 +77,20 @@ async function main() {
         'maxNotionalUsd': 25,
         'usdRates': { 'USDT': 1 },
     });
-    if (violations.length > 0) {
-        console.log('plan rejected before any venue was contacted:');
-        for (let i = 0; i < violations.length; i++) {
-            console.log('  ', violations[i]);
+    //  Only a BLOCKING violation should stop you. The advisory ones are worth
+    //  reading and worth shipping past: a hand-built plan that does not set
+    //  `fullyFillable` always draws a non-blocking `partial_fill`, so a guard
+    //  on `violations.length` alone would refuse every plan on this page.
+    let blocking = 0;
+    for (let i = 0; i < violations.length; i++) {
+        const label = violations[i]['blocking'] ? 'BLOCKING' : 'advisory';
+        console.log('  ', label, violations[i]['code'], violations[i]);
+        if (violations[i]['blocking']) {
+            blocking = blocking + 1;
         }
+    }
+    if (blocking > 0) {
+        console.log('plan rejected before any venue was contacted');
         return;
     }
     const report = await router.execute(plan, venues, {

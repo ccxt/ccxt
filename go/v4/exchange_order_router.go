@@ -242,6 +242,41 @@ func routerContainer(container any) map[string]any {
 	return nil
 }
 
+// routerStepLimitPrice is the price a step is sent at, derived from
+// expectedPrice when the caller gave no limitPrice.
+//
+// buildExecutionPlan always sets limitPrice, but a HAND-BUILT plan need not:
+// the manual documents it as optional, and the "execute your own plans" path
+// is the whole point of Execute taking a plan rather than a route. Reading it
+// as 0 made every such plan fail three different ways — a blocking
+// price_out_of_range from CheckExecutionPlanSafety, a rounded_to_zero before
+// any strategy branch in placeStep, and a buy-side balance requirement of
+// amount * 0 — so the documented example could not place one order.
+// expectedPrice is the honest fallback: it is what the caller says the step is
+// worth, and it is already guaranteed positive by the invalid_step guard. A
+// caller wanting a tighter or looser bound sets limitPrice explicitly.
+func routerStepLimitPrice(step any) float64 {
+	limitPrice := routerNumberAt(step, "limitPrice", 0)
+	if limitPrice > 0 {
+		return limitPrice
+	}
+	return routerNumberAt(step, "expectedPrice", 0)
+}
+
+// routerStepNotionalQuote is the step's quote-side value, derived from amount
+// and expectedPrice when absent.
+//
+// Same reasoning as routerStepLimitPrice, and the same formula
+// buildExecutionPlan uses. Read as 0, a hand-built plan tripped the BLOCKING
+// cost_below_minimum on every market declaring a minimum cost.
+func routerStepNotionalQuote(step any) float64 {
+	notionalQuote := routerNumberAt(step, "notionalQuote", 0)
+	if notionalQuote > 0 {
+		return notionalQuote
+	}
+	return routerNumberAt(step, "amount", 0) * routerNumberAt(step, "expectedPrice", 0)
+}
+
 // routerNumberAt reads a numeric field out of a container, with a default for
 // missing, nil and unparseable values.
 func routerNumberAt(container any, key string, defaultValue float64) float64 {
@@ -960,8 +995,8 @@ func (this *OrderRouter) CheckExecutionPlanSafety(plan map[string]any, markets m
 		symbol := routerStringAt(step, "symbol", "")
 		amount := routerNumberAt(step, "amount", 0)
 		expectedPrice := routerNumberAt(step, "expectedPrice", 0)
-		limitPrice := routerNumberAt(step, "limitPrice", 0)
-		notionalQuote := routerNumberAt(step, "notionalQuote", 0)
+		limitPrice := routerStepLimitPrice(step)
+		notionalQuote := routerStepNotionalQuote(step)
 		side := routerStringAt(step, "side", "")
 		if amount <= 0 || expectedPrice <= 0 || (side != "buy" && side != "sell") {
 			violations = append(violations, this.violation(stepIndex, exchangeId, symbol, "invalid_step", true, amount, 0))
@@ -1739,8 +1774,8 @@ func (this *OrderRouter) cloneSteps(plan map[string]any) []map[string]any {
 			"amount":         routerNumberAt(step, "amount", 0),
 			"expectedPrice":  routerNumberAt(step, "expectedPrice", 0),
 			"effectivePrice": routerNumberAt(step, "effectivePrice", 0),
-			"limitPrice":     routerNumberAt(step, "limitPrice", 0),
-			"notionalQuote":  routerNumberAt(step, "notionalQuote", 0),
+			"limitPrice":     routerStepLimitPrice(step),
+			"notionalQuote":  routerStepNotionalQuote(step),
 		})
 	}
 	return copies
@@ -2214,7 +2249,7 @@ func (this *OrderRouter) placeStepInner(result map[string]any, step map[string]a
 		return NotSupported("OrderRouter: " + exchangeId + " cannot snap an amount onto its market precision")
 	}
 	amount, amountOk := routerParseFloat(ToString(snapper.AmountToPrecision(symbol, routerNumberAt(step, "amount", 0))))
-	price, priceOk := routerParseFloat(ToString(snapper.PriceToPrecision(symbol, routerNumberAt(step, "limitPrice", 0))))
+	price, priceOk := routerParseFloat(ToString(snapper.PriceToPrecision(symbol, routerStepLimitPrice(step))))
 	if !amountOk || !priceOk || !(amount > 0) || !(price > 0) {
 		return NewError("rounded_to_zero", "OrderRouter: the snapped amount or price is not positive")
 	}
@@ -2694,7 +2729,7 @@ func (this *OrderRouter) assertPrefunded(steps []map[string]any, venues map[stri
 		needed := 0.0
 		if routerStringAt(step, "side", "") == "buy" {
 			asset = routerStringAt(step, "quote", "")
-			needed = amount * routerNumberAt(step, "limitPrice", 0)
+			needed = amount * routerStepLimitPrice(step)
 		} else {
 			asset = routerStringAt(step, "base", "")
 			needed = amount

@@ -492,6 +492,69 @@ func TestOrderRouterConstructorCapIsAnOptInGuardrailAtAnySize(t *testing.T) {
 	}
 }
 
+// routerBoundedStubMarkets is a market that actually declares limits, unlike
+// routerPermissiveStubMarkets. A hand-built plan has to clear these the same
+// way a routed one does.
+func routerBoundedStubMarkets() map[string]any {
+	return map[string]any{"stub": map[string]any{"BTC/USDT": map[string]any{
+		"symbol":    "BTC/USDT",
+		"base":      "BTC",
+		"quote":     "USDT",
+		"precision": map[string]any{"amount": 0.0, "price": 0.0},
+		"limits": map[string]any{
+			"amount": map[string]any{"min": 0.0001, "max": 0.0},
+			"price":  map[string]any{"min": 1.0, "max": 1000000.0},
+			"cost":   map[string]any{"min": 10.0, "max": 0.0},
+		},
+	}}}
+}
+
+func TestOrderRouterHandBuiltPlanWithOnlyTheRequiredFieldsIsExecutable(t *testing.T) {
+	// The manual documents limitPrice and notionalQuote as OPTIONAL, and its own
+	// worked example omits both. Read as 0 they broke the "execute your own plans"
+	// path three ways at once: a blocking cost_below_minimum (0 < any minimum
+	// cost), a blocking price_out_of_range (0 < minPrice), and — before any
+	// strategy branch, so on every strategy — a rounded_to_zero when placeStep
+	// snapped a price of 0. The documented example could not place a single order.
+	router := routerTestRouter(t)
+	plan := map[string]any{
+		"requestId":    "hand-built-0001",
+		"calculatedAt": 1700000000000.0,
+		"steps": []map[string]any{{
+			"exchangeId": "stub", "symbol": "BTC/USDT", "side": "buy", "amount": 1.0,
+			"base": "BTC", "quote": "USDT", "hopIndex": 0.0, "expectedPrice": 100.0,
+		}},
+	}
+	violations := router.CheckExecutionPlanSafety(plan, routerBoundedStubMarkets(), map[string]any{"usdRates": map[string]any{"USDT": 1.0}})
+	blocking := make([]string, 0, len(violations))
+	for i := 0; i < len(violations); i++ {
+		if routerBoolAt(violations[i], "blocking", false) {
+			blocking = append(blocking, routerStringAt(violations[i], "code", ""))
+		}
+	}
+	if len(blocking) != 0 {
+		t.Fatalf("the manual's own minimal plan must not be refused: %v", blocking)
+	}
+}
+
+func TestOrderRouterDerivedLimitPriceAndNotionalFollowAmountAndExpectedPrice(t *testing.T) {
+	step := map[string]any{"amount": 2.0, "expectedPrice": 100.0}
+	if got := routerStepLimitPrice(step); got != 100 {
+		t.Fatalf("no limitPrice falls back to expectedPrice, got %v", got)
+	}
+	if got := routerStepNotionalQuote(step); got != 200 {
+		t.Fatalf("no notionalQuote is amount * expectedPrice, got %v", got)
+	}
+	// An explicit value always wins, including one tighter than the expected price.
+	explicit := map[string]any{"amount": 2.0, "expectedPrice": 100.0, "limitPrice": 99.0, "notionalQuote": 1.0}
+	if got := routerStepLimitPrice(explicit); got != 99 {
+		t.Fatalf("an explicit limitPrice wins, got %v", got)
+	}
+	if got := routerStepNotionalQuote(explicit); got != 1 {
+		t.Fatalf("an explicit notionalQuote wins, got %v", got)
+	}
+}
+
 func TestOrderRouterLimitPriceSitsOnTheSideThatCostsYou(t *testing.T) {
 	router := routerTestRouter(t)
 	buy := routerMustPlan(router.BuildExecutionPlan(routerOneLegRoute("buy", "BTC", "USDT", 1, 100), map[string]any{"slippageBps": 100.0}))
