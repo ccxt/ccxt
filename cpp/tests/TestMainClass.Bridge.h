@@ -363,6 +363,21 @@ public:
     // generated members
     // -------------------------------------------------------------------------
 
+    // total failures across the static suites (request/response/ws). The
+    // transpiled framework marks per-suite booleans but never folds them into
+    // the process exit code; main.cpp consults this so a failed suite can
+    // never report a green exit.
+    long totalTestFailures () const {
+        long failures = 0;
+        const auto flag = [] (const std::any& v) {
+            return v.has_value () && std::any_cast<bool> (v);
+        };
+        if (flag (requestTestsFailed)) failures++;
+        if (flag (responseTestsFailed)) failures++;
+        if (flag (staticWsTestsFailed)) failures++;
+        return failures;
+    }
+
 #include "Generated/testMainClass.inc"
 #include "Generated/Exchange/TestRegistry.inc"
 #include "Generated/Exchange/Includes.inc"
