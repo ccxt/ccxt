@@ -172,6 +172,9 @@ export default class onetrading extends Exchange {
                         'market-ticker': { 'cost': 1 } as Endpoint<List>,
                         'market-ticker/{instrument_code}': { 'cost': 1 } as Endpoint<Dict>,
                         'time': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding-rate': { 'cost': 1 } as Endpoint<List>,
+                        'funding-rate/history': { 'cost': 1 } as Endpoint<Dict>,
+                        'funding-rate/settings': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {
@@ -184,9 +187,16 @@ export default class onetrading extends Exchange {
                         'account/orders/{order_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trades': { 'cost': 1 } as Endpoint<Dict>,
                         'account/trade/{trade_id}': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/summary': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions-history': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions/{position_id}/trades': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/positions/{position_id}/funding-payments': { 'cost': 1 } as Endpoint<Dict>,
+                        'account/futures/funding-payments': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'account/orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'subaccounts/transfers': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'account/orders': { 'cost': 1 } as Endpoint<List>,

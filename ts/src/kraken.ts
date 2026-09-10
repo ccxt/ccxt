@@ -167,6 +167,7 @@ export default class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time': { 'cost': 1 } as Endpoint<Dict>,
                         'SystemStatus': { 'cost': 1 } as Endpoint<Dict>,
+                        'MaintenanceSchedule': { 'cost': 1 } as Endpoint<Dict>,
                         'Assets': { 'cost': 1 } as Endpoint<Dict>,
                         'AssetPairs': { 'cost': 1 } as Endpoint<Dict>,
                         'Ticker': { 'cost': 1 } as Endpoint<Dict>,
@@ -202,6 +203,7 @@ export default class kraken extends Exchange {
                         'RetrieveExport': { 'cost': 3 } as Endpoint<Dict>,
                         'RemoveExport': { 'cost': 3 } as Endpoint<Dict>,
                         'GetApiKeyInfo': { 'cost': 3 } as Endpoint<Dict>,
+                        'ListWalletAccounts': { 'cost': 3 } as Endpoint<Dict>,
                         // trading
                         'AddOrder': { 'cost': 0 } as Endpoint<Dict>,
                         'AmendOrder': { 'cost': 0 } as Endpoint<Dict>,

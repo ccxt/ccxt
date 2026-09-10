@@ -150,6 +150,8 @@ export default class foxbit extends Exchange {
                             'markets/{market}/candlesticks': { 'cost': 12 } as Endpoint<List>, // 5 requests per 2 seconds
                             'markets/{market}/trades/history': { 'cost': 12 } as Endpoint<Dict>, // 5 requests per 2 seconds
                             'markets/{market}/ticker/24hr': { 'cost': 15 } as Endpoint<Dict>, // 4 requests per 2 seconds
+                            'markets/sparkline/{window}': { 'cost': 20 } as Endpoint<Dict>, // 3 requests per 2 seconds
+                            'travel_rule/operation_reasons': { 'cost': 30 } as Endpoint<Dict>, // 2 requests per 2 seconds
                         },
                     },
                     'private': {
@@ -163,12 +165,14 @@ export default class foxbit extends Exchange {
                             'deposits': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
                             'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
                             'me/fees/trading': { 'cost': 60 } as Endpoint<Dict>, // 1 requests per 2 seconds
+                            'prime_desk/executions/{quote_id}': { 'cost': 10 } as Endpoint<Dict>, // 6 requests per 2 seconds
                         },
                         'post': {
                             'orders': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds
                             'orders/batch': { 'cost': 7.5 } as Endpoint<Dict>, // 8 requests per 2 seconds
                             'orders/cancel-replace': { 'cost': 3 } as Endpoint<Dict>, // 20 requests per 2 seconds
                             'withdrawals': { 'cost': 10 } as Endpoint<Dict>, // 3 requests per second
+                            'deposits/{deposit_sn}/travel_rule': { 'cost': 30 } as Endpoint<Dict>, // 2 requests per 2 seconds
                         },
                         'put': {
                             'orders/cancel': { 'cost': 2 } as Endpoint<Dict>, // 30 requests per 2 seconds

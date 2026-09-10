@@ -237,6 +237,7 @@ export default class bitfinex extends Exchange {
                         'auth/w/order/cancel/multi': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/orders/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/orders/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/orders/otc/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/order/{symbol}:{id}/trades': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/trades/{symbol}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/trades/hist': { 'cost': 2.7 } as Endpoint<List>,
@@ -252,6 +253,7 @@ export default class bitfinex extends Exchange {
                         'auth/r/positions/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/positions/audit': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/positions/snap': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/position/update/funding/type': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/deriv/collateral/set': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/deriv/collateral/limits': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/funding/offers': { 'cost': 2.7 } as Endpoint<List>,
@@ -283,10 +285,13 @@ export default class bitfinex extends Exchange {
                         'auth/r/audit/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/transfer': { 'cost': 2.7 } as Endpoint<List>, // ratelimit not in docs...
                         'auth/w/deposit/address': { 'cost': 24 } as Endpoint<List>, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
+                        'auth/r/deposit/address/all': { 'cost': 24 } as Endpoint<List>, // 10 requests a minute = 0.166 requests per second => ( 1000ms / rateLimit ) / 0.166 = 24
                         'auth/w/deposit/invoice': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
+                        'auth/r/ext/invoice/payments': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/withdraw': { 'cost': 24 } as Endpoint<List>, // ratelimit not in docs
                         'auth/r/movements/{currency}/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/movements/hist': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/movements/info': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/r/alerts': { 'cost': 5.34 } as Endpoint<List>, // 45 requests a minute = 0.75 requests per second => ( 1000ms / rateLimit ) / 0.749 => 5.34
                         'auth/w/alert/set': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/alert/price:{symbol}:{price}/del': { 'cost': 2.7 } as Endpoint<List>,
@@ -298,6 +303,9 @@ export default class bitfinex extends Exchange {
                         'auth/r/pulse/hist': { 'cost': 2.7 } as Endpoint<List>,
                         'auth/w/pulse/add': { 'cost': 16 } as Endpoint<List>, // 15 requests a minute = 0.25 requests per second => ( 1000ms / rateLimit ) / 0.25 => 16
                         'auth/w/pulse/del': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/ext/wallets/deposits/request': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/w/ext/wallets/withdrawals/request': { 'cost': 2.7 } as Endpoint<List>,
+                        'auth/r/ext/wallets/transfers/free/count': { 'cost': 2.7 } as Endpoint<List>,
                     },
                 },
             },

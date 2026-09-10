@@ -267,6 +267,13 @@ export default class aster extends Exchange {
                         // builder
                         'v3/agent': { 'cost': 1 } as Endpoint<List>,
                         'v3/builder': { 'cost': 1 } as Endpoint<List>,
+                        'v3/builder/userTrades': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/builder/approvedUserList': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 30 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser/history': { 'cost': 50 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/strategyOpenOrder': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/strategyHistoryOrder': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -300,6 +307,13 @@ export default class aster extends Exchange {
                         'v3/updateAgent': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/approveBuilder': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/updateBuilder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/registerAndApproveAgent': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/chase': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 1 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/placeStrategyOrder': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/updateStrategyOrder': { 'cost': 50 } as Endpoint<List>,
                     },
                     'put': {
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -312,6 +326,8 @@ export default class aster extends Exchange {
                         'v3/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/batchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/guardedCancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/guardedBatchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/mmp': { 'cost': 1 } as Endpoint<List>,
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,

@@ -504,6 +504,7 @@ export default class binance extends Exchange {
                         'portfolio/pmloan-history': { 'cost': 5 } as Endpoint<Dict>,
                         'portfolio/earn-asset-balance': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         // staking
                         'staking/productList': { 'cost': 0.1 } as Endpoint<List>,
                         'staking/position': { 'cost': 0.1 } as Endpoint<List>,
@@ -680,6 +681,7 @@ export default class binance extends Exchange {
                         'portfolio/redeem': { 'cost': 20 } as Endpoint<Dict>,
                         'portfolio/earn-asset-transfer': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'portfolio/delta-mode': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
+                        'portfolio/margin-call-level': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'lending/auto-invest/plan/add': { 'cost': 0.1 } as Endpoint<Dict>, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit': { 'cost': 0.1 } as Endpoint<Dict>, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
                         'lending/auto-invest/plan/edit-status': { 'cost': 0.1 } as Endpoint<Dict>, // Weight(IP): 1 => cost = 0.1 * 1 = 0.1
@@ -713,6 +715,7 @@ export default class binance extends Exchange {
                     },
                     'delete': {
                         // 'account/apiRestrictions/ipRestriction/ipList': 1, discontinued
+                        'portfolio/margin-call-level': { 'cost': 150 } as Endpoint<Dict>, // Weight(IP): 1500 => cost = 0.1 * 1500 = 150
                         'margin/openOrders': { 'cost': 0.1 } as Endpoint<List>,
                         'margin/order': { 'cost': 0.006667 } as Endpoint<Dict>, // Weight(UID): 1 => cost = 0.006667
                         'margin/orderList': { 'cost': 0.006667 } as Endpoint<Dict>,
@@ -1049,6 +1052,7 @@ export default class binance extends Exchange {
                         'countdownCancelAllHeartBeat': { 'cost': 10 } as Endpoint<Dict>,
                         'block/order/create': { 'cost': 5 } as Endpoint<Dict>,
                         'block/order/execute': { 'cost': 5 } as Endpoint<Dict>,
+                        'stock/contract': { 'cost': 50 } as Endpoint<Dict>, // Weight(IP): 50 => cost = 50
                     },
                     'put': {
                         'listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -1081,7 +1085,11 @@ export default class binance extends Exchange {
                         'ticker/price': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<Dict | List>,
                         'ticker/bookTicker': { 'cost': 0.4, 'noSymbol': 0.8 } as Endpoint<List>,
                         'exchangeInfo': { 'cost': 4 } as Endpoint<Dict>, // Weight(IP): 20 => cost = 0.2 * 20 = 4
+                        'executionRules': { 'cost': 0.4, 'noSymbol': 8 } as Endpoint<Dict>, // Weight(IP): 2 (symbol) / 40 (none) => cost = 0.2 * weight
                         'avgPrice': { 'cost': 0.4 } as Endpoint<Dict>,
+                        'referencePrice': { 'cost': 0.4 } as Endpoint<Dict>, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'referencePrice/calculation': { 'cost': 0.4 } as Endpoint<Dict>, // Weight(IP): 2 => cost = 0.2 * 2 = 0.4
+                        'historicalBlockTrades': { 'cost': 5 } as Endpoint<List>, // Weight(IP): 25 => cost = 0.2 * 25 = 5
                     },
                     'put': {
                         'userDataStream': { 'cost': 0.4 } as Endpoint<Dict>,
@@ -1146,6 +1154,10 @@ export default class binance extends Exchange {
                         'um/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
                         'um/conditional/orderHistory': { 'cost': 1 } as Endpoint<Dict>,
                         'um/conditional/allOrders': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
+                        // algo (conditional) orders
+                        'um/algo/algoOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'um/algo/openAlgoOrders': { 'cost': 1 } as Endpoint<List>,
+                        'um/algo/allAlgoOrders': { 'cost': 5 } as Endpoint<List>,
                         'cm/conditional/openOrder': { 'cost': 1 } as Endpoint<Dict>,
                         'cm/conditional/openOrders': { 'cost': 1, 'noSymbol': 40 } as Endpoint<List>,
                         'cm/conditional/orderHistory': { 'cost': 1 } as Endpoint<Dict>,
@@ -1204,6 +1216,7 @@ export default class binance extends Exchange {
                     'post': {
                         'um/order': { 'cost': 1 } as Endpoint<Dict>,
                         'um/conditional/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'um/algo/order': { 'cost': 1 } as Endpoint<Dict>,
                         'cm/order': { 'cost': 1 } as Endpoint<Dict>,
                         'cm/conditional/order': { 'cost': 1 } as Endpoint<Dict>,
                         'margin/order': { 'cost': 1 } as Endpoint<Dict>,
@@ -1234,6 +1247,8 @@ export default class binance extends Exchange {
                         'um/conditional/order': { 'cost': 1 } as Endpoint<Dict>,
                         'um/allOpenOrders': { 'cost': 1 } as Endpoint<List>,
                         'um/conditional/allOpenOrders': { 'cost': 1 } as Endpoint<List>,
+                        'um/algo/order': { 'cost': 1 } as Endpoint<Dict>,
+                        'um/algo/allOpenOrders': { 'cost': 1 } as Endpoint<List>,
                         'cm/order': { 'cost': 1 } as Endpoint<Dict>,
                         'cm/conditional/order': { 'cost': 1 } as Endpoint<Dict>,
                         'cm/allOpenOrders': { 'cost': 1 } as Endpoint<List>,

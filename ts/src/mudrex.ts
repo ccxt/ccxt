@@ -111,6 +111,7 @@ export default class mudrex extends Exchange {
                         'futures/{asset_id}': { 'cost': 1 } as Endpoint<Dict>,
                         'wallet/funds': { 'cost': 5 } as Endpoint<Dict>,
                         'futures/funds': { 'cost': 5 } as Endpoint<Dict>,
+                        'futures/transactions': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders/history': { 'cost': 1 } as Endpoint<Dict>,
                         'futures/orders/{order_id}': { 'cost': 1 } as Endpoint<Dict>,

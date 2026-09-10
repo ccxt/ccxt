@@ -195,6 +195,7 @@ export default class mexc extends Exchange {
                         'get': {
                             'kyc/status': { 'cost': 1 } as Endpoint<Dict>,
                             'uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'apiKeyInfo': { 'cost': 1 } as Endpoint<Dict>,
                             'order': { 'cost': 2 } as Endpoint<Dict>,
                             'openOrders': { 'cost': 3 } as Endpoint<List>,
                             'allOrders': { 'cost': 10 } as Endpoint<List>,
@@ -257,6 +258,7 @@ export default class mexc extends Exchange {
                             'sub-account/margin': { 'cost': 1 } as Endpoint<Dict>,
                             'batchOrders': { 'cost': 10 } as Endpoint<List>,
                             'strategy/group': { 'cost': 20 } as Endpoint<Dict>,
+                            'strategy/group/uid': { 'cost': 20 } as Endpoint<Dict>,
                             'capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
                             'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                             'capital/transfer': { 'cost': 50 } as Endpoint<Dict>,

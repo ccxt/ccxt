@@ -95,6 +95,7 @@ export default class nado extends Exchange {
                         },
                         'post': {
                             'query': { 'cost': 1 } as Endpoint<Dict>,
+                            'edge/query': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
@@ -123,6 +124,7 @@ export default class nado extends Exchange {
                             'tickers': { 'cost': 1 } as Endpoint<Dict>,
                             'contracts': { 'cost': 1 } as Endpoint<Dict>,
                             'trades': { 'cost': 1 } as Endpoint<List>,
+                            'symbols': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
