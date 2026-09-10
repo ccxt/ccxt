@@ -2279,7 +2279,7 @@ class woo extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {

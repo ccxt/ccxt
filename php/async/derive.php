@@ -2010,7 +2010,7 @@ class derive extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order(array $rawOrder, ?array $market = null): array {

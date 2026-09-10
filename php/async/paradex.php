@@ -1757,7 +1757,7 @@ class paradex extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {

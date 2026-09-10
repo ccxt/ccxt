@@ -1626,7 +1626,7 @@ class bitfinex extends Exchange {
 
     public function parse_order_status(?string $status) {
         if ($status === null) {
-            return $status;
+            return null;
         }
         $parts = explode(' ', $status);
         $state = $this->safe_string($parts, 0);
