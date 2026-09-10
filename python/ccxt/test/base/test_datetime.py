@@ -146,6 +146,22 @@ def test_seconds():
     assert len(value_string) == 10
 
 
+def test_convert_expire_date():
+    exchange = ccxt.Exchange({
+        'id': 'sampleexchange',
+    })
+    # callers write this into expiryDatetime, which types.ts documents with milliseconds
+    assert exchange.convert_expire_date('260503') == '2026-05-03T00:00:00.000Z'
+    assert exchange.convert_expire_date('240426') == '2024-04-26T00:00:00.000Z'
+    # both spellings of midnight parse to the same instant
+    assert exchange.parse8601(exchange.convert_expire_date('260503')) == 1777766400000
+    assert exchange.parse8601('2026-05-03T00:00:00Z') == exchange.parse8601(exchange.convert_expire_date('260503'))
+    # the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+    # invariant the change exists to establish, and it fails on the old spelling
+    assert exchange.convert_expire_date('260503') == exchange.iso8601(exchange.parse8601(exchange.convert_expire_date('260503')))
+    assert exchange.convert_expire_date(None) is None
+
+
 def test_yymmdd():
     exchange = ccxt.Exchange({
         'id': 'sampleexchange',
@@ -203,3 +219,4 @@ def test_datetime():
     test_seconds()
     test_yymmdd()
     test_yyyymmdd()
+    test_convert_expire_date()

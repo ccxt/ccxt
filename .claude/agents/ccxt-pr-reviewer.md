@@ -234,7 +234,7 @@ If you live-test any method that mutates exchange state (`createOrder`, `editOrd
 - **`editOrder`:** cancel the resulting order id; the new amount also must satisfy notional ≤ 25 USD.
 - **`transfer`:** reverse the transfer; same 25 USD cap on the moved amount.
 - **`setLeverage` / `setMarginMode` / `setPositionMode`:** snapshot before, restore after. (No notional risk — these are configuration writes.)
-- **`withdraw`:** **NEVER live-test.** Per the hard rules at the top of Phase 5, withdraw is fixture-only. Capture/assert via `node cli.js <id> withdraw ... --report` and `--response`, then say so in the checklist: "withdraw — fixture-only by safety rule, no live test attempted".
+- **`withdraw`:** **NEVER live-test.** Per the hard rules at the top of Phase 5, withdraw is fixture-only. Capture/assert via `npm run cli.ts -- <id> withdraw ... --request` and `--response`, then say so in the checklist: "withdraw — fixture-only by safety rule, no live test attempted".
 
 Always use the exchange's **minimum order size** so cleanup is cheap if it fails. Wrap the test in `try { ... } finally { cleanup(); }` so cleanup runs on exception. Log every mutating call (with order id, side, amount) before issuing it so a human can intervene if cleanup itself errors. If cleanup fails, **the review must say so explicitly** — flag it as a 🚨 Blocker so a maintainer manually unwinds the leftover state before merge.
 

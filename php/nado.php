@@ -174,6 +174,7 @@ class nado extends Exchange {
                     '1002' => '\\ccxt\\RestrictedLocation',
                     '1003' => '\\ccxt\\RestrictedLocation',
                     '1004' => '\\ccxt\\OnMaintenance',
+                    '1005' => '\\ccxt\\BadRequest',
                     '2000' => '\\ccxt\\InvalidOrder',
                     '2001' => '\\ccxt\\InvalidOrder',
                     '2002' => '\\ccxt\\InvalidOrder',
@@ -297,6 +298,7 @@ class nado extends Exchange {
                     '2123' => '\\ccxt\\BadRequest',
                     '2124' => '\\ccxt\\InvalidOrder',
                     '2125' => '\\ccxt\\OperationRejected',
+                    '2126' => '\\ccxt\\OrderNotFound',
                     '3000' => '\\ccxt\\BadRequest',
                     '3001' => '\\ccxt\\BadRequest',
                     '3002' => '\\ccxt\\ArgumentsRequired',
@@ -338,7 +340,7 @@ class nado extends Exchange {
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
          * @param {float} [$params->stopLossPrice] *swap only* The $price at which a stop loss order is triggered at
          * @param {float} [$params->takeProfitPrice] *swap only* The $price at which a take profit order is triggered at
-         * @param {string} [$params->triggerDirection] trigger direction, above, below
+         * @param {string} [$params->triggerDirection] the direction of the trigger $price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
          * @param {int} [$params->id] client-provided $request id, returned by the exchange in the $response
          * @return {array} an ~@link https://docs.ccxt.com/#/?id=order-structure order structure~
          */
@@ -430,13 +432,12 @@ class nado extends Exchange {
         $isStopOrder = $triggerPrice !== null;
         $isTriggerOrder = $isStopOrder || $isStopLossOrder || $isTakeProfitOrder;
         if ($isStopOrder) {
-            $triggerDirection = $this->safe_string_lower($params, 'triggerDirection');
-            if ($triggerDirection === null) {
-                throw new ArgumentsRequired($this->id . ' createOrder() requires $triggerDirection for $trigger order');
-            }
+            $triggerDirection = null;
+            list($triggerDirection, $params) = $this->handle_trigger_direction_and_params($params);
+            $directionSuffix = ($triggerDirection === 'ascending') ? 'above' : 'below';
             $triggerPriceX18 = $this->convert_to_x18($triggerPrice);
             $priceRequirement = array();
-            $priceRequirement['oracle_price_' . $triggerDirection] = $triggerPriceX18;
+            $priceRequirement['oracle_price_' . $directionSuffix] = $triggerPriceX18;
             $trigger = array(
                 'price_trigger' => array(
                     'price_requirement' => $priceRequirement,
@@ -500,6 +501,7 @@ class nado extends Exchange {
          * @param {boolean} [$params->spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias $params->spot_leverage
          * @param {boolean} [$params->placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias $params->place_requires_unfilled, defaults to true
          * @param {int} [$params->id] client-provided $request $id, returned by the exchange in the $response
+         * @param {float} [$params->triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to $params->stopPrice, $params->stopLossPrice and $params->takeProfitPrice
          * @return {array} an ~@link https://docs.ccxt.com/#/?$id=order-structure order structure~
          */
         $this->check_required_credentials();
@@ -538,6 +540,10 @@ class nado extends Exchange {
         $market = $this->market($symbol);
         if ($type !== 'limit') {
             throw new InvalidOrder($this->id . ' editOrder() supports limit orders only');
+        }
+        $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice' ));
+        if ($triggerPrice !== null) {
+            throw new NotSupported($this->id . ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger $order and create a new one instead');
         }
         if ($amount === null) {
             throw new ArgumentsRequired($this->id . ' editOrder() requires an $amount argument');
@@ -930,7 +936,7 @@ class nado extends Exchange {
          *
          * @param {string} $symbol unified $market $symbol of the $market $orders were made in
          * @param {int} [$since] the earliest time in ms to fetch $orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account $trigger or conditional $orders
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -962,7 +968,7 @@ class nado extends Exchange {
             'product_ids' => $productIds,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 500);
         }
         $contracts = $this->query_contracts();
         $chainId = $this->safe_string($contracts, 'chain_id');
@@ -1028,7 +1034,7 @@ class nado extends Exchange {
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            return $this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
                 'status_types' => array(
                     'waiting_price', 'waiting_dependency',
                 ),
@@ -1105,7 +1111,7 @@ class nado extends Exchange {
         $sender = $this->create_subaccount($this->walletAddress, $subaccount);
         $trigger = $this->safe_bool_2($params, 'stop', 'trigger');
         if ($trigger === true) {
-            return $this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+            return $this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
                 'status_types' => array(
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ),
@@ -1159,18 +1165,18 @@ class nado extends Exchange {
 
     public function fetch_canceled_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
          *
          * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
          *
          * @param {string} $symbol unified market $symbol of the market the orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
+            'trigger' => true,
             'status_types' => array(
                 'cancelled', 'internal_error',
             ),
@@ -1179,18 +1185,18 @@ class nado extends Exchange {
 
     public function fetch_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetches information on multiple canceled orders made by the user
+         * fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
          *
          * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
          *
          * @param {string} $symbol unified market $symbol of the market the orders were made in
          * @param {int} [$since] the earliest time in ms to fetch orders for
-         * @param {int} [$limit] the maximum number of order structures to retrieve
+         * @param {int} [$limit] the maximum number of order structures to retrieve, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {boolean} [$params->trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
          * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
          */
-        return $this->fetch_orders($symbol, $since, null, $this->extend($params, array(
+        return $this->fetch_orders($symbol, $since, $limit, $this->extend($params, array(
+            'trigger' => true,
             'status_types' => array(
                 'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
             ),
@@ -1801,12 +1807,13 @@ class nado extends Exchange {
          */
         $this->load_markets();
         $market = $this->market($symbol);
+        $symbol = $market['symbol'];
         $tickers = $this->fetch_tickers(array( $symbol ), $params);
         $ticker = $this->safe_dict($tickers, $symbol);
         if ($ticker === null) {
             throw new BadSymbol($this->id . ' fetchTicker() $ticker not found for ' . $symbol);
         }
-        return $this->safe_ticker($ticker, $market);
+        return $ticker;
     }
 
     public function fetch_funding_rate(string $symbol, $params = array()): array {
@@ -2140,7 +2147,7 @@ class nado extends Exchange {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV $data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
-         * @param {int} [$limit] the maximum amount of candles to fetch
+         * @param {int} [$limit] the maximum amount of candles to fetch, max 500
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2156,7 +2163,7 @@ class nado extends Exchange {
             ),
         );
         if ($limit !== null) {
-            $request['candlesticks']['limit'] = $limit;
+            $request['candlesticks']['limit'] = min($limit, 500);
         }
         if ($until !== null) {
             $request['candlesticks']['max_time'] = $this->parse_to_int($until / 1000);
@@ -2898,7 +2905,12 @@ class nado extends Exchange {
 
     public function create_order_nonce(mixed $recvWindow) {
         $expires = $this->sum($this->milliseconds(), $recvWindow);
-        return Precise::string_mul($this->number_to_string($expires), '1048576');
+        $highBits = Precise::string_mul($this->number_to_string($expires), '1048576');
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        $entropy = $this->rand_number(6);
+        return Precise::string_add($highBits, $this->number_to_string($entropy));
     }
 
     public function create_order_appendix(mixed $isTriggerOrder, $params = array()) {
