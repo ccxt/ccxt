@@ -3325,10 +3325,11 @@ impl BingxCore {
  * @name bingx#fetchFundingHistory
  * @description fetches historical funding received
  * @see https://bingx-api.github.io/docs-v3/#/en/Swap/Account%20Endpoints/Get%20Account%20Profit%20and%20Loss%20Fund%20Flow
- * @param {string} symbol unified symbol of the market to fetch the funding history for
+ * @param {string} symbol unified symbol of the market to fetch the funding history for, inverse (Coin-M) markets are not supported
  * @param {int} [since] timestamp in ms of the earliest funding to fetch
  * @param {int} [limit] the maximum amount of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure} to fetch
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {string} [params.subType] 'linear' or 'inverse' (default is 'linear'), 'inverse' is not supported
  * @param {int} [params.until] timestamp in ms of the latest funding to fetch
  * @returns {object[]} a list of [funding history structures]{@link https://docs.ccxt.com/?id=funding-history-structure}
  */
@@ -3343,6 +3344,16 @@ impl BingxCore {
         if is_equal(&self.markets, &Value::Null) {
             self.load_markets(&[]).await;
         }
+        let mut market: Value = Value::Null;
+        if !is_equal(&symbol, &Value::Null) {
+            market = self.market(symbol.clone());
+        }
+        let mut subType: Value = Value::Null;
+        { let __destr_tmp = self.handle_sub_type_and_params(Value::Str("fetchFundingHistory".to_string()), &[market.clone(), params.clone()]); subType = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
+        let mut isInverse: Value = ternary(is_true(&(!is_equal(&market, &Value::Null))), Value::Bool((is_equal(&get_value(&market, &Value::Str("inverse".to_string())), &Value::Bool(true)))), Value::Bool((is_equal(&subType, &Value::Str("inverse".to_string())))));
+        if is_true(&isInverse) {
+            panic!("{}", crate::exchange_errors::not_supported(add(&self.id, &Value::Str(" fetchFundingHistory() is not supported for inverse swap markets".to_string()))));
+        }
         let mut paginate: Value = Value::Bool(false);
         { let __destr_tmp = self.handle_option_and_params(params.clone(), Value::Str("fetchFundingHistory".to_string()), Value::Str("paginate".to_string()), &[]); paginate = get_value(&__destr_tmp, &Value::Int(0)); params = get_value(&__destr_tmp, &Value::Int(1)); }
         if is_true(&paginate) {
@@ -3353,9 +3364,7 @@ impl BingxCore {
                 m.insert("incomeType".to_string(), Value::Str("FUNDING_FEE".to_string()));
             m
         });
-        let mut market: Value = Value::Null;
-        if !is_equal(&symbol, &Value::Null) {
-            market = self.market(symbol.clone());
+        if !is_equal(&market, &Value::Null) {
             add_element_to_object(&mut request, &Value::Str("symbol".to_string()), get_value(&market, &Value::Str("id".to_string())));
         }
         if !is_equal(&since, &Value::Null) {
