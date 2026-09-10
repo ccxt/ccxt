@@ -145,7 +145,7 @@ class testMainClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
-        exchange.setProperty (exchange, 'fetchHistoryCacheSize', 5);
+        setExchangeProp (exchange, 'fetchHistoryCacheSize', 5);
         if (exchange.alias) {
             dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
