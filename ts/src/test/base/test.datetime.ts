@@ -163,6 +163,9 @@ function testConvertExpireDate () {
     // both spellings of midnight parse to the same instant
     assert (exchange.parse8601 (exchange.convertExpireDate ('260503')) === 1777766400000);
     assert (exchange.parse8601 ('2026-05-03T00:00:00Z') === exchange.parse8601 (exchange.convertExpireDate ('260503')));
+    // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+    // invariant the change exists to establish, and it fails on the old spelling
+    assert (exchange.convertExpireDate ('260503') === exchange.iso8601 (exchange.parse8601 (exchange.convertExpireDate ('260503'))));
     assert (exchange.convertExpireDate (undefined) === undefined);
 }
 
