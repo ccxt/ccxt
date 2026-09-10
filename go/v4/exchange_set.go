@@ -58,7 +58,13 @@ func (this *BaseExchange) SetFetchHistoryCacheSize(size any) {
 	if size == nil {
 		return
 	}
-	this.FetchHistoryCacheSize = size.(int)
+	if intSize, ok := size.(int); ok {
+		this.FetchHistoryCacheSize = intSize
+	} else if i64, ok := size.(int64); ok {
+		this.FetchHistoryCacheSize = int(i64)
+	} else if f, ok := size.(float64); ok {
+		this.FetchHistoryCacheSize = int(f)
+	}
 }
 
 func (this *BaseExchange) GetFetchCacheSize() int {
