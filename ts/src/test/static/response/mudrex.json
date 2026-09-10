@@ -1,10 +1,7 @@
 {
     "disabledRS": true,
     "exchange": "mudrex",
-    "skipKeys": [
-        "timestamp",
-        "datetime"
-    ],
+    "skipKeys": [],
     "options": {},
     "methods": {
         "fetchPositionsHistory": [
@@ -1245,8 +1242,8 @@
                     },
                     "id": null,
                     "clientOrderId": null,
-                    "timestamp": 1782985962765,
-                    "datetime": "2026-07-02T09:52:42.765Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "lastTradeTimestamp": null,
                     "symbol": "DOGE/USDT:USDT",
                     "type": null,
@@ -1254,8 +1251,9 @@
                     "postOnly": null,
                     "side": null,
                     "price": null,
-                    "stopPrice": null,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": null,
                     "cost": null,
                     "average": null,
@@ -1267,8 +1265,7 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "stopPrice": null
                 }
             }
         ],
@@ -1296,8 +1293,8 @@
                     },
                     "id": null,
                     "clientOrderId": null,
-                    "timestamp": 1782985959786,
-                    "datetime": "2026-07-02T09:52:39.786Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "lastTradeTimestamp": null,
                     "symbol": "DOGE/USDT:USDT",
                     "type": null,
@@ -1305,8 +1302,9 @@
                     "postOnly": null,
                     "side": null,
                     "price": null,
-                    "stopPrice": null,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": null,
                     "cost": null,
                     "average": null,
@@ -1318,8 +1316,7 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
-                    "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "stopPrice": null
                 }
             }
         ],
@@ -1357,14 +1354,12 @@
                         "price": "0.05",
                         "order_id": "019f223e-5031-7003-81ec-456940160acd",
                         "status": "CREATED",
-                        "message": "OK",
-                        "order_type": "LONG",
-                        "trigger_type": "LIMIT"
+                        "message": "OK"
                     },
                     "id": "019f223e-5031-7003-81ec-456940160acd",
                     "clientOrderId": null,
-                    "timestamp": 1782985937223,
-                    "datetime": "2026-07-02T09:52:17.223Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "lastTradeTimestamp": null,
                     "symbol": "DOGE/USDT:USDT",
                     "type": "limit",
@@ -1372,8 +1367,9 @@
                     "postOnly": null,
                     "side": "buy",
                     "price": 0.05,
-                    "stopPrice": null,
                     "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
                     "amount": 100,
                     "cost": null,
                     "average": null,
@@ -1385,8 +1381,71 @@
                     "fees": [],
                     "lastUpdateTimestamp": null,
                     "reduceOnly": null,
+                    "stopPrice": null
+                }
+            },
+            {
+                "description": "createOrder market",
+                "method": "createOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/DOGEUSDT/order?is_symbol=1",
+                "input": [
+                    "DOGE/USDT:USDT",
+                    "market",
+                    "buy",
+                    100,
+                    0.05,
+                    {
+                        "leverage": 20
+                    }
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "leverage": "20",
+                        "amount": "0.251",
+                        "quantity": "100",
+                        "price": "0.0502",
+                        "order_id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                        "status": "CREATED",
+                        "message": "OK"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "leverage": "20",
+                        "amount": "0.251",
+                        "quantity": "100",
+                        "price": "0.0502",
+                        "order_id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                        "status": "CREATED",
+                        "message": "OK"
+                    },
+                    "id": "0198f4c1-52d9-7a86-b3f0-6c1e97d24a58",
+                    "clientOrderId": null,
+                    "timestamp": null,
+                    "datetime": null,
+                    "lastTradeTimestamp": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": "market",
+                    "timeInForce": "IOC",
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 0.0502,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
                     "takeProfitPrice": null,
-                    "stopLossPrice": null
+                    "amount": 100,
+                    "cost": null,
+                    "average": null,
+                    "filled": null,
+                    "remaining": null,
+                    "status": "open",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": null,
+                    "reduceOnly": null,
+                    "stopPrice": null
                 }
             }
         ],
@@ -1653,8 +1712,8 @@
                 "parsedResponse": {
                     "STXX/USDT:USDT": {
                         "symbol": "STXX/USDT:USDT",
-                        "timestamp": 1782985467704,
-                        "datetime": "2026-07-02T09:44:27.704Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1701,8 +1760,8 @@
                     },
                     "UVXY/USDT:USDT": {
                         "symbol": "UVXY/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1749,8 +1808,8 @@
                     },
                     "GLW/USDT:USDT": {
                         "symbol": "GLW/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1797,8 +1856,8 @@
                     },
                     "KORU/USDT:USDT": {
                         "symbol": "KORU/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1845,8 +1904,8 @@
                     },
                     "LRCX/USDT:USDT": {
                         "symbol": "LRCX/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1893,8 +1952,8 @@
                     },
                     "TQQQ/USDT:USDT": {
                         "symbol": "TQQQ/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1941,8 +2000,8 @@
                     },
                     "SMCI/USDT:USDT": {
                         "symbol": "SMCI/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -1989,8 +2048,8 @@
                     },
                     "BBX/USDT:USDT": {
                         "symbol": "BBX/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -2037,8 +2096,8 @@
                     },
                     "CRDO/USDT:USDT": {
                         "symbol": "CRDO/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -2085,8 +2144,8 @@
                     },
                     "USAR/USDT:USDT": {
                         "symbol": "USAR/USDT:USDT",
-                        "timestamp": 1782985467706,
-                        "datetime": "2026-07-02T09:44:27.706Z",
+                        "timestamp": null,
+                        "datetime": null,
                         "high": null,
                         "low": null,
                         "bid": null,
@@ -10507,25 +10566,25 @@
                         "lastTradeTimestamp": null,
                         "symbol": "APT/USDT:USDT",
                         "type": "market",
-                        "timeInForce": "IOC",
+                        "timeInForce": null,
                         "postOnly": null,
                         "side": null,
-                        "price": 0.59,
-                        "stopPrice": null,
-                        "triggerPrice": null,
+                        "price": null,
+                        "triggerPrice": 0.59,
+                        "stopLossPrice": 0.59,
+                        "takeProfitPrice": null,
                         "amount": null,
                         "cost": null,
                         "average": null,
-                        "filled": null,
+                        "filled": 0,
                         "remaining": null,
                         "status": "open",
                         "fee": null,
                         "trades": [],
                         "fees": [],
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1782979858000,
                         "reduceOnly": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopPrice": 0.59
                     },
                     {
                         "info": {
@@ -10555,25 +10614,25 @@
                         "lastTradeTimestamp": null,
                         "symbol": "APT/USDT:USDT",
                         "type": "market",
-                        "timeInForce": "IOC",
+                        "timeInForce": null,
                         "postOnly": null,
                         "side": null,
-                        "price": 0.6232,
-                        "stopPrice": null,
-                        "triggerPrice": null,
+                        "price": null,
+                        "triggerPrice": 0.6232,
+                        "stopLossPrice": null,
+                        "takeProfitPrice": 0.6232,
                         "amount": null,
                         "cost": null,
                         "average": null,
-                        "filled": null,
+                        "filled": 0,
                         "remaining": null,
                         "status": "open",
                         "fee": null,
                         "trades": [],
                         "fees": [],
-                        "lastUpdateTimestamp": null,
+                        "lastUpdateTimestamp": 1782979858000,
                         "reduceOnly": null,
-                        "takeProfitPrice": null,
-                        "stopLossPrice": null
+                        "stopPrice": 0.6232
                     }
                 ]
             }
@@ -10605,8 +10664,6 @@
                         },
                         "currency": "USDT"
                     },
-                    "timestamp": 1782984843603,
-                    "datetime": "2026-07-02T09:34:03.603Z",
                     "USDT": {
                         "free": 0.3841,
                         "used": 13.9606,
@@ -10657,8 +10714,6 @@
                         },
                         "currency": "USDT"
                     },
-                    "timestamp": 1782984767589,
-                    "datetime": "2026-07-02T09:32:47.589Z",
                     "USDT": {
                         "free": 0,
                         "used": 0,
@@ -10697,8 +10752,6 @@
                         },
                         "currency": "USDT"
                     },
-                    "timestamp": 1782984593928,
-                    "datetime": "2026-07-02T09:29:53.928Z",
                     "USDT": {
                         "free": 0.3841,
                         "used": 13.9606,
@@ -10756,8 +10809,8 @@
                 },
                 "parsedResponse": {
                     "symbol": "BTC/USDT:USDT",
-                    "timestamp": 1782985465298,
-                    "datetime": "2026-07-02T09:44:25.298Z",
+                    "timestamp": null,
+                    "datetime": null,
                     "high": null,
                     "low": null,
                     "bid": null,
@@ -10804,6 +10857,86 @@
                     },
                     "indexPrice": null,
                     "markPrice": null
+                }
+            }
+        ],
+        "fetchOrder": [
+            {
+                "description": "fetchOrder filled limit order",
+                "method": "fetchOrder",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/orders/0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                "input": [
+                    "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                    "DOGE/USDT:USDT"
+                ],
+                "httpResponse": {
+                    "success": true,
+                    "data": {
+                        "created_at": "2026-07-02T08:10:57Z",
+                        "updated_at": "2026-07-02T08:11:02Z",
+                        "reason": null,
+                        "actual_amount": "0.25",
+                        "quantity": "100",
+                        "filled_quantity": "100",
+                        "price": "0.05",
+                        "filled_price": "0.04998",
+                        "leverage": "20",
+                        "hedge_rate": "1",
+                        "order_type": "LONG",
+                        "trigger_type": "LIMIT",
+                        "trade_currency": "USDT",
+                        "status": "FILLED",
+                        "id": "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                        "asset_uuid": "0190577b-2f6c-7d83-a1b9-8e04c62d7f39",
+                        "symbol": "DOGEUSDT"
+                    }
+                },
+                "parsedResponse": {
+                    "info": {
+                        "created_at": "2026-07-02T08:10:57Z",
+                        "updated_at": "2026-07-02T08:11:02Z",
+                        "reason": null,
+                        "actual_amount": "0.25",
+                        "quantity": "100",
+                        "filled_quantity": "100",
+                        "price": "0.05",
+                        "filled_price": "0.04998",
+                        "leverage": "20",
+                        "hedge_rate": "1",
+                        "order_type": "LONG",
+                        "trigger_type": "LIMIT",
+                        "trade_currency": "USDT",
+                        "status": "FILLED",
+                        "id": "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                        "asset_uuid": "0190577b-2f6c-7d83-a1b9-8e04c62d7f39",
+                        "symbol": "DOGEUSDT"
+                    },
+                    "id": "0198f3a2-7b41-7c2d-9e15-3d82c5a6f014",
+                    "clientOrderId": null,
+                    "timestamp": 1782979857000,
+                    "datetime": "2026-07-02T08:10:57.000Z",
+                    "lastTradeTimestamp": null,
+                    "symbol": "DOGE/USDT:USDT",
+                    "type": "limit",
+                    "timeInForce": null,
+                    "postOnly": null,
+                    "side": "buy",
+                    "price": 0.05,
+                    "triggerPrice": null,
+                    "stopLossPrice": null,
+                    "takeProfitPrice": null,
+                    "amount": 100,
+                    "cost": 4.998,
+                    "average": 0.04998,
+                    "filled": 100,
+                    "remaining": 0,
+                    "status": "closed",
+                    "fee": null,
+                    "trades": [],
+                    "fees": [],
+                    "lastUpdateTimestamp": 1782979862000,
+                    "reduceOnly": null,
+                    "stopPrice": null
                 }
             }
         ]
