@@ -278,19 +278,8 @@ function testDecimalToPrecision () {
     assert (exchange.decimalToPrecision ('-165', ROUND, '110', TICK_SIZE) === '-220');
 
     // ----------------------------------------------------------------------------
-    // testDecimalToPrecisionErrorHandling (todo)
-    //
-    // throws (() =>
-    //     decimalToPrecision ('123456.789', TRUNCATE, -2, DECIMAL_PLACES),
-    //         'negative precision is not yet supported')
-    //
-    // throws (() =>
-    //     decimalToPrecision ('foo'),
-    //         "invalid number (contains an illegal character 'f')")
-    //
-    // throws (() =>
-    //     decimalToPrecision ('0.01', TRUNCATE, -1, TICK_SIZE),
-    //         "TICK_SIZE cant be used with negative numPrecisionDigits")
+    // testDecimalToPrecisionErrorHandling (todo): negative precision (TRUNCATE, -2, DECIMAL_PLACES),
+    // illegal characters ('foo') and TICK_SIZE with negative numPrecisionDigits must all throw
 
     // ----------------------------------------------------------------------------
 
