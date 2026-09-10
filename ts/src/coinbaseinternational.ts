@@ -998,7 +998,7 @@ export default class coinbaseinternational extends Exchange {
         }
         symbols = this.marketSymbols (symbols);
         if (symbols === undefined) {
-            symbols = this.symbols;
+            throw new ArgumentsRequired (this.id + ' fetchTickers() requires a symbols argument');
         }
         const tickers: Dict = {};
         for (let i = 0; i < symbols.length; i++) {
