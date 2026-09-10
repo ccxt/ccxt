@@ -214,19 +214,8 @@ func TestDecimalToPrecision() {
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("-165", ccxt.TRUNCATE, "110", ccxt.TICK_SIZE), "-110"))
 	Assert(ccxt.IsEqual(exchange.DecimalToPrecision("-165", ccxt.ROUND, "110", ccxt.TICK_SIZE), "-220"))
 	// ----------------------------------------------------------------------------
-	// testDecimalToPrecisionErrorHandling (todo)
-	//
-	// throws (() =>
-	//     decimalToPrecision ('123456.789', ccxt.TRUNCATE, -2, ccxt.DECIMAL_PLACES),
-	//         'negative precision is not yet supported')
-	//
-	// throws (() =>
-	//     decimalToPrecision ('foo'),
-	//         "invalid number (contains an illegal character 'f')")
-	//
-	// throws (() =>
-	//     decimalToPrecision ('0.01', ccxt.TRUNCATE, -1, ccxt.TICK_SIZE),
-	//         "TICK_SIZE cant be used with negative numPrecisionDigits")
+	// testDecimalToPrecisionErrorHandling (todo): negative precision (ccxt.TRUNCATE, -2, ccxt.DECIMAL_PLACES),
+	// illegal characters ('foo') and ccxt.TICK_SIZE with negative numPrecisionDigits must all throw
 	// ----------------------------------------------------------------------------
 	// Additional Edge Cases
 	// Zero handling variations
