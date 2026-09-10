@@ -275,6 +275,33 @@ public partial class toobit : Exchange
                         { "api/v1/agent/export-url", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "api/v2/account/balance-flow", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v2/futures/order", new Dictionary<string, object>() {
+                            { "cost", multiply(1, 1.67) },
+                        } },
+                        { "api/v2/futures/open-orders", new Dictionary<string, object>() {
+                            { "cost", multiply(1, 1.67) },
+                        } },
+                        { "api/v2/futures/history-orders", new Dictionary<string, object>() {
+                            { "cost", multiply(5, 1.67) },
+                        } },
+                        { "api/v2/futures/user-trades", new Dictionary<string, object>() {
+                            { "cost", multiply(5, 1.67) },
+                        } },
+                        { "api/v2/futures/algo-order", new Dictionary<string, object>() {
+                            { "cost", multiply(1, 1.67) },
+                        } },
+                        { "api/v2/futures/open-algo-orders", new Dictionary<string, object>() {
+                            { "cost", multiply(1, 1.67) },
+                        } },
+                        { "api/v2/futures/history-algo-orders", new Dictionary<string, object>() {
+                            { "cost", multiply(5, 1.67) },
+                        } },
+                        { "api/v2/futures/voucher/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "api/v1/spot/orderTest", new Dictionary<string, object>() {

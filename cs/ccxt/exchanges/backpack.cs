@@ -160,6 +160,9 @@ public partial class backpack : Exchange
                         { "api/v1/borrowLend/markets/history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "api/v1/borrowLend/apy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "api/v1/markets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -173,6 +176,21 @@ public partial class backpack : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/depth", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/prediction", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/prediction/tags", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/market-sessions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/market-holidays", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/securities", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/klines", new Dictionary<string, object>() {
@@ -224,6 +242,9 @@ public partial class backpack : Exchange
                         { "api/v1/borrowLend/positions", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "api/v1/borrowLend/position/liquidationPrice", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "api/v1/capital", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -260,7 +281,13 @@ public partial class backpack : Exchange
                         { "wapi/v1/history/funding", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "wapi/v1/history/position", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "wapi/v1/history/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/rfqs", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "wapi/v1/history/rfq", new Dictionary<string, object>() {
@@ -269,10 +296,22 @@ public partial class backpack : Exchange
                         { "wapi/v1/history/quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "wapi/v1/history/rfq/fill", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wapi/v1/history/quote/fill", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "wapi/v1/history/settlement", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "wapi/v1/history/strategies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/strategies", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/order", new Dictionary<string, object>() {
@@ -313,12 +352,21 @@ public partial class backpack : Exchange
                         { "api/v1/rfq/quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "api/v1/strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "api/v1/order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/strategy", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/strategies", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

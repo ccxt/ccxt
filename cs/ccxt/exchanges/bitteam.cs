@@ -197,6 +197,9 @@ public partial class bitteam : Exchange
                         { "trade/api/rates", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "trade/api/stats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "trade/api/trade/{id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

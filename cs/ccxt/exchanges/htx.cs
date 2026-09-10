@@ -711,6 +711,21 @@ public partial class htx : Exchange
                             { "v2/etp/limit", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "v2/invitee/rebate/referrals", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/invitee/rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/all_rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/invitee/rebate/batcher_rebate/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v1/account/transfer", new Dictionary<string, object>() {
@@ -832,6 +847,9 @@ public partial class htx : Exchange
                             } },
                             { "v2/etp/batch-cancel", new Dictionary<string, object>() {
                                 { "cost", 50 },
+                            } },
+                            { "v5/account/universal_transfer", new Dictionary<string, object>() {
+                                { "cost", 4 },
                             } },
                         } },
                     } },
@@ -1212,6 +1230,24 @@ public partial class htx : Exchange
                             { "v5/algo/order/history", new Dictionary<string, object>() {
                                 { "cost", 0.41679 },
                             } },
+                            { "api/v6/copyTrading/trader/instruments", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/statistics", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/profit-sharing-history", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/profit-sharing-history-summary", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/unrealized-profit-sharing-summary", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/followers", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "api/v1/contract_balance_valuation", new Dictionary<string, object>() {
@@ -1588,6 +1624,21 @@ public partial class htx : Exchange
                             } },
                             { "v5/algo/cancel_orders", new Dictionary<string, object>() {
                                 { "cost", 0.41679 },
+                            } },
+                            { "api/v6/copyTrading/trader/follower", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/transfer", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/follower-settings", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/config", new Dictionary<string, object>() {
+                                { "cost", 2 },
+                            } },
+                            { "api/v6/copyTrading/trader/apikey", new Dictionary<string, object>() {
+                                { "cost", 2 },
                             } },
                         } },
                     } },

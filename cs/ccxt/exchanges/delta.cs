@@ -274,6 +274,9 @@ public partial class delta : Exchange
                         { "users/margin_mode", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "users/trading_preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "delete", new Dictionary<string, object>() {
                         { "orders", new Dictionary<string, object>() {

@@ -374,6 +374,9 @@ public partial class poloniex : Exchange
                         { "v3/market/fundingRate", new Dictionary<string, object>() {
                             { "cost", divide(2, 3) },
                         } },
+                        { "v3/market/fundingRate/history", new Dictionary<string, object>() {
+                            { "cost", divide(2, 3) },
+                        } },
                         { "v3/market/openInterest", new Dictionary<string, object>() {
                             { "cost", divide(2, 3) },
                         } },
@@ -381,6 +384,9 @@ public partial class poloniex : Exchange
                             { "cost", divide(2, 3) },
                         } },
                         { "v3/market/riskLimit", new Dictionary<string, object>() {
+                            { "cost", divide(2, 3) },
+                        } },
+                        { "v3/market/limitPrice", new Dictionary<string, object>() {
                             { "cost", divide(2, 3) },
                         } },
                     } },
@@ -402,6 +408,9 @@ public partial class poloniex : Exchange
                         { "v3/trade/order/history", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
+                        { "v3/trade/order/details", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
                         { "v3/trade/position/opens", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
@@ -412,6 +421,9 @@ public partial class poloniex : Exchange
                             { "cost", 20 },
                         } },
                         { "v3/position/mode", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "v3/position/riskLimit", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
                     } },

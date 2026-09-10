@@ -189,6 +189,9 @@ public partial class cex : Exchange
                         { "get_order_book", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_ticker", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "get_candles", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

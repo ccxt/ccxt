@@ -242,6 +242,9 @@ public partial class lbank : Exchange
                             { "supplement/get_deposit_address", new Dictionary<string, object>() {
                                 { "cost", 2.5 },
                             } },
+                            { "supplement/add_deposit_address", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
                             { "supplement/asset_detail", new Dictionary<string, object>() {
                                 { "cost", 2.5 },
                             } },
@@ -279,6 +282,21 @@ public partial class lbank : Exchange
                                 { "cost", 2.5 },
                             } },
                             { "supplement/transaction_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "spot/wallet/withdraw", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "spot/wallet/deposit_history", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "spot/wallet/withdraws", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "spot/trade/orders_info", new Dictionary<string, object>() {
+                                { "cost", 2.5 },
+                            } },
+                            { "spot/trade/orders_info_history", new Dictionary<string, object>() {
                                 { "cost", 2.5 },
                             } },
                         } },

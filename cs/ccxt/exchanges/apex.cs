@@ -216,6 +216,9 @@ public partial class apex : Exchange
                         { "v3/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/stock/account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v3/delete-open-orders", new Dictionary<string, object>() {
@@ -237,6 +240,18 @@ public partial class apex : Exchange
                             { "cost", 1 },
                         } },
                         { "v3/contract-transfer-out", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/contract-transfer-to", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/submit-withdraw-claim", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stock/register-account", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stock/generate-api", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

@@ -332,6 +332,12 @@ public partial class coinone : Exchange
                         { "transaction/coin/withdrawal/limit", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "event/order-reward/programs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "event/order-reward/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

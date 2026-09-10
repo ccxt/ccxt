@@ -220,6 +220,21 @@ public partial class upbit : Exchange
                         { "api_keys", new Dictionary<string, object>() {
                             { "cost", 0.67 },
                         } },
+                        { "pockets", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/api_keys", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/assets", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/universal_transfers", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/transfers", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "orders", new Dictionary<string, object>() {
@@ -247,6 +262,12 @@ public partial class upbit : Exchange
                             { "cost", 0.67 },
                         } },
                         { "travel_rule/deposit/txid", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/universal_transfers", new Dictionary<string, object>() {
+                            { "cost", 0.67 },
+                        } },
+                        { "pockets/transfers", new Dictionary<string, object>() {
                             { "cost", 0.67 },
                         } },
                     } },

@@ -270,6 +270,13 @@ public partial class modetrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PublicGetTvSymbolInfo",parameters);
     }
 
+    /// <summary>Calls the v1PublicGetTvKlineHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicGetTvKlineHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicGetTvKlineHistory",parameters);
+    }
+
     /// <summary>Calls the v1PublicGetPublicFundingRateHistory endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PublicGetPublicFundingRateHistory (object parameters = null)
@@ -338,6 +345,13 @@ public partial class modetrade : Exchange
     public async Task<Dictionary<string, object>> v1PublicPostRegisterAccount (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PublicPostRegisterAccount",parameters);
+    }
+
+    /// <summary>Calls the v1PublicPostPublicQuery endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PublicPostPublicQuery (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PublicPostPublicQuery",parameters);
     }
 
     /// <summary>Calls the v1PrivateGetClientKeyInfo endpoint.</summary>
@@ -466,6 +480,13 @@ public partial class modetrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetPnlSettlementHistory",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetInternalTransferHistory endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetInternalTransferHistory (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetInternalTransferHistory",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetVolumeUserDaily endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetVolumeUserDaily (object parameters = null)
@@ -557,6 +578,13 @@ public partial class modetrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetBrokerUserInfo",parameters);
     }
 
+    /// <summary>Calls the v1PrivateGetBrokerDailyFeeRevenue endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetBrokerDailyFeeRevenue (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetBrokerDailyFeeRevenue",parameters);
+    }
+
     /// <summary>Calls the v1PrivateGetOrderbookSymbol endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivateGetOrderbookSymbol (object parameters = null)
@@ -569,6 +597,83 @@ public partial class modetrade : Exchange
     public async Task<Dictionary<string, object>> v1PrivateGetKline (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetKline",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetClientLeverages endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetClientLeverages (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetClientLeverages",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetClientMarginModes endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetClientMarginModes (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetClientMarginModes",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelAdmin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelAdmin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelAdmin",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelAdminInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelAdminInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelAdminInfo",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelAdminRefereeList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelAdminRefereeList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelAdminRefereeList",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelAdminSummary endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelAdminSummary (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelAdminSummary",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelMaxRebateRate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelMaxRebateRate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelMaxRebateRate",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelRebateInfo endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelRebateInfo (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelRebateInfo",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelRefereeList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelRefereeList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelRefereeList",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelStatistics endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelStatistics (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelStatistics",parameters);
+    }
+
+    /// <summary>Calls the v1PrivateGetReferralMultiLevelVolumePrerequisite endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivateGetReferralMultiLevelVolumePrerequisite (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivateGetReferralMultiLevelVolumePrerequisite",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostOrderlyKey endpoint.</summary>
@@ -641,6 +746,13 @@ public partial class modetrade : Exchange
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostSettlePnl",parameters);
     }
 
+    /// <summary>Calls the v1PrivatePostInternalTransfer endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostInternalTransfer (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostInternalTransfer",parameters);
+    }
+
     /// <summary>Calls the v1PrivatePostNotificationInboxMarkRead endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> v1PrivatePostNotificationInboxMarkRead (object parameters = null)
@@ -660,6 +772,27 @@ public partial class modetrade : Exchange
     public async Task<Dictionary<string, object>> v1PrivatePostClientLeverage (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostClientLeverage",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostClientLeverages endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostClientLeverages (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostClientLeverages",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostClientMarginMode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostClientMarginMode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostClientMarginMode",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostPositionMargin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostPositionMargin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostPositionMargin",parameters);
     }
 
     /// <summary>Calls the v1PrivatePostClientMaintenanceConfig endpoint.</summary>
@@ -744,6 +877,69 @@ public partial class modetrade : Exchange
     public async Task<Dictionary<string, object>> v1PrivatePostReferralEditSplit (object parameters = null)
     {
         return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralEditSplit",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralEditRefereeDescription endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralEditRefereeDescription (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralEditRefereeDescription",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelAdmin endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelAdmin (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelAdmin",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelAdminUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelAdminUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelAdminUpdate",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelAdminCreateAffiliate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelAdminCreateAffiliate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelAdminCreateAffiliate",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelAdminResetAffiliate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelAdminResetAffiliate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelAdminResetAffiliate",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelAdminUpdateAffiliate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelClaimCode endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelClaimCode (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelClaimCode",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelRebateRateSetDefault endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelRebateRateSetDefault (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelRebateRateSetDefault",parameters);
+    }
+
+    /// <summary>Calls the v1PrivatePostReferralMultiLevelRebateRateUpdate endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> v1PrivatePostReferralMultiLevelRebateRateUpdate (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("v1PrivatePostReferralMultiLevelRebateRateUpdate",parameters);
     }
 
     /// <summary>Calls the v1PrivatePutOrder endpoint.</summary>

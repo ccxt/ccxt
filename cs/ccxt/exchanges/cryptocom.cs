@@ -284,6 +284,9 @@ public partial class cryptocom : Exchange
                             { "private/get-instrument-fee-rate", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
+                            { "private/get-fee-credit-balances", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
                             { "private/fiat/fiat-deposit-info", new Dictionary<string, object>() {
                                 { "cost", divide(10, 3) },
                             } },
@@ -339,6 +342,27 @@ public partial class cryptocom : Exchange
                                 { "cost", divide(10, 3) },
                             } },
                             { "private/change-isolated-margin-leverage", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/create-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/update-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/terminate-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/pause-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/resume-trading-bot", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/get-trading-bots", new Dictionary<string, object>() {
+                                { "cost", divide(10, 3) },
+                            } },
+                            { "private/bot/get-trading-bot-executions", new Dictionary<string, object>() {
                                 { "cost", divide(10, 3) },
                             } },
                         } },

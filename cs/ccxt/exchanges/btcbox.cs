@@ -138,6 +138,9 @@ public partial class btcbox : Exchange
                         { "balance", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "order_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "trade_add", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

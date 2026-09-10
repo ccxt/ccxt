@@ -224,6 +224,9 @@ public partial class phemex : Exchange
                         { "public/products-plus", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "public/index-sources", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "md/v2/orderbook", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -402,6 +405,30 @@ public partial class phemex : Exchange
                         { "assets/quote", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "phemex-lb/public/api/trader/performance-info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-api/risk/risk-mode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-api/risk/risk-units", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-biz/assets", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/borrow", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/payback", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/borrow/interests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-exchanger/assets/convert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "spot/orders", new Dictionary<string, object>() {
@@ -453,6 +480,12 @@ public partial class phemex : Exchange
                             { "cost", 5 },
                         } },
                         { "phemex-withdraw/wallets/api/cancelWithdraw", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-account/switch-mode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "uta-funds/contract/payback", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },

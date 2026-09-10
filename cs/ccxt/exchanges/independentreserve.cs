@@ -160,6 +160,12 @@ public partial class independentreserve : Exchange
                         { "GetOrderMinimumVolumes", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "GetDepositFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFiatWithdrawalFees", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "GetCryptoWithdrawalFees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -212,10 +218,22 @@ public partial class independentreserve : Exchange
                         { "GetTrades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "GetTradesByOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "GetBrokerageFees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "GetDigitalCurrencyWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetFiatWithdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetDepositLimits", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "GetWithdrawalLimits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "PlaceLimitOrder", new Dictionary<string, object>() {
@@ -225,6 +243,9 @@ public partial class independentreserve : Exchange
                             { "cost", 1 },
                         } },
                         { "CancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "CancelOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "SynchDigitalCurrencyDepositAddressWithBlockchain", new Dictionary<string, object>() {

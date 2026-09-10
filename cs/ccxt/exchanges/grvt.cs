@@ -91,11 +91,46 @@ public partial class grvt : Exchange
             } },
             { "api", new Dictionary<string, object>() {
                 { "privateEdge", new Dictionary<string, object>() {
+                    { "get", new Dictionary<string, object>() {
+                        { "api/v1/deposit/addresses", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/bridge/withdrawal-info", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/bridge/withdrawal-status", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/referral/epochs", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/referral/points", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/referral/data", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "api/v1/referral/indirect_data", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                    } },
                     { "post", new Dictionary<string, object>() {
                         { "auth/api_key/login", new Dictionary<string, object>() {
                             { "cost", 100 },
                         } },
                         { "auth/wallet/login", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "auth/builder/authorize", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "api/v1/deposit/generate-address", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "api/v1/bridge/withdrawal-quote", new Dictionary<string, object>() {
+                            { "cost", 100 },
+                        } },
+                        { "api/v1/bridge/withdraw", new Dictionary<string, object>() {
                             { "cost", 100 },
                         } },
                     } },
@@ -136,6 +171,12 @@ public partial class grvt : Exchange
                             { "cost", 12 },
                         } },
                         { "full/v1/funding", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/supported_assets", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "full/v1/get_all_collateral_asset_info", new Dictionary<string, object>() {
                             { "cost", 12 },
                         } },
                     } },
@@ -249,6 +290,36 @@ public partial class grvt : Exchange
                         } },
                         { "full/v1/builder_fill_history", new Dictionary<string, object>() {
                             { "cost", rlOthers },
+                        } },
+                        { "full/v1/create_rfq", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/cancel_rfq", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "full/v1/ecn_from_broker", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v2/bulk_orders", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "full/v1/position_history", new Dictionary<string, object>() {
+                            { "cost", rlOrders },
+                        } },
+                        { "full/v1/interest_payment_history", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/get_collateral_preference", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/spot_account_summary", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/set_indicative_prices", new Dictionary<string, object>() {
+                            { "cost", rlOthers },
+                        } },
+                        { "full/v1/withdrawal_fee", new Dictionary<string, object>() {
+                            { "cost", 100 },
                         } },
                     } },
                 } },

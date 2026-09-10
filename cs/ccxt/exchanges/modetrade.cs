@@ -248,6 +248,9 @@ public partial class modetrade : Exchange
                             { "tv/symbol_info", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "tv/kline_history", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
                             { "public/funding_rate_history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -278,6 +281,9 @@ public partial class modetrade : Exchange
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "register_account", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/query", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -338,6 +344,9 @@ public partial class modetrade : Exchange
                             { "pnl_settlement/history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "internal_transfer_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "volume/user/daily", new Dictionary<string, object>() {
                                 { "cost", 60 },
                             } },
@@ -377,10 +386,46 @@ public partial class modetrade : Exchange
                             { "broker/user_info", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "broker/daily_fee_revenue", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "orderbook/{symbol}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "kline", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/margin_modes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/max_rebate_rate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_info", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/statistics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/volume_prerequisite", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -415,6 +460,9 @@ public partial class modetrade : Exchange
                             { "settle_pnl", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "internal_transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "notification/inbox/mark_read", new Dictionary<string, object>() {
                                 { "cost", 60 },
                             } },
@@ -423,6 +471,15 @@ public partial class modetrade : Exchange
                             } },
                             { "client/leverage", new Dictionary<string, object>() {
                                 { "cost", 120 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/margin_mode", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "position_margin", new Dictionary<string, object>() {
+                                { "cost", 1 },
                             } },
                             { "client/maintenance_config", new Dictionary<string, object>() {
                                 { "cost", 60 },
@@ -458,6 +515,33 @@ public partial class modetrade : Exchange
                                 { "cost", 10 },
                             } },
                             { "referral/edit_split", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/edit_referee_description", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/create/affiliate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/reset/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/claim_code", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/update", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                         } },

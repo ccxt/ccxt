@@ -177,6 +177,15 @@ public partial class onetrading : Exchange
                         { "time", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "funding-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rate/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "funding-rate/settings", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -205,9 +214,30 @@ public partial class onetrading : Exchange
                         { "account/trade/{trade_id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "account/futures/summary", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions/{position_id}/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/positions/{position_id}/funding-payments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/futures/funding-payments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccounts/transfers", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

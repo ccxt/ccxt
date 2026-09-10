@@ -219,6 +219,12 @@ public partial class bithumb : Exchange
                         { "v1/orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v2/orders/pending", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v1/twap", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -313,6 +319,9 @@ public partial class bithumb : Exchange
                         } },
                         { "v2/orders/cancel", new Dictionary<string, object>() {
                             { "cost", 6 },
+                        } },
+                        { "v2/orders/search", new Dictionary<string, object>() {
+                            { "cost", 1 },
                         } },
                         { "v1/twap", new Dictionary<string, object>() {
                             { "cost", 1 },

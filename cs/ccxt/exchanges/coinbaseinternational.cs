@@ -153,14 +153,38 @@ public partial class coinbaseinternational : Exchange
                             { "instruments/{instrument}/candles", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "instruments/volumes/daily", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "position-offsets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fee-rate-tiers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
+                            { "address-book", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "orders", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/{index}/composition", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/{index}/composition-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/{index}/price", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "index/{index}/candles", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "portfolios", new Dictionary<string, object>() {
@@ -187,16 +211,43 @@ public partial class coinbaseinternational : Exchange
                             { "portfolios/{portfolio}/positions/{instrument}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "portfolios/{portfolio}/position-limits", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/position-limits/positions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/position-limits/positions/{instrument}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "portfolios/fills", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "portfolios/{portfolio}/fills", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "portfolios/fee-rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/loans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/loans/{asset}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/loans/{asset}/availability", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/margin-call-status", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "transfers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "transfers/{transfer_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers/withdraw/{portfolio}/{asset}/counterparty-withdrawal-limit", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -210,7 +261,22 @@ public partial class coinbaseinternational : Exchange
                             { "portfolios/margin", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "portfolios/{portfolio}/cross-collateral-enabled", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/auto-margin-enabled", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/loans/{asset}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/{portfolio}/loans/{asset}/preview", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "portfolios/transfer", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolios/transfer-position", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "transfers/withdraw", new Dictionary<string, object>() {
@@ -242,6 +308,11 @@ public partial class coinbaseinternational : Exchange
                                 { "cost", 1 },
                             } },
                             { "orders/{id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "portfolios/{portfolio}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },

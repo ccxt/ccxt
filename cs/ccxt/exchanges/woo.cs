@@ -514,6 +514,12 @@ public partial class woo : Exchange
                             { "spotMargin/interestRepay", new Dictionary<string, object>() {
                                 { "cost", 60 },
                             } },
+                            { "futures/defaultMarginMode/reset", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "isolatedMargin/margin", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
                             { "algo/order", new Dictionary<string, object>() {
                                 { "cost", 5 },
                             } },
@@ -533,6 +539,12 @@ public partial class woo : Exchange
                             } },
                             { "futures/positionMode", new Dictionary<string, object>() {
                                 { "cost", 120 },
+                            } },
+                            { "futures/defaultMarginMode", new Dictionary<string, object>() {
+                                { "cost", 60 },
+                            } },
+                            { "futures/defaultMarginMode/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 60 },
                             } },
                             { "order/{oid}", new Dictionary<string, object>() {
                                 { "cost", 2 },
@@ -574,6 +586,9 @@ public partial class woo : Exchange
                             } },
                             { "orders/pending", new Dictionary<string, object>() {
                                 { "cost", 1 },
+                            } },
+                            { "asset/wallet/withdraw/{withdrawId}", new Dictionary<string, object>() {
+                                { "cost", 60 },
                             } },
                         } },
                     } },

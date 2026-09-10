@@ -104,6 +104,9 @@ public partial class zebpay : Exchange
                             { "v2/market/orderbook", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v2/market/orderbook/ticker", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v2/market/trades", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -141,6 +144,12 @@ public partial class zebpay : Exchange
                             { "v1/exchange/tradefees", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v1/exchange/exchangeInfo", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/exchange/pairs", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v1/market/orderBook", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -148,6 +157,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v1/market/markets", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/market/marketInfo", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                             { "v1/market/aggTrade", new Dictionary<string, object>() {
@@ -176,6 +188,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v2/ex/tradefee", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v2/ex/myfee/{symbol}", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                             { "v2/ex/order", new Dictionary<string, object>() {
@@ -208,6 +223,9 @@ public partial class zebpay : Exchange
                             { "v1/trade/order/open-orders", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "v1/trade/order/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "v1/trade/userLeverages", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
@@ -218,6 +236,9 @@ public partial class zebpay : Exchange
                                 { "cost", 10 },
                             } },
                             { "v1/trade/history", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/transaction/history", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
                         } },
@@ -242,6 +263,14 @@ public partial class zebpay : Exchange
                             } },
                         } },
                         { "delete", new Dictionary<string, object>() {
+                            { "v1/trade/order", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "v1/trade/order/all", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
                             { "v1/trade/order", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },

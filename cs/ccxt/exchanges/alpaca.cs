@@ -145,7 +145,61 @@ public partial class alpaca : Exchange
                 { "withdraw", true },
             } },
             { "api", new Dictionary<string, object>() {
-                { "broker", new Dictionary<string, object>() {} },
+                { "broker", new Dictionary<string, object>() {
+                    { "private", new Dictionary<string, object>() {
+                        { "get", new Dictionary<string, object>() {
+                            { "v1/accounts/{account_id}/tokenization/requests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/fpsl/analytics/{account_id}/loans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/ipos", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/ipos/{offering_reference}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/wallets/travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/contrabrokers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}/{acats_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/acats/{account_id}/{acats_id}/assets", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "v1beta1/acats/{account_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "patch", new Dictionary<string, object>() {
+                            { "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
+                } },
                 { "trader", new Dictionary<string, object>() {
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
@@ -209,6 +263,27 @@ public partial class alpaca : Exchange
                             { "v2/wallets/transfers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "v1/locates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates/{locate_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates/quotes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests/{tokenization_request_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/tokenization/requests:by_client_request_id", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "v2/orders", new Dictionary<string, object>() {
@@ -224,6 +299,9 @@ public partial class alpaca : Exchange
                                 { "cost", 1 },
                             } },
                             { "v2/wallets/transfers", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1/locates", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -243,6 +321,9 @@ public partial class alpaca : Exchange
                                 { "cost", 1 },
                             } },
                             { "v2/account/configurations", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -303,6 +384,12 @@ public partial class alpaca : Exchange
                     { "private", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
                             { "v1beta1/corporate-actions", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/fixed_income/latest/prices", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "v1beta1/fixed_income/latest/quotes", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "v1beta1/forex/latest/rates", new Dictionary<string, object>() {

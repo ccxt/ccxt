@@ -157,10 +157,19 @@ public partial class bullish : Exchange
                         { "v1/assets/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v1/vol-grids", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/assets/{symbol}/vol-grid", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v1/markets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/markets/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/history/markets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/history/markets/{symbol}", new Dictionary<string, object>() {
@@ -178,10 +187,22 @@ public partial class bullish : Exchange
                         { "v1/markets/{symbol}/candle", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v1/markets/{symbol}/auctions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/markets/{symbol}/auctions/noii", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v1/history/markets/{symbol}/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/history/markets/{symbol}/funding-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/history/markets/{symbol}/auctions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/history/option-trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/index-prices", new Dictionary<string, object>() {
@@ -210,6 +231,9 @@ public partial class bullish : Exchange
                             { "cost", 1 },
                         } },
                         { "v2/orders/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/orders/client-order-id/{clientOrderId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v2/amm-instructions", new Dictionary<string, object>() {
@@ -293,6 +317,15 @@ public partial class bullish : Exchange
                         { "v2/otc-trades/unconfirmed-trade", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v2/otc-trades/delegated-accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/idb/delegated-accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/idb/otc-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v2/orders", new Dictionary<string, object>() {
@@ -313,6 +346,9 @@ public partial class bullish : Exchange
                         { "v1/simulate-portfolio-margin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v1/bulk-simulate-portfolio-margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v1/wallets/self-hosted/initiate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -323,6 +359,12 @@ public partial class bullish : Exchange
                             { "cost", 1 },
                         } },
                         { "v2/otc-command", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/idb/otc-trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/idb/otc-command", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

@@ -115,6 +115,15 @@ public partial class zaif : Exchange
                         { "trades/{pair}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "vasp_info/{vasp_master_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "country_info/{code}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "corp_type_id_info/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {

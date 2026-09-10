@@ -251,6 +251,9 @@ public partial class coinbase : Exchange
                             { "user/auth", new Dictionary<string, object>() {
                                 { "cost", 10.6 },
                             } },
+                            { "subscriptions/coinbase-one", new Dictionary<string, object>() {
+                                { "cost", 10.6 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "accounts", new Dictionary<string, object>() {
@@ -396,6 +399,15 @@ public partial class coinbase : Exchange
                             { "brokerage/cfm/sweeps", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "brokerage/cfm/intraday/current_margin_window", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/cfm/intraday/margin_setting", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/balances/{portfolio_uuid}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "brokerage/intx/portfolio/{portfolio_uuid}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -446,7 +458,13 @@ public partial class coinbase : Exchange
                             { "brokerage/cfm/sweeps/schedule", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "brokerage/cfm/intraday/margin_setting", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "brokerage/intx/allocate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "brokerage/intx/multi_asset_collateral", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "brokerage/orders/close_position", new Dictionary<string, object>() {

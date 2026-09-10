@@ -201,6 +201,12 @@ public partial class extended : Exchange
                             { "info/builder/dashboard", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "interest/info/rate-curves", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/info/latest-rate-curves", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -283,6 +289,39 @@ public partial class extended : Exchange
                             { "portfolio/charts/pnl", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "portfolio/charts/pnl/percentage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl/cumulative", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/pnl/cumulative/percentage", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/vault-equities", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/max-drawdown", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/charts/funding", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/health", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/accounts/performance", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/funding/stats", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "portfolio/funding/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "vault/public/performance", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -292,9 +331,24 @@ public partial class extended : Exchange
                             { "builder/trades", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "interest/key-metrics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/daily-metrics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/payment-chart", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "interest/payments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "user/order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "user/order/rfq", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "user/order/massCancel", new Dictionary<string, object>() {

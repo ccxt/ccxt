@@ -139,6 +139,9 @@ public partial class kraken : Exchange
                         { "SystemStatus", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "MaintenanceSchedule", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "Assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -231,6 +234,9 @@ public partial class kraken : Exchange
                             { "cost", 3 },
                         } },
                         { "GetApiKeyInfo", new Dictionary<string, object>() {
+                            { "cost", 3 },
+                        } },
+                        { "ListWalletAccounts", new Dictionary<string, object>() {
                             { "cost", 3 },
                         } },
                         { "AddOrder", new Dictionary<string, object>() {

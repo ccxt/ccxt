@@ -234,6 +234,12 @@ public partial class woofipro : Exchange
                             { "public/points/epoch_dates", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "public/points/rankings", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "public/points/stages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "public/referral/check_ref_code", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -273,6 +279,9 @@ public partial class woofipro : Exchange
                             { "tv/symbol_info", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "tv/kline_history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "public/funding_rate_history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -298,6 +307,15 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "public/futures/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/batch_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/pool_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/revenue_buyback", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -360,6 +378,9 @@ public partial class woofipro : Exchange
                             { "settle_nonce", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "transfer_nonce", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "pnl_settlement/history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -402,6 +423,9 @@ public partial class woofipro : Exchange
                             { "broker/user_info", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "broker/daily_fee_revenue", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                             { "orderbook/{symbol}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -409,6 +433,42 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "client/margin_modes", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "client/points/user_statistics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "staking/valor2/redeem", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/admin/summary", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/max_rebate_rate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/rebate_info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/referee_list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/statistics", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "referral/multi_level/volume_prerequisite", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -450,6 +510,9 @@ public partial class woofipro : Exchange
                                 { "cost", 60 },
                             } },
                             { "client/leverage", new Dictionary<string, object>() {
+                                { "cost", 120 },
+                            } },
+                            { "client/leverages", new Dictionary<string, object>() {
                                 { "cost", 120 },
                             } },
                             { "client/margin_mode", new Dictionary<string, object>() {
@@ -494,6 +557,33 @@ public partial class woofipro : Exchange
                             { "referral/edit_split", new Dictionary<string, object>() {
                                 { "cost", 10 },
                             } },
+                            { "referral/edit_referee_description", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/create/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/reset/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/admin/update/affiliate", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/claim_code", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/set_default", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
+                            { "referral/multi_level/rebate_rate/update", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "put", new Dictionary<string, object>() {
                             { "order", new Dictionary<string, object>() {
@@ -526,6 +616,15 @@ public partial class woofipro : Exchange
                                 { "cost", 1 },
                             } },
                             { "client/batch-order", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                    } },
+                } },
+                { "v2", new Dictionary<string, object>() {
+                    { "private", new Dictionary<string, object>() {
+                        { "post", new Dictionary<string, object>() {
+                            { "internal_transfer", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },

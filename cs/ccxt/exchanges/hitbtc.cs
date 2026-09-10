@@ -267,6 +267,9 @@ public partial class hitbtc : Exchange
                         { "margin/history/clearing", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
+                        { "margin-settings", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "futures/balance", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
@@ -306,10 +309,16 @@ public partial class hitbtc : Exchange
                         { "futures/history/clearing", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
+                        { "user/api-keys", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "wallet/balance", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/balance/{currency}", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/address/white-list", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/crypto/address", new Dictionary<string, object>() {
@@ -331,6 +340,9 @@ public partial class hitbtc : Exchange
                             { "cost", 30 },
                         } },
                         { "wallet/crypto/fee/estimate", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "wallet/crypto/fee/withdraw/hash", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                         { "wallet/airdrops", new Dictionary<string, object>() {
@@ -392,6 +404,9 @@ public partial class hitbtc : Exchange
                         { "wallet/crypto/fees/estimate", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
+                        { "wallet/crypto/fee/estimate/bulk", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
                         { "wallet/airdrops/{id}/claim", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
@@ -402,6 +417,12 @@ public partial class hitbtc : Exchange
                             { "cost", 15 },
                         } },
                         { "sub-account/transfer", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/transfer/sub-to-super", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "sub-account/transfer/sub-to-sub", new Dictionary<string, object>() {
                             { "cost", 15 },
                         } },
                         { "sub-account/acl", new Dictionary<string, object>() {
@@ -458,8 +479,17 @@ public partial class hitbtc : Exchange
                         { "margin/account/isolated/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "margin-settings/amm", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
+                        { "margin/margin-settings/amr", new Dictionary<string, object>() {
+                            { "cost", 15 },
+                        } },
                         { "futures/account/isolated/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "futures/margin-settings/amr", new Dictionary<string, object>() {
+                            { "cost", 15 },
                         } },
                         { "wallet/crypto/withdraw/{id}", new Dictionary<string, object>() {
                             { "cost", 30 },

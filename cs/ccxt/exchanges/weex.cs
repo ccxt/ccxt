@@ -279,6 +279,27 @@ public partial class weex : Exchange
                         { "api/v3/agency/getDealData", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
+                        { "api/v3/apiReferral/checkUserEligibility", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v3/apiReferral/rebate/recentRecord", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v3/apiReferral/rebateRatio", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "api/v3/content/articles/detail", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v3/content/articles/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v3/content/articles/listByCoin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v3/content/banners/latest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "api/v3/account/bills", new Dictionary<string, object>() {
@@ -295,6 +316,9 @@ public partial class weex : Exchange
                         } },
                         { "api/v3/rebate/affiliate/internalWithdrawal", new Dictionary<string, object>() {
                             { "cost", 100 },
+                        } },
+                        { "api/v3/tax/income", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                     } },
                     { "delete", new Dictionary<string, object>() {
@@ -405,6 +429,33 @@ public partial class weex : Exchange
                         { "capi/v3/sim/order/history", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "capi/v3/copy/follower/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/follower/myTraders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/follower/openOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/follower/settings", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/trader/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/trader/openOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/trader/pairs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "capi/v3/trailing/openOrders", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                        } },
+                        { "capi/v3/trailing/historyOrders", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "capi/v3/account/income", new Dictionary<string, object>() {
@@ -442,6 +493,15 @@ public partial class weex : Exchange
                         } },
                         { "capi/v3/sim/order", new Dictionary<string, object>() {
                             { "cost", 5 },
+                        } },
+                        { "capi/v3/copy/follower/closePos", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "capi/v3/copy/follower/settings", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "capi/v3/copy/follower/stopCopy", new Dictionary<string, object>() {
+                            { "cost", 10 },
                         } },
                     } },
                     { "delete", new Dictionary<string, object>() {

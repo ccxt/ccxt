@@ -260,6 +260,24 @@ public partial class bydfi : Exchange
                         { "v1/fapi/trade/positions", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v2/fapi/trade/open_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/plan_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/history_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/history_trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/position_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v1/fapi/account/balance", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -320,6 +338,27 @@ public partial class bydfi : Exchange
                             { "cost", 1 },
                         } },
                         { "v1/fapi/trade/batch_leverage_margin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/place_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/batch_place_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/edit_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/batch_edit_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/cancel_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/batch_cancel_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/fapi/trade/cancel_all_order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v1/fapi/user_data/margin_type", new Dictionary<string, object>() {

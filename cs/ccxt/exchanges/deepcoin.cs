@@ -165,6 +165,18 @@ public partial class deepcoin : Exchange
                         { "deepcoin/market/mark-price-candles", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "deepcoin/market/mark-price", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/open-interest-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/long-short-ratio", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "deepcoin/market/taker-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "deepcoin/market/step-margin", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -184,16 +196,31 @@ public partial class deepcoin : Exchange
                         { "deepcoin/account/balances", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "deepcoin/account/all-balances", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "deepcoin/account/bills", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "deepcoin/account/positions", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "deepcoin/account/trade-fee", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/account/leverage-info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/account/positions-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "deepcoin/trade/fills", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "deepcoin/trade/orderByID", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/order", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "deepcoin/trade/finishOrderByID", new Dictionary<string, object>() {
@@ -259,6 +286,9 @@ public partial class deepcoin : Exchange
                         { "deepcoin/listenkey/extend", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "deepcoin/sub-account/sub-account-apikey", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "deepcoin/account/set-leverage", new Dictionary<string, object>() {
@@ -285,6 +315,9 @@ public partial class deepcoin : Exchange
                         { "deepcoin/trade/trigger-order", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "deepcoin/trade/amend-trigger-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "deepcoin/trade/batch-close-position", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -292,6 +325,12 @@ public partial class deepcoin : Exchange
                             { "cost", 5 },
                         } },
                         { "deepcoin/trade/close-position-by-ids", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/increase-position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/trade/merge-positions", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "deepcoin/copytrading/leader-settings", new Dictionary<string, object>() {
@@ -307,6 +346,15 @@ public partial class deepcoin : Exchange
                             { "cost", 5 },
                         } },
                         { "deepcoin/asset/transfer", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/sub-account/create-sub-account", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/sub-account/sub-account-apikey", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "deepcoin/sub-account/delete-sub-account-apikey", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },

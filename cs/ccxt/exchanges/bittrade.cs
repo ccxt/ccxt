@@ -305,6 +305,9 @@ public partial class bittrade : Exchange
                         { "settings/currencys", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "retail/maintain/time", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -381,6 +384,9 @@ public partial class bittrade : Exchange
                         { "stable-coin/quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "retail/order/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "account/transfer", new Dictionary<string, object>() {
@@ -442,6 +448,9 @@ public partial class bittrade : Exchange
                         } },
                         { "subuser/transfer", new Dictionary<string, object>() {
                             { "cost", 10 },
+                        } },
+                        { "retail/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
                         } },
                     } },
                 } },

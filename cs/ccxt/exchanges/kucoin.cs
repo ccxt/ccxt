@@ -205,6 +205,9 @@ public partial class kucoin : Exchange
                         { "margin/collateralRatio", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "margin/available-inventory", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                         { "convert/symbol", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -433,6 +436,9 @@ public partial class kucoin : Exchange
                         { "margin/interest", new Dictionary<string, object>() {
                             { "cost", 20 },
                         } },
+                        { "margin/borrowRate", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
                         { "project/list", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
@@ -479,6 +485,21 @@ public partial class kucoin : Exchange
                             { "cost", 5 },
                         } },
                         { "affiliate/inviter/statistics", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "affiliate/queryInvitees", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "affiliate/queryMyCommission", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "affiliate/queryTransactionByUid", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "affiliate/queryTransactionByTime", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "affiliate/queryKumining", new Dictionary<string, object>() {
                             { "cost", 30 },
                         } },
                     } },
@@ -999,6 +1020,9 @@ public partial class kucoin : Exchange
                         { "broker/nd/rebase/download", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
+                        { "broker/nd/mark-up", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                         { "asset/ndbroker/deposit/list", new Dictionary<string, object>() {
                             { "cost", 2 },
                         } },
@@ -1023,6 +1047,9 @@ public partial class kucoin : Exchange
                             { "cost", 6 },
                         } },
                         { "broker/nd/account/update-apikey", new Dictionary<string, object>() {
+                            { "cost", 6 },
+                        } },
+                        { "broker/nd/mark-up", new Dictionary<string, object>() {
                             { "cost", 6 },
                         } },
                     } },
@@ -1521,6 +1548,7 @@ public partial class kucoin : Exchange
                             { "symbols", "v2" },
                             { "mark-price/all-symbols", "v3" },
                             { "announcements", "v3" },
+                            { "margin/available-inventory", "v3" },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -1557,6 +1585,7 @@ public partial class kucoin : Exchange
                             { "margin/borrow", "v3" },
                             { "margin/repay", "v3" },
                             { "margin/interest", "v3" },
+                            { "margin/borrowRate", "v3" },
                             { "project/list", "v3" },
                             { "project/marketInterestRate", "v3" },
                             { "redeem/orders", "v3" },
@@ -1564,6 +1593,11 @@ public partial class kucoin : Exchange
                             { "migrate/user/account/status", "v3" },
                             { "margin/symbols", "v3" },
                             { "affiliate/inviter/statistics", "v2" },
+                            { "affiliate/queryInvitees", "v2" },
+                            { "affiliate/queryMyCommission", "v2" },
+                            { "affiliate/queryTransactionByUid", "v2" },
+                            { "affiliate/queryTransactionByTime", "v2" },
+                            { "affiliate/queryKumining", "v2" },
                             { "asset/ndbroker/deposit/list", "v1" },
                         } },
                         { "POST", new Dictionary<string, object>() {

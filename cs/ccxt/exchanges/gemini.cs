@@ -172,11 +172,68 @@ public partial class gemini : Exchange
                         { "v1/riskstats/{symbol}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "v1/prediction-markets/events", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/{eventTicker}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/{eventTicker}/strike", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/newly-listed", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/recently-settled", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/upcoming", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/categories", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/volume/{date}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/volume/{date}/hourly", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/terms", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/rates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/config", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/events", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "v1/perpetuals/fundingpaymentreport/records.xlsx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/terms/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/summary/total", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/summary/daily", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/summary/total", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/network/{token}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/networks/{network}/assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -359,6 +416,48 @@ public partial class gemini : Exchange
                             { "cost", 1 },
                         } },
                         { "v1/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/batch/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/orders/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/positions/settled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/metrics/volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/terms/accept", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/payouts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/withdraw/{network}/{ticker}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/withdraw/{network}/{ticker}/feeEstimate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

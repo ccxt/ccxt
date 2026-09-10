@@ -186,7 +186,13 @@ public partial class latoken : Exchange
                         { "auth/account/currency/{currency}/{type}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/account/filtered", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/active", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/order/getOrder/{id}", new Dictionary<string, object>() {
@@ -245,7 +251,13 @@ public partial class latoken : Exchange
                         { "auth/order/cancelAll/{currency}/{quote}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "auth/order/cancelBulk", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "auth/order/place", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "auth/order/placeBulk", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "auth/spot/deposit", new Dictionary<string, object>() {

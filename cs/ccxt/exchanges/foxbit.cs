@@ -149,6 +149,12 @@ public partial class foxbit : Exchange
                             { "markets/{market}/ticker/24hr", new Dictionary<string, object>() {
                                 { "cost", 15 },
                             } },
+                            { "markets/sparkline/{window}", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "travel_rule/operation_reasons", new Dictionary<string, object>() {
+                                { "cost", 30 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -180,6 +186,9 @@ public partial class foxbit : Exchange
                             { "me/fees/trading", new Dictionary<string, object>() {
                                 { "cost", 60 },
                             } },
+                            { "prime_desk/executions/{quote_id}", new Dictionary<string, object>() {
+                                { "cost", 10 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
@@ -193,6 +202,9 @@ public partial class foxbit : Exchange
                             } },
                             { "withdrawals", new Dictionary<string, object>() {
                                 { "cost", 10 },
+                            } },
+                            { "deposits/{deposit_sn}/travel_rule", new Dictionary<string, object>() {
+                                { "cost", 30 },
                             } },
                         } },
                         { "put", new Dictionary<string, object>() {

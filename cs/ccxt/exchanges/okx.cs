@@ -353,6 +353,12 @@ public partial class okx : Exchange
                         { "public/vip-interest-rate-loan-quota", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "public/mm-instrument-types", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "public/delta-hedge-currencies", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "rubik/stat/trading-data/support-coin", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
@@ -926,6 +932,42 @@ public partial class okx : Exchange
                         { "finance/flexible-loan/interest-accrued", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
+                        { "finance/flexible-loan/emode-info", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/okusd/limits", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "finance/okusd/account", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "finance/okusd/subscribe/history", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/okusd/redeem/history", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/okusd/rewards/history", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/okusd/rate/history", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/stable-rewards/product-info", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/stable-rewards/balance", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "finance/stable-rewards/apy-history", new Dictionary<string, object>() {
+                            { "cost", divide(5, 3) },
+                        } },
+                        { "users/glp/todayperformance", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "users/glp/historicalperformance", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                         { "copytrading/current-subpositions", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -1021,6 +1063,21 @@ public partial class okx : Exchange
                         } },
                         { "affiliate/invitee/detail", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "affiliate/performance/summary", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "affiliate/invitee/list", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "affiliate/link/list", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "affiliate/co-inviter/list", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
+                        } },
+                        { "affiliate/sub-affiliate/list", new Dictionary<string, object>() {
+                            { "cost", divide(10, 3) },
                         } },
                         { "users/partner/if-rebate", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -1449,6 +1506,18 @@ public partial class okx : Exchange
                         } },
                         { "finance/flexible-loan/adjust-collateral", new Dictionary<string, object>() {
                             { "cost", 4 },
+                        } },
+                        { "finance/flexible-loan/borrow", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "finance/flexible-loan/repay", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "finance/okusd/subscribe", new Dictionary<string, object>() {
+                            { "cost", 20 },
+                        } },
+                        { "finance/okusd/redeem", new Dictionary<string, object>() {
+                            { "cost", 20 },
                         } },
                         { "copytrading/algo-order", new Dictionary<string, object>() {
                             { "cost", 1 },

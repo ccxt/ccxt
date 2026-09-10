@@ -157,16 +157,34 @@ public partial class derive : Exchange
                         { "deregister_session_key", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_wallets_from_session_key", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "login", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "statistics", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "all_statistics", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "user_statistics", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "all_user_statistics", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "get_all_currencies", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "get_currency", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_asset", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "get_instrument", new Dictionary<string, object>() {
@@ -181,6 +199,9 @@ public partial class derive : Exchange
                         { "get_ticker", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "get_latest_signed_feeds", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -191,6 +212,12 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "get_spot_feed_history_candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_index_chart_data", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_tradingview_chart_data", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "get_funding_rate_history", new Dictionary<string, object>() {
@@ -208,6 +235,9 @@ public partial class derive : Exchange
                         { "get_interest_rate_history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_perp_impact_twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "get_transaction", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -215,6 +245,9 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "margin_watch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "validate_invite_code", new Dictionary<string, object>() {
@@ -236,6 +269,9 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "get_swell_percent_points", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_stdrv_snapshots", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "get_vault_assets", new Dictionary<string, object>() {
@@ -262,10 +298,19 @@ public partial class derive : Exchange
                         { "get_vault_balances", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_vault_pools", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_vault_rates", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "estimate_integrator_points", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "create_subaccount_debug", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "create_account_with_secret", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "deposit_debug", new Dictionary<string, object>() {
@@ -286,6 +331,12 @@ public partial class derive : Exchange
                         { "register_invite", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_all_referral_codes", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_referral_performance", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "get_time", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -296,6 +347,12 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "get_maker_program_scores", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_detailed_maker_snapshot_history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "getRateLimits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -321,6 +378,9 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "get_notificationsv", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_notifications", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "update_notifications", new Dictionary<string, object>() {
@@ -359,6 +419,12 @@ public partial class derive : Exchange
                         { "get_open_orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "get_trigger_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_algo_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "cancel", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -375,6 +441,15 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "cancel_trigger_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_algo_order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_algo_orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancel_all_trigger_orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "get_order_history", new Dictionary<string, object>() {
@@ -422,6 +497,12 @@ public partial class derive : Exchange
                         { "execute_quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "order_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "replace_quote", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "rfq_get_best_quote", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -467,6 +548,9 @@ public partial class derive : Exchange
                         { "edit_session_key", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "change_session_key_label", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "register_scoped_session_key", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -486,6 +570,18 @@ public partial class derive : Exchange
                             { "cost", 1 },
                         } },
                         { "register_invite", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "get_contact_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "create_contact_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "update_contact_info", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "delete_contact_info", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

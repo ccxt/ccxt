@@ -188,6 +188,9 @@ public partial class hollaex : Exchange
                         { "user/withdrawal/fee", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "subaccounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "user/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -200,6 +203,9 @@ public partial class hollaex : Exchange
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "subaccount/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "order", new Dictionary<string, object>() {

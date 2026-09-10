@@ -379,6 +379,15 @@ public partial class xt : Exchange
                     } },
                     { "linear", new Dictionary<string, object>() {
                         { "get", new Dictionary<string, object>() {
+                            { "future/copytrade/user/v1/copy-trade/current-following-v2", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/copytrade/user/v1/copy-trade/follower-balance-bill", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/copytrade/user/v1/copy-trade/follower-position", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/plan-detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -394,6 +403,15 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/profit-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/reverse-plan-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/reverse-plan-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -401,6 +419,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/order-entrust/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
@@ -412,13 +433,31 @@ public partial class xt : Exchange
                             { "future/trade/v1/order/list-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/order/trade-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/position/list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/cross-margin/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/leverage/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/list/active", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/trade-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/order/trade-list-all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/user/v1/account/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/user/v1/auto-deleverage/history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/balance/bills", new Dictionary<string, object>() {
@@ -433,6 +472,9 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/user/v1/compat/balance/{coin}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/user/v1/position/adl", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -440,6 +482,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/position/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/user/v1/taker-over/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/user/step-rate", new Dictionary<string, object>() {
@@ -541,6 +586,15 @@ public partial class xt : Exchange
                             { "future/trade/v1/entrust/profit-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/entrust/profit-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/reverse-plan-list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/entrust/reverse-plan-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/entrust/track-detail", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -548,6 +602,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/entrust/track-list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/order-entrust/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/detail", new Dictionary<string, object>() {
@@ -559,13 +616,31 @@ public partial class xt : Exchange
                             { "future/trade/v1/order/list-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/order/trade-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/trade/v1/position/list-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/cross-margin/{symbol}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/leverage/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/trade/v1/position/list/active", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/trade/v1/order/trade-list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/trade/v1/order/trade-list-all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/user/v1/account/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/user/v1/auto-deleverage/history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/balance/bills", new Dictionary<string, object>() {
@@ -580,6 +655,9 @@ public partial class xt : Exchange
                             { "future/user/v1/balance/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "future/user/v1/compat/balance/{coin}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "future/user/v1/position/adl", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -587,6 +665,9 @@ public partial class xt : Exchange
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/position/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "future/user/v1/taker-over/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "future/user/v1/user/step-rate", new Dictionary<string, object>() {

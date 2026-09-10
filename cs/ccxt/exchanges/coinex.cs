@@ -600,6 +600,9 @@ public partial class coinex : Exchange
                             { "assets/all-deposit-withdraw-config", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "assets/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -919,6 +922,12 @@ public partial class coinex : Exchange
                                 { "cost", 20 },
                             } },
                             { "futures/set-position-take-profit", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "futures/modify-position-stop-loss", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "futures/modify-position-take-profit", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
                         } },

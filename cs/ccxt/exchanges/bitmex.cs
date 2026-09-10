@@ -233,6 +233,12 @@ public partial class bitmex : Exchange
                         { "wallet/assets", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "wallet/currencies", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "wallet/haircuts", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "wallet/networks", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -243,7 +249,13 @@ public partial class bitmex : Exchange
                         { "address", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "addressConfig", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "apiKey", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "apiKey/self", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "execution", new Dictionary<string, object>() {
@@ -258,6 +270,15 @@ public partial class bitmex : Exchange
                         { "leaderboard/name", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "leagueoftrader/myRankings", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/investor", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/tradingTeam", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -265,6 +286,18 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "position", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/check/{code}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/code/{code}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user", new Dictionary<string, object>() {
@@ -285,6 +318,9 @@ public partial class bitmex : Exchange
                         { "user/depositAddress", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "user/depositAddressInformation", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/executionHistory", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -292,6 +328,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "user/margin", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/marginingMode", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/quoteFillRatio", new Dictionary<string, object>() {
@@ -307,6 +346,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "user/staking/tiers", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/tradingSettings", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/tradingVolume", new Dictionary<string, object>() {
@@ -328,6 +370,12 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "userEvent", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userStats/volumeRank", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -356,6 +404,24 @@ public partial class bitmex : Exchange
                         { "guild/sharesTrades", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "managedSubAccountBinding/approve", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/cancel", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/createMSA", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/reject", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/toggleTradeHistory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "managedSubAccountBinding/unbind", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -363,6 +429,9 @@ public partial class bitmex : Exchange
                             { "cost", 5 },
                         } },
                         { "order/closePosition", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "position/crossLeverage", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "position/isolate", new Dictionary<string, object>() {
@@ -376,6 +445,9 @@ public partial class bitmex : Exchange
                         } },
                         { "position/transferMargin", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "referralCode", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                         { "user/addSubaccount", new Dictionary<string, object>() {
                             { "cost", 5 },
@@ -392,7 +464,16 @@ public partial class bitmex : Exchange
                         { "user/confirmWithdrawal", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "user/createIndependentSubaccount", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/logout", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/marginingMode", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/positionMode", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "user/preferences", new Dictionary<string, object>() {
@@ -410,13 +491,25 @@ public partial class bitmex : Exchange
                         { "user/walletTransfer", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
+                        { "address", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "guild", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "order", new Dictionary<string, object>() {
                             { "cost", 1 },
+                        } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                     } },
                     { "delete", new Dictionary<string, object>() {
@@ -426,7 +519,19 @@ public partial class bitmex : Exchange
                         { "order/all", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "referralCode/{id}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "user/unstakingRequests", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "user/withdrawal", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "userPriceAlert/{id}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },

@@ -115,6 +115,9 @@ public partial class mudrex : Exchange
                         { "futures/funds", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "futures/transactions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "futures/orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

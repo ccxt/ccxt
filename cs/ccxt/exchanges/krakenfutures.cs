@@ -186,6 +186,9 @@ public partial class krakenfutures : Exchange
                         { "subaccount/{uid}/trading-enabled", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "rfq-assignment/max-leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "sendorder", new Dictionary<string, object>() {
@@ -233,6 +236,14 @@ public partial class krakenfutures : Exchange
                             { "cost", 1 },
                         } },
                         { "subaccount/{uid}/trading-enabled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq-assignment/max-leverage", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "delete", new Dictionary<string, object>() {
+                        { "rfq-assignment/max-leverage", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

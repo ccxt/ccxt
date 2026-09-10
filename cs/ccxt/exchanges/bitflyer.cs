@@ -111,6 +111,9 @@ public partial class bitflyer : Exchange
                         { "getfundingrate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "getfundingratehistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {

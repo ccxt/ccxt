@@ -125,6 +125,7 @@ public partial class mercado : Exchange
                     { "private", "https://www.mercadobitcoin.net/tapi" },
                     { "v4Public", "https://www.mercadobitcoin.com.br/v4" },
                     { "v4PublicNet", "https://api.mercadobitcoin.net/api/v4" },
+                    { "v4Private", "https://api.mercadobitcoin.net/api/v4" },
                 } },
                 { "www", "https://www.mercadobitcoin.com.br" },
                 { "doc", new List<object>() {"https://www.mercadobitcoin.com.br/api-doc", "https://www.mercadobitcoin.com.br/trade-api"} },
@@ -205,6 +206,24 @@ public partial class mercado : Exchange
                 { "v4PublicNet", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                } },
+                { "v4Private", new Dictionary<string, object>() {
+                    { "post", new Dictionary<string, object>() {
+                        { "accounts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "accounts/{accountId}/{symbol}/transfers/internal", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "oauth2/token", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "patch", new Dictionary<string, object>() {
+                        { "accounts/{accountId}/wallet/{symbol}/deposits/{depositId}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

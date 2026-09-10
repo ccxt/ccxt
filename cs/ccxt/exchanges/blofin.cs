@@ -170,6 +170,9 @@ public partial class blofin : Exchange
                         { "market/instruments", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "market/instruments-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "market/tickers", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -200,6 +203,21 @@ public partial class blofin : Exchange
                         { "market/position-tiers", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "spot/market/instruments", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/market/tickers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/market/books", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/market/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "spot/market/candles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -216,6 +234,9 @@ public partial class blofin : Exchange
                         { "asset/deposit-history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "asset/deposit-address", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "account/config", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -229,6 +250,9 @@ public partial class blofin : Exchange
                             { "cost", 1 },
                         } },
                         { "account/positions-history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/funding-fees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/margin-mode", new Dictionary<string, object>() {
@@ -336,12 +360,33 @@ public partial class blofin : Exchange
                         { "spot/trade/fills-history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "spot/trade/orders-pending", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/order-detail", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/orders-algo-pending", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/orders-history", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/orders-algo-history", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/order/price-range", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "asset/transfer", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "asset/demo-apply-money", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "asset/withdrawal-apply", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/set-margin-mode", new Dictionary<string, object>() {
@@ -377,7 +422,37 @@ public partial class blofin : Exchange
                         { "trade/cancel-algo", new Dictionary<string, object>() {
                             { "cost", 1.67 },
                         } },
+                        { "trade/amend-order", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "trade/amend-batch-orders", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "trade/amend-tpsl", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "trade/amend-algo", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
                         { "trade/close-position", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/order", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/batch-orders", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/order-algo", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/cancel-order", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/cancel-batch-orders", new Dictionary<string, object>() {
+                            { "cost", 1.67 },
+                        } },
+                        { "spot/trade/cancel-algo", new Dictionary<string, object>() {
                             { "cost", 1.67 },
                         } },
                         { "copytrading/account/set-position-mode", new Dictionary<string, object>() {

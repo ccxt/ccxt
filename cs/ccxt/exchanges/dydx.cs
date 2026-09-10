@@ -276,6 +276,26 @@ public partial class dydx : Exchange
                         { "historical-pnl/parentSubaccount", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "pnl", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "pnl/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tradeHistory/parentSubaccountNumber", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
+                    { "post", new Dictionary<string, object>() {
+                        { "turnkey/signin", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "turnkey/uploadAddress", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "nodeRpc", new Dictionary<string, object>() {

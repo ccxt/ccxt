@@ -184,11 +184,23 @@ public partial class coinbaseexchange : Exchange
                         { "products/volume-summary", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "wrapped-assets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/{wrapped_asset_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/{wrapped_asset_id}/conversion-rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "address-book", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book/counterparty", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "accounts", new Dictionary<string, object>() {
@@ -278,6 +290,9 @@ public partial class coinbaseexchange : Exchange
                         { "transfers/{transfer_id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "users/self/exchange-limits", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -285,6 +300,9 @@ public partial class coinbaseexchange : Exchange
                             { "cost", 1 },
                         } },
                         { "users/self/trailing-volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/{user_id}/trading-volumes", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "withdrawals/fee-estimate", new Dictionary<string, object>() {
@@ -332,6 +350,21 @@ public partial class coinbaseexchange : Exchange
                         { "loans", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "loans/options", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem/{redeem_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap/{stake_wrap_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "conversions", new Dictionary<string, object>() {
@@ -344,6 +377,9 @@ public partial class coinbaseexchange : Exchange
                             { "cost", 1 },
                         } },
                         { "coinbase-accounts/{id}/addresses", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "funding/repay", new Dictionary<string, object>() {
@@ -373,10 +409,28 @@ public partial class coinbaseexchange : Exchange
                         { "withdrawals/coinbase-account", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "withdrawals/counterparty", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "withdrawals/crypto", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "withdrawals/payment-method", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "transfers/{transfer_id}/travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel-rules", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/{user_id}/settlement-preferences", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/redeem", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "wrapped-assets/stake-wrap", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "loans/open", new Dictionary<string, object>() {
@@ -399,12 +453,21 @@ public partial class coinbaseexchange : Exchange
                         { "orders/{id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "address-book/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel-rules/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "profiles/{id}/deactivate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "profiles/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "address-book/{id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

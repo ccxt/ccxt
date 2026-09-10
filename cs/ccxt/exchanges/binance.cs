@@ -916,6 +916,9 @@ public partial class binance : Exchange
                         { "portfolio/delta-mode", new Dictionary<string, object>() {
                             { "cost", 150 },
                         } },
+                        { "portfolio/margin-call-level", new Dictionary<string, object>() {
+                            { "cost", 150 },
+                        } },
                         { "staking/productList", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
@@ -1389,6 +1392,9 @@ public partial class binance : Exchange
                         { "portfolio/delta-mode", new Dictionary<string, object>() {
                             { "cost", 150 },
                         } },
+                        { "portfolio/margin-call-level", new Dictionary<string, object>() {
+                            { "cost", 150 },
+                        } },
                         { "lending/auto-invest/plan/add", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
@@ -1465,6 +1471,9 @@ public partial class binance : Exchange
                         } },
                     } },
                     { "delete", new Dictionary<string, object>() {
+                        { "portfolio/margin-call-level", new Dictionary<string, object>() {
+                            { "cost", 150 },
+                        } },
                         { "margin/openOrders", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
@@ -2321,6 +2330,9 @@ public partial class binance : Exchange
                         { "block/order/execute", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "stock/contract", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "listenKey", new Dictionary<string, object>() {
@@ -2400,8 +2412,21 @@ public partial class binance : Exchange
                         { "exchangeInfo", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
+                        { "executionRules", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                            { "noSymbol", 8 },
+                        } },
                         { "avgPrice", new Dictionary<string, object>() {
                             { "cost", 0.4 },
+                        } },
+                        { "referencePrice", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "referencePrice/calculation", new Dictionary<string, object>() {
+                            { "cost", 0.4 },
+                        } },
+                        { "historicalBlockTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                     } },
                     { "put", new Dictionary<string, object>() {
@@ -2551,6 +2576,15 @@ public partial class binance : Exchange
                         { "um/conditional/allOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                             { "noSymbol", 40 },
+                        } },
+                        { "um/algo/algoOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "um/algo/openAlgoOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "um/algo/allAlgoOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
                         } },
                         { "cm/conditional/openOrder", new Dictionary<string, object>() {
                             { "cost", 1 },
@@ -2726,6 +2760,9 @@ public partial class binance : Exchange
                         { "um/conditional/order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "um/algo/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "cm/order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -2806,6 +2843,12 @@ public partial class binance : Exchange
                             { "cost", 1 },
                         } },
                         { "um/conditional/allOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "um/algo/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "um/algo/allOpenOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "cm/order", new Dictionary<string, object>() {

@@ -224,6 +224,9 @@ public partial class lighter : Exchange
                         { "candles", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "markPriceCandles", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "fundings", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -234,6 +237,15 @@ public partial class lighter : Exchange
                             { "cost", 1 },
                         } },
                         { "withdrawalDelay", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "partnerStats", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "syntheticSpotInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "tokenlist", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -269,13 +281,22 @@ public partial class lighter : Exchange
                         { "publicPoolsMetadata", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "getMakerOnlyApiKeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "accountActiveOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "accountInactiveOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "accountOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "export", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "export/historicalTrades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "trades", new Dictionary<string, object>() {
@@ -299,12 +320,30 @@ public partial class lighter : Exchange
                         { "transferFeeInfo", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "rfq/get", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "changeAccountTier", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "setMakerOnlyApiKeys", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "notification/ack", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq/respond", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfq/update", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

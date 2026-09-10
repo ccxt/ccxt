@@ -287,6 +287,14 @@ public partial class bitso : Exchange
                             { "cost", 1 },
                         } },
                     } },
+                    { "patch", new Dictionary<string, object>() {
+                        { "orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/{oid}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                    } },
                 } },
             } },
             { "features", new Dictionary<string, object>() {

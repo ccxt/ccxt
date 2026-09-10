@@ -281,6 +281,30 @@ public partial class bingx : Exchange
                                 { "ticker/price", new Dictionary<string, object>() {
                                     { "cost", 1 },
                                 } },
+                                { "quote/bookTicker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/depth", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/historicalKlines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/historicalTrades", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/klines", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/price", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/ticker", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
+                                { "quote/trades", new Dictionary<string, object>() {
+                                    { "cost", 1 },
+                                } },
                             } },
                         } },
                     } },
@@ -478,6 +502,9 @@ public partial class bingx : Exchange
                                 { "trade/fillHistory", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
+                                { "trade/positionHistory", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
                                 { "user/income/export", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
@@ -629,6 +656,15 @@ public partial class bingx : Exchange
                                     { "cost", 2 },
                                 } },
                                 { "trade/cancelOrder", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                            } },
+                        } },
+                    } },
+                    { "v2", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "post", new Dictionary<string, object>() {
+                                { "trade/order", new Dictionary<string, object>() {
                                     { "cost", 2 },
                                 } },
                             } },
@@ -916,6 +952,31 @@ public partial class bingx : Exchange
                                 } },
                                 { "account/superiorCheck", new Dictionary<string, object>() {
                                     { "cost", 5 },
+                                } },
+                            } },
+                        } },
+                    } },
+                } },
+                { "wealth", new Dictionary<string, object>() {
+                    { "v1", new Dictionary<string, object>() {
+                        { "private", new Dictionary<string, object>() {
+                            { "get", new Dictionary<string, object>() {
+                                { "product/dual-currency/pre-order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "product/dual-currency/position", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "product/dual-currency/order-records", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                            } },
+                            { "post", new Dictionary<string, object>() {
+                                { "product/dual-currency/invest-asset-list", new Dictionary<string, object>() {
+                                    { "cost", 2 },
+                                } },
+                                { "product/dual-currency/order", new Dictionary<string, object>() {
+                                    { "cost", 2 },
                                 } },
                             } },
                         } },

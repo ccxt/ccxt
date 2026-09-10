@@ -182,6 +182,9 @@ public partial class paradex : Exchange
                         { "referrals/config", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "staking/balance/history/global", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "staking/config", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -207,6 +210,9 @@ public partial class paradex : Exchange
                             { "cost", 1 },
                         } },
                         { "vaults", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "vaults/analytics", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "vaults/balance", new Dictionary<string, object>() {
@@ -336,6 +342,21 @@ public partial class paradex : Exchange
                         { "referrals/summary", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "rfqs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/drafts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/markets", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/{rfq_id}/bbo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "staking/balance/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "staking/history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -392,6 +413,12 @@ public partial class paradex : Exchange
                         { "account/settings/trading_value_display", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "account/paradigm/enable", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/terminal-token", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "account/keys/subkeys/activate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -428,6 +455,15 @@ public partial class paradex : Exchange
                         { "orders/batch", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "rfqs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/drafts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/{rfq_id}/execute", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "v2/auth", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -446,6 +482,12 @@ public partial class paradex : Exchange
                             { "cost", 1 },
                         } },
                         { "account/keys/subkeys/{public_key}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/keys/subkeys/{public_key}/allowed-cidrs", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account/tokens/{lookup_id}/allowed-cidrs", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "orders/{order_id}", new Dictionary<string, object>() {
@@ -478,6 +520,12 @@ public partial class paradex : Exchange
                             { "cost", 1 },
                         } },
                         { "orders/{order_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/drafts/{draft_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "rfqs/{rfq_id}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

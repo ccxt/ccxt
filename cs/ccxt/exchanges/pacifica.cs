@@ -218,6 +218,15 @@ public partial class pacifica : Exchange
                         { "orders/history_by_id", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "orders/twap", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/twap/history", new Dictionary<string, object>() {
+                            { "cost", 12 },
+                        } },
+                        { "orders/twap/history_by_id", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "spot_assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -231,6 +240,15 @@ public partial class pacifica : Exchange
                             { "cost", 1 },
                         } },
                         { "account/builder_codes/approvals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "builder/overview", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "builder/trades", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "leaderboard/builder_code", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -297,13 +315,46 @@ public partial class pacifica : Exchange
                         { "orders/batch", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "orders/twap/create", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "orders/twap/cancel", new Dictionary<string, object>() {
+                            { "cost", 0.5 },
+                        } },
                         { "account/builder_codes/approve", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/builder_codes/revoke", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "builder/update_fee_rate", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "referral/user/code/claim", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "agent/bind", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/revoke", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/revoke_all", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/list", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/add", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/remove", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "agent/ip_whitelist/toggle", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "account/api_keys/create", new Dictionary<string, object>() {

@@ -269,7 +269,13 @@ public partial class coinspot : Exchange
                             { "my/buy/now", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "my/buy/now/coinlist", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "my/sell/now", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/sell/now/coinlist", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "my/swap/now", new Dictionary<string, object>() {
@@ -291,6 +297,12 @@ public partial class coinspot : Exchange
                                 { "cost", 1 },
                             } },
                             { "my/coin/withdraw/send", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send/async", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "my/coin/withdraw/send/status", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "ro/status", new Dictionary<string, object>() {

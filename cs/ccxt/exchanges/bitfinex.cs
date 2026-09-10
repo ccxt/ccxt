@@ -373,6 +373,9 @@ public partial class bitfinex : Exchange
                         { "auth/r/orders/hist", new Dictionary<string, object>() {
                             { "cost", 2.7 },
                         } },
+                        { "auth/r/orders/otc/{symbol}/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
                         { "auth/r/order/{symbol}:{id}/trades", new Dictionary<string, object>() {
                             { "cost", 2.7 },
                         } },
@@ -416,6 +419,9 @@ public partial class bitfinex : Exchange
                             { "cost", 2.7 },
                         } },
                         { "auth/r/positions/snap", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/position/update/funding/type", new Dictionary<string, object>() {
                             { "cost", 2.7 },
                         } },
                         { "auth/w/deriv/collateral/set", new Dictionary<string, object>() {
@@ -511,8 +517,14 @@ public partial class bitfinex : Exchange
                         { "auth/w/deposit/address", new Dictionary<string, object>() {
                             { "cost", 24 },
                         } },
+                        { "auth/r/deposit/address/all", new Dictionary<string, object>() {
+                            { "cost", 24 },
+                        } },
                         { "auth/w/deposit/invoice", new Dictionary<string, object>() {
                             { "cost", 24 },
+                        } },
+                        { "auth/r/ext/invoice/payments", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
                         } },
                         { "auth/w/withdraw", new Dictionary<string, object>() {
                             { "cost", 24 },
@@ -521,6 +533,9 @@ public partial class bitfinex : Exchange
                             { "cost", 2.7 },
                         } },
                         { "auth/r/movements/hist", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/movements/info", new Dictionary<string, object>() {
                             { "cost", 2.7 },
                         } },
                         { "auth/r/alerts", new Dictionary<string, object>() {
@@ -554,6 +569,15 @@ public partial class bitfinex : Exchange
                             { "cost", 16 },
                         } },
                         { "auth/w/pulse/del", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/ext/wallets/deposits/request", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/w/ext/wallets/withdrawals/request", new Dictionary<string, object>() {
+                            { "cost", 2.7 },
+                        } },
+                        { "auth/r/ext/wallets/transfers/free/count", new Dictionary<string, object>() {
                             { "cost", 2.7 },
                         } },
                     } },

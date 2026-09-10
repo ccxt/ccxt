@@ -171,6 +171,9 @@ public partial class bitbank : Exchange
                         { "user/spot/active_orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "user/margin/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "user/margin/positions", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

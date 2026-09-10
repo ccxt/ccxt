@@ -98,6 +98,9 @@ public partial class paymium : Exchange
                         { "user/price_alerts", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "user/withdrawals", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "merchant/get_payment/{uuid}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

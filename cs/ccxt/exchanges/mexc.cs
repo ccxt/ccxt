@@ -217,6 +217,9 @@ public partial class mexc : Exchange
                             { "uid", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "apiKeyInfo", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "order", new Dictionary<string, object>() {
                                 { "cost", 2 },
                             } },
@@ -397,6 +400,9 @@ public partial class mexc : Exchange
                                 { "cost", 10 },
                             } },
                             { "strategy/group", new Dictionary<string, object>() {
+                                { "cost", 20 },
+                            } },
+                            { "strategy/group/uid", new Dictionary<string, object>() {
                                 { "cost", 20 },
                             } },
                             { "capital/withdraw/apply", new Dictionary<string, object>() {

@@ -124,6 +124,9 @@ public partial class bit2c : Exchange
                         { "Exchanges/{pair}/orderbook", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "Exchanges/{pair}/orderbook-top", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "Exchanges/{pair}/trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -138,6 +141,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Funds/AddCoinFundsRequest", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Funds/WithdrawCoin", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "Order/AddFund", new Dictionary<string, object>() {
@@ -191,6 +197,9 @@ public partial class bit2c : Exchange
                             { "cost", 1 },
                         } },
                         { "Order/OrderHistory", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "Order/HistoryByOrderId", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

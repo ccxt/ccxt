@@ -319,6 +319,12 @@ public partial class coinmate : Exchange
                         { "bankWireWithdrawal", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "lightningDeposit", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "lightningWithdraw", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
             } },

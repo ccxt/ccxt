@@ -193,7 +193,13 @@ public partial class indodax : Exchange
                         { "getOrder", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
+                        { "getOrderByClientOrderId", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
                         { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 4 },
+                        } },
+                        { "cancelByClientOrderId", new Dictionary<string, object>() {
                             { "cost", 4 },
                         } },
                         { "withdrawFee", new Dictionary<string, object>() {

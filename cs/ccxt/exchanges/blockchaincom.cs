@@ -112,6 +112,9 @@ public partial class blockchaincom : Exchange
                         { "fees", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "internal/orders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "orders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

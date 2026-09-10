@@ -310,6 +310,14 @@ public partial class gate : Exchange
                             { "{settle}/risk_limit_tiers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "{settle}/adl_risk_states", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                        } },
+                        { "post", new Dictionary<string, object>() {
+                            { "{settle}/funding_rates", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "delivery", new Dictionary<string, object>() {
@@ -392,6 +400,15 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "structured/products", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "dual/project-recommend", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fixed-term/product", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "fixed-term/product/{asset}/list", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -483,6 +500,9 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "getLowCapExchangeList", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "transfers", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -588,6 +608,12 @@ public partial class gate : Exchange
                             { "leverage/user_currency_setting", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "delta_neutral", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "estimated_quick_repayment", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                             { "account_mode", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
@@ -603,6 +629,15 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                             { "collateral_currencies", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "delta_neutral", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "leverage/user_setting", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "quick_repayment", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
                             { "account_mode", new Dictionary<string, object>() {
@@ -647,6 +682,12 @@ public partial class gate : Exchange
                             { "price_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "pov_orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "batch_orders", new Dictionary<string, object>() {
@@ -670,6 +711,9 @@ public partial class gate : Exchange
                             { "price_orders", new Dictionary<string, object>() {
                                 { "cost", 0.4 },
                             } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
                         } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
@@ -682,6 +726,12 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 75) },
                             } },
                             { "price_orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", divide(20, 75) },
+                            } },
+                            { "pov_orders", new Dictionary<string, object>() {
+                                { "cost", divide(20, 75) },
+                            } },
+                            { "pov_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", divide(20, 75) },
                             } },
                         } },
@@ -889,6 +939,21 @@ public partial class gate : Exchange
                             { "{settle}/price_orders/{order_id}", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "{settle}/autoorder/v1/trail/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/change_log", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                         { "post", new Dictionary<string, object>() {
                             { "{settle}/positions/{contract}/margin", new Dictionary<string, object>() {
@@ -943,6 +1008,27 @@ public partial class gate : Exchange
                                 { "cost", 0.4 },
                             } },
                             { "{settle}/price_orders", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/create", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/stop", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/stop_all", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/trail/update", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/create", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/stop", new Dictionary<string, object>() {
+                                { "cost", 0.4 },
+                            } },
+                            { "{settle}/autoorder/v1/chase/stop_all", new Dictionary<string, object>() {
                                 { "cost", 0.4 },
                             } },
                         } },
@@ -1087,6 +1173,11 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                         } },
+                        { "put", new Dictionary<string, object>() {
+                            { "orders/{order_id}", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                        } },
                         { "delete", new Dictionary<string, object>() {
                             { "orders", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
@@ -1143,6 +1234,33 @@ public partial class gate : Exchange
                             { "staking/assets", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "dual/order-refund-preview", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/lend", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/history", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/coins", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/config", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/orders", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/detail", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/list_info", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/records", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                             { "uni/currencies", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
@@ -1164,6 +1282,33 @@ public partial class gate : Exchange
                                 { "cost", divide(20, 15) },
                             } },
                             { "staking/swap", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "dual/order-refund", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "dual/modify-order-reinvest", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/lend", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "fixed-term/user/pre-redeem", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/min_invest_amount", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/add_position", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/create", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/stop", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
+                            { "autoinvest/plans/update", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
                         } },
@@ -1320,6 +1465,9 @@ public partial class gate : Exchange
                             { "user/sub_relation", new Dictionary<string, object>() {
                                 { "cost", divide(20, 15) },
                             } },
+                            { "partner/data/aggregated", new Dictionary<string, object>() {
+                                { "cost", divide(20, 15) },
+                            } },
                         } },
                     } },
                     { "otc", new Dictionary<string, object>() {
@@ -1334,6 +1482,12 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/detail", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/bank_supplement_checklist", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },
@@ -1351,6 +1505,24 @@ public partial class gate : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/cancel", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/delete", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/set_default", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/personal/bank_supplement", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "bank/enterprise/bank_supplement", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "upload/pre_upload", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },

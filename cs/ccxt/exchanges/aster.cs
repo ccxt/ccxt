@@ -390,6 +390,24 @@ public partial class aster : Exchange
                         { "v3/builder", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/builder/userTrades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/builder/approvedUserList", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/stpMode", new Dictionary<string, object>() {
+                            { "cost", 30 },
+                        } },
+                        { "v3/asset/migrateUser/history", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/strategyOpenOrder", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v3/strategyHistoryOrder", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "v1/positionSide/dual", new Dictionary<string, object>() {
@@ -479,6 +497,24 @@ public partial class aster : Exchange
                         { "v3/updateBuilder", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "v3/registerAndApproveAgent", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/asset/migrateUser", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/chase", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/stpMode", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/placeStrategyOrder", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
+                        { "v3/updateStrategyOrder", new Dictionary<string, object>() {
+                            { "cost", 50 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "v1/listenKey", new Dictionary<string, object>() {
@@ -505,6 +541,12 @@ public partial class aster : Exchange
                             { "cost", 1 },
                         } },
                         { "v3/batchOrders", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/guardedCancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v3/guardedBatchOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "v3/mmp", new Dictionary<string, object>() {

@@ -287,6 +287,9 @@ public partial class whitebit : Exchange
                             { "collateral-account/positions/open", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "collateral-account/positions/closed-pnl", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "collateral-account/summary", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -326,6 +329,9 @@ public partial class whitebit : Exchange
                             { "main-account/withdraw-pay", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "main-account/express-withdraw/token", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "main-account/transfer", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -347,6 +353,30 @@ public partial class whitebit : Exchange
                             { "main-account/smart/interest-payment-history", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "main-account/smart-flex/plans", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/payment-history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/invest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/withdraw", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/close", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "main-account/smart-flex/investments/auto-invest", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "trade-account/balance", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
@@ -354,6 +384,9 @@ public partial class whitebit : Exchange
                                 { "cost", 1 },
                             } },
                             { "trade-account/order/history", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "trade-account/order/history/query", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "trade-account/order", new Dictionary<string, object>() {
@@ -393,6 +426,9 @@ public partial class whitebit : Exchange
                                 { "cost", 1 },
                             } },
                             { "order/cancel/all", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "order/cancel/bulk", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                             { "order/kill-switch", new Dictionary<string, object>() {
@@ -491,10 +527,52 @@ public partial class whitebit : Exchange
                             { "mining/rewards", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "mining/hashrate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/payout-destination", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/payout-destination/edit", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/miners/info", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/workers/names", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/workers/hashrate", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/watcher-links/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/watcher-links/list", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/accounts/create", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "mining/accounts", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "market/fee", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "market/fee/single", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                             { "conditional-orders", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "travel-rule/vasps", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "travel-rule/deposit/verification", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "jwt", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },

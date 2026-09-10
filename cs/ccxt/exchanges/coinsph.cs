@@ -386,6 +386,12 @@ public partial class coinsph : Exchange
                         { "openapi/fiat/v1/history", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "openapi/fiat/v2/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "openapi/fiat/v1/cancel_qr_code", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "openapi/migration/v4/sellorder", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },

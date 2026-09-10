@@ -188,6 +188,12 @@ public partial class bitstamp : Exchange
                         { "funding_rate_history/{pair}/", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "derivatives/market_hours/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "derivatives/market_hours/{market_symbol}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -196,6 +202,18 @@ public partial class bitstamp : Exchange
                             { "cost", 1 },
                         } },
                         { "contacts/{contact_uuid}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/utxo/xpub_registrations/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/utxo/xpub_registrations/{registration_id}/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/address_verification/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-transactions/deposits/", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "earn/subscriptions/", new Dictionary<string, object>() {
@@ -237,6 +255,9 @@ public partial class bitstamp : Exchange
                             { "cost", 1 },
                         } },
                         { "crypto-transactions/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-transactions/deposits/{deposit_id}/reject/", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "open_order", new Dictionary<string, object>() {
@@ -330,6 +351,12 @@ public partial class bitstamp : Exchange
                             { "cost", 1 },
                         } },
                         { "get_max_order_amount/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "order_data/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "account_order_data/", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "btc_withdrawal/", new Dictionary<string, object>() {
@@ -819,6 +846,12 @@ public partial class bitstamp : Exchange
                             { "cost", 1 },
                         } },
                         { "travel_rule/contacts/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/utxo/xpub_registrations/", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "travel_rule/utxo/xpub_registrations/{registration_id}/revoke/", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "earn/subscribe/", new Dictionary<string, object>() {

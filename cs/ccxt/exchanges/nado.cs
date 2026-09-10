@@ -93,6 +93,9 @@ public partial class nado : Exchange
                             { "query", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
+                            { "edge/query", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
                         } },
                     } },
                     { "private", new Dictionary<string, object>() {
@@ -135,6 +138,9 @@ public partial class nado : Exchange
                                 { "cost", 1 },
                             } },
                             { "trades", new Dictionary<string, object>() {
+                                { "cost", 1 },
+                            } },
+                            { "symbols", new Dictionary<string, object>() {
                                 { "cost", 1 },
                             } },
                         } },

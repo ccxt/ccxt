@@ -142,7 +142,13 @@ public partial class bitbns : Exchange
                         { "depositHistoryAll/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "userHistoryNew", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "listOpenOrders/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "listOpenOrdersOther/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "listOpenStopOrders/{symbol}", new Dictionary<string, object>() {
@@ -154,7 +160,13 @@ public partial class bitbns : Exchange
                         { "placeSellOrder/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "placeSellOrderOther/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "placeBuyOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "placeBuyOrderOther/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "buyStopLoss/{symbol}", new Dictionary<string, object>() {
@@ -164,6 +176,9 @@ public partial class bitbns : Exchange
                             { "cost", 1 },
                         } },
                         { "cancelOrder/{symbol}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "cancelOrderOther/{symbol}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "cancelStopLossOrder/{symbol}", new Dictionary<string, object>() {

@@ -200,6 +200,10 @@ public partial class tokocrypto : Exchange
                         { "exchangeInfo", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "executionRules", new Dictionary<string, object>() {
+                            { "cost", 2 },
+                            { "noSymbol", 40 },
+                        } },
                     } },
                     { "put", new Dictionary<string, object>() {
                         { "userDataStream", new Dictionary<string, object>() {
@@ -280,6 +284,9 @@ public partial class tokocrypto : Exchange
                             { "cost", 1 },
                         } },
                         { "open/v1/user-data-stream", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "open/v1/user-listen-token", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },

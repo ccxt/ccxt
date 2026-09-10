@@ -379,6 +379,21 @@ public partial class bybit : Exchange
                         { "v5/earn/product", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "v5/spot-x/launchpool/project/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/puzzle/project/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/token-splash/project/list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/instruments-info", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/orderbook", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -785,6 +800,9 @@ public partial class bybit : Exchange
                         { "v5/user/invitation/referrals", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "v5/user/invitation/code", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "v5/affiliate/aff-user-list", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -795,6 +813,9 @@ public partial class bybit : Exchange
                             { "cost", 1 },
                         } },
                         { "v5/spot-margin-trade/flexible-available-inventory", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-margin-trade/fixed-available-inventory", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                         { "v5/spot-margin-trade/interest-rate-history", new Dictionary<string, object>() {
@@ -899,6 +920,12 @@ public partial class bybit : Exchange
                         { "v5/crypto-loan-fixed/repayment-history", new Dictionary<string, object>() {
                             { "cost", 10 },
                         } },
+                        { "v5/crypto-loan-fixed/available-inventory", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
+                        { "v5/crypto-loan-flexible/available-inventory", new Dictionary<string, object>() {
+                            { "cost", 10 },
+                        } },
                         { "v5/ins-loan/product-infos", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
@@ -957,6 +984,39 @@ public partial class bybit : Exchange
                             { "cost", 5 },
                         } },
                         { "v5/earn/hourly-yield", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/order-realtime", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/order-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/positions", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/trades", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/settlements", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/launchpool/user/current-staking", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/token-splash/user/activity-params", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/rfq/rfq-detail-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/engine-status", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/pay-token-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/sports/timeline-stages", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },
@@ -1394,6 +1454,60 @@ public partial class bybit : Exchange
                             { "cost", 5 },
                         } },
                         { "v5/earn/place-order", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/quotes", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/event/cancel", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/launchpool/user/activity-log", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/spot-x/launchpool/user/history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/event-detail", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/order-estimate", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/buy", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/sell", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/order-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/order-book", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/token-price", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/price-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/position-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/position-history", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/portfolio-summary", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/side-market-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/sports/match-list", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v5/alpha/prediction/sports/group-stage-detail", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
                     } },

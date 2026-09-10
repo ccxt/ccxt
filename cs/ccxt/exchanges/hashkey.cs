@@ -323,6 +323,9 @@ public partial class hashkey : Exchange
                         { "api/v1/account/withdrawOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "api/v1/affiliate/inviteeInfo", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                     { "post", new Dictionary<string, object>() {
                         { "api/v1/userDataStream", new Dictionary<string, object>() {
@@ -383,6 +386,9 @@ public partial class hashkey : Exchange
                         { "api/v1/spot/cancelOrderByIds", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "api/v1/spot/cancelAllOpenOrders", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                         { "api/v1/futures/order", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -390,6 +396,9 @@ public partial class hashkey : Exchange
                             { "cost", 1 },
                         } },
                         { "api/v1/futures/cancelOrderByIds", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "api/v1/futures/cancelAllOpenOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                         { "api/v1/userDataStream", new Dictionary<string, object>() {

@@ -134,6 +134,9 @@ public partial class btcturk : Exchange
                         { "ticker", new Dictionary<string, object>() {
                             { "cost", 0.1 },
                         } },
+                        { "ticker/currency", new Dictionary<string, object>() {
+                            { "cost", 0.1 },
+                        } },
                         { "trades", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
@@ -156,7 +159,19 @@ public partial class btcturk : Exchange
                         { "allOrders", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "order/{orderId}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                         { "users/transactions/trade", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/crypto", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "users/transactions/fiat", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-deposit-declarations", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -171,6 +186,9 @@ public partial class btcturk : Exchange
                             { "cost", 1 },
                         } },
                         { "cancelOrder", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "crypto-deposit-declarations/confirm", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
