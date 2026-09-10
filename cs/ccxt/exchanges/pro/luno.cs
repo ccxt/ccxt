@@ -55,14 +55,14 @@ public partial class luno : ccxt.luno
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object subscriptionHash = add("/stream/", getValue(market, "id"));
+        string subscriptionHash = add("/stream/", getValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        object messageHash = add("trades:", symbolVar);
+        string messageHash = add("trades:", symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -100,8 +100,8 @@ public partial class luno : ccxt.luno
             return;
         }
         object symbol = getValue(subscription, "symbol");
-        object market = this.market(symbol);
-        object messageHash = add("trades:", symbol);
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("trades:", symbol);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -170,14 +170,14 @@ public partial class luno : ccxt.luno
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object subscriptionHash = add("/stream/", getValue(market, "id"));
+        string subscriptionHash = add("/stream/", getValue(market, "id"));
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "symbol", symbolVar },
         };
         object url = add(getValue(getValue(this.urls, "api"), "ws"), subscriptionHash);
-        object messageHash = add("orderbook:", symbolVar);
+        string messageHash = add("orderbook:", symbolVar);
         Dictionary<string, object> subscribe = new Dictionary<string, object>() {
             { "api_key_id", this.apiKey },
             { "api_key_secret", this.secret },
@@ -222,7 +222,7 @@ public partial class luno : ccxt.luno
         //     }
         //
         object symbol = getValue(subscription, "symbol");
-        object messageHash = add("orderbook:", symbol);
+        string messageHash = add("orderbook:", symbol);
         Int64? timestamp = this.safeInteger(message, "timestamp");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
@@ -235,12 +235,12 @@ public partial class luno : ccxt.luno
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(snapshot);
         } else
         {
-            object ob = getValue(this.orderbooks, symbol);
+            ccxt.pro.IOrderBook ob = this.getOrderBook(this.orderbooks, symbol);
             this.handleDelta(ob, message);
             ((IDictionary<string,object>)ob)["timestamp"] = timestamp;
             ((IDictionary<string,object>)ob)["datetime"] = this.iso8601(timestamp);
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? nonce = this.safeInteger(message, "sequence");
         ((IDictionary<string,object>)orderbook)["nonce"] = nonce;
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
@@ -284,8 +284,8 @@ public partial class luno : ccxt.luno
         priceKey ??= "price";
         amountKey ??= "volume";
         thirdKey ??= 2;
-        object price = this.safeNumber(bidask, priceKey);
-        object amount = this.safeNumber(bidask, amountKey);
+        double? price = this.safeNumber(bidask, priceKey);
+        double? amount = this.safeNumber(bidask, amountKey);
         List<object> result = new List<object>() {price, amount};
         if (isTrue(!isEqual(thirdKey, null)))
         {

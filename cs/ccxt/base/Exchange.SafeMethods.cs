@@ -35,7 +35,9 @@ public partial class BaseExchange
     }
     // falsy and truthy methods wrappers
 
-    public object safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
+    // delegates to SafeFloatN, whose return type is already double? — the `object`
+    // signature only erased the type the forwarded value already had
+    public double? safeNumberN(object obj, List<object> keys, object defaultValue = null) => safeFloatN(obj, keys, defaultValue);
 
     ////////////////////////////////////////////////////////
 

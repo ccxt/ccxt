@@ -93,8 +93,8 @@ public partial class derive : ccxt.derive
         {
             limitVar = 10;
         }
-        object market = this.market(symbol);
-        object topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limitVar));
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limitVar));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -128,10 +128,10 @@ public partial class derive : ccxt.derive
         //     }
         // }
         //
-        object parameters = this.safeDict(message, "params");
-        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "instrument_name");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? topic = this.safeString(parameters, "channel");
         if (!isTrue((inOp(this.orderbooks, symbol))))
@@ -141,7 +141,7 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(subscription, "limit", defaultLimit);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {}, limit);
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? timestamp = this.safeInteger(data, "timestamp");
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         (orderbook as IOrderBook).reset(snapshot);
@@ -164,8 +164,8 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object topic = add(add("ticker_slim.", getValue(market, "id")), ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = add(add("ticker_slim.", getValue(market, "id")), ".100"); // the venue deprecated the fat ticker channel in favor of ticker_slim
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -246,9 +246,9 @@ public partial class derive : ccxt.derive
         //     }
         // }
         //
-        object parameters = this.safeDict(message, "params");
-        object rawData = this.safeDict(parameters, "data");
-        object data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
+        IDictionary<string, object> rawData = this.safeDict(parameters, "data");
+        IDictionary<string, object> data = this.safeDict(rawData, "instrument_ticker", new Dictionary<string, object>() {});
         string? topic = this.safeString(parameters, "channel");
         object ticker = null;
         if (isTrue(isTrue(!isEqual(topic, null)) && isTrue(((string)topic).StartsWith(((string)"ticker_slim")))))
@@ -257,8 +257,8 @@ public partial class derive : ccxt.derive
             // so the symbol is recovered from the channel: ticker_slim.BTC-PERP.100
             List<object> parts = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
             string? marketId = this.safeString(parts, 1);
-            object market = this.safeMarket(marketId);
-            object stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
+            Dictionary<string, object> market = this.safeMarket(marketId);
+            IDictionary<string, object> stats = this.safeDict(data, "stats", new Dictionary<string, object>() {});
             ticker = this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", getValue(market, "symbol") },
                 { "timestamp", this.safeInteger(data, "t") },
@@ -310,9 +310,9 @@ public partial class derive : ccxt.derive
         {
             limit = 10;
         }
-        object market = this.market(symbol);
-        object topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limit));
-        object messageHash = add("unwatch", topic);
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = add(add(add("orderbook.", getValue(market, "id")), ".10."), this.numberToString(limit));
+        string messageHash = add("unwatch", topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -340,9 +340,9 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object topic = add("trades.", getValue(market, "id"));
-        object messageHah = add("unwatch", topic);
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = add("trades.", getValue(market, "id"));
+        string messageHah = add("unwatch", topic);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "unsubscribe" },
             { "params", new Dictionary<string, object>() {
@@ -373,7 +373,7 @@ public partial class derive : ccxt.derive
     {
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
@@ -392,7 +392,7 @@ public partial class derive : ccxt.derive
     {
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         if (isTrue(inOp(this.orderbooks, symbol)))
         {
@@ -418,14 +418,14 @@ public partial class derive : ccxt.derive
         //     }
         // }
         //
-        object result = this.safeDict(message, "result");
-        object status = this.safeDict(result, "status");
+        IDictionary<string, object> result = this.safeDict(message, "result");
+        IDictionary<string, object> status = this.safeDict(result, "status");
         if (isTrue(!isEqual(status, null)))
         {
             List<object> topics = new List<object>(((IDictionary<string,object>)status).Keys);
             for (int i = 0; isLessThan(i, getArrayLength(topics)); postFixIncrement(ref i))
             {
-                object topic = getValue(topics, i);
+                string? topic = ((string)getValue(topics, i));
                 if (isTrue(isGreaterThanOrEqual(getIndexOf(topic, "orderbook"), 0)))
                 {
                     this.handleOrderBookUnSubscription(client as WebSocketClient, topic);
@@ -457,8 +457,8 @@ public partial class derive : ccxt.derive
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object topic = add("trades.", getValue(market, "id"));
+        Dictionary<string, object> market = this.market(symbol);
+        string topic = add("trades.", getValue(market, "id"));
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "subscribe" },
             { "params", new Dictionary<string, object>() {
@@ -482,12 +482,12 @@ public partial class derive : ccxt.derive
     {
         //
         //
-        object parameters = this.safeDict(message, "params");
-        object data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
+        IDictionary<string, object> data = this.safeDict(parameters, "data", new Dictionary<string, object>() {});
         object topic = this.safeValue(parameters, "channel");
         List<object> parsedTopic = ((string)topic).Split(new [] {((string)".")}, StringSplitOptions.None).ToList<object>();
         string? marketId = this.safeString(parsedTopic, 1);
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object tradesArray = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(tradesArray, null)))
@@ -576,14 +576,14 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         object subaccountId = null;
-        var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchOrders", parameters);
+        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleDeriveSubaccountId("watchOrders", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         object topic = add(this.numberToString(subaccountId), ".orders");
         object messageHash = topic;
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -649,9 +649,9 @@ public partial class derive : ccxt.derive
         //     }
         // }
         //
-        object parameters = this.safeDict(message, "params");
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
-        object rawOrders = this.safeList(parameters, "data", new List<object>() {});
+        List<object> rawOrders = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
         {
             object data = getValue(rawOrders, i);
@@ -714,14 +714,14 @@ public partial class derive : ccxt.derive
             await this.loadMarkets();
         }
         object subaccountId = null;
-        var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchMyTrades", parameters);
+        IList<object> subaccountIdparametersVariable = (IList<object>)this.handleDeriveSubaccountId("watchMyTrades", parameters);
         subaccountId = ((IList<object>)subaccountIdparametersVariable)[0];
         parameters = ((IList<object>)subaccountIdparametersVariable)[1];
         object topic = add(this.numberToString(subaccountId), ".trades");
         object messageHash = topic;
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -754,9 +754,9 @@ public partial class derive : ccxt.derive
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object parameters = this.safeDict(message, "params");
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
         object topic = this.safeString(parameters, "channel");
-        object rawTrades = this.safeList(parameters, "data", new List<object>() {});
+        List<object> rawTrades = this.safeList(parameters, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(rawTrades)); postFixIncrement(ref i))
         {
             object trade = this.parseTrade(message);
@@ -779,13 +779,13 @@ public partial class derive : ccxt.derive
         {
             return ((bool?)((object)(false)));
         }
-        object errorMessage = this.safeDict(message, "error");
+        IDictionary<string, object> errorMessage = this.safeDict(message, "error");
         string? errorCode = this.safeString(errorMessage, "code");
         try
         {
             if (isTrue(!isEqual(errorCode, null)))
             {
-                object feedback = add(add(this.id, " "), this.json(message));
+                string feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorCode, feedback);
                 throw new ExchangeError ((string)feedback) ;
             }
@@ -823,7 +823,7 @@ public partial class derive : ccxt.derive
             { "mytrades", this.handleMyTrade },
         };
         string? eventVar = null;
-        object parameters = this.safeDict(message, "params");
+        IDictionary<string, object> parameters = this.safeDict(message, "params");
         if (isTrue(!isEqual(parameters, null)))
         {
             string? channel = this.safeString(parameters, "channel");
@@ -877,7 +877,7 @@ public partial class derive : ccxt.derive
         // }
         //
         string messageHash = "authenticated";
-        object ids = this.safeList(message, "result", new List<object>() {});
+        List<object> ids = this.safeList(message, "result", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(ids), 0)))
         {
             // client.resolve (message, messageHash);

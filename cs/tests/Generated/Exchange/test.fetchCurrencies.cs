@@ -66,7 +66,7 @@ public partial class testMainClass : BaseTest
         List<object> keys = new List<object>(((IDictionary<string,object>)currencyValues).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
+            string? key = ((string)getValue(keys, i));
             object currency = getValue(currencyValues, key);
             object code = getValue(currency, "code");
             if (!isTrue((inOp(ids, code))))

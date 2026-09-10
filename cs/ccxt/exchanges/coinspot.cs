@@ -597,7 +597,7 @@ public partial class coinspot : Exchange
                 {
                     object currencyId = getValue(currencyIds, j);
                     object balance = getValue(currencies, currencyId);
-                    object code = this.safeCurrencyCode(currencyId);
+                    string? code = this.safeCurrencyCode(currencyId);
                     object account = this.account();
                     ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
                     if (isTrue(!isEqual(code, null)))
@@ -612,7 +612,7 @@ public partial class coinspot : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
             {
                 object currencyId = getValue(currencyIds, i);
-                object code = this.safeCurrencyCode(currencyId);
+                string? code = this.safeCurrencyCode(currencyId);
                 object account = this.account();
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balances, currencyId);
                 if (isTrue(!isEqual(code, null)))
@@ -640,7 +640,7 @@ public partial class coinspot : Exchange
             await this.loadMarkets();
         }
         string? method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-        object response = null;
+        Dictionary<string, object> response = null;
         if (isTrue(isTrue((isEqual(method, "private_post_ro_my_balances"))) || isTrue((isEqual(method, "privatePostRoMyBalances")))))
         {
             response = await this.privatePostRoMyBalances(parameters);
@@ -684,11 +684,11 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
         };
-        object orderbook = await this.privatePostOrders(this.extend(request, parameters));
+        Dictionary<string, object> orderbook = await this.privatePostOrders(this.extend(request, parameters));
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(orderbook, getValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount"));
     }
 
@@ -703,7 +703,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object symbol = this.safeSymbol(null, market);
+        string? symbol = this.safeSymbol(null, market);
         string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
@@ -745,11 +745,11 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object response = await this.publicGetLatest(parameters);
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> response = await this.publicGetLatest(parameters);
         string? id = this.safeString(market, "id", "");
         id = ((string)id).ToLower();
-        object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
+        IDictionary<string, object> prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         //
         //     {
         //         "status":"ok",
@@ -762,7 +762,7 @@ public partial class coinspot : Exchange
         //         }
         //     }
         //
-        object ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
+        IDictionary<string, object> ticker = this.safeDict(prices, id, new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTicker(this.parseTicker(ticker, market));
     }
 
@@ -782,7 +782,7 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.publicGetLatest(parameters);
+        Dictionary<string, object> response = await this.publicGetLatest(parameters);
         //
         //    {
         //        "status": "ok",
@@ -801,12 +801,12 @@ public partial class coinspot : Exchange
         //    }
         //
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
+        IDictionary<string, object> prices = this.safeDict(response, "prices", new Dictionary<string, object>() {});
         List<object> ids = new List<object>(((IDictionary<string,object>)prices).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(ids)); postFixIncrement(ref i))
         {
-            object id = getValue(ids, i);
-            object market = this.safeMarket(id);
+            string? id = ((string)getValue(ids, i));
+            Dictionary<string, object> market = this.safeMarket(id);
             if (isTrue(isEqual(getValue(market, "spot"), true)))
             {
                 object symbol = getValue(market, "symbol");
@@ -835,11 +835,11 @@ public partial class coinspot : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
         };
-        object response = await this.privatePostOrdersHistory(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostOrdersHistory(this.extend(request, parameters));
         //
         //     {
         //         "status":"ok",
@@ -848,7 +848,7 @@ public partial class coinspot : Exchange
         //         ],
         //     }
         //
-        object trades = this.safeList(response, "orders", new List<object>() {});
+        List<object> trades = this.safeList(response, "orders", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -871,7 +871,7 @@ public partial class coinspot : Exchange
             await this.loadMarkets();
         }
         Dictionary<string, object> request = new Dictionary<string, object>() {};
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
@@ -880,7 +880,7 @@ public partial class coinspot : Exchange
         {
             ((IDictionary<string,object>)request)["startdate"] = this.yyyymmdd(since);
         }
-        object response = await this.privatePostRoMyTransactions(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostRoMyTransactions(this.extend(request, parameters));
         //  {
         //      "status": "ok",
         //      "buyorders": [
@@ -907,17 +907,17 @@ public partial class coinspot : Exchange
         //          },
         //      ]
         // }
-        object buyTrades = this.safeList(response, "buyorders", new List<object>() {});
+        List<object> buyTrades = this.safeList(response, "buyorders", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(buyTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(buyTrades, i))["side"] = "buy";
         }
-        object sellTrades = this.safeList(response, "sellorders", new List<object>() {});
+        List<object> sellTrades = this.safeList(response, "sellorders", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(sellTrades)); postFixIncrement(ref i))
         {
             ((IDictionary<string,object>)getValue(sellTrades, i))["side"] = "sell";
         }
-        object trades = this.arrayConcat(buyTrades, sellTrades);
+        List<object> trades = this.arrayConcat(buyTrades, sellTrades);
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(trades, market, since, limit));
     }
 
@@ -948,7 +948,7 @@ public partial class coinspot : Exchange
         //       "side": "buy",
         //       "price": 0.5168600000125209
         //     }
-        object timestamp = null;
+        Int64? timestamp = null;
         string? priceString = null;
         Dictionary<string, object> fee = null;
         string? audTotal = this.safeString(trade, "audtotal");
@@ -956,7 +956,7 @@ public partial class coinspot : Exchange
         string? side = this.safeString(trade, "side");
         string? amountString = this.safeString(trade, "amount");
         string? marketId = this.safeString(trade, "market");
-        object symbol = this.safeSymbol(marketId, market, "/");
+        string? symbol = this.safeSymbol(marketId, market, "/");
         Int64? solddate = this.safeInteger(trade, "solddate");
         if (isTrue(!isEqual(solddate, null)))
         {
@@ -1023,7 +1023,7 @@ public partial class coinspot : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "cointype", getValue(market, "id") },
             { "amount", amount },
@@ -1092,7 +1092,7 @@ public partial class coinspot : Exchange
         string? status = this.safeString(response, "status");
         if (isTrue(isEqual(status, "error")))
         {
-            object feedback = add(add(this.id, " "), this.json(response));
+            string feedback = add(add(this.id, " "), this.json(response));
             throw new ExchangeError ((string)feedback) ;
         }
         return null;
@@ -1106,13 +1106,13 @@ public partial class coinspot : Exchange
         bool isVersionedApi = ((api is IList<object>) || (api.GetType().IsGenericType && api.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         object version = ((bool) isTrue(isVersionedApi)) ? getValue(api, 0) : null;
         object accessType = ((bool) isTrue(isVersionedApi)) ? getValue(api, 1) : api;
-        object endpoint = add("/", this.implodeParams(path, parameters));
-        object fullPath = ((bool) isTrue((!isEqual(version, null)))) ? add(add("/", version), endpoint) : endpoint;
+        string endpoint = add("/", this.implodeParams(path, parameters));
+        string fullPath = ((bool) isTrue((!isEqual(version, null)))) ? add(add("/", version), endpoint) : endpoint;
         object url = add(getValue(getValue(this.urls, "api"), accessType), fullPath);
         if (isTrue(isEqual(accessType, "private")))
         {
             this.checkRequiredCredentials();
-            object nonce = this.nonce();
+            Int64 nonce = this.nonce();
             body = this.json(this.extend(new Dictionary<string, object>() {
                 { "nonce", nonce },
             }, parameters));

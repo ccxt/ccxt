@@ -61,8 +61,8 @@ public partial class coincheck : ccxt.coincheck
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object messageHash = add("orderbook:", getValue(market, "symbol"));
+        Dictionary<string, object> market = this.market(symbol);
+        string messageHash = add("orderbook:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -95,21 +95,21 @@ public partial class coincheck : ccxt.coincheck
         //         }
         //     ]
         //
-        object symbol = this.symbol(this.safeString(message, 0));
+        string? symbol = this.symbol(this.safeString(message, 0));
         object data = this.safeValue(message, 1, new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(data, "last_update_at");
         object snapshot = this.parseOrderBook(data, symbol, timestamp);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             orderbook = this.orderBook(snapshot);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
         } else
         {
-            orderbook = getValue(this.orderbooks, symbol);
+            orderbook = this.getOrderBook(this.orderbooks, symbol);
             (orderbook as IOrderBook).reset(snapshot);
         }
-        object messageHash = add("orderbook:", symbol);
+        string messageHash = add("orderbook:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
@@ -133,9 +133,9 @@ public partial class coincheck : ccxt.coincheck
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add("trade:", getValue(market, "symbol"));
+        string messageHash = add("trade:", getValue(market, "symbol"));
         object url = getValue(getValue(this.urls, "api"), "ws");
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "subscribe" },
@@ -167,7 +167,7 @@ public partial class coincheck : ccxt.coincheck
         //     ]
         //
         object first = this.safeValue(message, 0, new List<object>() {});
-        object symbol = this.symbol(this.safeString(first, 2));
+        string? symbol = this.symbol(this.safeString(first, 2));
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -181,7 +181,7 @@ public partial class coincheck : ccxt.coincheck
             object trade = this.parseWsTrade(data);
             callDynamically(stored, "append", new object[] {trade});
         }
-        object messageHash = add("trade:", symbol);
+        string messageHash = add("trade:", symbol);
         callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
     }
 
@@ -199,7 +199,7 @@ public partial class coincheck : ccxt.coincheck
         //         "2078767" // ID of the Maker
         //     ]
         //
-        object symbol = this.symbol(this.safeString(trade, 2));
+        string? symbol = this.symbol(this.safeString(trade, 2));
         object timestamp = this.safeTimestamp(trade, 0);
         string? side = this.safeString(trade, 5);
         string? priceString = this.safeString(trade, 3);

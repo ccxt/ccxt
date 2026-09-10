@@ -13,7 +13,7 @@ public partial class BaseTest
                 { "id", "sampleex" },
             });
             object ms = exchange.milliseconds();
-            object fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
+            string fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
             // upper tmp dir
             object tempDir = exchange.getTempDir();
             Assert(isTrue(!isEqual(tempDir, null)) && isTrue(!isEqual(tempDir, "")), "temp dir should not be empty");

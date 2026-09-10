@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         assert(isGreaterThan(getArrayLength(orderBookKeys), 0), add(add(add(exchange.id, " "), method), " returned 0 length data"));
         for (int i = 0; isLessThan(i, getArrayLength(orderBookKeys)); postFixIncrement(ref i))
         {
-            object symbolInner = getValue(orderBookKeys, i);
+            string? symbolInner = ((string)getValue(orderBookKeys, i));
             testOrderBook(exchange, skippedProperties, method, getValue(orderBooks, symbolInner), symbolInner);
         }
         return true;

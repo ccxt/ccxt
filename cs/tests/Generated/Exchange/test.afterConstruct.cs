@@ -44,7 +44,7 @@ public partial class testMainClass : BaseTest
             List<object> collectedNetworkIds = new List<object>() {};
             for (int i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
-                object networkCode = getValue(networkCodes, i);
+                string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 if (!isTrue(exchange.inArray(networkCode, allowedUnifiedAliases)))
                 {
@@ -63,7 +63,7 @@ public partial class testMainClass : BaseTest
             // 5) test networkCodeToId & networkIdToCode
             for (int i = 0; isLessThan(i, getArrayLength(networkCodes)); postFixIncrement(ref i))
             {
-                object networkCode = getValue(networkCodes, i);
+                string? networkCode = ((string)getValue(networkCodes, i));
                 object networkId = getValue(getValue(exchange.options, "networks"), networkCode);
                 // check networkCodeToId
                 object networkIdConverted = exchange.networkCodeToId(networkCode);

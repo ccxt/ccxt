@@ -152,10 +152,10 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string subscriptionHash = "MARKET_TICKER";
-        object messageHash = add("ticker.", symbolVar);
+        string messageHash = add("ticker.", symbolVar);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "type", "SUBSCRIBE" },
             { "channels", new List<object>() {new Dictionary<string, object>() {
@@ -224,7 +224,7 @@ public partial class onetrading : ccxt.onetrading
         {
             object ticker = getValue(tickers, i);
             string? marketId = this.safeString(ticker, "instrument");
-            object symbol = this.safeSymbol(marketId);
+            string? symbol = this.safeSymbol(marketId);
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = this.parseWSTicker(ticker);
             Int64? timestamp = this.parse8601(datetime);
             ((IDictionary<string,object>)getValue(this.tickers, symbol))["timestamp"] = timestamp;
@@ -292,10 +292,10 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -343,9 +343,9 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
-        object messageHash = add("book:", symbolVar);
+        string messageHash = add("book:", symbolVar);
         string subscriptionHash = "ORDER_BOOK";
         object depth = 0;
         if (isTrue(!isEqual(limit, null)))
@@ -395,11 +395,11 @@ public partial class onetrading : ccxt.onetrading
         //
         string? type = this.safeString(message, "type");
         string? marketId = this.safeString(message, "instrument_code");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         string? dateTime = this.safeString(message, "time");
         Int64? timestamp = this.parse8601(dateTime);
-        object channel = add("book:", symbol);
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        string channel = add("book:", symbol);
+        object orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             orderbook = this.orderBook(new Dictionary<string, object>() {});
@@ -479,10 +479,10 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        object messageHash = "orders";
+        string messageHash = "orders";
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -658,7 +658,7 @@ public partial class onetrading : ccxt.onetrading
         //
         string? datetime = this.safeString(order, "time");
         string? marketId = this.safeString(order, "instrument_code");
-        object symbol = this.safeSymbol(marketId, market, "_");
+        string? symbol = this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", this.safeString(order, "order_id") },
             { "clientOrderId", this.safeString(order, "client_id") },
@@ -684,7 +684,7 @@ public partial class onetrading : ccxt.onetrading
         }, market);
     }
 
-    public virtual object parseTradingOrderStatus(object status)
+    public virtual string? parseTradingOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "CANCELLED", "canceled" },
@@ -1036,7 +1036,7 @@ public partial class onetrading : ccxt.onetrading
             object previousOrder = this.safeValue(previousOrderArray, 0, new Dictionary<string, object>() {});
             symbol = getValue(previousOrder, "symbol");
             string? filled = this.safeString(update, "filled_amount");
-            object status = this.parseWsOrderStatus(updateType);
+            string? status = this.parseWsOrderStatus(updateType);
             if (isTrue(isTrue(isEqual(updateType, "ORDER_CLOSED")) && isTrue(Precise.stringEq(filled, "0"))))
             {
                 status = "canceled";
@@ -1080,7 +1080,7 @@ public partial class onetrading : ccxt.onetrading
         }
     }
 
-    public virtual object parseWsOrderStatus(object status)
+    public virtual string? parseWsOrderStatus(object status)
     {
         Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "ORDER_REJECTED", "rejected" },
@@ -1101,7 +1101,7 @@ public partial class onetrading : ccxt.onetrading
         //     }
         //
         string? currencyId = this.safeString(balance, "currency_code");
-        object code = this.safeCurrencyCode(currencyId);
+        string? code = this.safeCurrencyCode(currencyId);
         object account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "new_available");
         ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "new_locked");
@@ -1135,7 +1135,7 @@ public partial class onetrading : ccxt.onetrading
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object marketId = getValue(market, "id");
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -1145,7 +1145,7 @@ public partial class onetrading : ccxt.onetrading
         {
             throw new NotSupported ((string)add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
         }
-        object messageHash = add(add(add("ohlcv.", symbolVar), "."), timeframeVar);
+        string messageHash = add(add(add("ohlcv.", symbolVar), "."), timeframeVar);
         string subscriptionHash = "CANDLESTICKS";
         var client = this.safeValue(this.clients, url);
         string type = "SUBSCRIBE";
@@ -1246,12 +1246,12 @@ public partial class onetrading : ccxt.onetrading
         //     }
         //
         string? marketId = this.safeString(message, "instrument_code");
-        object symbol = this.safeSymbol(marketId);
+        string? symbol = this.safeSymbol(marketId);
         string? dateTime = this.safeString(message, "time");
         object timeframeId = this.safeValue(message, "granularity");
         object timeframes = this.safeValue(this.options, "timeframes", new Dictionary<string, object>() {});
         object timeframe = this.findTimeframe(timeframeId, timeframes);
-        object channel = add(add(add("ohlcv.", symbol), "."), timeframe);
+        string channel = add(add(add("ohlcv.", symbol), "."), timeframe);
         List<object> parsed = new List<object> {this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")};
         ((IDictionary<string,object>)this.ohlcvs)[(string)symbol] = this.safeValue(this.ohlcvs, symbol, new Dictionary<string, object>() {});
         object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1281,7 +1281,7 @@ public partial class onetrading : ccxt.onetrading
         List<object> keys = new List<object>(((IDictionary<string,object>)timeframes).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
+            string? key = ((string)getValue(keys, i));
             if (isTrue(isTrue(isEqual(getValue(getValue(timeframes, key), "unit"), getValue(timeframe, "unit"))) && isTrue(isEqual(getValue(getValue(timeframes, key), "period"), getValue(timeframe, "period")))))
             {
                 return key;
@@ -1410,7 +1410,7 @@ public partial class onetrading : ccxt.onetrading
     {
         symbols ??= new List<object>();
         parameters ??= new Dictionary<string, object>();
-        object marketIds = new List<object>() {};
+        IList<object> marketIds = new List<object>() {};
         int numSymbols = getArrayLength(symbols);
         if (isTrue(isEqual(numSymbols, 0)))
         {

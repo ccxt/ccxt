@@ -55,10 +55,10 @@ public partial class independentreserve : ccxt.independentreserve
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), getValue(market, "base")), "-"), getValue(market, "quote"));
-        object messageHash = add("trades:", symbolVar);
+        string messageHash = add("trades:", symbolVar);
         object trades = await this.watch(url, messageHash, null, messageHash);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
     }
@@ -85,8 +85,8 @@ public partial class independentreserve : ccxt.independentreserve
         //
         object data = this.safeValue(message, "Data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "Pair");
-        object symbol = this.safeSymbol(marketId, null, "-");
-        object messageHash = add("trades:", symbol);
+        string? symbol = this.safeSymbol(marketId, null, "-");
+        string messageHash = add("trades:", symbol);
         object stored = this.safeValue(this.trades, symbol);
         if (isTrue(isEqual(stored, null)))
         {
@@ -151,7 +151,7 @@ public partial class independentreserve : ccxt.independentreserve
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         if (isTrue(isEqual(limitVar, null)))
         {
@@ -159,7 +159,7 @@ public partial class independentreserve : ccxt.independentreserve
         }
         string? limitString = this.numberToString(limitVar);
         object url = add(add(add(add(add(add(getValue(getValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), getValue(market, "base")), "-"), getValue(market, "quote"));
-        object messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
+        string messageHash = add(add(add("orderbook:", symbolVar), ":"), limitString);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "receivedSnapshot", false },
         };
@@ -202,10 +202,10 @@ public partial class independentreserve : ccxt.independentreserve
         string? baseId = this.safeString(parts, 2);
         string? quoteId = this.safeString(parts, 3);
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
-        object orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
-        object messageHash = add(add(add("orderbook:", symbol), ":"), depth);
+        IDictionary<string, object> orderBook = this.safeDict(message, "Data", new Dictionary<string, object>() {});
+        string messageHash = add(add(add("orderbook:", symbol), ":"), depth);
         object subscription = this.safeValue(((WebSocketClient)client).subscriptions, messageHash, new Dictionary<string, object>() {});
         bool? receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Int64? timestamp = this.safeInteger(message, "Time");
@@ -214,7 +214,7 @@ public partial class independentreserve : ccxt.independentreserve
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook(new Dictionary<string, object>() {});
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(eventVar, "OrderBookSnapshot")))
         {
             object snapshot = this.parseOrderBook(orderBook, symbol, timestamp, "Bids", "Offers", "Price", "Volume");
@@ -226,8 +226,8 @@ public partial class independentreserve : ccxt.independentreserve
             });
         } else
         {
-            object asks = this.safeList(orderBook, "Offers", new List<object>() {});
-            object bids = this.safeList(orderBook, "Bids", new List<object>() {});
+            List<object> asks = this.safeList(orderBook, "Offers", new List<object>() {});
+            List<object> bids = this.safeList(orderBook, "Bids", new List<object>() {});
             this.handleDeltas(getValue(orderbook, "asks"), asks);
             this.handleDeltas(getValue(orderbook, "bids"), bids);
             ((IDictionary<string,object>)orderbook)["timestamp"] = timestamp;
@@ -255,7 +255,7 @@ public partial class independentreserve : ccxt.independentreserve
                     payload = add(add(payload, this.valueToChecksum(getValue(getValue(storedAsks, i), 0))), this.valueToChecksum(getValue(getValue(storedAsks, i), 1)));
                 }
             }
-            object calculatedChecksum = this.crc32(payload, false);
+            Int64 calculatedChecksum = this.crc32(payload, false);
             Int64? responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (isTrue(!isEqual(calculatedChecksum, responseChecksum)))
             {

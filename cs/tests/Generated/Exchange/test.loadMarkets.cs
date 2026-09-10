@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
         }
         for (int i = 0; isLessThan(i, getArrayLength(marketTypes)); postFixIncrement(ref i))
         {
-            object mType = getValue(marketTypes, i);
+            string? mType = ((string)getValue(marketTypes, i));
             if (isTrue(isTrue(!isEqual(getValue(exchange.has, mType), null)) && isTrue(!isEqual(getValue(exchange.has, mType), false))))
             {
                 bool skipMarketTypes = isTrue((inOp(skippedProperties, "optionsNotLoadedByDefault"))) && isTrue(isEqual(mType, "option"));

@@ -53,7 +53,7 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         string name = "SubscribeLevel1";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
         object url = getValue(getValue(this.urls, "api"), "ws");
@@ -102,7 +102,7 @@ public partial class ndax : ccxt.ndax
         //
         object ticker = this.parseTicker(payload);
         object symbol = getValue(ticker, "symbol");
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)this.tickers)[(string)symbol] = ticker;
@@ -133,7 +133,7 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeTrades";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
@@ -206,8 +206,8 @@ public partial class ndax : ccxt.ndax
         List<object> symbols = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
-            object symbol = getValue(symbols, i);
-            object market = this.market(symbol);
+            string? symbol = ((string)getValue(symbols, i));
+            Dictionary<string, object> market = this.market(symbol);
             object messageHash = add(add(name, ":"), getValue(market, "id"));
             object tradesArray = this.safeValue(this.trades, symbol);
             callDynamically(client as WebSocketClient, "resolve", new object[] {tradesArray, messageHash});
@@ -238,7 +238,7 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeTicker";
         object messageHash = add(add(add(add(name, ":"), timeframeVar), ":"), getValue(market, "id"));
@@ -297,7 +297,7 @@ public partial class ndax : ccxt.ndax
         {
             object ohlcv = getValue(payload, i);
             string? marketId = this.safeString(ohlcv, 8);
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object symbol = getValue(market, "symbol");
             if (isTrue(!isEqual(marketId, null)))
             {
@@ -307,7 +307,7 @@ public partial class ndax : ccxt.ndax
             List<object> keys = new List<object>(((IDictionary<string,object>)this.timeframes).Keys);
             for (int j = 0; isLessThan(j, getArrayLength(keys)); postFixIncrement(ref j))
             {
-                object timeframe = getValue(keys, j);
+                string? timeframe = ((string)getValue(keys, j));
                 string? interval = this.safeString(this.timeframes, timeframe, timeframe);
                 object duration = multiply(parseInt(interval), 1000);
                 Int64? timestamp = this.safeInteger(ohlcv, 0);
@@ -368,13 +368,13 @@ public partial class ndax : ccxt.ndax
         List<object> marketIds = new List<object>(((IDictionary<string,object>)updates).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
         {
-            object marketId = getValue(marketIds, i);
+            string? marketId = ((string)getValue(marketIds, i));
             List<object> timeframes = new List<object>(((IDictionary<string,object>)getValue(updates, marketId)).Keys);
             for (int j = 0; isLessThan(j, getArrayLength(timeframes)); postFixIncrement(ref j))
             {
-                object timeframe = getValue(timeframes, j);
+                string? timeframe = ((string)getValue(timeframes, j));
                 object messageHash = add(add(add(add(name, ":"), timeframe), ":"), marketId);
-                object market = this.safeMarket(marketId);
+                Dictionary<string, object> market = this.safeMarket(marketId);
                 object symbol = getValue(market, "symbol");
                 object stored = this.safeValue(getValue(this.ohlcvs, symbol), timeframe, new List<object>() {});
                 callDynamically(client as WebSocketClient, "resolve", new object[] {stored, messageHash});
@@ -402,7 +402,7 @@ public partial class ndax : ccxt.ndax
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         string name = "SubscribeLevel2";
         object messageHash = add(add(name, ":"), getValue(market, "id"));
@@ -466,9 +466,9 @@ public partial class ndax : ccxt.ndax
         {
             return;
         }
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
-        object orderbook = this.safeValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.safeOrderBook(this.orderbooks, symbol);
         if (isTrue(isEqual(orderbook, null)))
         {
             return;
@@ -556,7 +556,7 @@ public partial class ndax : ccxt.ndax
         string? symbol = this.safeString(subscription, "symbol");
         object snapshot = this.parseOrderBook(payload, symbol);
         Int64? limit = this.safeInteger(subscription, "limit");
-        object orderbook = this.orderBook(snapshot, limit);
+        ccxt.pro.OrderBook orderbook = this.orderBook(snapshot, limit);
         if (isTrue(!isEqual(symbol, null)))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;

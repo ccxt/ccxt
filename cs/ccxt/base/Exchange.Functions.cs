@@ -57,7 +57,10 @@ public partial class BaseExchange
     }
 
 
-    public object omit(object a, params object[] parameters)
+    // every omit overload copies a dictionary (TS types x as `Dictionary`); non-dict
+    // inputs throw on the cast below, and no caller ever passed a list for the old
+    // IList<object> passthrough, so the return is declared instead of staying `object`
+    public Dictionary<string, object> omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
         foreach (object parameter in parameters)
@@ -67,12 +70,8 @@ public partial class BaseExchange
         return omit(a, keys);
     }
 
-    public object omit(object aa, object k)
+    public Dictionary<string, object> omit(object aa, object k)
     {
-        if (aa is (IList<object>))
-        {
-            return aa;
-        }
         List<string> keys = null;
         if (k is (string))
         {
@@ -97,7 +96,7 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public object omit(dict a, string key)
+    public Dictionary<string, object> omit(dict a, string key)
     {
         var keys = new List<object>();
         keys.Add(key);
@@ -177,7 +176,13 @@ public partial class BaseExchange
         return outList;
     }
 
-    public object arrayConcat(object aa, object bb)
+    // List<object> (not `object`): every path hands back the fresh List<object> built below or
+    // null, so the declaration can carry the real box — build/csharp-local-types.js names
+    // `object x = this.arrayConcat(...)` locals from this signature. The Task branch keeps its
+    // exact-type probe but re-boxes its elements into a List<object> so the declared type stays
+    // truthful; nothing else builds or consumes a List<Task<object>> concat (the only other
+    // List<Task<object>> site is PromiseAll's own local), so no runtime box changes in practice.
+    public List<object> arrayConcat(object aa, object bb)
     {
         // if (aa.GetType() == typeof(List<object>))
         if (aa is List<object>)
@@ -196,7 +201,7 @@ public partial class BaseExchange
         {
             var a = (List<Task<object>>)aa;
             var b = (List<Task<object>>)bb;
-            var outList = new List<Task<object>>();
+            var outList = new List<object>();
             foreach (var elem in a)
                 outList.Add(elem);
             foreach (var elem in b)
