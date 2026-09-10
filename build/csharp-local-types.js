@@ -320,9 +320,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'uuid22': 'string',
     'capitalize': 'string',
     // Exchange.Functions.cs / Exchange.Generic.cs
-    // every omit overload returns a copied dictionary (a non-dictionary input throws on
-    // its cast, exactly like the scalar cases already did)
-    'omit': 'Dictionary<string, object>',
+    // omit is NOT typed: list inputs (batch-order params) pass through as IList
     'keysort': 'Dictionary<string, object>',
     'sortBy': 'List<object>',
     'sortBy2': 'List<object>',

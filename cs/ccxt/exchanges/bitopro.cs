@@ -2064,7 +2064,7 @@ public partial class bitopro : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add("/", this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(headers, null)))
         {
             headers = new Dictionary<string, object>() {};

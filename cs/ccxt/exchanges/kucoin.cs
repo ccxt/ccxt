@@ -13151,7 +13151,7 @@ public partial class kucoin : Exchange
                 isUtaPrivate = true;
             }
         }
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object endpart = "";
         headers = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         object url = getValue(getValue(this.urls, "api"), api);

@@ -356,7 +356,7 @@ public partial class binance : ccxt.binance
         parameters ??= new Dictionary<string, object>();
         object url = this.getStockWsUrl("market");
         object requestId = this.requestId(url);
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+        object query = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "method", "SUBSCRIBE" },
             { "params", streams },
@@ -1428,7 +1428,7 @@ public partial class binance : ccxt.binance
                 ((IList<object>)subParams).Add(rawHash);
             }
         }
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         int subParamsLength = getArrayLength(subParams);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         object requestId = this.requestId(url);
@@ -1531,7 +1531,7 @@ public partial class binance : ccxt.binance
                 ((IList<object>)subParams).Add(rawHash);
             }
         }
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         int subParamsLength = getArrayLength(subParams);
         object url = add(add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
         object requestId = this.requestId(url);
@@ -4955,7 +4955,7 @@ public partial class binance : ccxt.binance
                 { "params", new List<object>() {stockStreamName} },
                 { "id", stockRequestId },
             };
-            Dictionary<string, object> stockQuery = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
+            object stockQuery = this.omit(parameters, new List<object>() {"stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe"});
             Dictionary<string, object> stockSubscribe = new Dictionary<string, object>() {
                 { "id", stockRequestId },
             };

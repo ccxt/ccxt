@@ -581,7 +581,7 @@ public partial class polymarket : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object queries = (IList<object>)(this.parseSearchQueries(parameters));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries"});
         int queriesLength = getArrayLength(queries);
         object rawEvents = new List<object>() {};
         if (isTrue(isGreaterThan(queriesLength, 0)))
@@ -652,7 +652,7 @@ public partial class polymarket : PredictionExchange
         {
             eventsStatus = null;
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"});
+        object rest = this.omit(parameters, new List<object>() {"limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawEvents = new List<object>() {};
         for (int qi = 0; isLessThan(qi, getArrayLength(queries)); postFixIncrement(ref qi))
@@ -809,7 +809,7 @@ public partial class polymarket : PredictionExchange
         {
             order = "startDate";
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"});
+        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "query", "queries", "tags"});
         Dictionary<string, object> baseRequest = new Dictionary<string, object>() {
             { "limit", pageSize },
             { "order", order },
@@ -2071,7 +2071,7 @@ public partial class polymarket : PredictionExchange
         await this.loadApiCredentials();
         // the collateral balance is tied to the signature type / funder that holds the USDC
         Int64? signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type"});
+        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type"});
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "asset_type", "COLLATERAL" },
             { "signature_type", signatureType },
@@ -2551,7 +2551,7 @@ public partial class polymarket : PredictionExchange
         string? expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
         double? cost = this.safeNumber(parameters, "cost");
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
+        object rest = this.omit(parameters, new List<object>() {"signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode"});
         object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
@@ -2980,7 +2980,7 @@ public partial class polymarket : PredictionExchange
         string? requestedEventId = this.safeString(parameters, "eventId");
         string? requestedSlug = this.safeString(parameters, "slug");
         object queries = this.parseSearchQueries(parameters);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "eventId", "slug"});
         if (isTrue(isEqual(queries, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
@@ -3296,7 +3296,7 @@ public partial class polymarket : PredictionExchange
             int paramsListLength = getArrayLength(paramsList);
             isArrayBody = isGreaterThan(paramsListLength, 0);
         }
-        Dictionary<string, object> query = new Dictionary<string, object>() {};
+        object query = new Dictionary<string, object>() {};
         if (!isTrue(isArrayBody))
         {
             query = this.omit(parameters, this.extractParams(path));

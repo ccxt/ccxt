@@ -2166,7 +2166,7 @@ public partial class bitso : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isTrue(isEqual(method, "GET")) || isTrue(isEqual(method, "DELETE"))))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

@@ -1232,7 +1232,7 @@ public partial class bitfinex : Exchange
             throw new ExchangeError ((string)add(add(this.id, " fetchBalance() type parameter must be one of "), String.Join(", ", ((IList<object>)keys).ToArray()))) ;
         }
         bool isDerivative = isEqual(requestedType, "derivatives");
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         List<object> response = await this.privatePostAuthRWallets(query);
         IList<object> balances = this.toArray(response);
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -3519,7 +3519,7 @@ public partial class bitfinex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object request = add("/", this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "v1")))
         {
             request = add(api, request);

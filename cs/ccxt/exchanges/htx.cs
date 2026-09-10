@@ -8968,7 +8968,7 @@ public partial class htx : Exchange
         object pathString = path;
         object url = "/";
         bool isArrayParams = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
-        Dictionary<string, object> query = null;
+        object query = null;
         if (isTrue(isArrayParams))
         {
             query = new Dictionary<string, object>() {};
@@ -9699,7 +9699,7 @@ public partial class htx : Exchange
         {
             account = this.safeValue(data, 0);
         }
-        Dictionary<string, object> omitted = this.omit(account, new List<object>() {"positions"});
+        object omitted = this.omit(account, new List<object>() {"positions"});
         object positions = this.safeValue(account, "positions");
         object position = null;
         if (isTrue(isTrue((isEqual(getValue(market, "future"), true))) && isTrue((isEqual(getValue(market, "inverse"), true)))))

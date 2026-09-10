@@ -4256,7 +4256,7 @@ public partial class okx : Exchange
         object takeProfitPrice = this.safeValue2(parameters, "takeProfitPrice", "tpTriggerPx");
         object stopLossPrice = this.safeValue2(parameters, "stopLossPrice", "slTriggerPx");
         bool conditional = isTrue(isTrue((!isEqual(stopLossPrice, null))) || isTrue((!isEqual(takeProfitPrice, null)))) || isTrue((isEqual(type, "conditional")));
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
             { "side", side },
             { "ordType", type },
@@ -4985,7 +4985,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["ordId"] = id;
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId"});
+        object query = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId"});
         Dictionary<string, object> response = await this.privatePostTradeCancelOrder(this.extend(request, query));
         // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
         List<object> data = this.safeList(response, "data", new List<object>() {});
@@ -5138,7 +5138,7 @@ public partial class okx : Exchange
         object ordersData = this.safeList(response, "data", new List<object>() {});
         // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
         // request would otherwise come back as a list under the unified string field
-        Dictionary<string, object> orderParams = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"});
+        object orderParams = this.omit(parameters, new List<object>() {"clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method"});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(ordersData, market, null, null, orderParams));
     }
 
@@ -5648,7 +5648,7 @@ public partial class okx : Exchange
                 ((IDictionary<string,object>)request)["ordId"] = id;
             }
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"method", "clOrdId", "clientOrderId", "stop", "trigger"});
+        object query = this.omit(parameters, new List<object>() {"method", "clOrdId", "clientOrderId", "stop", "trigger"});
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(method, "privateGetTradeOrderAlgo")))
         {
@@ -5821,7 +5821,7 @@ public partial class okx : Exchange
         {
             ((IDictionary<string,object>)request)["ordType"] = "trigger";
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "trailing"});
+        object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(method, "privateGetTradeOrdersAlgoPending")))
         {
@@ -6012,7 +6012,7 @@ public partial class okx : Exchange
                 query = this.omit(query, new List<object>() {"until"});
             }
         }
-        Dictionary<string, object> send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
+        object send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(method, "privateGetTradeOrdersAlgoHistory")))
         {
@@ -6212,7 +6212,7 @@ public partial class okx : Exchange
             }
             ((IDictionary<string,object>)request)["state"] = "filled";
         }
-        Dictionary<string, object> send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
+        object send = this.omit(query, new List<object>() {"method", "stop", "trigger", "trailing"});
         Dictionary<string, object> response = null;
         if (isTrue(isEqual(method, "privateGetTradeOrdersAlgoHistory")))
         {
@@ -6899,7 +6899,7 @@ public partial class okx : Exchange
             }
         }
         ((IDictionary<string,object>)request)["fee"] = this.numberToString(fee); // withdrawals to OKCoin or OKX are fee-free, please set 0
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"fee"});
+        object query = this.omit(parameters, new List<object>() {"fee"});
         Dictionary<string, object> response = await this.privatePostAssetWithdrawal(this.extend(request, query));
         //
         //     {
@@ -8096,7 +8096,7 @@ public partial class okx : Exchange
         parameters ??= new Dictionary<string, object>();
         bool isArray = ((parameters is IList<object>) || (parameters.GetType().IsGenericType && parameters.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))));
         string request = add(add(add("/api/", this.version), "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), "rest")), request);
         // const type = this.getPathAuthenticationType (path);
         if (isTrue(isEqual(api, "public")))

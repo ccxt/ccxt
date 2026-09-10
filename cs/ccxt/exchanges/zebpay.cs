@@ -2196,7 +2196,7 @@ public partial class zebpay : Exchange
         url = add(url, tail);
         string timestamp = ((object)this.milliseconds()).ToString();
         string signature = "";
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         int queryLength = getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys));
         string? access = this.safeString(api, 0, "public");
         if (isTrue(isEqual(access, "public")))

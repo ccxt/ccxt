@@ -3356,7 +3356,7 @@ public partial class bullish : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> request = this.omit(parameters, this.extractParams(path));
+        object request = this.omit(parameters, this.extractParams(path));
         string endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
         if (isTrue(isEqual(api, "private")))

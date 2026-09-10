@@ -1157,7 +1157,7 @@ public partial class mercado : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add(getValue(getValue(this.urls, "api"), api), "/");
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isTrue(isTrue((isEqual(api, "public"))) || isTrue((isEqual(api, "v4Public")))) || isTrue((isEqual(api, "v4PublicNet")))))
         {
             url = add(url, this.implodeParams(path, parameters));

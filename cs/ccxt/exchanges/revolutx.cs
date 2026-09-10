@@ -209,7 +209,7 @@ public partial class revolutx : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string implodedPath = this.implodeParams(path, parameters);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryLength = getArrayLength(queryKeys);
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), implodedPath);

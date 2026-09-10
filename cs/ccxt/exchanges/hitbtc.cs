@@ -4315,7 +4315,7 @@ public partial class hitbtc : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string implodedPath = this.implodeParams(path, parameters);
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), implodedPath);
         string? getRequest = null;

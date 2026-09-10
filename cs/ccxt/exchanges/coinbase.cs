@@ -1056,7 +1056,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         Dictionary<string, object> sells = await this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query));
         List<object> sellsData = this.safeList(sells, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(sellsData, null, since, limit));
@@ -1083,7 +1083,7 @@ public partial class coinbase : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
+        object query = this.omit(parameters, new List<object>() {"account_id", "accountId"});
         Dictionary<string, object> buys = await this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query));
         List<object> buysData = this.safeList(buys, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(buysData, null, since, limit));
@@ -3420,7 +3420,7 @@ public partial class coinbase : Exchange
         }
         Dictionary<string, object> market = this.market(symbol);
         object id = this.safeString(this.options, "brokerId", "ccxt");
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "client_order_id", add(add(id, "-"), this.uuid()) },
             { "product_id", getValue(market, "id") },
             { "side", ((string)((string)side)).ToUpper() },
@@ -5928,7 +5928,7 @@ public partial class coinbase : Exchange
         bool isV3 = isEqual(version, "v3");
         string pathPart = ((bool) isTrue((isV3))) ? "api/v3" : "v2";
         string fullPath = add(add(add("/", pathPart), "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string savedPath = fullPath;
         if (isTrue(isEqual(method, "GET")))
         {

@@ -606,7 +606,7 @@ public partial class coinone : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        Dictionary<string, object> balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
+        object balances = this.omit(response, new List<object>() {"errorCode", "result", "normalWallets"});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
@@ -1476,7 +1476,7 @@ public partial class coinone : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string request = this.implodeParams(path, parameters);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue(getValue(this.urls, "api"), "rest"), "/");
         if (isTrue(isEqual(api, "v2Public")))
         {

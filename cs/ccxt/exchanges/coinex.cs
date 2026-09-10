@@ -6011,7 +6011,7 @@ public partial class coinex : Exchange
         object version = getValue(api, 0);
         object requestUrl = getValue(api, 1);
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), requestUrl), "/"), version), "/"), path);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "POST")))
         {

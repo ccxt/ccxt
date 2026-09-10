@@ -4225,7 +4225,7 @@ public partial class cryptocom : Exchange
         string? type = this.safeString(api, 0);
         string? access = this.safeString(api, 1);
         object url = add(add(getValue(getValue(this.urls, "api"), ((string)type)), "/"), path);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(access, "public")))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

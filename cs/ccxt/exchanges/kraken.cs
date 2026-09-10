@@ -2604,7 +2604,7 @@ public partial class kraken : Exchange
         {
             throw new NotSupported ((string)add(add(add(this.id, " editOrder() does not support "), getValue(market, "type")), " orders, only spot orders are accepted")) ;
         }
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "txid", id },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");
@@ -2965,7 +2965,7 @@ public partial class kraken : Exchange
         Dictionary<string, object> response = null;
         object requestId = this.safeValue(parameters, "userref", id); // string or integer
         parameters = this.omit(parameters, "userref");
-        Dictionary<string, object> request = new Dictionary<string, object>() {
+        object request = new Dictionary<string, object>() {
             { "txid", requestId },
         };
         string? clientOrderId = this.safeString2(parameters, "clientOrderId", "cl_ord_id");

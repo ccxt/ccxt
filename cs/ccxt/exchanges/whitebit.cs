@@ -4890,7 +4890,7 @@ public partial class whitebit : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object version = this.safeValue(api, 0);
         object accessibility = this.safeValue(api, 1);
         if (isTrue(isEqual(headers, null)))

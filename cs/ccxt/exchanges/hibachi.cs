@@ -1961,7 +1961,7 @@ public partial class hibachi : Exchange
         };
         if (isTrue(isEqual(method, "GET")))
         {
-            Dictionary<string, object> request = this.omit(parameters, this.extractParams(path));
+            object request = this.omit(parameters, this.extractParams(path));
             string query = this.urlencode(request);
             if (isTrue(!isEqual(((string)query).Length, 0)))
             {

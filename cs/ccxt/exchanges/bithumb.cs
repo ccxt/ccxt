@@ -3689,7 +3689,7 @@ public partial class bithumb : Exchange
         parameters ??= new Dictionary<string, object>();
         string endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), api)), endpoint);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         List<object> queryKeys = new List<object>(((IDictionary<string,object>)query).Keys);
         int queryKeysLength = getArrayLength(queryKeys);
         bool hasQuery = (isGreaterThan(queryKeysLength, 0));

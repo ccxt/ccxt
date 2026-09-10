@@ -186,7 +186,7 @@ public partial class binance : PredictionExchange
         int queriesLength = getArrayLength(queries);
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            Dictionary<string, object> eventParams = this.omit(parameters, new List<object>() {"limit"});
+            object eventParams = this.omit(parameters, new List<object>() {"limit"});
             object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
             int eventsLength = getArrayLength(events);
             List<object> queryMarkets = new List<object>() {};
@@ -202,7 +202,7 @@ public partial class binance : PredictionExchange
             return ccxt.BaseExchange.ToMarketInterfaceList(queryMarkets);
         }
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
         object rawTopics = ccxt.BaseExchange.FromDictList(await this.FetchRawTopics(maxMarkets, rest));
         List<object> parsedEvents = new List<object>() {};
         List<object> flatMarkets = new List<object>() {};
@@ -419,7 +419,7 @@ public partial class binance : PredictionExchange
         {
             fetchCap = userLimit;
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"});
+        object rest = this.omit(parameters, new List<object>() {"status", "limit", "sort", "searchIn", "eventId", "slug", "tags", "l1Category", "l2Category"});
         string? eventId = this.safeString(parameters, "eventId");
         string? l1Category = this.safeString(parameters, "l1Category");
         string? l2Category = this.safeString(parameters, "l2Category");
@@ -492,7 +492,7 @@ public partial class binance : PredictionExchange
         // scoping already happened server-side: the tag filter needs an event-level tags field
         // binance topics lack, and the query filter would drop semantic-search matches whose
         // title uses different words than the query
-        Dictionary<string, object> postParams = this.omit(parameters, new List<object>() {"tags", "l1Category", "l2Category"});
+        object postParams = this.omit(parameters, new List<object>() {"tags", "l1Category", "l2Category"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
@@ -2144,7 +2144,7 @@ public partial class binance : PredictionExchange
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "sapi")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         this.checkRequiredCredentials();
         Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
             { "timestamp", this.nonce() },

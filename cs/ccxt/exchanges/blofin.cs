@@ -1967,7 +1967,7 @@ public partial class blofin : Exchange
                 ((IDictionary<string,object>)request)["algoId"] = ((object)id).ToString();
             }
         }
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
+        object query = this.omit(parameters, new List<object>() {"orderId", "clientOrderId", "stop", "trigger", "tpsl"});
         if (isTrue(isEqual(isTpsl, true)))
         {
             object tpslResponse = ccxt.BaseExchange.FromOrderList(await this.CancelOrders(new List<object>() {id},((string)symbol), parameters));
@@ -2067,7 +2067,7 @@ public partial class blofin : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
+        object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
         if (isTrue(isTrue((isEqual(isTpSl, true))) || isTrue((isEqual(method, "privateGetTradeOrdersTpslPending")))))
         {
@@ -3179,7 +3179,7 @@ public partial class blofin : Exchange
         IList<object> methodparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
         method = ((IList<object>)methodparametersVariable)[0];
         parameters = ((IList<object>)methodparametersVariable)[1];
-        Dictionary<string, object> query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
+        object query = this.omit(parameters, new List<object>() {"method", "stop", "trigger", "tpsl", "TPSL"});
         object response = null;
         if (isTrue(isTrue((isEqual(isTrigger, true))) || isTrue((isEqual(method, "privateGetTradeOrdersTpslHistory")))))
         {
@@ -3464,7 +3464,7 @@ public partial class blofin : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object request = add(add(add("/api/", this.version), "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object url = add(getValue(getValue(this.urls, "api"), "rest"), request);
         // const type = this.getPathAuthenticationType (path);
         if (isTrue(isEqual(api, "public")))

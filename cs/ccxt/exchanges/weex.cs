@@ -4905,7 +4905,7 @@ public partial class weex : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         string endpoint = this.implodeParams(path, parameters);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         bool isBatch = (isGreaterThanOrEqual(getIndexOf(path, "batch"), 0));
         if (isTrue(!isTrue(isBatch) && isTrue((isTrue((isEqual(method, "GET"))) || isTrue((isEqual(method, "DELETE")))))))
         {

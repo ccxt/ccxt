@@ -2259,7 +2259,7 @@ public partial class bybit : Exchange
         } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
         {
             ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "apiBackupDemoTrading");
-            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;

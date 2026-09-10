@@ -1735,7 +1735,7 @@ public partial class bittrade : Exchange
         {
             ((IDictionary<string,object>)request)["size"] = limit;
         }
-        Dictionary<string, object> omitted = this.omit(parameters, "account-id");
+        object omitted = this.omit(parameters, "account-id");
         Dictionary<string, object> response = await this.privateGetOrderOpenOrders(this.extend(request, omitted));
         //
         //     {
@@ -2465,7 +2465,7 @@ public partial class bittrade : Exchange
             url = add(url, "v2");
         }
         url = add(url, add("/", this.implodeParams(path, parameters)));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isTrue(isEqual(api, "private")) || isTrue(isEqual(api, "v2Private"))))
         {
             this.checkRequiredCredentials();

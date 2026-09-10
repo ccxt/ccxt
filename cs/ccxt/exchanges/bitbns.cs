@@ -1437,7 +1437,7 @@ public partial class bitbns : Exchange
         }
         string baseUrl = this.implodeHostname(getValue(getValue(this.urls, "api"), api));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string nonce = ((object)this.nonce()).ToString();
         if (isTrue(isEqual(method, "GET")))
         {

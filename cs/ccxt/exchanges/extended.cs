@@ -3951,7 +3951,7 @@ public partial class extended : Exchange
         string? version = this.safeString(api, 0);
         string? accessibility = this.safeString(api, 1);
         string endpoint = add("/", this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         bool queryPost = (isEqual(path, "user/deadmanswitch"));
         object url = this.implodeHostname(getValue(getValue(this.urls, "api"), "rest"));
         if (isTrue(isEqual(accessibility, "private")))

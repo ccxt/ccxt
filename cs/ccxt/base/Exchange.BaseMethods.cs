@@ -994,7 +994,7 @@ public partial class BaseExchange
             {
                 ((IDictionary<string,object>)this.urls)["api"] = this.clone(getValue(this.urls, "apiBackup"));
             }
-            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackup");
+            object newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -1020,7 +1020,7 @@ public partial class BaseExchange
         } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
         {
             ((IDictionary<string,object>)this.urls)["api"] = ((object)getValue(this.urls, "apiBackupDemoTrading"));
-            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
@@ -2299,7 +2299,7 @@ public partial class BaseExchange
 
     public virtual object safeBalance(object balance)
     {
-        Dictionary<string, object> balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
+        object balances = this.omit(balance, new List<object>() {"info", "timestamp", "datetime", "free", "used", "total"});
         List<object> codes = new List<object>(((IDictionary<string,object>)balances).Keys);
         ((IDictionary<string,object>)balance)["free"] = new Dictionary<string, object>() {};
         ((IDictionary<string,object>)balance)["used"] = new Dictionary<string, object>() {};

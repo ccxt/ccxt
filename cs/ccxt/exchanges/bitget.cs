@@ -14007,7 +14007,7 @@ public partial class bitget : Exchange
         string request = add("/", this.implodeParams(path, parameters));
         object payload = add(pathPart, request);
         object url = add(this.implodeHostname(getValue(getValue(this.urls, "api"), endpoint)), payload);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isTrue(signed) && isTrue((isEqual(method, "GET")))))
         {
             List<object> keys = new List<object>(((IDictionary<string,object>)query).Keys);

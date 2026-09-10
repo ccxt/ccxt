@@ -160,7 +160,7 @@ public partial class opinion : PredictionExchange
     public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
+        object rest = this.omit(parameters, new List<object>() {"limit"});
         Int64? userLimit = this.safeInteger(parameters, "limit");
         Int64? pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
         Int64? maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
@@ -421,7 +421,7 @@ public partial class opinion : PredictionExchange
         string? slug = this.safeString(parameters, "slug");
         if (isTrue(isTrue((!isEqual(eventId, null))) || isTrue((!isEqual(slug, null)))))
         {
-            Dictionary<string, object> singleRest = this.omit(parameters, new List<object>() {"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
+            object singleRest = this.omit(parameters, new List<object>() {"eventId", "slug", "query", "queries", "tags", "status", "sort", "searchIn", "limit"});
             object singleResponse = null;
             if (isTrue(!isEqual(slug, null)))
             {
@@ -440,7 +440,7 @@ public partial class opinion : PredictionExchange
             this.indexEventOutcomes(single);
             return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(new List<object>() {single}, parameters, queries));
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "tags", "status", "sort", "searchIn", "limit"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "tags", "status", "sort", "searchIn", "limit"});
         Int64? pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
         Int64? userLimit = this.safeInteger(parameters, "limit");
         // bound how many events are actually FETCHED: the user limit when given, otherwise
@@ -1161,7 +1161,7 @@ public partial class opinion : PredictionExchange
         int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
         string? salt = this.numberToString(this.milliseconds());
         bool? postOnly = this.safeBool(parameters, "postOnly", false);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"postOnly"});
+        object rest = this.omit(parameters, new List<object>() {"postOnly"});
         object maker = await this.loadMultiSignAddress();
         // Ethereum addresses are case-insensitive - a checksummed multiSignAddress compared
         // against a differently-cased walletAddress with strict equality would pick the wrong
@@ -2439,7 +2439,7 @@ public partial class opinion : PredictionExchange
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, ((string)getValue(baseUrls, "opinion")));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object existingHeaders = ((bool) isTrue((!isEqual(headers, null)))) ? headers : new Dictionary<string, object>() {};
         headers = this.extend(new Dictionary<string, object>() {
             { "Accept", "application/json" },

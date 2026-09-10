@@ -3402,7 +3402,7 @@ public partial class nado : Exchange
         {
             url = add(url, add("/", this.implodeParams(path, parameters)));
         }
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         headers = new Dictionary<string, object>() {};
         if (isTrue(isTrue((isEqual(endpoint, "gateway"))) || isTrue((isEqual(endpoint, "archive")))))
         {

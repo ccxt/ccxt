@@ -3384,7 +3384,7 @@ public partial class lbank : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object url = add(add(add(add(getValue(getValue(this.urls, "api"), "rest"), "/"), this.version), "/"), this.implodeParams(path, parameters));
         // Every spot endpoint ends with ".do"
         if (isTrue(isEqual(getValue(api, 0), "spot")))

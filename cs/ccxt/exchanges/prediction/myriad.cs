@@ -277,7 +277,7 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object queries = (IList<object>)(this.parseSearchQueries(parameters));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries"});
         int queriesLength = getArrayLength(queries);
         object rawMarkets = new List<object>() {};
         if (isTrue(isGreaterThan(queriesLength, 0)))
@@ -322,7 +322,7 @@ public partial class myriad : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
         string? state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit", "state"});
+        object rest = this.omit(parameters, new List<object>() {"limit", "state"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawMarkets = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
@@ -372,7 +372,7 @@ public partial class myriad : PredictionExchange
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
         // include both AMM and order-book markets so order-book trading methods can resolve their markets
         string? tradingModel = this.safeString2(parameters, "tradingModel", "trading_model", this.safeString(this.options, "defaultTradingModel", "all"));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        object rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawMarkets = new List<object>() {};
         // track the running count with an explicit counter (avoids inline array .length / .slice,
         // which the regex transpiler otherwise mistakes for string strlen()/mb_substr())
@@ -527,7 +527,7 @@ public partial class myriad : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         Int64? limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"limit"});
+        object rest = this.omit(parameters, new List<object>() {"limit"});
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         List<object> rawQuestions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
@@ -569,7 +569,7 @@ public partial class myriad : PredictionExchange
         Int64? limit = this.safeInteger(this.options, "defaultFetchEventsLimit", 50);
         Int64? maxQuestions = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchEventsLimit", 1000));
         string? state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
+        object rest = this.omit(parameters, new List<object>() {"state", "status", "limit", "tradingModel", "trading_model"});
         List<object> allRawQuestions = new List<object>() {};
         Dictionary<string, object> seen = new Dictionary<string, object>() {};
         object collected = 0;
@@ -640,7 +640,7 @@ public partial class myriad : PredictionExchange
         {
             throw new ArgumentsRequired ((string)add(this.id, " fetchPositions() requires a walletAddress or an address parameter")) ;
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"address", "user"});
+        object rest = this.omit(parameters, new List<object>() {"address", "user"});
         Dictionary<string, object> response = await this.myriadPublicGetUsersAddressPortfolio(this.extend(new Dictionary<string, object>() {
             { "address", address },
         }, rest));
@@ -778,7 +778,7 @@ public partial class myriad : PredictionExchange
         {
             ((IDictionary<string,object>)request)["shares"] = amount;
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"slippage"});
+        object rest = this.omit(parameters, new List<object>() {"slippage"});
         Dictionary<string, object> response = await this.myriadPublicPostMarketsQuote(this.extend(request, rest));
         //
         //     {
@@ -953,7 +953,7 @@ public partial class myriad : PredictionExchange
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         string? defaultModel = this.safeString(info, "tradingModel", "amm");
         string? tradingModel = this.safeStringLower(parameters, "tradingModel", defaultModel);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"tradingModel"});
+        object rest = this.omit(parameters, new List<object>() {"tradingModel"});
         if (isTrue(isEqual(tradingModel, "ob")))
         {
             return await this.CreateOrderbookOrder(((string)outcome),((string)type),((string)side),ccxt.BaseExchange.ToDoubleArgRequired(amount),ccxt.BaseExchange.ToDoubleArg(price), rest);
@@ -1242,7 +1242,7 @@ public partial class myriad : PredictionExchange
         string? tokenAddress = this.safeString2(parameters, "token", "tokenAddress", this.safeString(info, "tokenAddress"));
         string? gasLimit = this.safeString(parameters, "gasLimit", "0xaae60");
         string? sideStr = sideLower;
-        Dictionary<string, object> quoteParams = this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt"});
+        object quoteParams = this.omit(parameters, new List<object>() {"rpcUrl", "rpc", "token", "tokenAddress", "gasLimit", "costDenominated", "quote", "transactionHash", "txHash", "skipAllowance", "skipWaitForReceipt"});
         object quote = this.safeDict(parameters, "quote");
         if (isTrue(isEqual(quote, null)))
         {
@@ -3395,7 +3395,7 @@ public partial class myriad : PredictionExchange
             this.requireEventQuery(parameters);
         }
         object queries = this.parseSearchQueries(parameters);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "sort", "searchIn", "eventId", "slug", "status", "tags"});
         if (isTrue(isEqual(queries, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
@@ -3512,7 +3512,7 @@ public partial class myriad : PredictionExchange
         this.populateOutcomes();
         // tags were already applied server-side (mapped to keyword searches); strip them before
         // the client-side pass — raw markets don't carry a matching event-level tags field
-        Dictionary<string, object> postParams = this.omit(parameters, new List<object>() {"tags"});
+        object postParams = this.omit(parameters, new List<object>() {"tags"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, queries));
     }
 
@@ -4418,7 +4418,7 @@ public partial class myriad : PredictionExchange
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "myriad"));
         object url = add(add(baseUrl, "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(method, "GET")))
         {
             string querystring = this.urlencode(query);

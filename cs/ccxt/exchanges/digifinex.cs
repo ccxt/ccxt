@@ -5113,7 +5113,7 @@ public partial class digifinex : Exchange
         string request = add("/", this.implodeParams(path, parameters));
         object payload = add(pathPart, request);
         object url = add(getValue(getValue(this.urls, "api"), "rest"), payload);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string? urlencoded = null;
         if (isTrue(isTrue(isTrue(signed) && isTrue((isEqual(pathPart, "/swap/v2")))) && isTrue((isEqual(method, "POST")))))
         {

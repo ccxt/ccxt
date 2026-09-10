@@ -434,7 +434,7 @@ public partial class gate : ccxt.gate
         var requestrequestParamsVariable = this.prepareOrdersByStatusRequest(status, symbolVar, since, limit, parameters);
         var request = ((IList<object>) requestrequestParamsVariable)[0];
         var requestParams = ((IList<object>) requestrequestParamsVariable)[1];
-        Dictionary<string, object> newRequest = this.omit(request, new List<object>() {"settle"});
+        object newRequest = this.omit(request, new List<object>() {"settle"});
         object messageType = this.getTypeByMarket(market);
         object channel = add(messageType, ".order_list");
         object url = this.getUrlByMarket(market);

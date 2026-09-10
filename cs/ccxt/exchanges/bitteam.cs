@@ -2309,7 +2309,7 @@ public partial class bitteam : Exchange
             { "datetime", this.iso8601(timestamp) },
         };
         object result = this.safeValue(response, "result", new Dictionary<string, object>() {});
-        Dictionary<string, object> balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
+        object balanceByCurrencies = this.omit(result, new List<object>() {"free", "used", "total"});
         List<object> rawCurrencyIds = new List<object>(((IDictionary<string,object>)balanceByCurrencies).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(rawCurrencyIds)); postFixIncrement(ref i))
         {
@@ -2570,7 +2570,7 @@ public partial class bitteam : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> request = this.omit(parameters, this.extractParams(path));
+        object request = this.omit(parameters, this.extractParams(path));
         string endpoint = add("/", this.implodeParams(path, parameters));
         object url = add(getValue(getValue(this.urls, "api"), api), endpoint);
         string query = this.urlencode(request);

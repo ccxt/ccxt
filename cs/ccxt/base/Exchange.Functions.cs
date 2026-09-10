@@ -57,10 +57,9 @@ public partial class BaseExchange
     }
 
 
-    // every omit overload copies a dictionary (TS types x as `Dictionary`); non-dict
-    // inputs throw on the cast below, and no caller ever passed a list for the old
-    // IList<object> passthrough, so the return is declared instead of staying `object`
-    public Dictionary<string, object> omit(object a, params object[] parameters)
+    // list params (e.g. batch-order bodies) flow through fetch2 into omit and must
+    // pass through untouched, so these overloads stay object-returning
+    public object omit(object a, params object[] parameters)
     {
         var keys = new List<object>();
         foreach (object parameter in parameters)
@@ -70,8 +69,12 @@ public partial class BaseExchange
         return omit(a, keys);
     }
 
-    public Dictionary<string, object> omit(object aa, object k)
+    public object omit(object aa, object k)
     {
+        if (aa is (IList<object>))
+        {
+            return aa;
+        }
         List<string> keys = null;
         if (k is (string))
         {
@@ -96,7 +99,7 @@ public partial class BaseExchange
         return outDict;
     }
 
-    public Dictionary<string, object> omit(dict a, string key)
+    public object omit(dict a, string key)
     {
         var keys = new List<object>();
         keys.Add(key);

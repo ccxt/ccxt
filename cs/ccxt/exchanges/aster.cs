@@ -3394,7 +3394,7 @@ public partial class aster : Exchange
             parameters = ((IList<object>)tifparametersVariable)[1];
             ((IDictionary<string,object>)request)["timeInForce"] = tif;
         }
-        Dictionary<string, object> requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        object requestParams = this.omit(parameters, new List<object>() {"newClientOrderId", "clientOrderId", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "trailingDelta", "stopPrice", "stopLossPrice", "takeProfitPrice"});
         if (isTrue(isTrue((isEqual(this.safeBool(this.options, "builderFee"), true))) && isTrue((isEqual(getValue(market, "swap"), true)))))
         {
             ((IDictionary<string,object>)request)["builder"] = this.safeString(this.options, "builder");

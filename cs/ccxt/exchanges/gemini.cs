@@ -2379,7 +2379,7 @@ public partial class gemini : Exchange
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
         object url = add("/", this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(isEqual(api, "private")))
         {
             this.checkRequiredCredentials();

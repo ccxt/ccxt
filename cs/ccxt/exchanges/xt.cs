@@ -3775,7 +3775,7 @@ public partial class xt : Exchange
         {
             await this.loadMarkets();
         }
-        Dictionary<string, object> request = new Dictionary<string, object>() {};
+        object request = new Dictionary<string, object>() {};
         IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -6775,7 +6775,7 @@ public partial class xt : Exchange
             payload = request;
         }
         object url = add(getValue(getValue(this.urls, "api"), endpoint), payload);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string urlencoded = this.urlencode(this.keysort(query));
         headers = new Dictionary<string, object>() {
             { "Content-Type", "application/json" },

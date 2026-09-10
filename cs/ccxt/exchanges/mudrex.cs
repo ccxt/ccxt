@@ -237,7 +237,7 @@ public partial class mudrex : Exchange
             throw new ExchangeError ((string)add(add(this.id, " unknown API namespace: "), api)) ;
         }
         object url = add(add(bs, "/"), this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         Dictionary<string, object> requestHeaders = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(headers, null)))
         {

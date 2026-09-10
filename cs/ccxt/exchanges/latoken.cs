@@ -2067,7 +2067,7 @@ public partial class latoken : Exchange
         parameters ??= new Dictionary<string, object>();
         string request = add(add(add("/", this.version), "/"), this.implodeParams(path, parameters));
         string requestString = request;
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string urlencodedQuery = this.urlencode(query);
         if (isTrue(isEqual(method, "GET")))
         {

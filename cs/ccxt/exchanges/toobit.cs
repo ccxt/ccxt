@@ -3447,7 +3447,7 @@ public partial class toobit : Exchange
         bool isPost = isEqual(method, "POST");
         bool isDelete = isEqual(method, "DELETE");
         Dictionary<string, object> extraQuery = new Dictionary<string, object>() {};
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isEqual(api, "private")))
         {
             // Public endpoints

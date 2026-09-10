@@ -4608,7 +4608,7 @@ public partial class binance : Exchange
         } else if (isTrue(inOp(this.urls, "apiBackupDemoTrading")))
         {
             ((IDictionary<string,object>)this.urls)["api"] = getValue(this.urls, "apiBackupDemoTrading");
-            Dictionary<string, object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         ((IDictionary<string,object>)this.options)["enableDemoTrading"] = enable;
@@ -4630,7 +4630,7 @@ public partial class binance : Exchange
         parameters ??= new Dictionary<string, object>();
         string? defaultType = this.safeString2(this.options, "fetchTime", "defaultType", "spot");
         string? type = this.safeString(parameters, "type", defaultType);
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         object subType = null;
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchTime", null, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
@@ -9429,7 +9429,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)request)["icebergQty"] = this.amountToPrecision(symbol, icebergAmount);
             }
         }
-        Dictionary<string, object> requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"});
+        object requestParams = this.omit(parameters, new List<object>() {"type", "newClientOrderId", "clientOrderId", "postOnly", "stopLossPrice", "takeProfitPrice", "stopPrice", "triggerPrice", "trailingTriggerPrice", "trailingPercent", "quoteOrderQty", "cost", "test", "hedged", "icebergAmount"});
         return this.extend(request, requestParams);
     }
 
@@ -13204,7 +13204,7 @@ public partial class binance : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchFundingRates", null, parameters, "linear");
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         object response = null;
         if (isTrue(this.isLinear(type, subType)))
         {
@@ -13880,7 +13880,7 @@ public partial class binance : Exchange
         {
             string? defaultType = this.safeString(this.options, "defaultType", "future");
             string? type = this.safeString(parameters, "type", defaultType);
-            Dictionary<string, object> query = this.omit(parameters, "type");
+            object query = this.omit(parameters, "type");
             object subType = null;
             IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("loadLeverageBrackets", null, parameters, "linear");
             subType = ((IList<object>)subTypeparametersVariable)[0];
@@ -15619,7 +15619,7 @@ public partial class binance : Exchange
                 ((IDictionary<string,object>)parameters)["batchOrders"] = queryBatch;
             }
             Int64? defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            Dictionary<string, object> extendedParams = this.extend(new Dictionary<string, object>() {
+            object extendedParams = this.extend(new Dictionary<string, object>() {
                 { "timestamp", this.nonce() },
             }, parameters);
             if (isTrue(!isEqual(defaultRecvWindow, null)))

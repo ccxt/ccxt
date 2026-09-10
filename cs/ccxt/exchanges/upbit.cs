@@ -2691,7 +2691,7 @@ public partial class upbit : Exchange
             { "hostname", this.hostname },
         });
         url = add(url, add(add(add("/", this.version), "/"), this.implodeParams(path, parameters)));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         if (isTrue(!isEqual(method, "POST")))
         {
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

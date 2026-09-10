@@ -367,7 +367,7 @@ public partial class kalshi : PredictionExchange
         // markets — then flatten those markets.
         if (isTrue(isGreaterThan(queriesLength, 0)))
         {
-            Dictionary<string, object> eventParams = this.omit(parameters, new List<object>() {"limit"});
+            object eventParams = this.omit(parameters, new List<object>() {"limit"});
             object events = ccxt.BaseExchange.FromPredictionEventList(await this.FetchEvents(eventParams));
             int eventsLength = getArrayLength(events);
             List<object> queryMarkets = new List<object>() {};
@@ -382,7 +382,7 @@ public partial class kalshi : PredictionExchange
             }
             return ccxt.BaseExchange.ToMarketInterfaceList(queryMarkets);
         }
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
         // no query: page the markets listing directly. Cap the total collected so an unscoped
         // loadMarkets cannot run away through every kalshi market via the cursor.
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
@@ -2574,7 +2574,7 @@ public partial class kalshi : PredictionExchange
             status = "settled";
         }
         // anything beyond the unified keys is forwarded verbatim to the events endpoint (kalshi filters)
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
+        object rest = this.omit(parameters, new List<object>() {"status", "limit", "maxPages", "sort", "searchIn", "eventId", "slug", "tags", "category", "series_ticker"});
         if (isTrue(isEqual(this.markets, null)))
         {
             this.markets = this.createSafeDictionary();
@@ -2621,7 +2621,7 @@ public partial class kalshi : PredictionExchange
         // scoping already happened server-side, so strip the resolved scopes before the client-side
         // pass: applyEventFetchParams' tag filter needs an event-level `tags` field kalshi events lack,
         // and its query filter would drop a "bitcoin"-searched event whose title only says "BTC"
-        Dictionary<string, object> postParams = this.omit(parameters, new List<object>() {"tags", "category", "series_ticker"});
+        object postParams = this.omit(parameters, new List<object>() {"tags", "category", "series_ticker"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, new List<object>() {}));
     }
 
@@ -3071,7 +3071,7 @@ public partial class kalshi : PredictionExchange
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "kalshi"));
         string implodedPath = this.implodeParams(path, parameters);
         object url = add(add(baseUrl, "/"), implodedPath);
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencode(query);
         if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((!isEqual(querystring, "")))))
         {

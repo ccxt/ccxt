@@ -1651,7 +1651,7 @@ public partial class indodax : Exchange
         object url = getValue(getValue(this.urls, "api"), api);
         if (isTrue(isEqual(api, "public")))
         {
-            Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+            object query = this.omit(parameters, this.extractParams(path));
             string requestPath = add("/", this.implodeParams(path, parameters));
             url = add(url, requestPath);
             if (isTrue(isGreaterThan(getArrayLength(new List<object>(((IDictionary<string,object>)query).Keys)), 0)))

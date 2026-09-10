@@ -1967,7 +1967,7 @@ public partial class phemex : Exchange
         IList<object> subTypeparametersVariable = (IList<object>)this.handleSubTypeAndParams("fetchTickers", market, parameters);
         subType = ((IList<object>)subTypeparametersVariable)[0];
         parameters = ((IList<object>)subTypeparametersVariable)[1];
-        Dictionary<string, object> query = this.omit(parameters, "type");
+        object query = this.omit(parameters, "type");
         object response = null;
         if (isTrue(isEqual(type, "spot")))
         {
@@ -5301,7 +5301,7 @@ public partial class phemex : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         object requestPath = add("/", this.implodeParams(path, parameters));
         object url = requestPath;
         string queryString = "";

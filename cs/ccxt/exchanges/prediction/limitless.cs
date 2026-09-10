@@ -306,7 +306,7 @@ public partial class limitless : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         object queries = this.parseSearchQueries(parameters);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit"});
         // scope the listing: without a search query loadMarkets would otherwise page through
         // every active limitless market. Cap the total number of markets collected.
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
@@ -318,7 +318,7 @@ public partial class limitless : PredictionExchange
             // the search endpoint rejects limit > 50 - cap the per-query request and let
             // maxMarkets bound the overall collection
             object limit = mathMin(requestedLimit, 50);
-            Dictionary<string, object> searchRest = this.omit(rest, new List<object>() {"limit"});
+            object searchRest = this.omit(rest, new List<object>() {"limit"});
             Dictionary<string, object> seen = new Dictionary<string, object>() {};
             for (int i = 0; isLessThan(i, getArrayLength(queries)); postFixIncrement(ref i))
             {
@@ -2698,7 +2698,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "conditionId", conditionId },
         };
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"conditionId", "condition_id"});
+        object rest = this.omit(parameters, new List<object>() {"conditionId", "condition_id"});
         Dictionary<string, object> response = await this.limitlessPrivatePostPortfolioRedeem(this.extend(request, rest));
         return new Dictionary<string, object>() {
             { "info", response },
@@ -3294,7 +3294,7 @@ public partial class limitless : PredictionExchange
             throw new ExchangeError ((string)add(this.id, " fetchEvents() missing queries")) ;
         }
         int queriesLength = getArrayLength(queries);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status"});
         string? eventId = this.safeString2(parameters, "eventId", "slug");
         // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
         // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
@@ -3411,7 +3411,7 @@ public partial class limitless : PredictionExchange
         Dictionary<string, object> searchParams = this.extend(new Dictionary<string, object>() {
             { "searchIn", "both" },
         }, parameters);
-        Dictionary<string, object> postParams = this.omit(searchParams, new List<object>() {"tags"});
+        object postParams = this.omit(searchParams, new List<object>() {"tags"});
         return ccxt.BaseExchange.ToPredictionEventList(this.applyEventFetchParams(result, postParams, queries));
     }
 
@@ -3430,7 +3430,7 @@ public partial class limitless : PredictionExchange
         parameters ??= new Dictionary<string, object>();
         Int64? maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
         Int64? pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
-        Dictionary<string, object> rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"});
+        object rest = this.omit(parameters, new List<object>() {"query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags"});
         List<object> allRaw = new List<object>() {};
         object page = 1;
         object collected = 0;
@@ -3569,7 +3569,7 @@ public partial class limitless : PredictionExchange
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = add("/", this.implodeParams(path, parameters));
-        Dictionary<string, object> query = this.omit(parameters, this.extractParams(path));
+        object query = this.omit(parameters, this.extractParams(path));
         string querystring = this.urlencodeWithArrayRepeat(query);
         if (isTrue(isTrue(isEqual(method, "GET")) && isTrue((!isEqual(querystring, "")))))
         {
