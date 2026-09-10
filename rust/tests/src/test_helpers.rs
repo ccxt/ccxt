@@ -621,7 +621,6 @@ impl ExchangeOps for Value {
     fn set_property(&mut self, _redundant_exchange: Value, key: Value, value: Value) {
         ccxt::set_value(self, &key, value);
     }
-    fn json(&self, v: Value) -> Value { with_base(|e| e.json(v)) }
     fn get_fetch_cache(&mut self) -> Value { with_base(|e| e.get_fetch_cache()) }
     /// camelCase alias — some test files slip through the snake-case rewrite.
     fn safeString(&self, d: Value, key: Value, o: &[Value]) -> Value {
