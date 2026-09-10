@@ -116,6 +116,7 @@
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
+    "cpp": "./build/utils/cpp-cli.sh",
     "cli.go": "go run -C go ./cli/main.go",
     "cli.rs": "cargo run --manifest-path examples/rust/Cargo.toml --features ws --bin cli --",
     "cli.java": "./build/utils/java-cli.sh",

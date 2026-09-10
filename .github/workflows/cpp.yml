@@ -45,7 +45,7 @@ jobs:
       # memory -- the 104-exchange static lib is the memory hot spot on the runner
       run: |
         sudo apt-get update
-        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld
+        sudo apt-get install -y cmake ninja-build clang-format libcurl4-openssl-dev libssl-dev nlohmann-json3-dev lld libboost-dev libboost-system-dev
     - name: ccache
       uses: hendrikmuhs/ccache-action@v1.2
       with:
