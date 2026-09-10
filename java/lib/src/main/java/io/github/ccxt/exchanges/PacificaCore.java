@@ -1742,7 +1742,9 @@ public class PacificaCore extends PacificaApi
         Object timestamp = this.safeInteger(trade, "created_at");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
-        Object symbol = this.safeSymbol(null, market);
+        String marketId = this.safeString(trade, "symbol");
+        market = this.safeMarket(marketId, market);
+        Object symbol = Helpers.GetValue(market, "symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "open_long")))

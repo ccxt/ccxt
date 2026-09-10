@@ -1457,8 +1457,8 @@ public class BingxCore extends BingxApi
         Object currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
-        Object minTickSize = this.safeNumber(market, "minTickSize");
-        if (Helpers.isTrue(!Helpers.isEqual(minTickSize, null)))
+        Object inverseContractSize = this.safeNumber(market, "minTickSize");
+        if (Helpers.isTrue(!Helpers.isEqual(inverseContractSize, null)))
         {
             // inverse swap market
             currency = baseId;
@@ -1485,7 +1485,11 @@ public class BingxCore extends BingxApi
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
         }
         Object fees = this.safeDict(this.fees, type, new java.util.HashMap<String, Object>() {{}});
-        Object contractSize = ((Helpers.isTrue((swap)))) ? this.parseNumber("1") : null;
+        Object contractSize = null;
+        if (Helpers.isTrue(swap))
+        {
+            contractSize = ((Helpers.isTrue((checkIsInverse)))) ? inverseContractSize : this.parseNumber("1");
+        }
         Object isActive = false;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.safeString(market, "apiStateOpen"), "true"))) && Helpers.isTrue((Helpers.isEqual(this.safeString(market, "apiStateClose"), "true")))))
         {
@@ -1515,10 +1519,10 @@ public class BingxCore extends BingxApi
         final Object finalCurrency = currency;
         final Object finalType = type;
         final Object finalIsActive = isActive;
+        final Object finalContractSize = contractSize;
         final Object finalQuantityPrecision = quantityPrecision;
         final Object finalPricePrecision = pricePrecision;
         final Object finalMinAmount = minAmount;
-        final Object finalMinTickSize = minTickSize;
         final Object finalTimeOnline = timeOnline;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -1542,7 +1546,7 @@ public class BingxCore extends BingxApi
             put( "taker", BingxCore.this.safeNumber(fees, "taker") );
             put( "maker", BingxCore.this.safeNumber(fees, "maker") );
             put( "feeSide", BingxCore.this.safeString(fees, "feeSide") );
-            put( "contractSize", contractSize );
+            put( "contractSize", finalContractSize );
             put( "expiry", null );
             put( "expiryDatetime", null );
             put( "strike", null );
@@ -1561,7 +1565,7 @@ public class BingxCore extends BingxApi
                     put( "max", null );
                 }} );
                 put( "price", new java.util.HashMap<String, Object>() {{
-                    put( "min", finalMinTickSize );
+                    put( "min", null );
                     put( "max", null );
                 }} );
                 put( "cost", new java.util.HashMap<String, Object>() {{
