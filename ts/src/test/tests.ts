@@ -145,6 +145,7 @@ class testMainClass {
             'timeout': 30000,
         };
         const exchange = initExchange (exchangeId, exchangeArgs, this.wsTests);
+        exchange.fetchHistoryCacheSize = 5;
         if (exchange.alias) {
             dump (this.addPadding ("[INFO] skipping alias", 25));
             exitScript (0);
@@ -402,13 +403,9 @@ class testMainClass {
         // run-tests.js, so the exceptions are still printed out to console from there.
         const maxRetries = 3;
         const argsStringified = exchange.json (args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
-        let lastUrl = '';
         for (let i = 0; i < maxRetries; i++) {
             try {
-                const methodPromise = this.testMethod (methodName, exchange, args, isPublic);
-                await exchange.sleep (10);
-                lastUrl = exchange.last_request_url;
-                await methodPromise;
+                await this.testMethod (methodName, exchange, args, isPublic);
                 return true;
             }
             catch (ex) {
@@ -420,6 +417,8 @@ class testMainClass {
                 const isAuthError = (e instanceof AuthenticationError);
                 const isNotSupported = (e instanceof NotSupported);
                 const isOperationFailed = (e instanceof OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                const fetchCache = exchange.getFetchCache ();
+                const lastUrl = fetchCache.length > 0 ? fetchCache[fetchCache.length - 1]['request']['url'] : '';
                 const lastUrlMsg = this.wsTests ? '' : ' (Last url: ' + lastUrl + ' )';
                 if (isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
