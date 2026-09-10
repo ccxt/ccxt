@@ -100,6 +100,7 @@ export default class bitflyer extends Exchange {
                         'getboardstate': { 'cost': 1 } as Endpoint<Dict>,
                         'getchats': { 'cost': 1 } as Endpoint<List>,
                         'getfundingrate': { 'cost': 1 } as Endpoint<Dict>,
+                        'getfundingratehistory': { 'cost': 1 } as Endpoint<List>,
                     },
                 },
                 'private': {

@@ -168,6 +168,16 @@ export default class toobit extends Exchange {
                         'api/v1/agent/user/export': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/agent/export-list': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/agent/export-url': { 'cost': 1 } as Endpoint<Dict>,
+                        // v2
+                        'api/v2/account/balance-flow': { 'cost': 5 } as Endpoint<List>,
+                        'api/v2/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v2/futures/open-orders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/history-orders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/user-trades': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/algo-order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v2/futures/open-algo-orders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/history-algo-orders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/voucher/list': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'api/v1/spot/orderTest': { 'cost': 1 * 1.67 } as Endpoint<Dict>,

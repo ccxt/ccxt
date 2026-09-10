@@ -242,6 +242,13 @@ export default class weex extends Exchange {
                         'api/v3/agency/verifyReferrals': { 'cost': 20 } as Endpoint<List>, // not unified
                         'api/v3/agency/getAssert': { 'cost': 20 } as Endpoint<Dict>, // not unified
                         'api/v3/agency/getDealData': { 'cost': 20 } as Endpoint<Dict>, // not unified
+                        'api/v3/apiReferral/checkUserEligibility': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebate/recentRecord': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/apiReferral/rebateRatio': { 'cost': 5 } as Endpoint<Dict>, // not unified - broker access
+                        'api/v3/content/articles/detail': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/list': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/articles/listByCoin': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
+                        'api/v3/content/banners/latest': { 'cost': 1 } as Endpoint<Dict>, // not unified - partner content
                     },
                     'post': {
                         'api/v3/account/bills': { 'cost': 5 } as Endpoint<List>, // done
@@ -249,6 +256,7 @@ export default class weex extends Exchange {
                         'api/v3/order': { 'cost': 5 } as Endpoint<Dict>, // done
                         'api/v3/order/batch': { 'cost': 50 } as Endpoint<Dict>, // not supported, returns {"code":-1150,"msg":"Request method 'POST' not supported"}
                         'api/v3/rebate/affiliate/internalWithdrawal': { 'cost': 100 } as Endpoint<string>, // not unified
+                        'api/v3/tax/income': { 'cost': 5 } as Endpoint<List>, // not unified - tax reporting
                     },
                     'delete': {
                         'api/v3/order': { 'cost': 1 } as Endpoint<Dict>, // done
@@ -293,6 +301,15 @@ export default class weex extends Exchange {
                         'capi/v3/sim/balance': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/balance
                         'capi/v3/sim/position/allPosition': { 'cost': 15 } as Endpoint<List>, // done - demo trading variant of capi/v3/account/position/allPosition
                         'capi/v3/sim/order/history': { 'cost': 10 } as Endpoint<List>, // done - demo trading variant of capi/v3/order/history
+                        'capi/v3/copy/follower/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/myTraders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/historyOrders': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/trader/openOrders': { 'cost': 10 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/copy/trader/pairs': { 'cost': 1 } as Endpoint<List>, // not unified - copy trading
+                        'capi/v3/trailing/openOrders': { 'cost': 2 } as Endpoint<List>, // not unified - trailing orders
+                        'capi/v3/trailing/historyOrders': { 'cost': 10 } as Endpoint<List>, // not unified - trailing orders
                     },
                     'post': {
                         'capi/v3/account/income': { 'cost': 5 } as Endpoint<Dict>, // done
@@ -307,6 +324,9 @@ export default class weex extends Exchange {
                         'capi/v3/placeTpSlOrder': { 'cost': 5 } as Endpoint<List>, // not unified
                         'capi/v3/modifyTpSlOrder': { 'cost': 5 } as Endpoint<Dict>, // not unified
                         'capi/v3/sim/order': { 'cost': 5 } as Endpoint<Dict>, // done - demo trading variant of capi/v3/order
+                        'capi/v3/copy/follower/closePos': { 'cost': 50 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/settings': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
+                        'capi/v3/copy/follower/stopCopy': { 'cost': 10 } as Endpoint<Dict>, // not unified - copy trading
                     },
                     'delete': {
                         'capi/v3/order': { 'cost': 3 } as Endpoint<Dict>, // done

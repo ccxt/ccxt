@@ -216,6 +216,10 @@ export default class bitso extends Exchange {
                         'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
                         'orders/all': { 'cost': 1 } as Endpoint<Dict>,
                     },
+                    'patch': {
+                        'orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'orders/{oid}': { 'cost': 1 } as Endpoint<Dict>,
+                    },
                 },
             },
             'features': {

@@ -254,6 +254,8 @@ export default class okx extends Exchange {
                         'public/event-contract/markets': { 'cost': 1 } as Endpoint<Dict>,
                         'public/event-contract/series': { 'cost': 1 } as Endpoint<Dict>,
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'public/mm-instrument-types': { 'cost': 4 } as Endpoint<Dict>,
+                        'public/delta-hedge-currencies': { 'cost': 1 } as Endpoint<Dict>,
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 } as Endpoint<Dict>,
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 } as Endpoint<Dict>,
@@ -464,6 +466,21 @@ export default class okx extends Exchange {
                         'finance/flexible-loan/loan-info': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/loan-history': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/interest-accrued': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/emode-info': { 'cost': 4 } as Endpoint<Dict>,
+                        // okusd
+                        'finance/okusd/limits': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/okusd/account': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/okusd/subscribe/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/redeem/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/rewards/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/rate/history': { 'cost': 4 } as Endpoint<Dict>,
+                        // stable rewards
+                        'finance/stable-rewards/product-info': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/stable-rewards/balance': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/stable-rewards/apy-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        // glp
+                        'users/glp/todayperformance': { 'cost': 4 } as Endpoint<Dict>,
+                        'users/glp/historicalperformance': { 'cost': 4 } as Endpoint<Dict>,
                         // copytrading
                         'copytrading/current-subpositions': { 'cost': 1 } as Endpoint<Dict>,
                         'copytrading/subpositions-history': { 'cost': 1 } as Endpoint<Dict>,
@@ -499,6 +516,11 @@ export default class okx extends Exchange {
                         'finance/sfp/dcd/order-history': { 'cost': 2 } as Endpoint<Dict>,
                         // affiliate
                         'affiliate/invitee/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/performance/summary': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/invitee/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/link/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/co-inviter/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/sub-affiliate/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         'users/partner/if-rebate': { 'cost': 1 } as Endpoint<Dict>, // not documented
                         'support/announcements': { 'cost': 4 } as Endpoint<Dict>,
                     },
@@ -653,6 +675,11 @@ export default class okx extends Exchange {
                         'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 } as Endpoint<Dict>,
                         'finance/flexible-loan/max-loan': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/adjust-collateral': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/borrow': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/flexible-loan/repay': { 'cost': 10 } as Endpoint<Dict>,
+                        // okusd
+                        'finance/okusd/subscribe': { 'cost': 20 } as Endpoint<Dict>,
+                        'finance/okusd/redeem': { 'cost': 20 } as Endpoint<Dict>,
                         // copytrading
                         'copytrading/algo-order': { 'cost': 1 } as Endpoint<Dict>,
                         'copytrading/close-subposition': { 'cost': 1 } as Endpoint<Dict>,

@@ -230,6 +230,14 @@ export default class bingx extends Exchange {
                                 'market/depth': { 'cost': 1 } as Endpoint<Dict>,
                                 'market/kline': { 'cost': 1 } as Endpoint<Dict>,
                                 'ticker/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/depth': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/historicalKlines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/historicalTrades': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/klines': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/price': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/ticker': { 'cost': 1 } as Endpoint<Dict>,
+                                'quote/trades': { 'cost': 1 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -317,6 +325,7 @@ export default class bingx extends Exchange {
                                 'trade/allOrders': { 'cost': 2 } as Endpoint<Dict>,
                                 'trade/allFillOrders': { 'cost': 2 } as Endpoint<Dict>,
                                 'trade/fillHistory': { 'cost': 2 } as Endpoint<Dict>,
+                                'trade/positionHistory': { 'cost': 2 } as Endpoint<Dict>,
                                 'user/income/export': { 'cost': 2 } as Endpoint<Dict>,
                                 'user/commissionRate': { 'cost': 2 } as Endpoint<Dict>,
                                 'quote/bookTicker': { 'cost': 1 } as Endpoint<Dict>,
@@ -388,6 +397,13 @@ export default class bingx extends Exchange {
                             'delete': {
                                 'trade/allOpenOrders': { 'cost': 2 } as Endpoint<Dict>, // post method in doc
                                 'trade/cancelOrder': { 'cost': 2 } as Endpoint<Dict>,
+                            },
+                        },
+                    },
+                    'v2': {
+                        'private': {
+                            'post': {
+                                'trade/order': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
@@ -550,6 +566,21 @@ export default class bingx extends Exchange {
                                 'asset/partnerData': { 'cost': 5 } as Endpoint<Dict>,
                                 'commissionDataList/referralCode': { 'cost': 5 } as Endpoint<Dict>,
                                 'account/superiorCheck': { 'cost': 5 } as Endpoint<Dict>,
+                            },
+                        },
+                    },
+                },
+                'wealth': {
+                    'v1': {
+                        'private': {
+                            'get': {
+                                'product/dual-currency/pre-order': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/position': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/order-records': { 'cost': 2 } as Endpoint<Dict>,
+                            },
+                            'post': {
+                                'product/dual-currency/invest-asset-list': { 'cost': 2 } as Endpoint<Dict>,
+                                'product/dual-currency/order': { 'cost': 2 } as Endpoint<Dict>,
                             },
                         },
                     },
