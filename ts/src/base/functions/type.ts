@@ -97,15 +97,15 @@ function safeInteger (o: safeInputType, k: NullableIndexType, $default?: number)
 function safeIntegerProduct (o: safeInputType, k: NullableIndexType, $factor: number, $default?: number): Int {
     const value = prop (o, k);
     if (value === undefined) return $default;
-    const n = asFloat (value);
-    return isNumber (n) ? Math.trunc (n * $factor) : $default;
+    const product = asFloat (value) * $factor;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeTimestamp (o: safeInputType, k: NullableIndexType, $default?: number): Int {
     const value = prop (o, k);
     if (value === undefined) return $default;
-    const n = asFloat (value);
-    return isNumber (n) ? Math.trunc (n * 1000) : $default;
+    const product = asFloat (value) * 1000;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeValue (o: safeInputType, k: NullableIndexType, $default?: any) {
@@ -159,15 +159,15 @@ function safeInteger2 (o: safeInputType, k1: NullableIndexType, k2: NullableInde
 function safeIntegerProduct2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $factor: number, $default?: number): Int {
     const value = prop2 (o, k1, k2);
     if (value === undefined) return $default;
-    const n = asFloat (value);
-    return isNumber (n) ? Math.trunc (n * $factor) : $default;
+    const product = asFloat (value) * $factor;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeTimestamp2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: Int): Int {
     const value = prop2 (o, k1, k2);
     if (value === undefined) return $default;
-    const n = asFloat (value);
-    return isNumber (n) ? Math.trunc (n * 1000) : $default;
+    const product = asFloat (value) * 1000;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeValue2 (o: safeInputType, k1: NullableIndexType, k2: NullableIndexType, $default?: any) {
@@ -229,8 +229,8 @@ function safeIntegerProductN (o: safeInputType, k: (NullableIndexType)[], $facto
     if (found === undefined) {
         return $default;
     }
-    const n = asFloat (found);
-    return isNumber (n) ? Math.trunc (n * $factor) : $default;
+    const product = asFloat (found) * $factor;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: number): Int {
@@ -238,8 +238,8 @@ function safeTimestampN (o: safeInputType, k: (NullableIndexType)[], $default?: 
     if (found === undefined) {
         return $default;
     }
-    const n = asFloat (found);
-    return isNumber (n) ? Math.trunc (n * 1000) : $default;
+    const product = asFloat (found) * 1000;
+    return isNumber (product) ? Math.trunc (product) : $default; // guard the product, not just the value
 }
 
 function safeValueN (o: safeInputType, k: (NullableIndexType)[], $default?: any) {
