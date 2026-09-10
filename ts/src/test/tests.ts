@@ -3038,17 +3038,26 @@ class testMainClass {
 
     async testCoinbaseinternational () {
         const exchange = this.initOfflineExchange ('coinbaseinternational');
+        // ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+        exchange.secret = '0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef';
+        // pre-seed the gateway access token so createOrder signs the order directly instead of
+        // making a prior (offline-unreachable) public/auth network call
+        exchange.token = 'token';
+        exchange.options['v2TokenExpires'] = exchange.milliseconds () + 100000;
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert (exchange.options['brokerId'] === id, 'id not in options');
-        let request: Dict = {};
+        let clientOrderId: Str = undefined;
         try {
             await exchange.createOrder ('BTC/USDC:USDC', 'limit', 'buy', 1, 20000);
         } catch (e) {
-            request = jsonParse (exchange.last_request_body);
+            // buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+            const url = exchange.safeString (exchange, 'last_request_url', '');
+            const urlParts = url.split ('?');
+            const query = this.urlencodedToDict (urlParts[1]);
+            clientOrderId = query['label'];
         }
-        const clientOrderId = request['client_order_id'];
-        assert (clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
+        assert (clientOrderId !== undefined && clientOrderId.startsWith (id.toString ()) === true, 'clientOrderId does not start with id');
         if (!isSync ()) {
             await close (exchange);
         }

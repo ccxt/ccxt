@@ -558,8 +558,8 @@ export default class coinbaseinternational extends Exchange {
         const settlementPeriod = this.safeString (market, 'settlement_period');
         const isSpot = (kind === 'spot');
         const isPerpetual = (settlementPeriod === 'perpetual');
-        const isFuture = (kind === 'future') && !isPerpetual;
-        const isOption = (kind === 'option');
+        const isFuture = !isPerpetual && (kind.indexOf ('future') >= 0);
+        const isOption = (kind.indexOf ('option') >= 0);
         const comboPosition = kind.indexOf ('combo');
         const isComboMarket = comboPosition >= 0;
         const base = this.safeCurrencyCode (baseId);
@@ -580,19 +580,22 @@ export default class coinbaseinternational extends Exchange {
                 symbol = symbol + ':' + settle;
             }
         }
-        const linear = settle === quote;
-        const inverse = settle !== quote;
+        const linear = isSpot ? undefined : (settle === quote);
+        const inverse = isSpot ? undefined : (settle !== quote);
+        const marketSettle = isSpot ? undefined : settle;
+        const marketSettleId = isSpot ? undefined : settleId;
         const minTradeAmount = this.safeNumber (market, 'min_trade_amount');
         const tickSize = this.safeNumber (market, 'tick_size');
-        const expiry = this.safeInteger (market, 'expiration_timestamp');
+        const isFutureOrOption = isFuture || isOption;
+        const expiry = isFutureOrOption ? this.safeInteger (market, 'expiration_timestamp') : undefined;
         const active = this.safeBool (market, 'is_active');
         const strike = this.safeNumber (market, 'strike');
         const optionType = this.safeString (market, 'option_type');
-        if (isOption || isFuture) {
+        if (!isComboMarket && (isOption || isFuture)) {
             const expiryString = this.yymmdd (expiry, '');
             symbol = symbol + '-' + expiryString;
         }
-        if (isOption) {
+        if (!isComboMarket && isOption) {
             let optionTypeLetter = 'P';
             if (optionType === 'call') {
                 optionTypeLetter = 'C';
@@ -606,10 +609,10 @@ export default class coinbaseinternational extends Exchange {
             'symbol': symbol,
             'base': base,
             'quote': quote,
-            'settle': settle,
+            'settle': marketSettle,
             'baseId': baseId,
             'quoteId': quoteId,
-            'settleId': settleId,
+            'settleId': marketSettleId,
             'type': type,
             'spot': isSpot,
             'margin': false,
@@ -622,7 +625,7 @@ export default class coinbaseinternational extends Exchange {
             'inverse': inverse,
             'taker': this.safeNumber (market, 'taker_commission'),
             'maker': this.safeNumber (market, 'maker_commission'),
-            'contractSize': this.safeNumber (market, 'contract_size'),
+            'contractSize': isSpot ? undefined : this.safeNumber (market, 'contract_size'),
             'expiry': expiry,
             'expiryDatetime': this.iso8601 (expiry),
             'strike': strike,
@@ -2009,6 +2012,11 @@ export default class coinbaseinternational extends Exchange {
         const clientOrderId = this.safeString2 (params, 'clientOrderId', 'client_order_id');
         if (clientOrderId !== undefined) {
             request['label'] = clientOrderId;
+        } else {
+            const brokerId = this.safeString (this.options, 'brokerId');
+            if (brokerId !== undefined) {
+                request['label'] = brokerId + '-' + this.uuid22 ();
+            }
         }
         params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'postOnly', 'post_only', 'tif', 'timeInForce', 'triggerPrice', 'stopPrice', 'stop_price' ]);
         await this.authenticateV2 ();
