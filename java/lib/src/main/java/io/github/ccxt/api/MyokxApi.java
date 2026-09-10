@@ -64,6 +64,17 @@ public class MyokxApi extends OkxCore
     }
 
     /**
+     * Calls the publicGetMarketBooksRpi endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMarketBooksRpi (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMarketBooksRpi", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetMarketCandles endpoint.
      *
      * @param optionalArgs the request parameters

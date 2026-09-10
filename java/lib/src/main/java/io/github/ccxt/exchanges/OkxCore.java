@@ -209,6 +209,9 @@ public class OkxCore extends OkxApi
                         put( "market/books-full", new java.util.HashMap<String, Object>() {{
                             put( "cost", 2 );
                         }} );
+                        put( "market/books-rpi", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.divide(1, 2) );
+                        }} );
                         put( "market/candles", new java.util.HashMap<String, Object>() {{
                             put( "cost", Helpers.divide(1, 2) );
                         }} );
@@ -1804,6 +1807,7 @@ public class OkxCore extends OkxApi
                     put( "54008", InvalidOrder.class );
                     put( "54009", InvalidOrder.class );
                     put( "54011", InvalidOrder.class );
+                    put( "54051", InvalidOrder.class );
                     put( "54072", ExchangeError.class );
                     put( "54073", BadRequest.class );
                     put( "54074", ExchangeError.class );
@@ -3094,10 +3098,12 @@ public class OkxCore extends OkxApi
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
@@ -3115,6 +3121,10 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
+            Object rpi = false;
+            var rpiparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
+            rpi = ((java.util.List<Object>) rpiparametersVariable).get(0);
+            parameters = ((java.util.List<Object>) rpiparametersVariable).get(1);
             Object method = null;
             var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
@@ -3124,12 +3134,21 @@ public class OkxCore extends OkxApi
                 limit = 5000;
             }
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 100 : limit;
+            if (Helpers.isTrue(Helpers.isTrue(rpi) && Helpers.isTrue((Helpers.isGreaterThan(limit, 400)))))
+            {
+                // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+                // including the 5000 that publicGetMarketBooksFull defaults to
+                limit = 400;
+            }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "sz", limit); // max 400
             }
             Object response = null;
-            if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "publicGetMarketBooksFull"))) || Helpers.isTrue((Helpers.isGreaterThan(limit, 400)))))
+            if (Helpers.isTrue(rpi))
+            {
+                response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, "publicGetMarketBooksRpi", new Object[] { this.extend(request, parameters) })).join();
+            } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "publicGetMarketBooksFull"))) || Helpers.isTrue((Helpers.isGreaterThan(limit, 400)))))
             {
                 response = (this.publicGetMarketBooksFull(this.extend(request, parameters))).join();
             } else
@@ -3156,6 +3175,10 @@ public class OkxCore extends OkxApi
             //             }
             //         ]
             //     }
+            //
+            // the rpi book has the same envelope, but each level is
+            // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+            // rpi liquidity, so index 0 and 1 stay the price and the amount
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
@@ -4676,7 +4699,7 @@ public class OkxCore extends OkxApi
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -4696,6 +4719,8 @@ public class OkxCore extends OkxApi
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+     * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
@@ -5621,6 +5646,11 @@ public class OkxCore extends OkxApi
         } else if (Helpers.isTrue(Helpers.isEqual(type, "ioc")))
         {
             timeInForce = "IOC";
+            type = "limit";
+        } else if (Helpers.isTrue(Helpers.isEqual(type, "rpi")))
+        {
+            // retail price improvement orders are maker-only limit orders
+            postOnly = true;
             type = "limit";
         }
         String marketId = this.safeString(order, "instId");
