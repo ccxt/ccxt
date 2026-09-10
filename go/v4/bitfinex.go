@@ -2022,7 +2022,7 @@ func (this *BitfinexCore) ParseOHLCV(ohlcv any, optionalArgs ...any) any {
 }
 func (this *BitfinexCore) ParseOrderStatus(status any) any {
 	if IsTrue(IsEqual(status, nil)) {
-		return status
+		return nil
 	}
 	var parts []string = Split(status, " ")
 	var state any = this.SafeString(parts, 0)

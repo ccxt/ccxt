@@ -2523,7 +2523,7 @@ func (this *DeriveCore) ParseOrderStatus(status any) any {
 		}
 		return this.SafeString(statuses, status, status)
 	}
-	return status
+	return nil
 }
 func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	//

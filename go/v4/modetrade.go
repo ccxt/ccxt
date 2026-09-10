@@ -2000,7 +2000,7 @@ func (this *ModetradeCore) ParseOrderStatus(status any) any {
 		}
 		return this.SafeString(statuses, status, status)
 	}
-	return status
+	return nil
 }
 func (this *ModetradeCore) ParseOrderType(typeVar any) any {
 	var types map[string]any = map[string]any{
