@@ -10200,11 +10200,10 @@
         ],
         "fetchMyTrades": [
             {
-                "description": "fetchMyTrades",
+                "description": "fetchMyTrades no symbol keeps only TRANSACTION rows",
                 "method": "fetchMyTrades",
-                "input": [
-                    "DOGE/USDT:USDT"
-                ],
+                "url": "https://trade.mudrex.com/fapi/v1/futures/fee/history",
+                "input": [],
                 "httpResponse": {
                     "success": true,
                     "data": [
@@ -10330,7 +10329,293 @@
                         }
                     ]
                 },
-                "parsedResponse": []
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "019f1b3c-54af-77b8-a15a-9b949911fc3c",
+                            "symbol": "DEEPUSDT",
+                            "fee_amount": "0.02826336",
+                            "fee_perc": "0.059",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-01T01:12:45Z",
+                            "transaction_amount": "47.904",
+                            "trade_currency": "USDT",
+                            "order_type": "STOPLOSS",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00431135",
+                            "rebate_amount": "0.0113"
+                        },
+                        "timestamp": 1782868365000,
+                        "datetime": "2026-07-01T01:12:45.000Z",
+                        "symbol": "DEEP/USDT:USDT",
+                        "id": "019f1b3c-54af-77b8-a15a-9b949911fc3c",
+                        "order": null,
+                        "type": "market",
+                        "side": null,
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 47.904,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01696336
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01696336
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": "019f1d30-6078-7c8c-ace3-453e84a1ecc8",
+                            "symbol": "CAKEUSDT",
+                            "fee_amount": "0.02630268",
+                            "fee_perc": "0.05900001",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-01T10:18:57Z",
+                            "transaction_amount": "44.5808",
+                            "trade_currency": "USDT",
+                            "order_type": "SHORT",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00401227",
+                            "rebate_amount": "0.0105"
+                        },
+                        "timestamp": 1782901137000,
+                        "datetime": "2026-07-01T10:18:57.000Z",
+                        "symbol": "CAKE/USDT:USDT",
+                        "id": "019f1d30-6078-7c8c-ace3-453e84a1ecc8",
+                        "order": null,
+                        "type": "market",
+                        "side": "sell",
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 44.5808,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01580268
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01580268
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": "019f1ed6-d167-7da7-b415-89f8893e3907",
+                            "symbol": "CAKEUSDT",
+                            "fee_amount": "0.02687037",
+                            "fee_perc": "0.059",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-01T18:00:21Z",
+                            "transaction_amount": "45.543",
+                            "trade_currency": "USDT",
+                            "order_type": "STOPLOSS",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00409886",
+                            "rebate_amount": "0.0107"
+                        },
+                        "timestamp": 1782928821000,
+                        "datetime": "2026-07-01T18:00:21.000Z",
+                        "symbol": "CAKE/USDT:USDT",
+                        "id": "019f1ed6-d167-7da7-b415-89f8893e3907",
+                        "order": null,
+                        "type": "market",
+                        "side": null,
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 45.543,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01617037
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01617037
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.02468116",
+                            "fee_perc": "0.05900003",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00376492",
+                            "rebate_amount": "0.0098"
+                        },
+                        "timestamp": 1782979858000,
+                        "datetime": "2026-07-02T08:10:58.000Z",
+                        "symbol": "APT/USDT:USDT",
+                        "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+                        "order": null,
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 41.83245,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01488116
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01488116
+                            }
+                        ]
+                    }
+                ]
+            },
+            {
+                "description": "fetchMyTrades nets one rebate per fill when equal fills share symbol second and notional",
+                "method": "fetchMyTrades",
+                "url": "https://trade.mudrex.com/fapi/v1/futures/fee/history",
+                "input": [],
+                "httpResponse": {
+                    "success": true,
+                    "data": [
+                        {
+                            "id": "019f3a61-7c25-7b90-8d41-f20c96e3a815",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.02468116",
+                            "fee_perc": "0.05900003",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00376492"
+                        },
+                        {
+                            "id": "019f3a61-7c27-70e3-b5a8-04d91c6f72b9",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.0098",
+                            "fee_perc": "0.02360001",
+                            "fee_type": "REBATE",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET"
+                        },
+                        {
+                            "id": "019f3a61-7c29-7f14-9c62-8ab30d51e647",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.02468116",
+                            "fee_perc": "0.05900003",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00376492"
+                        },
+                        {
+                            "id": "019f3a61-7c2b-74d8-a390-57e14b28c9f0",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.0098",
+                            "fee_perc": "0.02360001",
+                            "fee_type": "REBATE",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET"
+                        }
+                    ]
+                },
+                "parsedResponse": [
+                    {
+                        "info": {
+                            "id": "019f3a61-7c25-7b90-8d41-f20c96e3a815",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.02468116",
+                            "fee_perc": "0.05900003",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00376492",
+                            "rebate_amount": "0.0098"
+                        },
+                        "timestamp": 1782979858000,
+                        "datetime": "2026-07-02T08:10:58.000Z",
+                        "symbol": "APT/USDT:USDT",
+                        "id": "019f3a61-7c25-7b90-8d41-f20c96e3a815",
+                        "order": null,
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 41.83245,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01488116
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01488116
+                            }
+                        ]
+                    },
+                    {
+                        "info": {
+                            "id": "019f3a61-7c29-7f14-9c62-8ab30d51e647",
+                            "symbol": "APTUSDT",
+                            "fee_amount": "0.02468116",
+                            "fee_perc": "0.05900003",
+                            "fee_type": "TRANSACTION",
+                            "created_at": "2026-07-02T08:10:58Z",
+                            "transaction_amount": "41.83245",
+                            "trade_currency": "USDT",
+                            "order_type": "LONG",
+                            "trigger_type": "MARKET",
+                            "gst_amount": "0.00376492",
+                            "rebate_amount": "0.0098"
+                        },
+                        "timestamp": 1782979858000,
+                        "datetime": "2026-07-02T08:10:58.000Z",
+                        "symbol": "APT/USDT:USDT",
+                        "id": "019f3a61-7c29-7f14-9c62-8ab30d51e647",
+                        "order": null,
+                        "type": "market",
+                        "side": "buy",
+                        "takerOrMaker": "taker",
+                        "price": null,
+                        "amount": null,
+                        "cost": 41.83245,
+                        "fee": {
+                            "currency": "USDT",
+                            "cost": 0.01488116
+                        },
+                        "fees": [
+                            {
+                                "currency": "USDT",
+                                "cost": 0.01488116
+                            }
+                        ]
+                    }
+                ]
             }
         ],
         "fetchPositions": [

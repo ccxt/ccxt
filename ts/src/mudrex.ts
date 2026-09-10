@@ -4,7 +4,7 @@
 import Exchange from './abstract/mudrex.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, OrderNotFound, RateLimitExceeded, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
-import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, Fee, Endpoint } from './base/types.js';
+import type { Balances, Dict, Int, NullableDict, Leverage, MarginModification, Market, Num, OHLCV, Order, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TransferEntry, int, FeeString, Endpoint } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -1273,13 +1273,14 @@ export default class mudrex extends Exchange {
     /**
      * @method
      * @name mudrex#fetchMyTrades
-     * @description fetch all trades made by the user
-     * @see https://docs.trade.mudrex.com/docs
-     * @param {string} [symbol] unified market symbol
-     * @param {int} [since] the earliest time in ms to fetch trades for
-     * @param {int} [limit] the maximum number of trade structures to retrieve
+     * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+     * @see https://docs.trade.mudrex.com/docs/fees
+     * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+     * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+     * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {string} [params.trade_currency] the settlement currency to filter trades by
+     * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+     * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
     override async fetchMyTrades (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Trade[]> {
@@ -1290,43 +1291,127 @@ export default class mudrex extends Exchange {
         if (symbol !== undefined) {
             market = this.market (symbol);
         }
-        const request: Dict = {};
+        let maxCalls = undefined;
+        [ maxCalls, params ] = this.handleOptionAndParams (params, 'fetchMyTrades', 'paginationCalls', 10);
+        let pageSize = 0;
         if (limit !== undefined) {
-            request['limit'] = limit;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = limit * 2;
         }
-        const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
-        const data = this.safeValue (response, 'data', []);
-        const rows = this.toArray (data);
+        const allRows = [];
+        let transactionsCount = 0;
+        let calls = 0;
+        let offset = 0;
+        let paging = true;
+        while (paging === true) {
+            const request: Dict = {};
+            if (pageSize > 0) {
+                request['limit'] = pageSize;
+                request['offset'] = offset;
+            }
+            const response = await this.privateGetFuturesFeeHistory (this.extend (request, params));
+            const data = this.safeList (response, 'data', []);
+            const dataLength = data.length;
+            for (let i = 0; i < dataLength; i++) {
+                const entry = data[i];
+                allRows.push (entry);
+                if (this.safeString (entry, 'fee_type') === 'TRANSACTION') {
+                    // count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if ((market === undefined) || (this.safeString (entry, 'symbol') === market['id'])) {
+                        transactionsCount = this.sum (transactionsCount, 1);
+                    }
+                }
+            }
+            calls = this.sum (calls, 1);
+            paging = false;
+            // the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if ((limit !== undefined) && (dataLength === pageSize) && (transactionsCount < limit) && (calls < maxCalls)) {
+                // this.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = this.sum (offset, pageSize);
+                paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        const rebateKeys = [];
+        const rebateAmounts = [];
+        const transactions = [];
+        const transactionKeys = [];
+        for (let i = 0; i < allRows.length; i++) {
+            const entry = allRows[i];
+            const feeType = this.safeString (entry, 'fee_type');
+            const pairKey = this.safeString (entry, 'symbol', '') + ':' + this.safeString (entry, 'created_at', '') + ':' + this.safeString (entry, 'transaction_amount', '');
+            if (feeType === 'TRANSACTION') {
+                transactions.push (entry);
+                transactionKeys.push (pairKey);
+            } else if (feeType === 'REBATE') {
+                rebateKeys.push (pairKey);
+                rebateAmounts.push (this.safeString (entry, 'fee_amount', '0'));
+            }
+        }
+        const rows = [];
+        for (let i = 0; i < transactions.length; i++) {
+            let rebate: Str = undefined;
+            for (let j = 0; j < rebateKeys.length; j++) {
+                if (rebateKeys[j] === transactionKeys[i]) {
+                    rebate = rebateAmounts[j];
+                    // blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    rebateKeys[j] = undefined;
+                    break;
+                }
+            }
+            if (rebate === undefined) {
+                rows.push (transactions[i]);
+            } else {
+                rows.push (this.extend (transactions[i], { 'rebate_amount': rebate }));
+            }
+        }
         return this.parseTrades (rows, market, since, limit);
     }
 
     override parseTrade (trade: Dict, market: Market = undefined): Trade {
+        //
+        //     {
+        //         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol": "APTUSDT",
+        //         "fee_amount": "0.02468116",
+        //         "fee_perc": "0.05900003",
+        //         "fee_type": "TRANSACTION",
+        //         "created_at": "2026-07-02T08:10:58Z",
+        //         "transaction_amount": "41.83245",
+        //         "trade_currency": "USDT",
+        //         "order_type": "LONG",
+        //         "trigger_type": "MARKET",
+        //         "gst_amount": "0.00376492"
+        //     }
+        //
         const ms = this.safeString (trade, 'symbol');
         market = this.safeMarket (ms, market);
         const symbol = market['symbol'];
-        let ts = this.parse8601 (this.safeString (trade, 'created_at'));
-        if (ts === undefined) {
-            ts = this.safeInteger (trade, 'time');
-        }
-        const side = this.safeStringLower2 (trade, 'side', 'order_type');
+        const ts = this.parse8601 (this.safeString (trade, 'created_at'));
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
+        const side = this.safeStringLower (trade, 'order_type');
         let tradeSide: Str = undefined;
-        if (side === 'buy' || side === 'long') {
+        if (side === 'long') {
             tradeSide = 'buy';
-        } else if (side === 'sell' || side === 'short') {
+        } else if (side === 'short') {
             tradeSide = 'sell';
         }
-        const feeType = this.safeStringUpper (trade, 'fee_type');
+        const trig = this.safeStringUpper (trade, 'trigger_type');
         let takerOrMaker: Str = undefined;
-        if (feeType === 'TRANSACTION') {
+        if (trig === 'MARKET') {
+            // a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = 'taker';
-        } else if (feeType === 'REBATE') {
-            takerOrMaker = 'maker';
         }
-        let fee: Fee = undefined;
-        const feeCost = this.safeNumber (trade, 'fee_amount');
-        if (feeCost !== undefined) {
+        let fee: FeeString = undefined;
+        let feeCostString = this.safeString (trade, 'fee_amount');
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        const rebateString = this.safeString (trade, 'rebate_amount');
+        if ((feeCostString !== undefined) && (rebateString !== undefined)) {
+            feeCostString = Precise.stringSub (feeCostString, rebateString);
+        }
+        if (feeCostString !== undefined) {
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': this.safeString (trade, 'trade_currency'),
             };
         }
@@ -1335,14 +1420,14 @@ export default class mudrex extends Exchange {
             'timestamp': ts,
             'datetime': this.iso8601 (ts),
             'symbol': symbol,
-            'id': this.safeString2 (trade, 'execId', 'id'),
-            'order': this.safeString (trade, 'order_id'),
+            'id': this.safeString (trade, 'id'),
+            'order': undefined,
             'type': this.safeStringLower (trade, 'trigger_type'),
             'side': tradeSide,
             'takerOrMaker': takerOrMaker,
-            'price': this.safeNumber (trade, 'price'),
-            'amount': this.safeNumber2 (trade, 'size', 'quantity'),
-            'cost': this.safeNumber (trade, 'transaction_amount'),
+            'price': undefined,
+            'amount': undefined,
+            'cost': this.safeString (trade, 'transaction_amount'),
             'fee': fee,
         }, market);
     }
