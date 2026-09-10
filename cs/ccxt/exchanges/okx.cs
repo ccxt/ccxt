@@ -197,6 +197,9 @@ public partial class okx : Exchange
                         { "market/books-full", new Dictionary<string, object>() {
                             { "cost", 2 },
                         } },
+                        { "market/books-rpi", new Dictionary<string, object>() {
+                            { "cost", divide(1, 2) },
+                        } },
                         { "market/candles", new Dictionary<string, object>() {
                             { "cost", divide(1, 2) },
                         } },
@@ -1792,6 +1795,7 @@ public partial class okx : Exchange
                     { "54008", typeof(InvalidOrder) },
                     { "54009", typeof(InvalidOrder) },
                     { "54011", typeof(InvalidOrder) },
+                    { "54051", typeof(InvalidOrder) },
                     { "54072", typeof(ExchangeError) },
                     { "54073", typeof(BadRequest) },
                     { "54074", typeof(ExchangeError) },
@@ -3024,10 +3028,12 @@ public partial class okx : Exchange
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
@@ -3042,6 +3048,10 @@ public partial class okx : Exchange
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "instId", getValue(market, "id") },
         };
+        object rpi = false;
+        var rpiparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
+        rpi = ((IList<object>)rpiparametersVariable)[0];
+        parameters = ((IList<object>)rpiparametersVariable)[1];
         object method = null;
         var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
         method = ((IList<object>)methodparametersVariable)[0];
@@ -3051,12 +3061,21 @@ public partial class okx : Exchange
             limitVar = 5000;
         }
         limitVar = ((bool) isTrue((isEqual(limitVar, null)))) ? 100 : limitVar;
+        if (isTrue(isTrue(rpi) && isTrue((isGreaterThan(limitVar, 400)))))
+        {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            limitVar = 400;
+        }
         if (isTrue(!isEqual(limitVar, null)))
         {
             ((IDictionary<string,object>)request)["sz"] = limitVar; // max 400
         }
         object response = null;
-        if (isTrue(isTrue((isEqual(method, "publicGetMarketBooksFull"))) || isTrue((isGreaterThan(limitVar, 400)))))
+        if (isTrue(rpi))
+        {
+            response = await ((Task<object>)callDynamically(this, "publicGetMarketBooksRpi", new object[] { this.extend(request, parameters) }));
+        } else if (isTrue(isTrue((isEqual(method, "publicGetMarketBooksFull"))) || isTrue((isGreaterThan(limitVar, 400)))))
         {
             response = await this.publicGetMarketBooksFull(this.extend(request, parameters));
         } else
@@ -3083,6 +3102,10 @@ public partial class okx : Exchange
         //             }
         //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         object data = this.safeList(response, "data", new List<object>() {});
         object first = this.safeDict(data, 0, new Dictionary<string, object>() {});
@@ -4526,7 +4549,7 @@ public partial class okx : Exchange
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -4546,6 +4569,8 @@ public partial class okx : Exchange
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+     * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -5417,6 +5442,11 @@ public partial class okx : Exchange
         } else if (isTrue(isEqual(type, "ioc")))
         {
             timeInForce = "IOC";
+            type = "limit";
+        } else if (isTrue(isEqual(type, "rpi")))
+        {
+            // retail price improvement orders are maker-only limit orders
+            postOnly = true;
             type = "limit";
         }
         string? marketId = this.safeString(order, "instId");

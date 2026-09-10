@@ -39,6 +39,13 @@ public partial class okxus : okx
         return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooksFull",parameters);
     }
 
+    /// <summary>Calls the publicGetMarketBooksRpi endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> publicGetMarketBooksRpi (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("publicGetMarketBooksRpi",parameters);
+    }
+
     /// <summary>Calls the publicGetMarketCandles endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> publicGetMarketCandles (object parameters = null)
