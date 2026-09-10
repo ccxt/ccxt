@@ -521,12 +521,11 @@ public partial class mudrex : Exchange
         string? ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         object symbol = getValue(market, "symbol");
-        Int64 ts = this.milliseconds();
         object pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
-            { "timestamp", ts },
-            { "datetime", this.iso8601(ts) },
+            { "timestamp", null },
+            { "datetime", null },
             { "high", null },
             { "low", null },
             { "bid", null },
@@ -740,11 +739,8 @@ public partial class mudrex : Exchange
     {
         object data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         string? currency = this.safeString(response, "currency", "USDT");
-        Int64 timestamp = this.milliseconds();
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
-            { "timestamp", timestamp },
-            { "datetime", this.iso8601(timestamp) },
         };
         object account = this.account();
         string? futuresBalance = this.safeString(data, "balance");
@@ -915,10 +911,14 @@ public partial class mudrex : Exchange
         parameters = this.omit(parameters, new List<object>() {"leverage", "reduceOnly", "takeProfit", "stopLoss"});
         object response = await this.privatePostFuturesAssetIdOrder(this.extend(request, parameters));
         object data = this.safeDict(response, "data", response);
-        // the create response omits the order/trigger type, so restore them from the request
-        ((IDictionary<string,object>)data)["order_type"] = getValue(request, "order_type");
-        ((IDictionary<string,object>)data)["trigger_type"] = getValue(request, "trigger_type");
-        return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
+        // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        Dictionary<string, object> merged = this.extend(data, new Dictionary<string, object>() {
+            { "order_type", getValue(request, "order_type") },
+            { "trigger_type", getValue(request, "trigger_type") },
+        });
+        object order = this.parseOrder(merged, market);
+        ((IDictionary<string,object>)order)["info"] = data;
+        return ccxt.BaseExchange.ToOrder(order);
     }
 
     /**
@@ -995,6 +995,25 @@ public partial class mudrex : Exchange
         {
             side = "sell";
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        bool isRiskOrder = isTrue((isEqual(rawSide, "STOPLOSS"))) || isTrue((isEqual(rawSide, "TAKEPROFIT")));
+        string? priceString = this.safeString2(order, "price", "order_price");
+        object orderPrice = priceString;
+        object triggerPrice = null;
+        object stopLossPrice = null;
+        object takeProfitPrice = null;
+        if (isTrue(isRiskOrder))
+        {
+            triggerPrice = priceString;
+            orderPrice = null;
+            if (isTrue(isEqual(rawSide, "STOPLOSS")))
+            {
+                stopLossPrice = priceString;
+            } else
+            {
+                takeProfitPrice = priceString;
+            }
+        }
         string? trig = this.safeStringUpper(order, "trigger_type");
         string? typ = null;
         if (isTrue(isEqual(trig, "MARKET")))
@@ -1005,10 +1024,6 @@ public partial class mudrex : Exchange
             typ = "limit";
         }
         Int64? ts = this.parse8601(this.safeString(order, "created_at"));
-        if (isTrue(isEqual(ts, null)))
-        {
-            ts = this.milliseconds();
-        }
         object status = this.parseOrderStatus(this.safeStringLower(order, "status"));
         object sym = getValue(market, "symbol");
         return this.safeOrder(new Dictionary<string, object>() {
@@ -1023,19 +1038,20 @@ public partial class mudrex : Exchange
             { "timeInForce", null },
             { "postOnly", null },
             { "side", side },
-            { "price", this.safeNumber2(order, "price", "order_price") },
-            { "stopPrice", null },
-            { "triggerPrice", null },
-            { "amount", this.safeNumber2(order, "quantity", "amount") },
+            { "price", orderPrice },
+            { "triggerPrice", triggerPrice },
+            { "stopLossPrice", stopLossPrice },
+            { "takeProfitPrice", takeProfitPrice },
+            { "amount", this.safeString2(order, "quantity", "amount") },
             { "cost", null },
-            { "average", null },
-            { "filled", null },
+            { "average", this.safeString(order, "filled_price") },
+            { "filled", this.safeString(order, "filled_quantity") },
             { "remaining", null },
             { "status", status },
             { "fee", null },
             { "trades", new List<object>() {} },
             { "fees", new List<object>() {} },
-            { "lastUpdateTimestamp", null },
+            { "lastUpdateTimestamp", this.parse8601(this.safeString(order, "updated_at")) },
             { "reduceOnly", this.safeBool(order, "reduce_only") },
         }, market);
     }

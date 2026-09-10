@@ -1626,7 +1626,9 @@ public partial class pacifica : Exchange
         Int64? timestamp = this.safeInteger(trade, "created_at");
         string? price = this.safeString(trade, "price");
         string? amount = this.safeString(trade, "amount");
-        object symbol = this.safeSymbol(null, market);
+        string? marketId = this.safeString(trade, "symbol");
+        market = this.safeMarket(marketId, market);
+        object symbol = getValue(market, "symbol");
         string? id = this.safeString(trade, "history_id");
         string? side = this.safeString(trade, "side");
         if (isTrue(isEqual(side, "open_long")))

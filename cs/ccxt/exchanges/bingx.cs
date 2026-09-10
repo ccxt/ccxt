@@ -1419,8 +1419,8 @@ public partial class bingx : Exchange
         object currency = this.safeString(market, "currency");
         bool checkIsInverse = false;
         bool checkIsLinear = true;
-        object minTickSize = this.safeNumber(market, "minTickSize");
-        if (isTrue(!isEqual(minTickSize, null)))
+        object inverseContractSize = this.safeNumber(market, "minTickSize");
+        if (isTrue(!isEqual(inverseContractSize, null)))
         {
             // inverse swap market
             currency = baseId;
@@ -1447,7 +1447,11 @@ public partial class bingx : Exchange
             symbol = add(symbol, add(":", settle));
         }
         object fees = this.safeDict(this.fees, type, new Dictionary<string, object>() {});
-        object contractSize = ((bool) isTrue((swap))) ? this.parseNumber("1") : null;
+        object contractSize = null;
+        if (isTrue(swap))
+        {
+            contractSize = ((bool) isTrue((checkIsInverse))) ? inverseContractSize : this.parseNumber("1");
+        }
         bool isActive = false;
         if (isTrue(isTrue((isEqual(this.safeString(market, "apiStateOpen"), "true"))) && isTrue((isEqual(this.safeString(market, "apiStateClose"), "true")))))
         {
@@ -1512,7 +1516,7 @@ public partial class bingx : Exchange
                     { "max", null },
                 } },
                 { "price", new Dictionary<string, object>() {
-                    { "min", minTickSize },
+                    { "min", null },
                     { "max", null },
                 } },
                 { "cost", new Dictionary<string, object>() {

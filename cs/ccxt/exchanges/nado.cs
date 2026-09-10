@@ -199,6 +199,7 @@ public partial class nado : Exchange
                     { "1002", typeof(RestrictedLocation) },
                     { "1003", typeof(RestrictedLocation) },
                     { "1004", typeof(OnMaintenance) },
+                    { "1005", typeof(BadRequest) },
                     { "2000", typeof(InvalidOrder) },
                     { "2001", typeof(InvalidOrder) },
                     { "2002", typeof(InvalidOrder) },
@@ -322,6 +323,7 @@ public partial class nado : Exchange
                     { "2123", typeof(BadRequest) },
                     { "2124", typeof(InvalidOrder) },
                     { "2125", typeof(OperationRejected) },
+                    { "2126", typeof(OrderNotFound) },
                     { "3000", typeof(BadRequest) },
                     { "3001", typeof(BadRequest) },
                     { "3002", typeof(ArgumentsRequired) },
@@ -362,7 +364,7 @@ public partial class nado : Exchange
      * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
      * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
      * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
-     * @param {string} [params.triggerDirection] trigger direction, above, below
+     * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
@@ -475,14 +477,14 @@ public partial class nado : Exchange
         bool isTriggerOrder = isTrue(isTrue(isStopOrder) || isTrue(isStopLossOrder)) || isTrue(isTakeProfitOrder);
         if (isTrue(isStopOrder))
         {
-            string? triggerDirection = this.safeStringLower(parameters, "triggerDirection");
-            if (isTrue(isEqual(triggerDirection, null)))
-            {
-                throw new ArgumentsRequired ((string)add(this.id, " createOrder() requires triggerDirection for trigger order")) ;
-            }
+            object triggerDirection = null;
+            var triggerDirectionparametersVariable = this.handleTriggerDirectionAndParams(parameters);
+            triggerDirection = ((IList<object>)triggerDirectionparametersVariable)[0];
+            parameters = ((IList<object>)triggerDirectionparametersVariable)[1];
+            string directionSuffix = ((bool) isTrue((isEqual(triggerDirection, "ascending")))) ? "above" : "below";
             object triggerPriceX18 = this.convertToX18(triggerPrice);
             Dictionary<string, object> priceRequirement = new Dictionary<string, object>() {};
-            ((IDictionary<string,object>)priceRequirement)[(string)add("oracle_price_", triggerDirection)] = triggerPriceX18;
+            ((IDictionary<string,object>)priceRequirement)[(string)add("oracle_price_", directionSuffix)] = triggerPriceX18;
             Dictionary<string, object> trigger = new Dictionary<string, object>() {
                 { "price_trigger", new Dictionary<string, object>() {
                     { "price_requirement", priceRequirement },
@@ -491,7 +493,7 @@ public partial class nado : Exchange
             ((IDictionary<string,object>)placeOrder)["trigger"] = trigger;
         } else if (isTrue(isTrue(isStopLossOrder) || isTrue(isTakeProfitOrder)))
         {
-            string triggerDirection = "";
+            object triggerDirection = "";
             if (isTrue(isBuy))
             {
                 triggerDirection = ((bool) isTrue(isStopLossOrder)) ? "above" : "below";
@@ -549,6 +551,7 @@ public partial class nado : Exchange
      * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
      * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
      * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+     * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
      */
     public async override Task<ccxt.Order> EditOrder(string id, string symbol, string type, string side, double? amount = null, double? price = null, object parameters = null)
@@ -595,6 +598,11 @@ public partial class nado : Exchange
         if (isTrue(!isEqual(type, "limit")))
         {
             throw new InvalidOrder ((string)add(this.id, " editOrder() supports limit orders only")) ;
+        }
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice"});
+        if (isTrue(!isEqual(triggerPrice, null)))
+        {
+            throw new NotSupported ((string)add(this.id, " editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead")) ;
         }
         if (isTrue(isEqual(amount, null)))
         {
@@ -980,7 +988,7 @@ public partial class nado : Exchange
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -1022,7 +1030,7 @@ public partial class nado : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 500);
         }
         object contracts = await this.queryContracts();
         string? chainId = this.safeString(contracts, "chain_id");
@@ -1094,7 +1102,7 @@ public partial class nado : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
-            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
+            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"waiting_price", "waiting_dependency"} },
             }));
         }
@@ -1177,7 +1185,7 @@ public partial class nado : Exchange
         bool? trigger = this.safeBool2(parameters, "stop", "trigger");
         if (isTrue(isEqual(trigger, true)))
         {
-            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
+            return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
                 { "status_types", new List<object>() {"triggered", "triggering", "twap_executing", "twap_completed"} },
             }));
         }
@@ -1236,19 +1244,19 @@ public partial class nado : Exchange
     /**
      * @method
      * @name nado#fetchCanceledOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchCanceledOrders(string symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
+            { "trigger", true },
             { "status_types", new List<object>() {"cancelled", "internal_error"} },
         }));
     }
@@ -1256,19 +1264,19 @@ public partial class nado : Exchange
     /**
      * @method
      * @name nado#fetchCanceledAndClosedOrders
-     * @description fetches information on multiple canceled orders made by the user
+     * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
      * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
      * @param {string} symbol unified market symbol of the market the orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<List<ccxt.Order>> FetchCanceledAndClosedOrders(object symbol = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(null), this.extend(parameters, new Dictionary<string, object>() {
+        return await this.FetchOrders(((string)symbol),ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), this.extend(parameters, new Dictionary<string, object>() {
+            { "trigger", true },
             { "status_types", new List<object>() {"cancelled", "internal_error", "triggered", "triggering", "twap_executing", "twap_completed"} },
         }));
     }
@@ -1932,16 +1940,18 @@ public partial class nado : Exchange
      */
     public async override Task<ccxt.Ticker> FetchTicker(string symbol, object parameters = null)
     {
+        object symbolVar = symbol;
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();
-        object market = this.market(symbol);
-        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbol}, parameters));
-        object ticker = this.safeDict(tickers, symbol);
+        object market = this.market(symbolVar);
+        symbolVar = getValue(market, "symbol");
+        object tickers = ccxt.BaseExchange.FromTickers(await this.FetchTickers(new List<object>() {symbolVar}, parameters));
+        object ticker = this.safeDict(tickers, symbolVar);
         if (isTrue(isEqual(ticker, null)))
         {
-            throw new BadSymbol ((string)add(add(this.id, " fetchTicker() ticker not found for "), symbol)) ;
+            throw new BadSymbol ((string)add(add(this.id, " fetchTicker() ticker not found for "), symbolVar)) ;
         }
-        return ccxt.BaseExchange.ToTicker(this.safeTicker(ticker, market));
+        return ccxt.BaseExchange.ToTicker(ticker);
     }
 
     /**
@@ -2297,7 +2307,7 @@ public partial class nado : Exchange
      * @param {string} symbol unified symbol of the market to fetch OHLCV data for
      * @param {string} timeframe the length of time each candle represents
      * @param {int} [since] timestamp in ms of the earliest candle to fetch
-     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch, max 500
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.until] timestamp in ms of the latest candle to fetch
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -2319,7 +2329,7 @@ public partial class nado : Exchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)getValue(request, "candlesticks"))["limit"] = limit;
+            ((IDictionary<string,object>)getValue(request, "candlesticks"))["limit"] = mathMin(limit, 500);
         }
         if (isTrue(!isEqual(until, null)))
         {
@@ -3118,7 +3128,12 @@ public partial class nado : Exchange
     public virtual object createOrderNonce(object recvWindow)
     {
         object expires = this.sum(this.milliseconds(), recvWindow);
-        return Precise.stringMul(this.numberToString(expires), "1048576");
+        string? highBits = Precise.stringMul(this.numberToString(expires), "1048576");
+        // the exchange defines the nonce to be the recv time moved left by 20 bits
+        // plus a random value on the low bits, otherwise two orders created
+        // during the same millisecond would collide on the same nonce and get rejected
+        object entropy = this.randNumber(6);
+        return Precise.stringAdd(highBits, this.numberToString(entropy));
     }
 
     public virtual object createOrderAppendix(object isTriggerOrder, object parameters = null)

@@ -139,6 +139,22 @@ public partial class BaseTest
             Assert(isGreaterThan(value, 0));
             Assert(isEqual(((string)valueString).Length, 10));
         }
+        public void testConvertExpireDate()
+        {
+            var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
+                { "id", "sampleexchange" },
+            });
+            // callers write this into expiryDatetime, which types.ts documents with milliseconds
+            Assert(isEqual(exchange.convertExpireDate("260503"), "2026-05-03T00:00:00.000Z"));
+            Assert(isEqual(exchange.convertExpireDate("240426"), "2024-04-26T00:00:00.000Z"));
+            // both spellings of midnight parse to the same instant
+            Assert(isEqual(exchange.parse8601(exchange.convertExpireDate("260503")), 1777766400000));
+            Assert(isEqual(exchange.parse8601("2026-05-03T00:00:00Z"), exchange.parse8601(exchange.convertExpireDate("260503"))));
+            // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+            // invariant the change exists to establish, and it fails on the old spelling
+            Assert(isEqual(exchange.convertExpireDate("260503"), exchange.iso8601(exchange.parse8601(exchange.convertExpireDate("260503")))));
+            Assert(isEqual(exchange.convertExpireDate(null), null));
+        }
         public void testYymmdd()
         {
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
@@ -197,5 +213,6 @@ public partial class BaseTest
             testSeconds();
             testYymmdd();
             testYyyymmdd();
+            testConvertExpireDate();
         }
 }

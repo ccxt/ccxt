@@ -7565,7 +7565,9 @@ public partial class BaseExchange
         object year = slice(date, 0, 2);
         object month = slice(date, 2, 4);
         object day = slice(date, 4, 6);
-        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00Z");
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        object reconstructedDate = add(add(add(add(add(add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
         return reconstructedDate;
     }
 
