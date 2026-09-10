@@ -75,7 +75,7 @@
 //   - `x as string` / `<string>x` -> string (`((string)x)` is the printed cast)
 //   - `string x = <non-null>; ... x = <nullable string>;` widens to string? (the box is a
 //     string on both paths; getExtendedStarkAmount / createOrderAppendix / hexToDecimalString
-//     are the motivating cases — build/csharp-string-returns.js needs the returned local
+//     are the motivating cases — the string-returns section below needs the returned local
 //     declared, and a nullable write used to keep the whole local `object`)
 //
 // Naming the type never changes the runtime value inside the box, so behaviour is identical
@@ -196,7 +196,7 @@
 // local on every path (~161 call sites) — a candidate for a follow-up, kept out of this
 // change.
 // The generated non-async string-returning methods (parse*Status and
-// friends) no longer belong to that list: build/csharp-string-returns.js retypes their
+// friends) no longer belong to that list: the string-returns section above retypes their
 // signatures, and the same table is merged into CSHARP_LOCAL_THIS_RETURN_TYPES below.
 //
 // Why not flip the printer's INFER_VAR_TYPE: it only fires on the `= undefined` path and
@@ -213,7 +213,184 @@ import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { CSHARP_STRING_RETURN_METHODS } from './csharp-string-returns.js';
+// ===== string-returning method signatures =====
+//
+// Concrete C# return types for generated non-async string-returning methods.
+//
+// The C# printer emits `object` for every non-async method whose TS return type is not
+// `void`/`Task` (BaseTranspiler.printFunctionType falls back to DEFAULT_RETURN_TYPE for
+// anything else; the bool/bool? family is the only one the printer special-cases). So the
+// generated helpers that already end in a string — the priceToPrecision family, the
+// parse*Status / parse*Type / parse*mode string mappers built on safeString, the
+// encode* / from* / *Precision helpers, ... — were declared `public virtual object`, and
+// every local that received their result had to stay `object` on the call site
+// (the local-typing tables in this file).
+//
+// This module retypes the signature — `string` / `string?` — for a CLOSED, per-name table
+// (110 names, 400 declarations). A name is listed only when a census of the whole tree
+// proved, for EVERY declaration of the name (base Exchange.ts below its delimiter, the
+// prediction base, every exchange, the pro tree, the prediction tree):
+//
+//   * it is a non-async class method (statics and async methods are out of scope),
+//   * the resolved TS return type is string-ish: `string`, a union of string literals, or
+//     either plus `undefined`/`null` — no other union member,
+//   * every `return` expression has a C# form that is ALREADY string-typed: a string
+//     literal, `undefined`/`return;`, this.safeString*/safeStringLower*/safeStringUpper*/
+//     decimalToPrecision/numberToString (the classifier's own table), `x as string`, a
+//     ternary whose arms are one of those, a call to another listed name (fixpoint), or a
+//     local whose initializer and every later write are one of those.
+//
+// No return expression needs an unboxing cast, so the emitted bodies are byte-identical to
+// their `object` versions and runtime semantics do not move. Names with any other return
+// shape — string concatenation (add(...) is `object`), calls to helpers whose C# return is
+// `object` (safeValue/safeDict/market/forceString/...), object-typed parameters returned
+// directly, fetched members — stay `object`; the census for those is in the PR body.
+//
+// The decision is per NAME, so a base virtual and each of its overrides always print the
+// same return type: the override path in printMethodDefinition substitutes the parent's
+// printed type only when the override's own print produced `object`, and both prints go
+// through the same table lookup.
+//
+// Deliberately absent although their census is clean:
+//   * intToBase16 / binaryToString / uuid5 / exceptionMessage / reduceDigits — declared
+//     above the Exchange.ts delimiter or in base/Precise.ts, i.e. already hand-written in
+//     C# with a concrete string return; there is no generated signature to retype.
+//   * encodeDydxTxForSimulation — hand-written `object` in cs/ccxt/base/Exchange.cs would
+//     contradict the generated signature.
+//   * getMarketType (ts/src/pro/binance.ts) — its `let type: Str = undefined` receives a
+//     destructured `[ type, params ] = handleMarketTypeAndParams (...)`, which the C#
+//     printer lowers to untyped list-element reads, so the local can never be typed.
+//     (Reported in the PR census; needs a source rewrite, not a signature change.)
+//
+// Call-site proof (whole ts/src tree, admitted names): the only shape whose C# overload
+// resolution changes is a listed call as the LEFT operand of `+` — the left operand's
+// static type picks the add() family, and a null LEFT differs between add(object, object)
+// (null) and add(string, *) (the right operand). The census found 5 such sites, all inert:
+// four `this.intToBase16 (...)` chains (that method is hand-written `string` already, so
+// the operand was string-typed before and after) and one `this.shortenSlug (name) + '_'`
+// whose body is `((string)joined).ToUpper()` — never null. Everywhere else a `string?`
+// call converts to `object` implicitly: assignments, arguments, returns, dictionary
+// values, `isEqual`/`isTrue` wrappers, `((string)x).ToUpper()` receivers, and RIGHT
+// operands of `+` (add(string, object) and add(string, string) are identical for every
+// input — Exchange.TranspileHelpers.cs).
+//
+// IMPORTANT: scan the AST with `node.name.escapedText`, never by printed text — the
+// reserved-keyword pass renames some identifiers before printing.
+//
+// Two local-typing clauses in this file were added for the returns above
+// to type through: `x as string` / `<string>x` casts (`((string)x)`, needed by
+// getExtendedStarkAmount's write) and the `string` -> `string?` widening of a local whose
+// later write is a nullable string (needed by createOrderAppendix / hexToDecimalString).
+
+export const CSHARP_STRING_RETURN_METHODS = {
+    'amountToPrecision': 'string?', 'amountToPredictionPrecision': 'string?', 'applyScale': 'string?',
+    'calcOrderPrice': 'string?', 'cleanPath': 'string', 'convertToInstrumentType': 'string?', 'convertToX18': 'string?',
+    'costToPrecision': 'string?', 'costToPredictionPrecision': 'string?', 'createOrderAppendix': 'string?',
+    'createOrderNonce': 'string?', 'currencyFromPrecision': 'string?', 'customUrlencode': 'string?',
+    'encodeMarginMode': 'string?', 'encodeOrderSide': 'string?', 'encodeOrderType': 'string?',
+    'encodeTriggerPriceType': 'string?', 'encodeValuesWithJson': 'string', 'encodeWorkingType': 'string?',
+    'feeToPrecision': 'string?', 'fromEn': 'string?', 'fromPrecision': 'string?', 'fromWeiWithDecimals': 'string?',
+    'futuresRequestId': 'string?', 'generateClientOrderId': 'string?', 'getAccountTypeFromUrl': 'string', 'getAmount': 'string?',
+    'getDexFromHip3Symbol': 'string?', 'getDexFromSymbols': 'string?', 'getExtendedStarkAmount': 'string',
+    'getFutureWsCategory': 'string', 'getMyTradesMessageHashSuffix': 'string',
+    'getNetworkCodeForCurrency': 'string?', 'getPrivateType': 'string', 'getProductGroupFromMarket': 'string',
+    'getSeeds': 'string?', 'getStockTickerFromSymbol': 'string?', 'getSubAccountId': 'string',
+    'getTifFromRawOrderType': 'string?', 'getTypeByMarket': 'string?', 'handleTakerOrMaker': 'string?',
+    'handleTimeInForce': 'string?', 'handleTradeType': 'string?', 'hexToDecimalString': 'string?', 'mapSide': 'string?',
+    'mapTimeInForce': 'string?', 'marketOrderAmountToPrecision': 'string', 'marketOutcomeToSymbol': 'string?',
+    'outcomeSearchQuery': 'string?', 'padHex': 'string', 'paraseTransferStatus': 'string?', 'parseAccountId': 'string?',
+    'parseAccountType': 'string?', 'parseDepositStatus': 'string?', 'parseFundingInterval': 'string?',
+    'parseLedgerDirection': 'string?', 'parseLedgerEntryDirection': 'string?', 'parseLedgerEntryStatus': 'string?',
+    'parseLedgerStatus': 'string?', 'parseLedgerType': 'string?', 'parseMarginModeType': 'string?',
+    'parseMarginStatus': 'string?', 'parseMarginType': 'string?', 'parseMarketType': 'string?', 'parseOrderSide': 'string?',
+    'parseOrderState': 'string?', 'parseOrderStatus': 'string?', 'parseOrderTimeInForce': 'string?',
+    'parseOrderTimeInForceInteger': 'string?', 'parseOrderType': 'string?', 'parseOrderTypeByMarket': 'string?',
+    'parseOrderTypeInteger': 'string?', 'parseOutcomeInputSideHint': 'string?', 'parseStatus': 'string?',
+    'parseTakerOrMaker': 'string?', 'parseTimeInForce': 'string?', 'parseTradeSide': 'string?', 'parseTradeType': 'string?',
+    'parseTradingOrderStatus': 'string?', 'parseTransactionDepositStatus': 'string?', 'parseTransactionState': 'string?',
+    'parseTransactionStatus': 'string?', 'parseTransactionType': 'string?', 'parseTransactionWithdrawalStatus': 'string?',
+    'parseTransferStatus': 'string?', 'parseTransferType': 'string?', 'parseType': 'string?', 'parseUnits': 'string?',
+    'parseValueToPricision': 'string?', 'parseWithdrawalStatus': 'string?', 'parseWsOrderSide': 'string?',
+    'parseWsOrderStatus': 'string?', 'parseWsOrderType': 'string?', 'parseWsPositionSide': 'string?',
+    'parseWsTimeInForce': 'string?', 'pow': 'string?', 'priceToPrecision': 'string?', 'priceToPredictionPrecision': 'string?',
+    'scaleNumber': 'string?', 'shortenSlug': 'string', 'signCancelAll': 'string', 'signClobOrder': 'string',
+    'signOrderbookTypedData': 'string', 'stream': 'string?', 'symbol': 'string?', 'toOrderbookWei': 'string?',
+    'tokenIdToSymbol': 'string?', 'typeToTradeType': 'string?', 'walletAddressFromKeys': 'string',
+    'walletAddressOrUndefined': 'string?'
+};
+
+// the printer's declared return type must still be `object` (bool/Task/anything the printer
+// already proved is left alone), and the node must be an emitted, non-async method
+function stringReturnType (csharp, node, own) {
+    if (own !== 'object') {
+        return undefined;
+    }
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration || node.name === undefined) {
+        return undefined;
+    }
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (node)) {
+        return undefined;
+    }
+    const name = node.name.escapedText;
+    const stringType = CSHARP_STRING_RETURN_METHODS[name];
+    if (stringType === undefined) {
+        return undefined;
+    }
+    // defense in depth: only retype while the checker still resolves a string-ish return
+    // (a future TS change that makes one declaration non-string would otherwise silently
+    // emit `string?` for a body that returns something else)
+    if (!stringishReturn (csharp, node)) {
+        return undefined;
+    }
+    return stringType;
+}
+
+function stringishReturn (csharp, node) {
+    if (typeof csharp.getChecker !== 'function') {
+        return true;
+    }
+    try {
+        const checker = csharp.getChecker ();
+        const signature = checker.getSignatureFromDeclaration (node);
+        if (signature === undefined) {
+            return true;
+        }
+        const type = checker.getReturnTypeOfSignature (signature);
+        const members = (type.flags & ts.TypeFlags.Union) ? type.types : [ type ];
+        let sawString = false;
+        for (const member of members) {
+            const flags = member.flags;
+            if (flags & (ts.TypeFlags.Undefined | ts.TypeFlags.Null)) {
+                continue;
+            }
+            if (flags & (ts.TypeFlags.String | ts.TypeFlags.StringLiteral)) {
+                sawString = true;
+                continue;
+            }
+            return false;
+        }
+        return sawString;
+    } catch (e) {
+        return true;
+    }
+}
+
+// wrap printFunctionType on a Transpiler's C# printer. Idempotent. Every method the
+// printer already typed (bool/bool?, void, Task<...>) and every method outside the table
+// is returned untouched; only an `object` print of a listed name is replaced.
+export function installCsharpStringReturns (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printFunctionType !== 'function' || csharp._stringReturnsPatched) {
+        return;
+    }
+    const upstream = csharp.printFunctionType.bind (csharp);
+    csharp.printFunctionType = (node) => {
+        const own = upstream (node);
+        const stringType = stringReturnType (csharp, node, own);
+        return (stringType === undefined) ? own : stringType;
+    };
+    csharp._stringReturnsPatched = true;
+}
 
 // this.<name>(...) -> C# type. Source of truth: the hand-written cs/ccxt/base/*.cs
 // signatures (the generated Exchange.BaseMethods.cs must NOT redeclare any of these as
@@ -280,7 +457,7 @@ export const CSHARP_LOCAL_THIS_RETURN_TYPES = {
     'yymmdd': 'string?',
     'microseconds': 'Int64',
     // Exchange.cs / Exchange.BaseMethods.cs — numeric helpers whose return type was
-    // `object` while every path already produced the named box (build/csharp-method-returns.js
+    // `object` while every path already produced the named box (the numeric-returns section at the end of this file
     // declares the same signatures; nonce/milliseconds are non-nullable Int64)
     'milliseconds': 'Int64',
     'nonce': 'Int64',
@@ -406,7 +583,7 @@ export const CSHARP_LOCAL_BARE_RETURN_TYPES = {
     'rsa': 'string',
 };
 
-// The generated non-async string-returning methods: build/csharp-string-returns.js emits
+// The generated non-async string-returning methods: installCsharpStringReturns (above) emits
 // `string` / `string?` on their C# signatures (they were `object`), so a local fed by one
 // of them is exactly that type. Hand-curated entries above win on a collision.
 for (const [ name, type ] of Object.entries (CSHARP_STRING_RETURN_METHODS)) {
@@ -2086,6 +2263,119 @@ export function installCsharpLocalTypes (transpiler) {
         };
     }
     csharp._localTypesPatched = true;
+}
+
+// ===== numeric base-method return signatures =====
+//
+// Concrete C# return types for base methods whose C# signature was `object` while the
+// value every return path already produces is a concrete type (the transpiler has no
+// way to name it: `number` maps to `object` for return types, and these methods carry
+// no usable annotation — `nonce ()` has none at all).
+//
+//   nonce()               -> Int64    returns this.seconds() / this.milliseconds(),
+//                                     or subtract(...) whose Int64 left operand keeps
+//                                     the Int64 box (49 definitions: base + overrides)
+//   parseToInt()          -> Int64?   parseInt() box: Int64 or null
+//   safeNumber()          -> double?  parseNumber() box: double or null
+//   safeNumber2()         -> double?
+//   safeNumberN()         -> double?
+//   safeNumberOmitZero()  -> double?  defaultValue only ever flows out as null here
+//
+// Every other return path that is not already the declared type is unboxed through
+// `object` exactly like the `: boolean` handling in the pinned ast-transpiler: the
+// printed expression keeps its upstream shape and the cast happens at the boundary.
+// The nullable spellings are the point: a missing value stays null, never 0.
+//
+// Deliberately NOT here (proved mixed-box in the runtime, see the PR notes):
+//   parseToNumeric()  -> parseInt path boxes Int64, parseFloat path boxes double
+//   sum()             -> Convert.ToInt64 box for integer-valued sums, double otherwise
+//
+// The local-typing map above registers the SAME names with
+// the same C# types; keep the two in sync (its scan rejects a typed local wherever
+// the declared type would re-bind an overload or a ref sink).
+//
+// IMPORTANT: like installCsharpLocalTypes, this must be installed before the printer
+// emits anything (setupCsharpPrinter installs both, pooled worker and main thread).
+
+export const CSHARP_NUMERIC_RETURN_TYPES = {
+    // Exchange.BaseMethods.cs (transpiled from ts/src/base/Exchange.ts)
+    'nonce': 'Int64',
+    'parseToInt': 'Int64?',
+    'safeNumber': 'double?',
+    'safeNumber2': 'double?',
+    'safeNumberN': 'double?',
+    'safeNumberOmitZero': 'double?',
+};
+
+// the mapped C# return type for a method declaration, or undefined to leave the
+// printer's own decision (annotated methods, async methods, every other name)
+function csharpMethodReturnType (csharp, node) {
+    if (node?.kind !== ts.SyntaxKind.MethodDeclaration) {
+        return undefined;
+    }
+    const mapped = CSHARP_NUMERIC_RETURN_TYPES[node.name?.escapedText];
+    if (mapped === undefined) {
+        return undefined;
+    }
+    if (typeof csharp.isAsyncFunction === 'function' && csharp.isAsyncFunction (node)) {
+        return undefined;
+    }
+    return mapped;
+}
+
+// `return <expr>;` inside a mapped method — wrap unless the expression already carries
+// the declared type (this.seconds() IS Int64) or converts to it without a box change
+// (an integer literal reaches Int64?/Int64 through the implicit numeric conversion; a
+// hard unbox would throw on its Int32 box, so those must NOT be wrapped)
+function needsUnboxingWrap (csharp, expression, mapped) {
+    if (expression === undefined) {
+        return false;
+    }
+    if (expression.kind === ts.SyntaxKind.NullKeyword) {
+        return false;
+    }
+    let expression2 = expression;
+    if (expression2.kind === ts.SyntaxKind.PrefixUnaryExpression && expression2.operator === ts.SyntaxKind.MinusToken) {
+        expression2 = expression2.operand;
+    }
+    if (expression2?.kind === ts.SyntaxKind.NumericLiteral && /^\d+$/.test (expression2.text)) {
+        return false;
+    }
+    if (typeof csharp.csharpTypeOfInitializer === 'function' && csharp.csharpTypeOfInitializer (expression) === mapped) {
+        return false;
+    }
+    return true;
+}
+
+export function installCsharpNumericReturns (transpiler) {
+    const csharp = transpiler?.csharpTranspiler;
+    if (!csharp || typeof csharp.printFunctionType !== 'function' || csharp._methodReturnTypesPatched) {
+        return;
+    }
+    const upstreamFunctionType = csharp.printFunctionType.bind (csharp);
+    csharp.printFunctionType = (node, ...rest) => {
+        const mapped = csharpMethodReturnType (csharp, node);
+        if (mapped !== undefined) {
+            return mapped;
+        }
+        return upstreamFunctionType (node, ...rest);
+    };
+    const upstreamReturnStatement = csharp.printReturnStatement.bind (csharp);
+    csharp.printReturnStatement = (node, identation) => {
+        // nearest function-like: a `return` inside an arrow/function expression belongs
+        // to that callback, never to the enclosing mapped method
+        const mapped = csharpMethodReturnType (csharp, ts.findAncestor (node.parent, ts.isFunctionLike));
+        if (mapped === undefined || !needsUnboxingWrap (csharp, node.expression, mapped)) {
+            return upstreamReturnStatement (node, identation);
+        }
+        const leadingComment = csharp.printLeadingComments (node, identation);
+        let trailingComment = csharp.printTraillingComment (node, identation);
+        trailingComment = trailingComment ? ' ' + trailingComment : trailingComment;
+        const value = csharp.printNode (node.expression, identation).trim ();
+        const forgiving = mapped.endsWith ('?') ? '' : '!';
+        return leadingComment + csharp.getIden (identation) + csharp.RETURN_TOKEN + ` ((${mapped})((object)(${value}))${forgiving})` + csharp.LINE_TERMINATOR + trailingComment;
+    };
+    csharp._methodReturnTypesPatched = true;
 }
 
 export default installCsharpLocalTypes;

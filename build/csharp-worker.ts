@@ -1,8 +1,6 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
-import { installCsharpLocalTypes } from './csharp-local-types.js';
-import { installCsharpMethodReturnTypes } from './csharp-method-returns.js';
-import { installCsharpStringReturns } from './csharp-string-returns.js';
+import { installCsharpLocalTypes, installCsharpNumericReturns, installCsharpStringReturns } from './csharp-local-types.js';
 import log from 'ololog'
 // "typescript6" is an npm alias for typescript@6 — the last release that ships the JS compiler API
 import ts from 'typescript6';
@@ -59,8 +57,9 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
     // so the pooled workers and the main-thread transpiler emit identical declarations
     installCsharpLocalTypes (transpiler);
     // concrete return types for the numeric base helpers whose C# signature was `object`
-    // (see build/csharp-method-returns.js) — the locals map registers the same types
-    installCsharpMethodReturnTypes (transpiler);
+    // (see the numeric-returns section of build/csharp-local-types.js) — the locals map
+    // registers the same types
+    installCsharpNumericReturns (transpiler);
     // `async <name> (...): Promise<boolean>` methods print `Task<bool>` / `Task<bool?>`
     // instead of `Task<object>`: the annotation names the exact value the method returns
     // (its body only ever returns booleans), and printFunctionType's bool branch + the
@@ -112,7 +111,8 @@ export function setupCsharpPrinter (transpiler: Transpiler) {
         return result;
     };
     // concrete return types for generated non-async string-returning methods (see
-    // build/csharp-string-returns.js); installed after the local-types hook so both see the
+    // the string-returns section of build/csharp-local-types.js); installed after the
+    // local-types hook so both see the
     // same table
     installCsharpStringReturns (transpiler);
 }
