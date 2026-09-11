@@ -72,6 +72,8 @@ namespace {
 
 using TestFn = void (*) ();
 
+void testAssertDeepEqual ();   // defined below runBaseTests (uses ccxt::testMainClass)
+
 struct Case {
     const char* name;
     TestFn run;
@@ -120,6 +122,7 @@ const std::vector<Case> CORE = {
     { "timeframes",                    testTimeframes },
     { "wsCache",                       testWsCache },
     { "wsOrderBook",                   testWsOrderBook },
+    { "assertDeepEqual",               testAssertDeepEqual },
 };
 
 // Transpiled and compiled by CMake into the tree, but NOT gated yet. Each is blocked on
@@ -150,6 +153,30 @@ const std::vector<std::pair<const char*, const char*>> STAGED = {
     { "afterConstructor",       "needs the throttler and sandbox plumbing" },
     { "safeTicker",             "depends on Number.h rounding" },
 };
+
+// CPP-002: prove the callDynamically helper registry end to end by driving the
+// transpiled test.sharedMethods assertDeepEqual over a real ExchangeBase. It
+// exercises jsonStringifyWithNull/capitalize/exceptionMessage (equal branch)
+// plus logTemplate's getProperty over the exchange any.
+void testAssertDeepEqual () {
+    ccxt::testMainClass testClass;
+    const std::any exchange = std::any (std::make_shared<ccxt::ExchangeBase> ());
+    const std::any skipped = ccxt::dict {};
+    const std::any method = std::string ("test");
+    const std::any a = ccxt::dict {{std::string ("x"), 1},
+                                   {std::string ("y"), ccxt::list {2.5, std::any {}}}};
+    const std::any b = ccxt::dict {{std::string ("x"), 1},
+                                   {std::string ("y"), ccxt::list {2.5, std::any {}}}};
+    testClass.assertDeepEqual (exchange, skipped, method, a, b);
+    bool threw = false;
+    try {
+        const std::any c = ccxt::dict {{std::string ("x"), 2}};
+        testClass.assertDeepEqual (exchange, skipped, method, a, c);
+    } catch (...) {
+        threw = true;
+    }
+    if (!threw) throw std::runtime_error ("assertDeepEqual did not throw on unequal dicts");
+}
 
 int runBaseTests () {
     int failures = 0;
