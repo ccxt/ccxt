@@ -1145,7 +1145,7 @@ func (this *Coinbaseexchange) HandleOrderBook(client any, message any) {
 	} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, "l2update")) {
 		var orderbook any = ccxt.GetValue(this.Orderbooks, symbol)
 		var timestamp any = this.Parse8601(this.SafeString(message, "time"))
-		var changes any = this.SafeValue(message, "changes", []any{})
+		var changes any = this.SafeList(message, "changes", []any{})
 		var sides map[string]any = map[string]any{
 			"sell": "asks",
 			"buy":  "bids",

@@ -497,7 +497,7 @@ func (this *Indodax) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Indodax) ParseBalance(response any) any {
 	var balances any = this.SafeValue(response, "return", map[string]any{})
-	var free any = this.SafeValue(balances, "balance", map[string]any{})
+	var free any = this.SafeDict(balances, "balance", map[string]any{})
 	var used any = this.SafeValue(balances, "balance_hold", map[string]any{})
 	var timestamp any = this.SafeTimestamp(balances, "server_time")
 	var result map[string]any = map[string]any{
@@ -1556,8 +1556,8 @@ func (this *Indodax) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	//     }
 	//
 	var data any = this.SafeValue(response, "return", map[string]any{})
-	var withdraw any = this.SafeValue(data, "withdraw", map[string]any{})
-	var deposit any = this.SafeValue(data, "deposit", map[string]any{})
+	var withdraw any = this.SafeDict(data, "withdraw", map[string]any{})
+	var deposit any = this.SafeDict(data, "deposit", map[string]any{})
 	var transactions any = []any{}
 	var currency any = nil
 	if IsTrue(IsEqual(code, nil)) {

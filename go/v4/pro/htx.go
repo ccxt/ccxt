@@ -1486,7 +1486,7 @@ func (this *Htx) HandleOrder(client any, message any) {
 	} else {
 		// contract branch
 		parsedOrder = this.ParseWsOrder(message, market)
-		var rawTrades any = this.SafeValue(message, "trade", []any{})
+		var rawTrades any = this.SafeList(message, "trade", []any{})
 		var tradesLength int = ccxt.GetArrayLength(rawTrades)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(tradesLength, 0)) {
 			var tradesObject map[string]any = map[string]any{
@@ -1998,7 +1998,7 @@ func (this *Htx) HandlePositions(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(clientPositions, nil)) {
 		ccxt.AddElementToObject(this.Positions, url, map[string]any{})
 	}
-	var rawPositions any = this.SafeValue(message, "data", []any{})
+	var rawPositions any = this.SafeList(message, "data", []any{})
 	if ccxt.IsTrue(this.IsEmpty(rawPositions)) {
 		var prefixes []any = []any{"cross:positions", "isolated:positions"}
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(prefixes)); i++ {
@@ -2294,7 +2294,7 @@ func (this *Htx) HandleBalance(client any, message any) {
 	//     }
 	//
 	var channel any = this.SafeString(message, "ch")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var timestamp any = this.SafeInteger(data, "changeTime", this.SafeInteger(message, "ts"))
 	ccxt.AddElementToObject(this.Balance, "timestamp", timestamp)
 	ccxt.AddElementToObject(this.Balance, "datetime", this.Iso8601(timestamp))
@@ -3047,7 +3047,7 @@ func (this *Htx) HandleMyTrade(client any, message any, optionalArgs ...any) {
 		} else {
 			// this trades object is artificially created
 			// in handleOrder
-			var rawTrades any = this.SafeValue(message, "trades", []any{})
+			var rawTrades any = this.SafeList(message, "trades", []any{})
 			var marketId any = this.SafeValue(message, "symbol")
 			var market any = this.Market(marketId)
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawTrades)); i++ {

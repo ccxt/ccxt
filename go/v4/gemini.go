@@ -959,7 +959,7 @@ func (this *Gemini) fetchUSDTMarketsBody(ch chan any, optionalArgs ...any) any {
 		ch <- []any{} // sandbox does not have usdt markets
 		return nil
 	}
-	var fetchUsdtMarkets any = this.SafeValue(this.Options, "fetchUsdtMarkets", []any{})
+	var fetchUsdtMarkets any = this.SafeList(this.Options, "fetchUsdtMarkets", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fetchUsdtMarkets)); i++ {
 		var marketId any = GetValue(fetchUsdtMarkets, i)

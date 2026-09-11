@@ -4021,10 +4021,10 @@ func (this *Htx) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any) a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-		var trades any = this.SafeValue(GetValue(data, i), "data", []any{})
+		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
 		for j := 0; IsLessThan(j, GetArrayLength(trades)); j++ {
 			var trade any = this.ParseTrade(GetValue(trades, j), market)
 			AppendToArray(&result, trade)
@@ -4551,7 +4551,7 @@ func (this *Htx) NetworkCodeToId(networkCode any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(keysLength, 0)) {
 		panic(ExchangeError(Add(this.Id, " networkCodeToId() - markets need to be loaded at first")))
 	}
-	var uniqueNetworkIds any = this.SafeValue(GetValue(this.Options, "networkChainIdsByNames"), currencyCode, map[string]any{})
+	var uniqueNetworkIds any = this.SafeDict(GetValue(this.Options, "networkChainIdsByNames"), currencyCode, map[string]any{})
 	if IsTrue(InOp(uniqueNetworkIds, networkCode)) {
 		return GetValue(uniqueNetworkIds, networkCode)
 	} else {
@@ -4846,7 +4846,7 @@ func (this *Htx) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 			}
 			result = this.SafeBalance(result)
 		} else {
-			var balances any = this.SafeValue(data, "list", []any{})
+			var balances any = this.SafeList(data, "list", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 				var balance any = GetValue(balances, i)
 				var currencyId any = this.SafeString(balance, "currency")
@@ -6571,7 +6571,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	var options any = this.SafeValue(this.Options, GetValue(market, "type"), map[string]any{})
 	var triggerPrice any = this.SafeStringN(params, []any{"triggerPrice", "stopPrice", "stop-price"})
 	if IsTrue(IsEqual(triggerPrice, nil)) {
-		var stopOrderTypes any = this.SafeValue(options, "stopOrderTypes", map[string]any{})
+		var stopOrderTypes any = this.SafeDict(options, "stopOrderTypes", map[string]any{})
 		if IsTrue(InOp(stopOrderTypes, orderType)) {
 			panic(ArgumentsRequired(Add(this.Id, " createOrder() requires a triggerPrice for a trigger order")))
 		}
@@ -6646,7 +6646,7 @@ func (this *Htx) createSpotOrderRequestBody(ch chan any, symbol any, typeVar any
 	} else {
 		AddElementToObject(request, "amount", this.AmountToPrecision(symbol, amount))
 	}
-	var limitOrderTypes any = this.SafeValue(options, "limitOrderTypes", map[string]any{})
+	var limitOrderTypes any = this.SafeDict(options, "limitOrderTypes", map[string]any{})
 	if IsTrue(InOp(limitOrderTypes, orderType)) {
 		AddElementToObject(request, "price", this.PriceToPrecision(symbol, price))
 	}
@@ -9027,7 +9027,7 @@ func (this *Htx) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) a
 		}
 	} else {
 		var cursor any = this.SafeValue(data, "current_page")
-		var result any = this.SafeValue(data, "data", []any{})
+		var result any = this.SafeList(data, "data", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
 			var entry any = GetValue(result, i)
 			AddElementToObject(entry, "current_page", cursor)
@@ -10046,7 +10046,7 @@ func (this *Htx) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 			panic(NotSupported(Add(this.Id, " fetchPositions() not support this market type")))
 		}
 	}
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var timestamp any = this.SafeInteger(response, "ts")
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
@@ -10745,7 +10745,7 @@ func (this *Htx) fetchOpenInterestBody(ch chan any, symbol any, optionalArgs ...
 		})
 		return nil
 	}
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var openInterest any = this.ParseOpenInterest(GetValue(data, 0), market)
 	AddElementToObject(openInterest, "timestamp", timestamp)
 	AddElementToObject(openInterest, "datetime", this.Iso8601(timestamp))
@@ -11334,7 +11334,7 @@ func (this *Htx) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chains any = this.SafeValue(fee, "chains", []any{})
+	var chains any = this.SafeList(fee, "chains", []any{})
 	var code any = this.SafeString(currency, "code")
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {

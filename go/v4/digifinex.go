@@ -988,7 +988,7 @@ func (this *Digifinex) fetchMarketsV1Body(ch chan any, optionalArgs ...any) any 
 	//         "code":0
 	//     }
 	//
-	var markets any = this.SafeValue(response, "data", []any{})
+	var markets any = this.SafeList(response, "data", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
@@ -1388,7 +1388,7 @@ func (this *Digifinex) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result map[string]any = map[string]any{}
-	var tickers any = this.SafeValue2(response, "ticker", "data", []any{})
+	var tickers any = this.SafeList2(response, "ticker", "data", []any{})
 	var date any = this.SafeInteger(response, "date")
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
 		var rawTicker map[string]any = this.Extend(map[string]any{
@@ -2484,7 +2484,7 @@ func (this *Digifinex) cancelOrderBody(ch chan any, id any, optionalArgs ...any)
 	//     }
 	//
 	if IsTrue(IsTrue((IsEqual(marketType, "spot"))) || IsTrue((IsEqual(marketType, "margin")))) {
-		var canceledOrders any = this.SafeValue(response, "success", []any{})
+		var canceledOrders any = this.SafeList(response, "success", []any{})
 		var numCanceledOrders int = GetArrayLength(canceledOrders)
 		if IsTrue(!IsEqual(numCanceledOrders, 1)) {
 			panic(OrderNotFound(Add(Add(Add(this.Id, " cancelOrder() "), id), " not found")))
@@ -4061,7 +4061,7 @@ func (this *Digifinex) fetchCrossBorrowRateBody(ch chan any, code any, optionalA
 	//         "equity": 45.133305540922
 	//     }
 	//
-	var data any = this.SafeValue(response, "list", []any{})
+	var data any = this.SafeList(response, "list", []any{})
 	var result any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
@@ -4361,7 +4361,7 @@ func (this *Digifinex) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var result any = this.SafeValue(data, "funding_rates", []any{})
+	var result any = this.SafeList(data, "funding_rates", []any{})
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
 		var entry any = GetValue(result, i)
@@ -4576,7 +4576,7 @@ func (this *Digifinex) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var positionRequest any = Ternary(IsTrue((IsEqual(marketType, "swap"))), "data", "positions")
-	var positions any = this.SafeValue(response, positionRequest, []any{})
+	var positions any = this.SafeList(response, positionRequest, []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		AppendToArray(&result, this.ParsePosition(GetValue(positions, i), market))
@@ -4689,7 +4689,7 @@ func (this *Digifinex) fetchPositionBody(ch chan any, symbol any, optionalArgs .
 	//     }
 	//
 	var dataRequest any = Ternary(IsTrue((IsEqual(marketType, "swap"))), "data", "positions")
-	var data any = this.SafeValue(response, dataRequest, []any{})
+	var data any = this.SafeList(response, dataRequest, []any{})
 	var position any = this.ParsePosition(GetValue(data, 0), market)
 	if IsTrue(IsEqual(marketType, "swap")) {
 

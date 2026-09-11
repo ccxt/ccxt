@@ -404,7 +404,7 @@ func (this *Bitstamp) HandleOrders(client any, message any) {
 	// }
 	//
 	var channel any = this.SafeString(message, "channel")
-	var order any = this.SafeValue(message, "data", map[string]any{})
+	var order any = this.SafeDict(message, "data", map[string]any{})
 	var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)

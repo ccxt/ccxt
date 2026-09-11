@@ -458,7 +458,7 @@ func (this *Poloniex) HandleOrderRequest(client any, message any) {
 	//    }
 	//
 	var messageHash any = this.SafeString(message, "id")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var orders any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var order any = ccxt.GetValue(data, i)
@@ -942,7 +942,7 @@ func (this *Poloniex) HandleTrade(client any, message any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var item any = ccxt.GetValue(data, i)
 		var marketId any = this.SafeString(item, "symbol")
@@ -1134,7 +1134,7 @@ func (this *Poloniex) HandleOrder(client any, message any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var orders any = this.Orders
 	if ccxt.IsTrue(ccxt.IsEqual(orders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit")
@@ -1321,7 +1321,7 @@ func (this *Poloniex) HandleTicker(client any, message any) any {
 	//        ]
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var item any = ccxt.GetValue(data, i)
@@ -1399,7 +1399,7 @@ func (this *Poloniex) HandleOrderBook(client any, message any) {
 	//        "action": "update"
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var typeVar any = this.SafeString(message, "action")
 	var snapshot bool = ccxt.IsEqual(typeVar, "snapshot")
 	var update bool = ccxt.IsEqual(typeVar, "update")
@@ -1565,7 +1565,7 @@ func (this *Poloniex) HandleMessage(client any, message any) {
 	} else if ccxt.IsTrue(ccxt.IsEqual(typeVar, nil)) {
 		this.HandleOrderRequest(client, message)
 	} else {
-		var data any = this.SafeValue(message, "data", []any{})
+		var data any = this.SafeList(message, "data", []any{})
 		var dataLength int = ccxt.GetArrayLength(data)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(dataLength, 0)) {
 			ccxt.CallDynamically(method, client, message)

@@ -548,7 +548,7 @@ func (this *Limitless) ParseMarket(raw any) any {
 	var groupId any = this.SafeStringN(raw, []any{"groupSlug", "groupId"}, slug)
 	// CTF condition id — needed to redeem a resolved winning position
 	var conditionId any = this.SafeString(raw, "conditionId")
-	var tokens any = this.SafeValue(raw, "tokens", map[string]any{})
+	var tokens any = this.SafeDict(raw, "tokens", map[string]any{})
 	// the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
 	// market is tradeable only while it is FUNDED and not yet expired
 	var isExpired any = this.SafeBool(raw, "expired", false)

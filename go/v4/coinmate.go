@@ -519,7 +519,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var market any = GetValue(data, i)
@@ -584,7 +584,7 @@ func (this *Coinmate) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Coinmate) ParseBalance(response any) any {
-	var balances any = this.SafeValue(response, "data", map[string]any{})
+	var balances any = this.SafeDict(response, "data", map[string]any{})
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
@@ -778,7 +778,7 @@ func (this *Coinmate) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	var keys []string = ObjectKeys(data)
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
@@ -1011,7 +1011,7 @@ func (this *Coinmate) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	var currency any = this.Currency(code)
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
-	var methods any = this.SafeValue(withdrawOptions, "methods", map[string]any{})
+	var methods any = this.SafeDict(withdrawOptions, "methods", map[string]any{})
 	var method any = this.SafeString(methods, code)
 	if IsTrue(IsEqual(method, nil)) {
 		var allowedCurrencies []string = ObjectKeys(methods)

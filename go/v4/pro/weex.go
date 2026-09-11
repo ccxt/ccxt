@@ -2447,7 +2447,7 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 		var feedback any = ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))
 
 		{
-			func(this *Weex) (ret_ any) {
+			ret__ := func(this *Weex) (ret_ any) {
 				defer func() {
 					if error := recover(); error != nil {
 						if error == "break" {
@@ -2468,6 +2468,10 @@ func (this *Weex) HandleErrorMessage(client any, message any) any {
 
 			}(this)
 
+			if ret__ != nil {
+				return ret__
+			}
+			return nil
 		}
 	}
 	return false

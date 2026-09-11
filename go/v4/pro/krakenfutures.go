@@ -1170,7 +1170,7 @@ func (this *Krakenfutures) HandleOrderSnapshot(client any, message any) {
 	//            ...
 	//        ]
 	//    }
-	var orders any = this.SafeValue(message, "orders", []any{})
+	var orders any = this.SafeList(message, "orders", []any{})
 	var limit any = this.SafeInteger(this.Options, "ordersLimit")
 	this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	var feed any = this.SafeString(message, "feed")
@@ -1731,7 +1731,7 @@ func (this *Krakenfutures) HandleBalance(client any, message any) {
 		client.(ccxt.ClientInterface).Resolve(ccxt.GetValue(this.Balance, "margin"), ccxt.Add(messageHash, "futures"))
 	}
 	if ccxt.IsTrue(!ccxt.IsEqual(flexFutures, nil)) {
-		var flexFutureCurrencies any = this.SafeValue(flexFutures, "currencies", map[string]any{})
+		var flexFutureCurrencies any = this.SafeDict(flexFutures, "currencies", map[string]any{})
 		var flexFuturesKeys []string = ccxt.ObjectKeys(flexFutureCurrencies) // multi-collateral margin account
 		var flexFuturesResult map[string]any = map[string]any{
 			"info":      message,
@@ -1782,7 +1782,7 @@ func (this *Krakenfutures) HandleMyTrades(client any, message any) {
 	//        ]
 	//    }
 	//
-	var trades any = this.SafeValue(message, "fills", []any{})
+	var trades any = this.SafeList(message, "fills", []any{})
 	var stored any = this.MyTrades
 	if ccxt.IsTrue(ccxt.IsEqual(stored, nil)) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)

@@ -132,7 +132,7 @@ func (this *Blockchaincom) HandleBalance(client any, message any) {
 	var result map[string]any = map[string]any{
 		"info": message,
 	}
-	var balances any = this.SafeValue(message, "balances", []any{})
+	var balances any = this.SafeList(message, "balances", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(balances)); i++ {
 		var entry any = ccxt.GetValue(balances, i)
 		var currencyId any = this.SafeString(entry, "currency")
@@ -643,7 +643,7 @@ func (this *Blockchaincom) HandleOrders(client any, message any) {
 	} else if ccxt.IsTrue(ccxt.IsEqual(event, "rejected")) {
 		panic(ccxt.ExchangeError(ccxt.Add(ccxt.Add(this.Id, " "), this.Json(message))))
 	} else if ccxt.IsTrue(ccxt.IsEqual(event, "snapshot")) {
-		var orders any = this.SafeValue(message, "orders", []any{})
+		var orders any = this.SafeList(message, "orders", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 			var order any = ccxt.GetValue(orders, i)
 			var parsedOrder any = this.ParseWsOrder(order)

@@ -396,7 +396,7 @@ func (this *Gemini) HandleOHLCV(client any, message any) any {
 	var marketId string = ccxt.ToLower(this.SafeString(message, "symbol", ""))
 	var market any = this.SafeMarket(marketId)
 	var symbol any = this.SafeSymbol(marketId, market)
-	var changes any = this.SafeValue(message, "changes", []any{})
+	var changes any = this.SafeList(message, "changes", []any{})
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var ohlcvsBySymbol any = this.SafeValue(this.Ohlcvs, symbol)
 	if ccxt.IsTrue(ccxt.IsEqual(ohlcvsBySymbol, nil)) {
@@ -473,7 +473,7 @@ func (this *Gemini) watchOrderBookBody(ch chan any, symbol any, optionalArgs ...
 }
 func (this *Gemini) HandleOrderBook(client any, message any) {
 	var isInitial bool = ccxt.IsTrue(ccxt.IsTrue((ccxt.InOp(message, "auction_events"))) && ccxt.IsTrue((ccxt.InOp(message, "trades")))) && ccxt.IsTrue((ccxt.InOp(message, "changes")))
-	var changes any = this.SafeValue(message, "changes", []any{})
+	var changes any = this.SafeList(message, "changes", []any{})
 	var marketId any = this.SafeStringLower(message, "symbol")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")

@@ -1886,7 +1886,7 @@ func (this *Bybit) HandleMyTrades(client any, message any) {
 	var executionFast bool = ccxt.IsEqual(topic, "execution.fast")
 	var data any = this.SafeValue(message, "data", []any{})
 	if !ccxt.IsTrue(ccxt.IsArray(data)) {
-		data = this.SafeValue(data, "result", []any{})
+		data = this.SafeList(data, "result", []any{})
 	}
 	if ccxt.IsTrue(ccxt.IsEqual(this.MyTrades, nil)) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
@@ -2113,7 +2113,7 @@ func (this *Bybit) HandlePositions(client any, message any) {
 	}
 	var cache any = this.Positions
 	var newPositions any = []any{}
-	var rawPositions any = this.SafeValue(message, "data", []any{})
+	var rawPositions any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
 		var position any = this.ParsePosition(rawPosition)
@@ -2576,7 +2576,7 @@ func (this *Bybit) HandleOrder(client any, message any) {
 		this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
 	}
 	var orders any = this.Orders
-	var rawOrders any = this.SafeValue(message, "data", []any{})
+	var rawOrders any = this.SafeList(message, "data", []any{})
 	var first any = this.SafeValue(rawOrders, 0, map[string]any{})
 	var category any = this.SafeString(first, "category")
 	var isSpot bool = ccxt.IsEqual(category, "spot")
@@ -2843,7 +2843,7 @@ func (this *Bybit) HandleBalance(client any, message any) {
 	var account any = nil
 	if ccxt.IsTrue(ccxt.IsEqual(topic, "outboundAccountInfo")) {
 		account = "spot"
-		var data any = this.SafeValue(message, "data", []any{})
+		var data any = this.SafeList(message, "data", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 			var B any = this.SafeValue(ccxt.GetValue(data, i), "B", []any{})
 			rawBalances = this.ArrayConcat(rawBalances, B)

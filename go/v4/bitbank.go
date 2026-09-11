@@ -692,7 +692,7 @@ func (this *Bitbank) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var pairs any = this.SafeValue(data, "pairs", []any{})
+	var pairs any = this.SafeList(data, "pairs", []any{})
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(pairs)); i++ {
 		var pair any = GetValue(pairs, i)
@@ -810,7 +810,7 @@ func (this *Bitbank) ParseBalance(response any) any {
 		"datetime":  nil,
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var assets any = this.SafeValue(data, "assets", []any{})
+	var assets any = this.SafeList(data, "assets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(assets)); i++ {
 		var balance any = GetValue(assets, i)
 		var currencyId any = this.SafeString(balance, "asset")

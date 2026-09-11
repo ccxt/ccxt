@@ -1213,7 +1213,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		//         "testnet": false
 		//     }
 		//
-		var currenciesResult any = this.SafeValue(currenciesResponse, "result", []any{})
+		var currenciesResult any = this.SafeList(currenciesResponse, "result", []any{})
 		for i := 0; IsLessThan(i, GetArrayLength(currenciesResult)); i++ {
 			var currencyId any = this.SafeString(GetValue(currenciesResult, i), "currency")
 			var request map[string]any = map[string]any{
@@ -1299,7 +1299,7 @@ func (this *Deribit) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		}
 	}
 	for i := 0; IsLessThan(i, GetArrayLength(instrumentsResponses)); i++ {
-		var instrumentsResult any = this.SafeValue(GetValue(instrumentsResponses, i), "result", []any{})
+		var instrumentsResult any = this.SafeList(GetValue(instrumentsResponses, i), "result", []any{})
 		for k := 0; IsLessThan(k, GetArrayLength(instrumentsResult)); k++ {
 			var market any = GetValue(instrumentsResult, k)
 			var kind any = this.SafeString(market, "kind")
@@ -2273,7 +2273,7 @@ func (this *Deribit) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var fees any = this.SafeValue(result, "fees", []any{})
+	var fees any = this.SafeList(result, "fees", []any{})
 	var perpetualFee map[string]any = map[string]any{}
 	var futureFee map[string]any = map[string]any{}
 	var optionFee map[string]any = map[string]any{}
@@ -3753,7 +3753,7 @@ func (this *Deribit) ParseVolatilityHistory(volatility any) any {
 	//         "testnet": false
 	//     }
 	//
-	var volatilityResult any = this.SafeValue(volatility, "result", []any{})
+	var volatilityResult any = this.SafeList(volatility, "result", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(volatilityResult)); i++ {
 		var timestamp any = this.SafeInteger(GetValue(volatilityResult, i), 0)
@@ -4252,7 +4252,7 @@ func (this *Deribit) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...an
 	//    }
 	//
 	var rates any = []any{}
-	var result any = this.SafeValue(response, "result", []any{})
+	var result any = this.SafeList(response, "result", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
 		var fr any = GetValue(result, i)
 		var rate any = this.ParseFundingRate(fr, market)

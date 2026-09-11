@@ -763,7 +763,7 @@ func (this *Bitmex) ParseCurrency(currency any) any {
 	var code any = this.SafeCurrencyCode(asset)
 	var id any = this.SafeString(currency, "currency")
 	var name any = this.SafeString(currency, "name")
-	var chains any = this.SafeValue(currency, "networks", []any{})
+	var chains any = this.SafeList(currency, "networks", []any{})
 	var depositEnabled bool = false
 	var withdrawEnabled bool = false
 	var networks map[string]any = map[string]any{}
@@ -3864,7 +3864,7 @@ func (this *Bitmex) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networks any = this.SafeValue(fee, "networks", []any{})
+	var networks any = this.SafeList(fee, "networks", []any{})
 	var networksLength int = GetArrayLength(networks)
 	var result map[string]any = map[string]any{
 		"info": fee,

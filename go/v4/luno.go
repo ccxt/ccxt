@@ -628,7 +628,7 @@ func (this *Luno) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var result any = []any{}
-	var markets any = this.SafeValue(response, "markets", []any{})
+	var markets any = this.SafeList(response, "markets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
 		var market any = GetValue(markets, i)
 		var id any = this.SafeString(market, "market_id")
@@ -741,7 +741,7 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.PrivateGetBalance(params))
 	PanicOnError(response)
-	var wallets any = this.SafeValue(response, "balance", []any{})
+	var wallets any = this.SafeList(response, "balance", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(wallets)); i++ {
 		var account any = GetValue(wallets, i)
@@ -760,7 +760,7 @@ func (this *Luno) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	return nil
 }
 func (this *Luno) ParseBalance(response any) any {
-	var wallets any = this.SafeValue(response, "balance", []any{})
+	var wallets any = this.SafeList(response, "balance", []any{})
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,

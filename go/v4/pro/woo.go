@@ -1782,7 +1782,7 @@ func (this *Woo) HandlePositions(client any, message any) {
 	//    }
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var rawPositions any = this.SafeValue(data, "positions", map[string]any{})
+	var rawPositions any = this.SafeDict(data, "positions", map[string]any{})
 	var postitionsIds []string = ccxt.ObjectKeys(rawPositions)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()

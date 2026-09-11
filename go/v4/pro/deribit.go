@@ -104,7 +104,7 @@ func (this *Deribit) watchBalanceBody(ch chan any, optionalArgs ...any) any {
 	ccxt.PanicOnError(retRes888)
 	var messageHash string = "balance"
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
-	var currencies any = this.SafeValue(this.Options, "currencies", []any{})
+	var currencies any = this.SafeList(this.Options, "currencies", []any{})
 	var channels any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(currencies)); i++ {
 		var currencyCode any = ccxt.GetValue(currencies, i)

@@ -6474,7 +6474,7 @@ func (this *Bitget) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var entry any = GetValue(data, i)
@@ -12736,7 +12736,7 @@ func (this *Bitget) transferBody(ch chan any, code any, amount any, fromAccount 
 	//         }
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", map[string]any{})
+	var data any = this.SafeDict(response, "data", map[string]any{})
 	AddElementToObject(data, "ts", this.SafeInteger(response, "requestTime"))
 
 	ch <- this.ParseTransfer(data, currency)
@@ -12820,7 +12820,7 @@ func (this *Bitget) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var chains any = this.SafeValue(fee, "chains", []any{})
+	var chains any = this.SafeList(fee, "chains", []any{})
 	var chainsLength int = GetArrayLength(chains)
 	var result map[string]any = map[string]any{
 		"info": fee,
@@ -13466,7 +13466,7 @@ func (this *Bitget) fetchIsolatedBorrowRateBody(ch chan any, symbol any, optiona
 	//
 	var timestamp any = this.SafeInteger(response, "requestTime")
 	var data any = this.SafeValue(response, "data", []any{})
-	var first any = this.SafeValue(data, 0, map[string]any{})
+	var first any = this.SafeDict(data, 0, map[string]any{})
 	AddElementToObject(first, "timestamp", timestamp)
 
 	ch <- this.ParseIsolatedBorrowRate(first, market)
@@ -13611,7 +13611,7 @@ func (this *Bitget) fetchCrossBorrowRateBody(ch chan any, code any, optionalArgs
 		//     }
 		//
 		var data any = this.SafeValue(response, "data", []any{})
-		result = this.SafeValue(data, 0, map[string]any{})
+		result = this.SafeDict(data, 0, map[string]any{})
 	}
 	var timestamp any = this.SafeInteger(response, "requestTime")
 	AddElementToObject(result, "timestamp", timestamp)

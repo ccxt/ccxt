@@ -3570,7 +3570,7 @@ func (this *Kucoin) GetCurrentPosition(symbol any) any {
 		return nil
 	}
 	var cache any = this.Positions.(*ccxt.ArrayCache).Hashmap
-	var symbolCache any = this.SafeValue(cache, symbol, map[string]any{})
+	var symbolCache any = this.SafeDict(cache, symbol, map[string]any{})
 	var values []any = ccxt.ObjectValues(symbolCache)
 	return this.SafeValue(values, 0)
 }

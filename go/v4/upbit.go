@@ -2389,7 +2389,7 @@ func (this *Upbit) ParseOrder(order any, optionalArgs ...any) any {
 	var feeCost any = this.SafeString(order, "paid_fee")
 	var marketId any = this.SafeString(order, "market")
 	market = this.SafeMarket(marketId, market)
-	var trades any = this.SafeValue(order, "trades", []any{})
+	var trades any = this.SafeList(order, "trades", []any{})
 	trades = this.ParseTrades(trades, market, nil, nil, map[string]any{
 		"order": id,
 		"type":  typeVar,

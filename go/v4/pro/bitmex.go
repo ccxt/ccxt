@@ -525,7 +525,7 @@ func (this *Bitmex) HandleLiquidation(client any, message any) {
 	//        ]
 	//    }
 	//
-	var rawLiquidations any = this.SafeValue(message, "data", []any{})
+	var rawLiquidations any = this.SafeList(message, "data", []any{})
 	var newLiquidations any = []any{}
 	if ccxt.IsTrue(ccxt.IsEqual(this.Liquidations, nil)) {
 		var limit any = this.SafeInteger(this.Options, "liquidationsLimit", 1000)
@@ -1064,7 +1064,7 @@ func (this *Bitmex) HandlePositions(client any, message any) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
 	var cache any = this.Positions
-	var rawPositions any = this.SafeValue(message, "data", []any{})
+	var rawPositions any = this.SafeList(message, "data", []any{})
 	var newPositions any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawPositions)); i++ {
 		var rawPosition any = ccxt.GetValue(rawPositions, i)
@@ -1311,7 +1311,7 @@ func (this *Bitmex) HandleOrders(client any, message any) {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var messageHash string = "order"
 	// initial subscription response with multiple orders
 	var dataLength int = ccxt.GetArrayLength(data)
@@ -1758,7 +1758,7 @@ func (this *Bitmex) HandleOHLCV(client any, message any) {
 	var interval string = ccxt.Replace(table, "tradeBin", "")
 	var timeframe any = this.FindTimeframe(interval)
 	var duration any = this.ParseTimeframe(timeframe)
-	var candles any = this.SafeValue(message, "data", []any{})
+	var candles any = this.SafeList(message, "data", []any{})
 	var results map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(candles)); i++ {
 		var candle any = ccxt.GetValue(candles, i)
@@ -1861,7 +1861,7 @@ func (this *Bitmex) HandleOrderBook(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(table, nil)) {
 		return // protecting from weird updates
 	}
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	// if it's an initial snapshot
 	if ccxt.IsTrue(ccxt.IsEqual(action, "partial")) {
 		var filter any = this.SafeDict(message, "filter", map[string]any{})
@@ -1976,7 +1976,7 @@ func (this *Bitmex) HandleErrorMessage(client any, message any) any {
 	var error any = this.SafeString(message, "error")
 	if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
 		var request any = this.SafeValue(message, "request", map[string]any{})
-		var args any = this.SafeValue(request, "args", []any{})
+		var args any = this.SafeList(request, "args", []any{})
 		var numArgs int = ccxt.GetArrayLength(args)
 		if ccxt.IsTrue(ccxt.IsGreaterThan(numArgs, 0)) {
 			var messageHash any = ccxt.GetValue(args, 0)

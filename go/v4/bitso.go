@@ -604,7 +604,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//             },
 	//         ]
 	//     }
-	var markets any = this.SafeValue(response, "payload", []any{})
+	var markets any = this.SafeList(response, "payload", []any{})
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies")
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(markets)); i++ {
@@ -623,7 +623,7 @@ func (this *Bitso) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var makerString any = this.SafeString(flatRate, "maker")
 		var taker any = this.ParseNumber(Precise.StringDiv(takerString, "100"))
 		var maker any = this.ParseNumber(Precise.StringDiv(makerString, "100"))
-		var feeTiers any = this.SafeValue(fees, "structure", []any{})
+		var feeTiers any = this.SafeList(fees, "structure", []any{})
 		var fee map[string]any = map[string]any{
 			"taker":      taker,
 			"maker":      maker,
@@ -791,7 +791,7 @@ func (this *Bitso) ParseCurrency(rawCurrency any) any {
 }
 func (this *Bitso) ParseBalance(response any) any {
 	var payload any = this.SafeValue(response, "payload", map[string]any{})
-	var balances any = this.SafeValue(payload, "balances", []any{})
+	var balances any = this.SafeList(payload, "balances", []any{})
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -1324,7 +1324,7 @@ func (this *Bitso) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//    }
 	//
 	var payload any = this.SafeValue(response, "payload", map[string]any{})
-	var fees any = this.SafeValue(payload, "fees", []any{})
+	var fees any = this.SafeList(payload, "fees", []any{})
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = GetValue(fees, i)
@@ -1550,7 +1550,7 @@ func (this *Bitso) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any) a
 	//         "payload": ["yWTQGxDMZ0VimZgZ"]
 	//     }
 	//
-	var payload any = this.SafeValue(response, "payload", []any{})
+	var payload any = this.SafeList(response, "payload", []any{})
 	var orders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
 		var id any = GetValue(payload, i)
@@ -1594,7 +1594,7 @@ func (this *Bitso) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	//         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
 	//     }
 	//
-	var payload any = this.SafeValue(response, "payload", []any{})
+	var payload any = this.SafeList(response, "payload", []any{})
 	var canceledOrders any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(payload)); i++ {
 		var order any = this.ParseOrder(GetValue(payload, i))
@@ -2071,7 +2071,7 @@ func (this *Bitso) fetchTransactionFeesBody(ch chan any, optionalArgs ...any) an
 	//
 	var result map[string]any = map[string]any{}
 	var payload any = this.SafeValue(response, "payload", map[string]any{})
-	var depositFees any = this.SafeValue(payload, "deposit_fees", []any{})
+	var depositFees any = this.SafeList(payload, "deposit_fees", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(depositFees)); i++ {
 		var depositFee any = GetValue(depositFees, i)
 		var currencyId any = this.SafeString(depositFee, "currency")
@@ -2237,7 +2237,7 @@ func (this *Bitso) ParseDepositWithdrawFees(response any, optionalArgs ...any) a
 	currencyIdKey := GetArg(optionalArgs, 1, nil)
 	_ = currencyIdKey
 	var result map[string]any = map[string]any{}
-	var depositResponse any = this.SafeValue(response, "deposit_fees", []any{})
+	var depositResponse any = this.SafeList(response, "deposit_fees", []any{})
 	var withdrawalResponse any = this.SafeValue(response, "withdrawal_fees", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(depositResponse)); i++ {
 		var entry any = GetValue(depositResponse, i)

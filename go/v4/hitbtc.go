@@ -1255,7 +1255,7 @@ func (this *Hitbtc) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	var typeVar any = this.SafeStringLower(params, "type", "spot")
 	params = this.Omit(params, []any{"type"})
-	var accountsByType any = this.SafeValue(this.Options, "accountsByType", map[string]any{})
+	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
 	var account any = Ternary(IsTrue((IsEqual(typeVar, nil))), nil, this.SafeString(accountsByType, typeVar, typeVar))
 	var response any = nil
 	if IsTrue(IsEqual(account, "wallet")) {
@@ -3454,7 +3454,7 @@ func (this *Hitbtc) convertCurrencyNetworkBody(ch chan any, code any, amount any
 	if IsTrue(!IsEqual(code, "USDT")) {
 		panic(ExchangeError(Add(this.Id, " convertCurrencyNetwork() only supports USDT currently")))
 	}
-	var networks any = this.SafeValue(this.Options, "networks", map[string]any{})
+	var networks any = this.SafeDict(this.Options, "networks", map[string]any{})
 	fromNetwork = ToUpper(fromNetwork)
 	toNetwork = ToUpper(toNetwork)
 	fromNetwork = this.SafeString(networks, fromNetwork) // handle ETH>ERC20 alias
@@ -3968,7 +3968,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 	var marginMode any = this.SafeString(position, "type")
 	var leverage any = this.SafeNumber(position, "leverage")
 	var datetime any = this.SafeString(position, "updated_at")
-	var positions any = this.SafeValue(position, "positions", []any{})
+	var positions any = this.SafeList(position, "positions", []any{})
 	var liquidationPrice any = nil
 	var entryPrice any = nil
 	var contracts any = nil
@@ -3978,7 +3978,7 @@ func (this *Hitbtc) ParsePosition(position any, optionalArgs ...any) any {
 		entryPrice = this.SafeNumber(entry, "price_entry")
 		contracts = this.SafeNumber(entry, "quantity")
 	}
-	var currencies any = this.SafeValue(position, "currencies", []any{})
+	var currencies any = this.SafeList(position, "currencies", []any{})
 	var collateral any = nil
 	for i := 0; IsLessThan(i, GetArrayLength(currencies)); i++ {
 		var entry any = GetValue(currencies, i)
@@ -4690,7 +4690,7 @@ func (this *Hitbtc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networks any = this.SafeValue(fee, "networks", []any{})
+	var networks any = this.SafeList(fee, "networks", []any{})
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; IsLessThan(j, GetArrayLength(networks)); j++ {
 		var networkEntry any = GetValue(networks, j)

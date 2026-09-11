@@ -1590,7 +1590,7 @@ func (this *Gate) HandleMyTrades(client any, message any) {
 	//     ]
 	// }
 	//
-	var result any = this.SafeValue(message, "result", []any{})
+	var result any = this.SafeList(message, "result", []any{})
 	var tradesLength int = ccxt.GetArrayLength(result)
 	if ccxt.IsTrue(ccxt.IsEqual(tradesLength, 0)) {
 		return
@@ -1738,7 +1738,7 @@ func (this *Gate) HandleBalance(client any, message any) {
 	//       ]
 	//   }
 	//
-	var result any = this.SafeValue(message, "result", []any{})
+	var result any = this.SafeList(message, "result", []any{})
 	ccxt.AddElementToObject(this.Balance, "info", result)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(result)); i++ {
 		var rawBalance any = ccxt.GetValue(result, i)
@@ -1941,7 +1941,7 @@ func (this *Gate) HandlePositions(client any, message any) {
 	//    }
 	//
 	var typeVar any = this.GetMarketTypeByUrl(client.(ccxt.ClientInterface).GetUrl())
-	var data any = this.SafeValue(message, "result", []any{})
+	var data any = this.SafeList(message, "result", []any{})
 	var cache any = ccxt.GetValue(this.Positions, typeVar)
 	var newPositions any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {

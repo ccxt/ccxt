@@ -9191,7 +9191,7 @@ func (this *Gate) Sign(path any, optionalArgs ...any) any {
 				body = this.Json(query)
 			}
 		} else {
-			var urlQueryParams any = this.SafeValue(query, "query", map[string]any{})
+			var urlQueryParams any = this.SafeDict(query, "query", map[string]any{})
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(urlQueryParams)), 0)) {
 				queryString = this.Urlencode(urlQueryParams)
 				url = Add(url, Add("?", queryString))

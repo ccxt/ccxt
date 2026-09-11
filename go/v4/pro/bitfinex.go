@@ -1102,7 +1102,7 @@ func (this *Bitfinex) HandleBalance(client any, message any, subscription any) {
 		var code any = this.SafeCurrencyCode(currencyId)
 		var balance any = this.ParseWsBalance(rawBalance)
 		var balanceType any = this.SafeString(rawBalance, 0)
-		var oldBalance any = this.SafeValue(this.Balance, balanceType, map[string]any{})
+		var oldBalance any = this.SafeDict(this.Balance, balanceType, map[string]any{})
 		if ccxt.IsTrue(!ccxt.IsEqual(code, nil)) {
 			ccxt.AddElementToObject(oldBalance, code, balance)
 		}
@@ -1357,7 +1357,7 @@ func (this *Bitfinex) HandleOrders(client any, message any, subscription any) {
 	//        ]
 	//    ]
 	//
-	var data any = this.SafeValue(message, 2, []any{})
+	var data any = this.SafeList(message, 2, []any{})
 	var messageType any = this.SafeString(message, 1)
 	if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)

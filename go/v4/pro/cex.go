@@ -122,7 +122,7 @@ func (this *Cex) HandleBalance(client any, message any) {
 	//     }
 	//
 	var data any = this.SafeValue(message, "data", map[string]any{})
-	var freeBalance any = this.SafeValue(data, "balance", map[string]any{})
+	var freeBalance any = this.SafeDict(data, "balance", map[string]any{})
 	var usedBalance any = this.SafeValue(data, "obalance", map[string]any{})
 	var result map[string]any = map[string]any{
 		"info": data,
@@ -1083,7 +1083,7 @@ func (this *Cex) HandleOrdersSnapshot(client any, message any) {
 	//     }
 	//
 	var symbol any = this.SafeString(message, "oid") // symbol is set as requestId in watchOrders
-	var rawOrders any = this.SafeValue(message, "data", []any{})
+	var rawOrders any = this.SafeList(message, "data", []any{})
 	var myOrders any = this.Orders
 	if ccxt.IsTrue(ccxt.IsEqual(myOrders, nil)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -1390,7 +1390,7 @@ func (this *Cex) HandleOHLCV(client any, message any) {
 	//         "pair": "BTC:USD"
 	//     }
 	//
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var pair any = this.SafeString(message, "pair")
 	var symbol any = this.PairToSymbol(pair)
 	var messageHash any = ccxt.Add("ohlcv:", symbol)

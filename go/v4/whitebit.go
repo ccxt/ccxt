@@ -5599,7 +5599,7 @@ func (this *Whitebit) HandleErrors(code any, reason any, url any, method any, he
 				var errorsLength int = GetArrayLength(errorKeys)
 				if IsTrue(IsGreaterThan(errorsLength, 0)) {
 					var errorKey any = GetValue(errorKeys, 0)
-					var errorMessageArray any = this.SafeValue(errorObject, errorKey, []any{})
+					var errorMessageArray any = this.SafeList(errorObject, errorKey, []any{})
 					var errorMessageLength int = GetArrayLength(errorMessageArray)
 					errorInfo = Ternary(IsTrue((IsGreaterThan(errorMessageLength, 0))), GetValue(errorMessageArray, 0), body)
 				}

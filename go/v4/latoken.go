@@ -770,7 +770,7 @@ func (this *Latoken) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	var types any = this.SafeValue(this.Options, "types", map[string]any{})
 	var accountType any = this.SafeString(types, typeVar, typeVar)
 	var balancesByType map[string]any = this.GroupBy(response, "type")
-	var balances any = this.SafeValue(balancesByType, accountType, []any{})
+	var balances any = this.SafeList(balancesByType, accountType, []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId any = this.SafeString(balance, "currency")

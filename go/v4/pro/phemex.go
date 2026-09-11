@@ -300,7 +300,7 @@ func (this *Phemex) HandleTicker(client any, message any) {
 		var ticker any = this.SafeValue(message, "spot_market24h")
 		ccxt.AppendToArray(&tickers, this.ParseTicker(ticker))
 	} else if ccxt.IsTrue(ccxt.InOp(message, "data")) {
-		var data any = this.SafeValue(message, "data", []any{})
+		var data any = this.SafeList(message, "data", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 			ccxt.AppendToArray(&tickers, this.ParsePerpetualTicker(ccxt.GetValue(data, i)))
 		}
@@ -1335,7 +1335,7 @@ func (this *Phemex) HandleOrders(client any, message any) {
 		if ccxt.IsTrue(ccxt.IsEqual(ordersLength, 0)) {
 			return
 		}
-		trades = this.SafeValue(message, "fills", []any{})
+		trades = this.SafeList(message, "fills", []any{})
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 			var rawOrder any = ccxt.GetValue(orders, i)
 			var parsedOrder any = this.ParseOrder(rawOrder)

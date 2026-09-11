@@ -813,7 +813,7 @@ func (this *Bitget) HandleOHLCV(client any, message any) {
 		stored = ccxt.NewArrayCacheByTimestamp(limit)
 		ccxt.AddElementToObject(ccxt.GetValue(this.Ohlcvs, symbol), timeframe, stored)
 	}
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var parsed any = this.ParseWsOHLCV(ccxt.GetValue(data, i), market)
 		stored.(ccxt.Appender).Append(parsed)
@@ -2803,7 +2803,7 @@ func (this *Bitget) HandleBalance(client any, message any) {
 	//
 	var arg any = this.SafeDict(message, "arg", map[string]any{})
 	var instType any = this.SafeStringLower(arg, "instType")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var rawBalance any = ccxt.GetValue(data, i)
 		if ccxt.IsTrue(ccxt.IsEqual(instType, "uta")) {

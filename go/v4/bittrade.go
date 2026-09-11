@@ -820,7 +820,7 @@ func (this *Bittrade) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//    }
 	//
-	var markets any = this.SafeValue(response, "data", []any{})
+	var markets any = this.SafeList(response, "data", []any{})
 	var numMarkets int = GetArrayLength(markets)
 	if IsTrue(IsLessThan(numMarkets, 1)) {
 		panic(NetworkError(Add(Add(this.Id, " fetchMarkets() returned empty response: "), this.Json(markets))))
@@ -1148,7 +1148,7 @@ func (this *Bittrade) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.MarketGetTickers(params))
 	PanicOnError(response)
-	var tickers any = this.SafeValue(response, "data", []any{})
+	var tickers any = this.SafeList(response, "data", []any{})
 	var timestamp any = this.SafeInteger(response, "ts")
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tickers)); i++ {
@@ -1408,10 +1408,10 @@ func (this *Bittrade) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
-		var trades any = this.SafeValue(GetValue(data, i), "data", []any{})
+		var trades any = this.SafeList(GetValue(data, i), "data", []any{})
 		for j := 0; IsLessThan(j, GetArrayLength(trades)); j++ {
 			var trade any = this.ParseTrade(GetValue(trades, j), market)
 			AppendToArray(&result, trade)
@@ -1639,7 +1639,7 @@ func (this *Bittrade) ParseCurrency(currency any) any {
 	})
 }
 func (this *Bittrade) ParseBalance(response any) any {
-	var balances any = this.SafeValue(GetValue(response, "data"), "list", []any{})
+	var balances any = this.SafeList(GetValue(response, "data"), "list", []any{})
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

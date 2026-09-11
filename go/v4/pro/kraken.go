@@ -1193,7 +1193,7 @@ func (this *Kraken) HandleOrderBook(client any, message any) {
 	var data any = this.SafeList(message, "data", []any{})
 	var first any = this.SafeDict(data, 0, map[string]any{})
 	var symbol any = this.SafeString(first, "symbol")
-	var a any = this.SafeValue(first, "asks", []any{})
+	var a any = this.SafeList(first, "asks", []any{})
 	var b any = this.SafeValue(first, "bids", []any{})
 	var c any = this.SafeInteger(first, "checksum")
 	var messageHash any = this.GetMessageHash("orderbook", nil, symbol)
@@ -1221,7 +1221,7 @@ func (this *Kraken) HandleOrderBook(client any, message any) {
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 			var key any = ccxt.GetValue(keys, i)
 			var bookside any = ccxt.GetValue(orderbook, key)
-			var deltas any = this.SafeValue(first, key, []any{})
+			var deltas any = this.SafeList(first, key, []any{})
 			var deltasLength int = ccxt.GetArrayLength(deltas)
 			if ccxt.IsTrue(ccxt.IsGreaterThan(deltasLength, 0)) {
 				this.CustomHandleDeltas(bookside, deltas)
@@ -1705,7 +1705,7 @@ func (this *Kraken) HandleOrders(client any, message any, optionalArgs ...any) {
 			var length int = ccxt.GetArrayLength(stored)
 			if ccxt.IsTrue(ccxt.IsTrue(ccxt.IsEqual(length, limit)) && ccxt.IsTrue((ccxt.IsEqual(previousOrder, nil)))) {
 				var first any = ccxt.GetValue(stored, 0)
-				var symbolsByOrderId any = this.SafeValue(this.Options, "symbolsByOrderId", map[string]any{})
+				var symbolsByOrderId any = this.SafeDict(this.Options, "symbolsByOrderId", map[string]any{})
 				if ccxt.IsTrue(ccxt.InOp(symbolsByOrderId, ccxt.GetValue(first, "id"))) {
 					ccxt.Remove(symbolsByOrderId, ccxt.GetValue(first, "id"))
 				}

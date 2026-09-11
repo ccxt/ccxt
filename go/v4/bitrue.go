@@ -1217,7 +1217,7 @@ func (this *Bitrue) ParseBalance(response any) any {
 		"info": response,
 	}
 	var timestamp any = this.SafeInteger(response, "updateTime")
-	var balances any = this.SafeValue2(response, "balances", "account", []any{})
+	var balances any = this.SafeList2(response, "balances", "account", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId any = this.SafeString2(balance, "asset", "marginCoin")

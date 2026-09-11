@@ -144,7 +144,7 @@ func (this *Whitebit) HandleOHLCV(client any, message any) any {
 	//     "id": null
 	// }
 	//
-	var params any = this.SafeValue(message, "params", []any{})
+	var params any = this.SafeList(message, "params", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(params)); i++ {
 		var data any = ccxt.GetValue(params, i)
 		var marketId any = this.SafeString(data, 7)
@@ -1120,7 +1120,7 @@ func (this *Whitebit) watchMultipleSubscriptionBody(ch chan any, messageHash any
 		ch <- retRes92119
 		return nil
 	} else {
-		var subscription any = this.SafeValue(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
+		var subscription any = this.SafeDict(client.(ccxt.ClientInterface).GetSubscriptions(), method, map[string]any{})
 		var hasSymbolSubscription bool = true
 		var market any = this.Market(symbol)
 		var marketId any = ccxt.GetValue(market, "id")

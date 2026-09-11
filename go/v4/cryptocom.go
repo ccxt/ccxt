@@ -1648,7 +1648,7 @@ func (this *Cryptocom) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 func (this *Cryptocom) ParseBalance(response any) any {
 	var responseResult any = this.SafeDict(response, "result", map[string]any{})
 	var data any = this.SafeList(responseResult, "data", []any{})
-	var positionBalances any = this.SafeValue(GetValue(data, 0), "position_balances", []any{})
+	var positionBalances any = this.SafeList(GetValue(data, 0), "position_balances", []any{})
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

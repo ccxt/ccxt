@@ -2327,7 +2327,7 @@ func (this *Woofipro) ParseOrder(order any, optionalArgs ...any) any {
 	var childOrders any = this.SafeValue(order, "childOrders")
 	if IsTrue(!IsEqual(childOrders, nil)) {
 		var first any = this.SafeValue(childOrders, 0)
-		var innerChildOrders any = this.SafeValue(first, "childOrders", []any{})
+		var innerChildOrders any = this.SafeList(first, "childOrders", []any{})
 		var innerChildOrdersLength int = GetArrayLength(innerChildOrders)
 		if IsTrue(IsGreaterThan(innerChildOrdersLength, 0)) {
 			var takeProfitOrder any = this.SafeValue(innerChildOrders, 0)

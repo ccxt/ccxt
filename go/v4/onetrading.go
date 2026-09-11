@@ -1390,7 +1390,7 @@ func (this *Onetrading) ParseTrade(trade any, optionalArgs ...any) any {
 	}, market)
 }
 func (this *Onetrading) ParseBalance(response any) any {
-	var balances any = this.SafeValue(response, "balances", []any{})
+	var balances any = this.SafeList(response, "balances", []any{})
 	var result map[string]any = map[string]any{
 		"info": response,
 	}

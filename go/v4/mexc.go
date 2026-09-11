@@ -1533,7 +1533,7 @@ func (this *Mexc) ParseCurrency(rawCurrency any) any {
 	var id any = this.SafeString(rawCurrency, "coin")
 	var code any = this.SafeCurrencyCode(id)
 	var networks map[string]any = map[string]any{}
-	var chains any = this.SafeValue(rawCurrency, "networkList", []any{})
+	var chains any = this.SafeList(rawCurrency, "networkList", []any{})
 	for j := 0; IsLessThan(j, GetArrayLength(chains)); j++ {
 		var chain any = GetValue(chains, j)
 		var networkId any = this.SafeString2(chain, "netWork", "network")
@@ -1677,7 +1677,7 @@ func (this *Mexc) fetchSpotMarketsBody(ch chan any, optionalArgs ...any) any {
 	// Notes:
 	// - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
 	//
-	var data any = this.SafeValue(response, "symbols", []any{})
+	var data any = this.SafeList(response, "symbols", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var market any = GetValue(data, i)
@@ -1822,7 +1822,7 @@ func (this *Mexc) fetchSwapMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         ]
 	//     }
 	//
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var market any = GetValue(data, i)
@@ -4540,7 +4540,7 @@ func (this *Mexc) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 
 	response := (<-this.FetchAccountHelperAsync(marketType, query))
 	PanicOnError(response)
-	var data any = this.SafeValue(response, "balances", []any{})
+	var data any = this.SafeList(response, "balances", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var account any = GetValue(data, i)
@@ -4678,11 +4678,11 @@ func (this *Mexc) CustomParseBalance(response any, marketType any) any {
 	//
 	var wallet any = nil
 	if IsTrue(IsEqual(marketType, "margin")) {
-		wallet = this.SafeValue(response, "assets", []any{})
+		wallet = this.SafeList(response, "assets", []any{})
 	} else if IsTrue(IsEqual(marketType, "swap")) {
-		wallet = this.SafeValue(response, "data", []any{})
+		wallet = this.SafeList(response, "data", []any{})
 	} else {
-		wallet = this.SafeValue(response, "balances", []any{})
+		wallet = this.SafeList(response, "balances", []any{})
 	}
 	var result any = map[string]any{
 		"info": response,
@@ -5309,7 +5309,7 @@ func (this *Mexc) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) any 
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var resultList any = this.SafeValue(data, "resultList", []any{})
+	var resultList any = this.SafeList(data, "resultList", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(resultList)); i++ {
 		var entry any = GetValue(resultList, i)
@@ -5530,7 +5530,7 @@ func (this *Mexc) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...any) 
 	//    }
 	//
 	var data any = this.SafeValue(response, "data")
-	var result any = this.SafeValue(data, "resultList", []any{})
+	var result any = this.SafeList(data, "resultList", []any{})
 	var rates any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(result)); i++ {
 		var entry any = GetValue(result, i)
@@ -7083,7 +7083,7 @@ func (this *Mexc) ParseTransactionFee(transaction any, optionalArgs ...any) any 
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkList any = this.SafeValue(transaction, "networkList", []any{})
+	var networkList any = this.SafeList(transaction, "networkList", []any{})
 	var result map[string]any = map[string]any{}
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkEntry any = GetValue(networkList, j)
@@ -7186,7 +7186,7 @@ func (this *Mexc) ParseDepositWithdrawFee(fee any, optionalArgs ...any) any {
 	//
 	currency := GetArg(optionalArgs, 0, nil)
 	_ = currency
-	var networkList any = this.SafeValue(fee, "networkList", []any{})
+	var networkList any = this.SafeList(fee, "networkList", []any{})
 	var result any = this.DepositWithdrawFee(fee)
 	for j := 0; IsLessThan(j, GetArrayLength(networkList)); j++ {
 		var networkEntry any = GetValue(networkList, j)

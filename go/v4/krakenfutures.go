@@ -544,7 +544,7 @@ func (this *Krakenfutures) fetchMarketsBody(ch chan any, optionalArgs ...any) an
 	//        "serverTime": "2018-07-19T11:32:39.433Z"
 	//    }
 	//
-	var instruments any = this.SafeValue(response, "instruments", []any{})
+	var instruments any = this.SafeList(response, "instruments", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(instruments)); i++ {
 		var market any = GetValue(instruments, i)
@@ -1876,7 +1876,7 @@ func (this *Krakenfutures) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 		PanicOnError(retRes155712)
 	}
 	var orders any = []any{}
-	var clientOrderIds any = this.SafeValue(params, "clientOrderIds", []any{})
+	var clientOrderIds any = this.SafeList(params, "clientOrderIds", []any{})
 	var clientOrderIdsLength int = GetArrayLength(clientOrderIds)
 	if IsTrue(IsGreaterThan(clientOrderIdsLength, 0)) {
 		for i := 0; IsLessThan(i, GetArrayLength(clientOrderIds)); i++ {
@@ -2768,7 +2768,7 @@ func (this *Krakenfutures) ParseOrder(order any, optionalArgs ...any) any {
 			"trades":              nil,
 		})
 	}
-	var orderEvents any = this.SafeValue(order, "orderEvents", []any{})
+	var orderEvents any = this.SafeList(order, "orderEvents", []any{})
 	var errorStatus any = this.SafeString(order, "status")
 	var orderEventsLength int = GetArrayLength(orderEvents)
 	if IsTrue(IsTrue(IsTrue((InOp(order, "orderEvents"))) && IsTrue((!IsEqual(errorStatus, nil)))) && IsTrue((IsEqual(orderEventsLength, 0)))) {
@@ -3394,7 +3394,7 @@ func (this *Krakenfutures) ParseBalance(response any) any {
 	var accountType any = this.SafeString2(response, "accountType", "type")
 	var isFlex bool = (IsEqual(accountType, "multiCollateralMarginAccount"))
 	var isCash bool = (IsEqual(accountType, "cashAccount"))
-	var balances any = this.SafeValue2(response, "balances", "currencies", map[string]any{})
+	var balances any = this.SafeDict2(response, "balances", "currencies", map[string]any{})
 	var result map[string]any = map[string]any{}
 	var currencyIds []string = ObjectKeys(balances)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {

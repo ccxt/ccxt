@@ -599,7 +599,7 @@ func (this *Cryptocom) HandleTrades(client any, message any) {
 		stored = ccxt.NewArrayCache(limit)
 		ccxt.AddElementToObject(this.Trades, symbol, stored)
 	}
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var dataLength int = ccxt.GetArrayLength(data)
 	if ccxt.IsTrue(ccxt.IsEqual(dataLength, 0)) {
 		return
@@ -858,7 +858,7 @@ func (this *Cryptocom) HandleTicker(client any, message any) {
 	var messageHash any = this.SafeString(message, "subscription")
 	var marketId any = this.SafeString(message, "instrument_name")
 	var market any = this.SafeMarket(marketId)
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var ticker any = ccxt.GetValue(data, i)
 		var parsed any = this.ParseWsTicker(ticker, market)
@@ -1214,7 +1214,7 @@ func (this *Cryptocom) HandleOrders(client any, message any, optionalArgs ...any
 	_ = subscription
 	var channel any = this.SafeString(message, "channel")
 	var symbolSpecificMessageHash any = this.SafeString(message, "subscription")
-	var orders any = this.SafeValue(message, "data", []any{})
+	var orders any = this.SafeList(message, "data", []any{})
 	var ordersLength int = ccxt.GetArrayLength(orders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ordersLength, 0)) {
 		if ccxt.IsTrue(ccxt.IsEqual(this.Orders, nil)) {
@@ -1380,7 +1380,7 @@ func (this *Cryptocom) HandlePositions(client any, message any) {
 	// and has exactly one subscriptionhash which is the account type
 	var data any = this.SafeValue(message, "data", []any{})
 	var firstData any = this.SafeValue(data, 0, map[string]any{})
-	var rawPositions any = this.SafeValue(firstData, "positions", []any{})
+	var rawPositions any = this.SafeList(firstData, "positions", []any{})
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -1478,8 +1478,8 @@ func (this *Cryptocom) HandleBalance(client any, message any) {
 	//     }
 	//
 	var messageHash any = this.SafeString(message, "subscription")
-	var data any = this.SafeValue(message, "data", []any{})
-	var positionBalances any = this.SafeValue(ccxt.GetValue(data, 0), "position_balances", []any{})
+	var data any = this.SafeList(message, "data", []any{})
+	var positionBalances any = this.SafeList(ccxt.GetValue(data, 0), "position_balances", []any{})
 	ccxt.AddElementToObject(this.Balance, "info", data)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(positionBalances)); i++ {
 		var balance any = ccxt.GetValue(positionBalances, i)

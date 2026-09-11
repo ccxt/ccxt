@@ -2427,7 +2427,7 @@ func (this *Phemex) ParseSpotBalance(response any) any {
 	var result map[string]any = map[string]any{
 		"info": response,
 	}
-	var data any = this.SafeValue(response, "data", []any{})
+	var data any = this.SafeList(response, "data", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(data)); i++ {
 		var balance any = GetValue(data, i)
 		var currencyId any = this.SafeString(balance, "currency")
@@ -4655,7 +4655,7 @@ func (this *Phemex) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var positions any = this.SafeValue(data, "positions", []any{})
+	var positions any = this.SafeList(data, "positions", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(positions)); i++ {
 		var position any = GetValue(positions, i)
@@ -4998,7 +4998,7 @@ func (this *Phemex) fetchFundingHistoryBody(ch chan any, optionalArgs ...any) an
 	//     }
 	//
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var rows any = this.SafeValue(data, "rows", []any{})
+	var rows any = this.SafeList(data, "rows", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rows)); i++ {
 		var entry any = GetValue(rows, i)
@@ -6580,7 +6580,7 @@ func (this *Phemex) fetchPositionsADLRankBody(ch chan any, optionalArgs ...any) 
 		PanicOnError(response)
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var ranks any = this.SafeValue(data, "positions", []any{})
+	var ranks any = this.SafeList(data, "positions", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(ranks)); i++ {
 		var rank any = GetValue(ranks, i)

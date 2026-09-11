@@ -431,7 +431,7 @@ func (this *Okx) HandleTrades(client any, message any) {
 	var channel any = this.SafeString(arg, "channel")
 	var marketId any = this.SafeString(arg, "instId")
 	var symbol any = this.SafeSymbol(marketId)
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var tradesLimit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var trade any = this.ParseTrade(ccxt.GetValue(data, i))
@@ -845,7 +845,7 @@ func (this *Okx) HandleTicker(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel any = this.SafeString(arg, "channel")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var newTickers map[string]any = map[string]any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var ticker any = this.ParseTicker(ccxt.GetValue(data, i))
@@ -1526,7 +1526,7 @@ func (this *Okx) HandleOHLCV(client any, message any) {
 	if ccxt.IsTrue(ccxt.IsEqual(channel, nil)) {
 		return
 	}
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	var marketId any = this.SafeString(arg, "instId")
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
@@ -2402,7 +2402,7 @@ func (this *Okx) HandlePositions(client any, message any) {
 	var market any = this.SafeMarket(marketId, nil, "-")
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var channel any = this.SafeString(arg, "channel", "")
-	var data any = this.SafeValue(message, "data", []any{})
+	var data any = this.SafeList(message, "data", []any{})
 	if ccxt.IsTrue(ccxt.IsEqual(this.Positions, nil)) {
 		this.Positions = ccxt.NewArrayCacheBySymbolBySide()
 	}
@@ -2570,7 +2570,7 @@ func (this *Okx) HandleOrders(client any, message any) {
 	this.HandleMyTrades(client, message)
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
-	var orders any = this.SafeValue(message, "data", []any{})
+	var orders any = this.SafeList(message, "data", []any{})
 	var ordersLength int = ccxt.GetArrayLength(orders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(ordersLength, 0)) {
 		var limit any = this.SafeInteger(this.Options, "ordersLimit", 1000)
@@ -2652,7 +2652,7 @@ func (this *Okx) HandleMyTrades(client any, message any) {
 	//
 	var arg any = this.SafeValue(message, "arg", map[string]any{})
 	var channel any = this.SafeString(arg, "channel")
-	var rawOrders any = this.SafeValue(message, "data", []any{})
+	var rawOrders any = this.SafeList(message, "data", []any{})
 	var filteredOrders any = []any{}
 	// filter orders with no last trade id
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(rawOrders)); i++ {

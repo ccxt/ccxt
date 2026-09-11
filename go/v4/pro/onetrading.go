@@ -262,7 +262,7 @@ func (this *Onetrading) HandleTicker(client any, message any) {
 	//         "time": "2022-06-23T16:41:00.004162Z"
 	//     }
 	//
-	var tickers any = this.SafeValue(message, "ticker_updates", []any{})
+	var tickers any = this.SafeList(message, "ticker_updates", []any{})
 	var datetime any = this.SafeString(message, "time")
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tickers)); i++ {
 		var ticker any = ccxt.GetValue(tickers, i)
@@ -835,7 +835,7 @@ func (this *Onetrading) HandleOrders(client any, message any) {
 		var limit any = this.SafeInteger(this.Options, "tradesLimit", 1000)
 		this.MyTrades = ccxt.NewArrayCacheBySymbolById(limit)
 	}
-	var rawOrders any = this.SafeValue(message, "orders", []any{})
+	var rawOrders any = this.SafeList(message, "orders", []any{})
 	var rawOrdersLength int = ccxt.GetArrayLength(rawOrders)
 	if ccxt.IsTrue(ccxt.IsEqual(rawOrdersLength, 0)) {
 		return
@@ -846,7 +846,7 @@ func (this *Onetrading) HandleOrders(client any, message any) {
 		var symbol any = this.SafeString(order, "symbol", "")
 		orders.(ccxt.Appender).Append(order)
 		client.(ccxt.ClientInterface).Resolve(this.Orders, ccxt.Add("orders:", symbol))
-		var rawTrades any = this.SafeValue(ccxt.GetValue(rawOrders, i), "trades", []any{})
+		var rawTrades any = this.SafeList(ccxt.GetValue(rawOrders, i), "trades", []any{})
 		for ii := 0; ccxt.IsLessThan(ii, ccxt.GetArrayLength(rawTrades)); ii++ {
 			var trade any = this.ParseTrade(ccxt.GetValue(rawTrades, ii))
 			symbol = this.SafeString(trade, "symbol", symbol)
@@ -1095,7 +1095,7 @@ func (this *Onetrading) HandleAccountUpdate(client any, message any) {
 		var orderId any = this.SafeString(update, "order_id")
 		var datetime any = this.SafeString2(update, "time", "timestamp")
 		var previousOrderArray any = this.FilterByArray(this.Orders, "id", orderId, false)
-		var previousOrder any = this.SafeValue(previousOrderArray, 0, map[string]any{})
+		var previousOrder any = this.SafeDict(previousOrderArray, 0, map[string]any{})
 		symbol = ccxt.GetValue(previousOrder, "symbol")
 		var filled any = this.SafeString(update, "filled_amount")
 		var status any = this.ParseWsOrderStatus(updateType)

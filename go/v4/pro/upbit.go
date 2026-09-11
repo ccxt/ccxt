@@ -386,7 +386,7 @@ func (this *Upbit) HandleOrderBook(client any, message any) {
 	ccxt.AddElementToObject(orderbook, "symbol", symbol)
 	var bids any = ccxt.GetValue(orderbook, "bids")
 	var asks any = ccxt.GetValue(orderbook, "asks")
-	var data any = this.SafeValue(message, "orderbook_units", []any{})
+	var data any = this.SafeList(message, "orderbook_units", []any{})
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(data)); i++ {
 		var entry any = ccxt.GetValue(data, i)
 		var ask_price any = this.SafeFloat(entry, "ask_price")

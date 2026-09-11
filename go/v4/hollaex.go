@@ -425,7 +425,7 @@ func (this *Hollaex) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	//         "status": true
 	//     }
 	//
-	var pairs any = this.SafeValue(response, "pairs", map[string]any{})
+	var pairs any = this.SafeDict(response, "pairs", map[string]any{})
 	var keys []string = ObjectKeys(pairs)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {

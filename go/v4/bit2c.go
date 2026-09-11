@@ -687,7 +687,7 @@ func (this *Bit2c) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any {
 	//         }
 	//     }
 	//
-	var fees any = this.SafeValue(response, "Fees", map[string]any{})
+	var fees any = this.SafeDict(response, "Fees", map[string]any{})
 	var keys []string = ObjectKeys(fees)
 	var result map[string]any = map[string]any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {

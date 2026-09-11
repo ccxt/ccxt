@@ -875,7 +875,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		PanicOnError(retRes77712)
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var list any = this.SafeValue(data, "list", []any{})
+	var list any = this.SafeList(data, "list", []any{})
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(list)); i++ {
 		var market any = GetValue(list, i)
@@ -892,7 +892,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 		var filtersByType map[string]any = this.IndexBy(filters, "filterType")
 		var status any = this.SafeString(market, "spotTradingEnable")
 		var active bool = (IsEqual(status, "1"))
-		var permissions any = this.SafeValue(market, "permissions", []any{})
+		var permissions any = this.SafeList(market, "permissions", []any{})
 		for j := 0; IsLessThan(j, GetArrayLength(permissions)); j++ {
 			if IsTrue(IsEqual(GetValue(permissions, j), "TRD_GRP_003")) {
 				active = false
@@ -953,7 +953,7 @@ func (this *Tokocrypto) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 			"info":    market,
 		}
 		if IsTrue(InOp(filtersByType, "PRICE_FILTER")) {
-			var filter any = this.SafeValue(filtersByType, "PRICE_FILTER", map[string]any{})
+			var filter any = this.SafeDict(filtersByType, "PRICE_FILTER", map[string]any{})
 			AddElementToObject(GetValue(entry, "precision"), "price", this.SafeNumber(filter, "tickSize"))
 			// PRICE_FILTER reports zero values for maxPrice
 			// since they updated filter types in November 2018
@@ -1831,7 +1831,7 @@ func (this *Tokocrypto) ParseBalanceCustom(response any, optionalArgs ...any) an
 		"datetime":  this.Iso8601(timestamp),
 	}
 	var data any = this.SafeValue(response, "data", map[string]any{})
-	var balances any = this.SafeValue(data, "accountAssets", []any{})
+	var balances any = this.SafeList(data, "accountAssets", []any{})
 	for i := 0; IsLessThan(i, GetArrayLength(balances)); i++ {
 		var balance any = GetValue(balances, i)
 		var currencyId any = this.SafeString(balance, "asset")

@@ -235,7 +235,7 @@ func (this *Bitvavo) HandleTicker(client any, message any) {
 	//
 	this.HandleBidAsk(client, message)
 	var event any = this.SafeString(message, "event")
-	var tickers any = this.SafeValue(message, "data", []any{})
+	var tickers any = this.SafeList(message, "data", []any{})
 	var result any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tickers)); i++ {
 		var data any = ccxt.GetValue(tickers, i)
@@ -288,7 +288,7 @@ func (this *Bitvavo) watchBidsAsksBody(ch chan any, optionalArgs ...any) any {
 }
 func (this *Bitvavo) HandleBidAsk(client any, message any) {
 	var event string = "bidask"
-	var tickers any = this.SafeValue(message, "data", []any{})
+	var tickers any = this.SafeList(message, "data", []any{})
 	var result any = []any{}
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(tickers)); i++ {
 		var data any = ccxt.GetValue(tickers, i)
@@ -2399,7 +2399,7 @@ func (this *Bitvavo) HandleSubscriptionStatus(client any, message any) any {
 	//         }
 	//     }
 	//
-	var subscriptions any = this.SafeValue(message, "subscriptions", map[string]any{})
+	var subscriptions any = this.SafeDict(message, "subscriptions", map[string]any{})
 	var methods map[string]any = map[string]any{
 		"book": this.HandleOrderBookSubscriptions,
 	}

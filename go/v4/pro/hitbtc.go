@@ -525,7 +525,7 @@ func (this *Hitbtc) HandleTicker(client any, message any) {
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue(message, "data", map[string]any{})
+	var data any = this.SafeDict(message, "data", map[string]any{})
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var result any = []any{}
 	var topic string = "tickers"
@@ -796,7 +796,7 @@ func (this *Hitbtc) HandleTrades(client any, message any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue2(message, "snapshot", "update", map[string]any{})
+	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
 	var marketIds []string = ccxt.ObjectKeys(data)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(marketIds)); i++ {
 		var marketId any = ccxt.GetValue(marketIds, i)
@@ -949,7 +949,7 @@ func (this *Hitbtc) HandleOHLCV(client any, message any) any {
 	//        }
 	//    }
 	//
-	var data any = this.SafeValue2(message, "snapshot", "update", map[string]any{})
+	var data any = this.SafeDict2(message, "snapshot", "update", map[string]any{})
 	var marketIds []string = ccxt.ObjectKeys(data)
 	var channel any = this.SafeString(message, "ch", "")
 	var splitChannel []string = ccxt.Split(channel, "/")
@@ -1698,7 +1698,7 @@ func (this *Hitbtc) HandleMessage(client any, message any) {
 		}
 		if ccxt.IsTrue(ccxt.IsArray(result)) {
 			// to do improve this, not very reliable right now
-			var first any = this.SafeValue(result, 0, map[string]any{})
+			var first any = this.SafeDict(result, 0, map[string]any{})
 			var arrayLength int = ccxt.GetArrayLength(result)
 			if ccxt.IsTrue(ccxt.IsTrue((ccxt.IsEqual(arrayLength, 0))) || ccxt.IsTrue((ccxt.InOp(first, "client_order_id")))) {
 				this.HandleOrderRequest(client, message)
@@ -1743,7 +1743,7 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(error, nil)) {
 
 		{
-			func(this *Hitbtc) (ret_ any) {
+			ret__ := func(this *Hitbtc) (ret_ any) {
 				defer func() {
 					if e := recover(); e != nil {
 						if e == "break" {
@@ -1777,9 +1777,13 @@ func (this *Hitbtc) HandleError(client any, message any) any {
 
 			}(this)
 
+			if ret__ != nil {
+				return ret__
+			}
+			return nil
 		}
 	}
-	return nil
+	return false
 }
 
 func NewHitbtc(userConfig map[string]any) *Hitbtc {

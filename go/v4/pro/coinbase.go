@@ -1276,7 +1276,7 @@ func (this *Coinbase) HandleSubscriptionStatus(client any, message any) any {
 	//      }
 	//
 	var events any = this.SafeList(message, "events", []any{})
-	var firstEvent any = this.SafeValue(events, 0, map[string]any{})
+	var firstEvent any = this.SafeDict(events, 0, map[string]any{})
 	var isUnsub bool = (ccxt.InOp(firstEvent, "subscriptions"))
 	var subKeys []string = ccxt.ObjectKeys(ccxt.GetValue(firstEvent, "subscriptions"))
 	var subKeysLength int = ccxt.GetArrayLength(subKeys)

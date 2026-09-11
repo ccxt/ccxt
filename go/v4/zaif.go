@@ -413,7 +413,7 @@ func (this *Zaif) ParseBalance(response any) any {
 		"timestamp": nil,
 		"datetime":  nil,
 	}
-	var funds any = this.SafeValue(balances, "funds", map[string]any{})
+	var funds any = this.SafeDict(balances, "funds", map[string]any{})
 	var currencyIds []string = ObjectKeys(funds)
 	for i := 0; IsLessThan(i, GetArrayLength(currencyIds)); i++ {
 		var currencyId any = GetValue(currencyIds, i)

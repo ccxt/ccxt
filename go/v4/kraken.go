@@ -1606,7 +1606,7 @@ func (this *Kraken) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	//                                                    "fee": "0.0050000000",
 	//                                                "balance": "0.0000051000"           },
 	var result any = this.SafeValue(response, "result", map[string]any{})
-	var ledger any = this.SafeValue(result, "ledger", map[string]any{})
+	var ledger any = this.SafeDict(result, "ledger", map[string]any{})
 	var keys []string = ObjectKeys(ledger)
 	var items any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(keys)); i++ {
@@ -1913,7 +1913,7 @@ func (this *Kraken) fetchTradesBody(ch chan any, symbol any, optionalArgs ...any
 	return nil
 }
 func (this *Kraken) ParseBalance(response any) any {
-	var balances any = this.SafeValue(response, "result", map[string]any{})
+	var balances any = this.SafeDict(response, "result", map[string]any{})
 	var result map[string]any = map[string]any{
 		"info":      response,
 		"timestamp": nil,
@@ -2212,7 +2212,7 @@ func (this *Kraken) createOrdersBody(ch chan any, orders any, optionalArgs ...an
 	return nil
 }
 func (this *Kraken) FindMarketByAltnameOrId(id any) any {
-	var marketsByAltname any = this.SafeValue(this.Options, "marketsByAltname", map[string]any{})
+	var marketsByAltname any = this.SafeDict(this.Options, "marketsByAltname", map[string]any{})
 	if IsTrue(InOp(marketsByAltname, id)) {
 		return GetValue(marketsByAltname, id)
 	} else {
@@ -2472,7 +2472,7 @@ func (this *Kraken) ParseOrder(order any, optionalArgs ...any) any {
 	}
 	var userref any = this.SafeString(order, "userref")
 	var clientOrderId any = this.SafeString(order, "cl_ord_id", userref)
-	var rawTrades any = this.SafeValue(order, "trades", []any{})
+	var rawTrades any = this.SafeList(order, "trades", []any{})
 	var trades any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(rawTrades)); i++ {
 		var rawTrade any = GetValue(rawTrades, i)
@@ -2996,7 +2996,7 @@ func (this *Kraken) fetchOrdersByIdsBody(ch chan any, ids any, optionalArgs ...a
 		"txid":   Join(ids, ","),
 	}, params)))
 	PanicOnError(response)
-	var result any = this.SafeValue(response, "result", map[string]any{})
+	var result any = this.SafeDict(response, "result", map[string]any{})
 	var orders any = []any{}
 	var orderIds []string = ObjectKeys(result)
 	for i := 0; IsLessThan(i, GetArrayLength(orderIds)); i++ {

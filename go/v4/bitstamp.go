@@ -3848,7 +3848,7 @@ func (this *Bitstamp) HandleErrors(httpCode any, reason any, url any, method any
 		if IsTrue(IsString(reasonInner)) {
 			AppendToArray(&errors, reasonInner)
 		} else {
-			var all any = this.SafeValue(reasonInner, "__all__", []any{})
+			var all any = this.SafeList(reasonInner, "__all__", []any{})
 			for i := 0; IsLessThan(i, GetArrayLength(all)); i++ {
 				AppendToArray(&errors, GetValue(all, i))
 			}
