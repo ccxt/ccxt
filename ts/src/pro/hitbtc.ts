@@ -1417,7 +1417,7 @@ export default class hitbtc extends hitbtcRest {
         return message;
     }
 
-    handleError (client: Client, message: any): boolean | undefined {
+    handleError (client: Client, message: any): boolean {
         //
         //    {
         //        jsonrpc: '2.0',
@@ -1453,6 +1453,6 @@ export default class hitbtc extends hitbtcRest {
                 return true;
             }
         }
-        return undefined;
+        return false;
     }
 }

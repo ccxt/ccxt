@@ -1561,7 +1561,7 @@ public partial class hitbtc : ccxt.hitbtc
         return message;
     }
 
-    public virtual bool? handleError(WebSocketClient client, object message)
+    public virtual bool handleError(WebSocketClient client, object message)
     {
         //
         //    {
@@ -1601,9 +1601,9 @@ public partial class hitbtc : ccxt.hitbtc
                     string? id = this.safeString(message, "id");
                     ((WebSocketClient)client).reject(e, id);
                 }
-                return ((bool?)((object)(true)));
+                return ((bool)((object)(true))!);
             }
         }
-        return ((bool?)((object)(null)));
+        return ((bool)((object)(false))!);
     }
 }

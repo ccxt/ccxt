@@ -1721,6 +1721,6 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 return true;
             }
         }
-        return null;
+        return false;
     }
 }
