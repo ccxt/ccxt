@@ -3929,7 +3929,10 @@ export default class myriad extends Exchange {
             }
         }
         if ((this.apiKey !== undefined) && (this.apiKey !== '')) {
-            headers = this.extend (headers, { 'x-api-key': this.apiKey });
+            const headerKey = 'x-api' + '-key'; // concatenating because of the php version
+            const headersKey: Dict = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend (headers, headersKey);
         }
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
