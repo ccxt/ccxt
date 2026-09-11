@@ -157,6 +157,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut exchange: Value = initExchange(exchangeId.clone(), &[exchangeArgs.clone(), self.wsTests.clone()]);
+        setExchangeProp(exchange.clone(), Value::Str("fetchHistoryCacheSize".to_string()), Value::Int(5));
         if is_true(&get_value(&exchange, &Value::Str("alias".to_string()))) {
             dump(&[self.add_padding(Value::Str("[INFO] skipping alias".to_string()), Value::Int(25))]);
             exitScript(Value::Int(0));
@@ -500,7 +501,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                 let mut isAuthError: Value = Value::Bool(is_instance(&e, &Value::Str("AuthenticationError".to_string())));
                 let mut isNotSupported: Value = Value::Bool(is_instance(&e, &Value::Str("NotSupported".to_string())));
                 let mut isOperationFailed: Value = Value::Bool(is_instance(&e, &Value::Str("OperationFailed".to_string()))); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                let mut lastUrlMsg: Value = ternary(is_true(&self.wsTests), Value::Str("".to_string()), add(&add(&Value::Str(" (Last url: ".to_string()), &get_value(&exchange, &Value::Str("last_request_url".to_string()))), &Value::Str(" )".to_string())));
+                let mut lastUrlMsg: Value = ternary(is_true(&self.wsTests), Value::Str("".to_string()), add(&add(&Value::Str(" (Last url: ".to_string()), &self.get_last_request_url(exchange.clone())), &Value::Str(" )".to_string())));
                 if is_true(&isOperationFailed) {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
                     if is_equal(&i, &subtract(&maxRetries, &Value::Int(1))) {
@@ -568,6 +569,21 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
         }
         }
         return Value::Bool(true);
+
+    Value::Null
+}
+
+    pub fn get_last_request_url(&self, mut exchange: Value) -> Value {
+        let mut fetchCache: Value = exchange.get_fetch_cache();
+        let mut url: Value = Value::Str("".to_string());
+        if is_greater_than(&get_array_length(&fetchCache), &Value::Int(0)) {
+            let mut lastEntry: Value = get_value(&fetchCache, &subtract(&get_array_length(&fetchCache), &Value::Int(1)));
+            let mut lastRequest: Value = get_value(&lastEntry, &Value::Str("request".to_string()));
+            if !is_equal(&lastRequest, &Value::Null) {
+                url = exchange.safe_string(lastRequest.clone(), Value::Str("url".to_string()), &[Value::Str("".to_string())]);
+            }
+        }
+        return url;
 
     Value::Null
 }
