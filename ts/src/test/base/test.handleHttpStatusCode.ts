@@ -1,3 +1,4 @@
+// AUTO_TRANSPILE_ENABLED
 
 import assert from 'assert';
 import ccxt from '../../../ccxt.js';
@@ -9,25 +10,75 @@ function testHandleHttpStatusCode () {
     });
 
     // every status of the default httpExceptions table must throw — one status
-    // per distinct error class of the table
-    const coveredStatuses = [ 429, 418, 401, 408, 500, 422 ];
-    for (let i = 0; i < coveredStatuses.length; i++) {
-        let caught = false;
-        try {
-            exchange.handleHttpStatusCode (coveredStatuses[i], 'reason', 'url', 'GET', 'body');
-        } catch (error) {
-            caught = true;
-        }
-        assert (caught, 'status ' + coveredStatuses[i].toString () + ' should have thrown');
+    // per distinct error class of the table.
+    //
+    // The blocks below are deliberately written out one status at a time with
+    // integer literals instead of looping over a list of codes:
+    //   - the C# and Java bases declare `handleHttpStatusCode (int code, ...)`,
+    //     so an element read out of an untyped list does not compile there;
+    //   - only *that* a status throws is asserted, never which class, because
+    //     `error instanceof <Class>` inside a transpiled catch does not survive
+    //     the Go port (the recover handler compares the panic payload's type
+    //     against the constructor). The status → class mapping is pinned by
+    //     ts/src/test/base/errors/** instead — do not weaken this list by adding
+    //     statuses that are absent from httpExceptions.
+    let caught = false;
+    try {
+        exchange.handleHttpStatusCode (429, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
     }
+    assert (caught, 'status 429 should have thrown');
+
+    caught = false;
+    try {
+        exchange.handleHttpStatusCode (418, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
+    }
+    assert (caught, 'status 418 should have thrown');
+
+    caught = false;
+    try {
+        exchange.handleHttpStatusCode (401, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
+    }
+    assert (caught, 'status 401 should have thrown');
+
+    caught = false;
+    try {
+        exchange.handleHttpStatusCode (408, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
+    }
+    assert (caught, 'status 408 should have thrown');
+
+    caught = false;
+    try {
+        exchange.handleHttpStatusCode (500, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
+    }
+    assert (caught, 'status 500 should have thrown');
+
+    caught = false;
+    try {
+        exchange.handleHttpStatusCode (422, 'reason', 'url', 'GET', 'body');
+    } catch (error) {
+        caught = true;
+    }
+    assert (caught, 'status 422 should have thrown');
 
     // statuses missing from the table must not throw — derived handleErrors
     // implementations rely on exactly that swallow when they guard with
     // a httpExceptions lookup before deferring to the status handler
-    const uncoveredStatuses = [ 402, 406, 412, 413, 505, 524 ];
-    for (let i = 0; i < uncoveredStatuses.length; i++) {
-        exchange.handleHttpStatusCode (uncoveredStatuses[i], 'reason', 'url', 'GET', 'body');
-    }
+    exchange.handleHttpStatusCode (402, 'reason', 'url', 'GET', 'body');
+    exchange.handleHttpStatusCode (406, 'reason', 'url', 'GET', 'body');
+    exchange.handleHttpStatusCode (412, 'reason', 'url', 'GET', 'body');
+    exchange.handleHttpStatusCode (413, 'reason', 'url', 'GET', 'body');
+    exchange.handleHttpStatusCode (505, 'reason', 'url', 'GET', 'body');
+    exchange.handleHttpStatusCode (524, 'reason', 'url', 'GET', 'body');
 
     // success statuses never throw
     exchange.handleHttpStatusCode (200, 'OK', 'url', 'GET', 'body');
