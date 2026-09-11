@@ -53,7 +53,7 @@ public final class Functions {
                                               com.fasterxml.jackson.core.JsonGenerator gen,
                                               com.fasterxml.jackson.databind.SerializerProvider provider)
                                 throws java.io.IOException {
-                            java.util.List<Object> snap = value.snapshot();
+                            java.util.List<?> snap = value.snapshot();
                             gen.writeStartArray();
                             for (Object level : snap) {
                                 provider.defaultSerializeValue(level, gen);

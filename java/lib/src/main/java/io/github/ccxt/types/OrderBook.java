@@ -5,6 +5,10 @@ import java.util.List;
 import java.util.Map;
 
 public final class OrderBook {
+    // Levels are [price, amount] rows normalized to Double (C# OrderBook parity:
+    // Convert.ToDouble over each cell); a source row's optional third cell (count/id)
+    // is normalized the same way. A cell that is absent or unparseable stays null —
+    // never fabricated to 0.
     public List<List<Double>> bids;
     public List<List<Double>> asks;
     public String symbol;
@@ -17,7 +21,7 @@ public final class OrderBook {
         // Handle WsOrderBook (WebSocket) — extract data directly from its typed fields
         // Handle WsOrderBook (WebSocket) — copy live data from its OrderBookSide fields
         if (raw instanceof io.github.ccxt.ws.WsOrderBook wsOb) {
-            // WsOrderBook.bids/asks are OrderBookSide (extends ArrayList<Object>)
+            // WsOrderBook.bids/asks are OrderBookSide (extends ArrayList<List<Object>>)
             // Each element is a List<Object> [price, amount]
             // Copy them via parseEntries which converts to List<List<Double>>
             this.bids = parseEntries(new java.util.ArrayList<>(wsOb.bids));
