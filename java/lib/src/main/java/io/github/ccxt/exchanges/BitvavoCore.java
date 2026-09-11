@@ -507,7 +507,7 @@ public class BitvavoCore extends BitvavoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //     { "time": 1590379519148 }
             //
@@ -530,7 +530,7 @@ public class BitvavoCore extends BitvavoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetMarkets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //    {
             //        "market": "BTC-EUR",
@@ -640,7 +640,7 @@ final Object finalBase = base;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAssets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetAssets(parameters)).join();
             //
             //     [
             //         {
@@ -972,7 +972,7 @@ final Object finalBase = base;
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1111,7 +1111,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccount(parameters)).join();
+            java.util.List<Object> response = (this.privateGetAccount(parameters)).join();
             //
             //     {
             //         "fees": {
@@ -1180,7 +1180,7 @@ final Object finalBase = base;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountFees(this.extend(request, parameters))).join();
             //
             //     {
             //         "tier": "0",
@@ -1236,7 +1236,7 @@ final Object finalBase = base;
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetMarketBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketBook(this.extend(request, parameters))).join();
             //
             //     {
             //         "market":"BTC-EUR",
@@ -1348,7 +1348,7 @@ final Object finalBase = base;
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1440)).join();
             }
             Object request = this.fetchOHLCVRequest(symbol, timeframe, since, limit, parameters);
-            Object response = (this.publicGetMarketCandles(request)).join();
+            java.util.List<Object> response = (this.publicGetMarketCandles(request)).join();
             //
             //     [
             //         [1590383700000,"8088.5","8088.5","8088.5","8088.5","0.04788623"],
@@ -1402,7 +1402,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetBalance(parameters)).join();
+            java.util.List<Object> response = (this.privateGetBalance(parameters)).join();
             //
             //     [
             //         {
@@ -1435,7 +1435,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetSubaccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetSubaccounts(parameters)).join();
             //
             //     {
             //         "items": [
@@ -1530,7 +1530,7 @@ final Object finalBase = base;
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostSubaccountsTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1597,7 +1597,7 @@ final Object finalBase = base;
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "items": [
@@ -1652,7 +1652,7 @@ final Object finalBase = base;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "transferId", id );
             }};
-            Object response = (this.privateGetSubaccountsTransfersTransferId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetSubaccountsTransfersTransferId(this.extend(request, parameters))).join();
             //
             //     {
             //         "transferId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
@@ -1742,7 +1742,7 @@ final Object finalBase = base;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetDeposit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeposit(this.extend(request, parameters))).join();
             //
             //     {
             //         "address": "0x449889e3234514c45d57f7c5a571feba0c7ad567",
@@ -1914,7 +1914,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostOrder(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostOrder(request)).join();
             //
             //      {
             //          "orderId":"dec6a640-5b4c-45bc-8d22-3b41c6716630",
@@ -2039,7 +2039,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePutOrder(request)).join();
+            java.util.Map<String, Object> response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
         });
 
@@ -2099,7 +2099,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.cancelOrderRequest(id, symbol, parameters);
-            Object response = (this.privateDeleteOrder(request)).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrder(request)).join();
             //
             //     {
             //         "orderId": "2e7ce7fc-44e2-4d80-a4a7-d079c4750b61"
@@ -2148,7 +2148,7 @@ final Object finalBase = base;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " canceAllOrders() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
             }
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2198,7 +2198,7 @@ final Object finalBase = base;
                 put( "codGroupId", finalCodGroupId );
                 put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? BitvavoCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
             }};
-            Object response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
             //
             //     {
             //         "codGroupId": 1,
@@ -2244,7 +2244,7 @@ final Object finalBase = base;
             {
                 Helpers.addElementToObject(request, "orderId", id);
             }
-            Object response = (this.privateGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "orderId":"af76d6ce-9f7c-4006-b715-bb5d430652d0",
@@ -2348,7 +2348,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
-            Object response = (this.privateGetOrders(request)).join();
+            java.util.List<Object> response = (this.privateGetOrders(request)).join();
             //
             //     [
             //         {
@@ -2421,7 +2421,7 @@ final Object finalBase = base;
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2657,7 +2657,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
-            Object response = (this.privateGetTrades(request)).join();
+            java.util.List<Object> response = (this.privateGetTrades(request)).join();
             //
             //     [
             //         {
@@ -2723,7 +2723,7 @@ final Object finalBase = base;
             var requestparametersVariable = this.handleUntilOption("toDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "items": [
@@ -2864,7 +2864,7 @@ final Object finalBase = base;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = this.withdrawRequest(code, amount, address, tag, parameters);
-            Object response = (this.privatePostWithdrawal(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawal(request)).join();
             //
             //     {
             //         "success": true,
@@ -2931,7 +2931,7 @@ final Object finalBase = base;
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetWithdrawalHistory(request)).join();
+            java.util.List<Object> response = (this.privateGetWithdrawalHistory(request)).join();
             //
             //     [
             //         {
@@ -3007,7 +3007,7 @@ final Object finalBase = base;
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetDepositHistory(request)).join();
+            java.util.List<Object> response = (this.privateGetDepositHistory(request)).join();
             //
             //     [
             //         {
@@ -3202,7 +3202,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetAssets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetAssets(parameters)).join();
             //
             //   [
             //       {

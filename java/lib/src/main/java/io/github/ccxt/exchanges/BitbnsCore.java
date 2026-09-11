@@ -320,7 +320,7 @@ public class BitbnsCore extends BitbnsApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1GetPlatformStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1GetPlatformStatus(parameters)).join();
             //
             //     {
             //         "data":{
@@ -360,7 +360,7 @@ public class BitbnsCore extends BitbnsApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.wwwGetOrderFetchMarkets(parameters)).join();
+            java.util.List<Object> response = (this.wwwGetOrderFetchMarkets(parameters)).join();
             //
             //     [
             //         {
@@ -489,7 +489,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 5000, see https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#order-book
             }
-            Object response = (this.wwwGetOrderFetchOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.wwwGetOrderFetchOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "bids":[
@@ -593,7 +593,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.wwwGetOrderFetchTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.wwwGetOrderFetchTickers(parameters)).join();
             //
             //     {
             //         "BTC/INR":{
@@ -684,7 +684,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v1PostCurrentCoinBalanceEVERYTHING(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PostCurrentCoinBalanceEVERYTHING(parameters)).join();
             //
             //     {
             //         "data":{
@@ -974,7 +974,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
             }
-            Object response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostOrderStatusSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1048,7 +1048,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "page", 0 );
                 put( "side", ((Helpers.isTrue((Helpers.isEqual(finalIsTrigger, true))))) ? (Helpers.add(finalQuoteSide, "StopOrders")) : (Helpers.add(finalQuoteSide, "Orders")) );
             }};
-            Object response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PostGetordersnew(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1206,7 +1206,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "since", this.iso8601(since));
             }
-            Object response = (this.v1PostListExecutedOrdersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostListExecutedOrdersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1285,7 +1285,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "coin", Helpers.GetValue(market, "baseId") );
                 put( "market", Helpers.GetValue(market, "quoteId") );
             }};
-            Object response = (this.wwwGetExchangeDataTradedetails(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.wwwGetExchangeDataTradedetails(this.extend(request, parameters))).join();
             //
             //     [
             //         {"tradeId":"1909151","price":"61904.6300","quote_volume":1618.05,"base_volume":0.02607254,"timestamp":1634548602000,"type":"buy"},
@@ -1330,7 +1330,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
             }};
-            Object response = (this.v1PostDepositHistorySymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostDepositHistorySymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -1392,7 +1392,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
             }};
-            Object response = (this.v1PostWithdrawHistorySymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostWithdrawHistorySymbol(this.extend(request, parameters))).join();
             //
             //     ...
             //
@@ -1527,7 +1527,7 @@ public class BitbnsCore extends BitbnsApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v1PostGetCoinAddressSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PostGetCoinAddressSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":{

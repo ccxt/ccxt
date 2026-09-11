@@ -719,7 +719,7 @@ public class ParadexCore extends ParadexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSystemTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSystemTime(parameters)).join();
             //
             //     {
             //         "server_time": "1681493415023"
@@ -744,7 +744,7 @@ public class ParadexCore extends ParadexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSystemState(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSystemState(parameters)).join();
             //
             //     {
             //         "status": "ok"
@@ -777,7 +777,7 @@ public class ParadexCore extends ParadexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //     {
             //         "results": [
@@ -1049,7 +1049,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarkets(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarkets(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -1094,7 +1094,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //     {
             //         "results": [
@@ -1189,7 +1189,7 @@ public class ParadexCore extends ParadexApi
                     Helpers.addElementToObject(request, "start_at", Helpers.add(Helpers.subtract(until, Helpers.multiply(Helpers.multiply(duration, 101), 1000)), 1));
                 }
             }
-            Object response = (this.publicGetMarketsKlines(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsKlines(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -1250,7 +1250,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -1301,7 +1301,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -1423,7 +1423,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", finalTarget );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         });
@@ -1548,7 +1548,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderbookMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderbookMarket(this.extend(request, parameters))).join();
             //
             //     {
             //         "market": "BTC-USD-PERP",
@@ -1628,7 +1628,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "next": "...",
@@ -1751,7 +1751,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -1843,7 +1843,7 @@ public class ParadexCore extends ParadexApi
             {
                 return cachedConfig;
             }
-            Object response = (this.publicGetSystemConfig()).join();
+            java.util.Map<String, Object> response = (this.publicGetSystemConfig()).join();
             //
             // {
             //     "starknet_gateway_url": "https://potc-testnet-sepolia.starknet.io",
@@ -1957,7 +1957,7 @@ public class ParadexCore extends ParadexApi
             Helpers.addElementToObject(parameters, "signature", signature);
             Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
             Helpers.addElementToObject(parameters, "public_key", Helpers.GetValue(account, "publicKey"));
-            Object response = (this.privatePostOnboarding(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostOnboarding(parameters)).join();
             return response;
         });
 
@@ -2019,7 +2019,7 @@ public class ParadexCore extends ParadexApi
             Helpers.addElementToObject(parameters, "account", Helpers.GetValue(account, "address"));
             Helpers.addElementToObject(parameters, "timestamp", Helpers.GetValue(req, "timestamp"));
             Helpers.addElementToObject(parameters, "expiration", Helpers.GetValue(req, "expiration"));
-            Object response = (this.privatePostAuth(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostAuth(parameters)).join();
             //
             // {
             //     jwt_token: "ooooccxtooootoooootheoooomoonooooo"
@@ -2386,7 +2386,7 @@ public class ParadexCore extends ParadexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             request = (this.signOrderRequest(request)).join();
-            Object response = (this.privatePostOrders(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(request)).join();
             //
             // {
             //     "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2464,7 +2464,7 @@ public class ParadexCore extends ParadexApi
             Helpers.addElementToObject(request, "order_id", id);
             Helpers.addElementToObject(request, "id", id);
             request = (this.signOrderRequest(request, true)).join();
-            Object response = (this.privatePutOrdersOrderId(request)).join();
+            java.util.Map<String, Object> response = (this.privatePutOrdersOrderId(request)).join();
             //
             //     {
             //         "account": "0x4638e3041366aa71720be63e32e53e1223316c7f0d56f7aa617542ed1e7512x",
@@ -2539,7 +2539,7 @@ public class ParadexCore extends ParadexApi
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.privatePostOrdersBatch(ordersRequests)).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersBatch(ordersRequests)).join();
             //
             // {
             //     "errors": [
@@ -2661,7 +2661,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "client_order_ids", clientOrderIds);
             }
-            Object response = (this.privateDeleteOrdersBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrdersBatch(this.extend(request, parameters))).join();
             //
             // {
             //     "results": [
@@ -2748,7 +2748,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             // if success, no response...
             //
@@ -2881,7 +2881,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -2962,7 +2962,7 @@ public class ParadexCore extends ParadexApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             //
             //  {
             //     "results": [
@@ -3020,7 +3020,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetBalance()).join();
+            java.util.Map<String, Object> response = (this.privateGetBalance()).join();
             //
             //     {
             //         "results": [
@@ -3111,7 +3111,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             //
             //     {
             //         "next": null,
@@ -3194,7 +3194,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.privateGetPositions()).join();
+            java.util.Map<String, Object> response = (this.privateGetPositions()).join();
             //
             //     {
             //         "results": [
@@ -3332,7 +3332,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -3420,7 +3420,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "next": null,
@@ -3504,7 +3504,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "next": null,
@@ -3593,7 +3593,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "next": null,
@@ -3760,7 +3760,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
             //
             // {
             //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -3857,7 +3857,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
             //
             // {
             //     "account": "0x6343248026a845b39a8a73fbe9c7ef0a841db31ed5c61ec1446aa9d25e54dbc",
@@ -3964,7 +3964,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -4030,7 +4030,7 @@ public class ParadexCore extends ParadexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
-            Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "results": [
@@ -4192,7 +4192,7 @@ public class ParadexCore extends ParadexApi
             var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",
@@ -4295,7 +4295,7 @@ public class ParadexCore extends ParadexApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "end_at", until);
             }
-            Object response = (this.publicGetFundingData(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingData(this.extend(request, parameters))).join();
             //
             // {
             //     "next": "eyJmaWx0ZXIiMsIm1hcmtlciI6eyJtYXJrZXIiOiIxNjc1NjUwMDE3NDMxMTAxNjk5N=",

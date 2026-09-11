@@ -493,7 +493,7 @@ public class ZebpayCore extends ZebpayApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetV2ExCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetV2ExCurrencies(parameters)).join();
             //
             //     {
             //             "data": [
@@ -880,7 +880,7 @@ public class ZebpayCore extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicSpotGetV2MarketAllTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetV2MarketAllTickers(parameters)).join();
             //
             //     [
             //        {
@@ -1158,7 +1158,7 @@ public class ZebpayCore extends ZebpayApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object response = (this.privateSpotGetV2ExOrderFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetV2ExOrderFills(this.extend(request, parameters))).join();
             //
             //         {
             //             "orderId": "456789",
@@ -1514,7 +1514,7 @@ public class ZebpayCore extends ZebpayApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateSpotDeleteV2ExOrdersCancelAll(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateSpotDeleteV2ExOrdersCancelAll(parameters)).join();
             //
             //    {
             //        "data": {
@@ -1769,7 +1769,7 @@ public class ZebpayCore extends ZebpayApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateSwapPostV1TradePositionClose(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapPostV1TradePositionClose(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
@@ -1796,7 +1796,7 @@ public class ZebpayCore extends ZebpayApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateSwapGetV1TradeUserLeverages(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetV1TradeUserLeverages(parameters)).join();
             //
             //     {
             //         "leveragePreferences": [
@@ -1838,7 +1838,7 @@ public class ZebpayCore extends ZebpayApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ZebpayCore.this.safeStringUpper(market, "id") );
             }};
-            Object response = (this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetV1TradeUserLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": { symbol: "ETHINR", longLeverage: 1, shortLeverage: 1, marginMode: "isolated" }
@@ -1883,7 +1883,7 @@ public class ZebpayCore extends ZebpayApi
             //
             // { data: { "symbol", "longLeverage": 10, "shortLeverage": 1, "marginMode": "isolated" }
             //
-            Object response = (this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapPostV1TradeUpdateUserLeverage(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1914,7 +1914,7 @@ public class ZebpayCore extends ZebpayApi
             {
                 Helpers.addElementToObject(request, "symbols", this.marketIds(symbols));
             }
-            Object response = (this.privateSwapGetV1TradePositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetV1TradePositions(this.extend(request, parameters))).join();
             //
             //    {
             //        "data": [
@@ -1962,7 +1962,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "amount", amount );
             }};
-            Object response = (this.privateSwapPostV1TradeAddMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapPostV1TradeAddMargin(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -2017,7 +2017,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "amount", amount );
             }};
-            Object response = (this.privateSwapPostV1TradeReduceMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapPostV1TradeReduceMargin(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -2045,7 +2045,7 @@ public class ZebpayCore extends ZebpayApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetV2ExExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetV2ExExchangeInfo(parameters)).join();
             //
             //    {
             //        "data": {
@@ -2128,7 +2128,7 @@ public class ZebpayCore extends ZebpayApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSwapGetV1MarketMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSwapGetV1MarketMarkets(parameters)).join();
             //
             //    {
             //        "data": {

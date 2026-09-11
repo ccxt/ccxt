@@ -497,7 +497,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetInstruments(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -709,7 +709,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //
             //    {
             //       "result": "success",
@@ -767,7 +767,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": "success",
@@ -818,7 +818,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -953,7 +953,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.publicGetFeeschedules(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetFeeschedules(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -973,7 +973,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object volumes = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(this.checkRequiredCredentials(false)))
             {
-                Object volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
+                java.util.Map<String, Object> volumesResponse = (this.privateGetFeeschedulesVolumes()).join();
                 //
                 //    {
                 //        "result": "success",
@@ -1121,7 +1121,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Helpers.addElementToObject(request, "to", this.seconds());
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(duration, limit)))));
             }
-            Object response = (this.chartsGetPriceTypeSymbolInterval(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.chartsGetPriceTypeSymbolInterval(this.extend(request, parameters))).join();
             //
             //    {
             //        "candles": [
@@ -1218,7 +1218,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 {
                     Helpers.addElementToObject(request, "count", limit);
                 }
-                Object response = (this.historyGetMarketSymbolExecutions(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.historyGetMarketSymbolExecutions(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "elements": [
@@ -1286,7 +1286,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 var requestparametersVariable = this.handleUntilOption("lastTime", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object response = (this.publicGetHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "result": "success",
@@ -1618,7 +1618,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostSendorder(orderRequest)).join();
+            java.util.Map<String, Object> response = (this.privatePostSendorder(orderRequest)).join();
             //
             //    {
             //        "result": "success",
@@ -1734,7 +1734,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrder", ordersRequests );
             }};
-            Object response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
             //
             // {
             //     "result": "success",
@@ -1794,7 +1794,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 Helpers.addElementToObject(request, "limitPrice", price);
             }
-            Object response = (this.privatePostEditorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostEditorder(this.extend(request, parameters))).join();
             Object editStatus = this.safeDict(response, "editStatus", new java.util.HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled")));
@@ -1826,7 +1826,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostCancelorder(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.privatePostCancelorder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
             String status = this.safeString(this.safeValue(response, "cancelStatus", new java.util.HashMap<String, Object>() {{}}), "status");
@@ -1894,7 +1894,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrder", orders );
             }};
-            Object response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostBatchorder(this.extend(request, parameters))).join();
             // {
             //     "result": "success",
             //     "serverTime": "2023-10-23T16:36:51.327Z",
@@ -1951,7 +1951,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 Helpers.addElementToObject(request, "symbol", this.marketId(symbol));
             }
-            Object response = (this.privatePostCancelallorders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelallorders(this.extend(request, parameters))).join();
             //
             //    {
             //        result: 'success',
@@ -2019,7 +2019,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? (KrakenfuturesCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
-            Object response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -2064,7 +2064,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetOpenorders(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenorders(parameters)).join();
             Object orders = this.safeList(response, "openOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
@@ -2100,7 +2100,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetOrdersStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersStatus(parameters)).join();
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
@@ -2963,7 +2963,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 market = this.market(symbol);
             }
             // todo: lastFillTime: this.iso8601(end)
-            Object response = (this.privateGetFills(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFills(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -3040,7 +3040,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "before", until);
             }
-            Object response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.historyGetAccountLog(this.extend(request, parameters))).join();
             //
             //    {
             //        "accountUid": "f92fc7de-2fce-4265-b806-4f3c1efb37ee",
@@ -3212,7 +3212,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object type = this.safeString2(parameters, "type", "account");
             String symbol = this.safeString(parameters, "symbol");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type", "account", "symbol")));
-            Object response = (this.privateGetAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -3460,7 +3460,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             Object tickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object fundingRates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
@@ -3595,7 +3595,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", KrakenfuturesCore.this.safeStringUpper(market, "id") );
             }};
-            Object response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetHistoricalfundingrates(this.extend(request, parameters))).join();
             //
             //    {
             //        "rates": [
@@ -3650,7 +3650,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetOpenpositions(request)).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenpositions(request)).join();
             //
             //    {
             //        "result": "success",
@@ -3780,7 +3780,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetInstruments(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetInstruments(parameters)).join();
             //
             //    {
             //        "result": "success",
@@ -4116,7 +4116,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetLeveragepreferences(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetLeveragepreferences(parameters)).join();
             //
             //     {
             //         "result": "success",
@@ -4168,7 +4168,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ((String)finalMarketIdUpper).toUpperCase() );
             }};
-            Object response = (this.privateGetLeveragepreferences(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetLeveragepreferences(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",

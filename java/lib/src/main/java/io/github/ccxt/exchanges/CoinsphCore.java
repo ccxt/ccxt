@@ -704,7 +704,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.privateGetOpenapiWalletV1ConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1ConfigGetall(parameters)).join();
             //
             //    [
             //        {
@@ -878,7 +878,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1Ping(parameters)).join();
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );
@@ -904,7 +904,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1Time(parameters)).join();
             //
             //     {"serverTime":1677705408268}
             //
@@ -927,7 +927,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1ExchangeInfo(parameters)).join();
             //
             //     {
             //         "timezone": "UTC",
@@ -1269,7 +1269,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetOpenapiQuoteV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiQuoteV1Depth(this.extend(request, parameters))).join();
             //
             //     {
             //         "lastUpdateId": "1667022157000699400",
@@ -1350,7 +1350,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Helpers.addElementToObject(request, "limit", limit);
             parameters = this.omit(parameters, "until");
-            Object response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -1418,7 +1418,7 @@ public class CoinsphCore extends CoinsphApi
                     Helpers.addElementToObject(request, "limit", limit);
                 }
             }
-            Object response = (this.publicGetOpenapiQuoteV1Trades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOpenapiQuoteV1Trades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1478,7 +1478,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -1634,7 +1634,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetOpenapiV1Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiV1Account(parameters)).join();
             //
             //     {
             //         "accountType": "SPOT",
@@ -1861,7 +1861,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
-            Object response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -1898,7 +1898,7 @@ public class CoinsphCore extends CoinsphApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -1945,7 +1945,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -1982,7 +1982,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
-            Object response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2019,7 +2019,7 @@ public class CoinsphCore extends CoinsphApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
         });
 
@@ -2249,7 +2249,7 @@ public class CoinsphCore extends CoinsphApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOpenapiV1AssetTradeFee(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1AssetTradeFee(this.extend(request, parameters))).join();
             //
             //     [
             //       {
@@ -2283,7 +2283,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetOpenapiV1AssetTradeFee(parameters)).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1AssetTradeFee(parameters)).join();
             //
             //     [
             //         {
@@ -2385,7 +2385,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "withdrawOrderId", tag);
             }
             parameters = this.omit(parameters, "network");
-            Object response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, parameters))).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -2431,7 +2431,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -2505,7 +2505,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -2701,7 +2701,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "network", finalNetworkId );
             }};
             parameters = this.omit(parameters, "network");
-            Object response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "coin": "ETH",

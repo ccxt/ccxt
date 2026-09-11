@@ -1242,7 +1242,7 @@ public class XtCore extends XtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetTime(parameters)).join();
             //
             //     {
             //         "rc": 0,
@@ -1457,7 +1457,7 @@ public class XtCore extends XtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetSymbol(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetSymbol(parameters)).join();
             //
             //     {
             //         "rc": 0,
@@ -3307,7 +3307,7 @@ public class XtCore extends XtApi
                 Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
             }
             Helpers.addElementToObject(request, "timeInForce", timeInForce);
-            Object response = (this.privateSpotPostOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotPostOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "rc": 0,
@@ -4688,7 +4688,7 @@ public class XtCore extends XtApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrders() does not support swap and future orders, only spot orders are accepted")) ;
             }
-            Object response = (this.privateSpotDeleteBatchOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotDeleteBatchOrder(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -5105,7 +5105,7 @@ public class XtCore extends XtApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "chain", networkId );
             }};
-            Object response = (this.privateSpotGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "rc": 0,
@@ -5182,7 +5182,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 10, max 200
             }
-            Object response = (this.privateSpotGetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "rc": 0,
@@ -5255,7 +5255,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 10, max 200
             }
-            Object response = (this.privateSpotGetWithdrawHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetWithdrawHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "rc": 0,
@@ -5333,7 +5333,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            Object response = (this.privateSpotPostWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotPostWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "rc": 0,
@@ -6849,7 +6849,7 @@ final Object finalMarket = market;
                 put( "from", fromAccountId );
                 put( "to", toAccountId );
             }};
-            Object response = (this.privateSpotPostBalanceTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotPostBalanceTransfer(this.extend(request, parameters))).join();
             //
             //   {
             //       info: { rc: '0', mc: 'SUCCESS', ma: [], result: '226971333791398656' },

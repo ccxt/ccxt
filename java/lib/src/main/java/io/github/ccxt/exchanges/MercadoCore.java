@@ -342,7 +342,7 @@ public class MercadoCore extends MercadoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetCoins(parameters)).join();
+            java.util.List<Object> response = (this.publicGetCoins(parameters)).join();
             //
             //     [
             //         "BCH",
@@ -460,7 +460,7 @@ public class MercadoCore extends MercadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
-            Object response = (this.publicGetCoinOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetCoinOrderbook(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         });
 
@@ -530,7 +530,7 @@ public class MercadoCore extends MercadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
-            Object response = (this.publicGetCoinTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetCoinTicker(this.extend(request, parameters))).join();
             Object ticker = this.safeValue(response, "ticker", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
@@ -681,7 +681,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetAccountInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetAccountInfo(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -786,7 +786,7 @@ public class MercadoCore extends MercadoApi
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "response_data": {
@@ -934,7 +934,7 @@ public class MercadoCore extends MercadoApi
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", Helpers.parseInt(id) );
             }};
-            Object response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object order = this.safeDict(responseData, "order");
             return this.parseOrder(order, market);
@@ -1002,7 +1002,7 @@ public class MercadoCore extends MercadoApi
                     }
                 }
             }
-            Object response = (this.privatePostWithdrawCoin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawCoin(this.extend(request, parameters))).join();
             //
             //     {
             //         "response_data": {
@@ -1119,7 +1119,7 @@ public class MercadoCore extends MercadoApi
                 Helpers.addElementToObject(request, "to", this.seconds());
                 Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(limit, this.parseTimeframe(timeframe)))));
             }
-            Object response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v4PublicNetGetCandles(this.extend(request, parameters))).join();
             // parseTradingViewOHLCV applies the same default 't','o','h','l','c','v' column names and
             // then parseOHLCVs, and takes the raw response without narrowing it to a candle matrix
             return this.parseTradingViewOHLCV(response, market, timeframe, since, limit);
@@ -1158,7 +1158,7 @@ public class MercadoCore extends MercadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostListOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
@@ -1198,7 +1198,7 @@ public class MercadoCore extends MercadoApi
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "status_list", "[2]" );
             }};
-            Object response = (this.privatePostListOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
@@ -1238,7 +1238,7 @@ public class MercadoCore extends MercadoApi
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "has_fills", true );
             }};
-            Object response = (this.privatePostListOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object ordersRaw = this.safeValue(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = this.parseOrders(ordersRaw, market, since, limit);

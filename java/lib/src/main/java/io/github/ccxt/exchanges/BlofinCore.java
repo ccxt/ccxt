@@ -734,7 +734,7 @@ public class BlofinCore extends BlofinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetMarketInstruments(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketInstruments(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
         });
@@ -865,7 +865,7 @@ public class BlofinCore extends BlofinApi
             {
                 Helpers.addElementToObject(request, "size", limit); // max 100
             }
-            Object response = (this.publicGetMarketBooks(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketBooks(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -977,7 +977,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
@@ -1009,7 +1009,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
@@ -1038,7 +1038,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetMarketTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
@@ -1294,7 +1294,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "after", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
@@ -1357,7 +1357,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "after", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = (this.publicGetMarketFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketFundingRateHistory(this.extend(request, parameters))).join();
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1441,7 +1441,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketFundingRate(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -2087,11 +2087,11 @@ public class BlofinCore extends BlofinApi
                 return first;
             } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
-                Object triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
+                java.util.Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
                 Object triggerData = this.safeDict(triggerResponse, "data");
                 return this.parseOrder(triggerData, market);
             }
-            Object response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
@@ -2132,7 +2132,7 @@ public class BlofinCore extends BlofinApi
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
@@ -2353,7 +2353,7 @@ public class BlofinCore extends BlofinApi
             var requestparametersVariable = this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         });
@@ -2412,7 +2412,7 @@ public class BlofinCore extends BlofinApi
             var requestparametersVariable = this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, parameters);
         });
@@ -2468,7 +2468,7 @@ public class BlofinCore extends BlofinApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         });
@@ -2786,7 +2786,7 @@ public class BlofinCore extends BlofinApi
                 put( "fromAccount", fromId );
                 put( "toAccount", toId );
             }};
-            Object response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         });
@@ -2834,7 +2834,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
@@ -2868,7 +2868,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.privateGetAccountPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.parsePositions(data);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -2925,7 +2925,7 @@ public class BlofinCore extends BlofinApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -3175,7 +3175,7 @@ public class BlofinCore extends BlofinApi
                 put( "instId", finalInstIds );
                 put( "marginMode", finalMarginMode );
             }};
-            Object response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBatchLeverageInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3233,7 +3233,7 @@ public class BlofinCore extends BlofinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "marginMode", finalMarginMode );
             }};
-            Object response = (this.privateGetAccountLeverageInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3314,7 +3314,7 @@ public class BlofinCore extends BlofinApi
                 put( "marginMode", finalMarginMode );
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -3363,7 +3363,7 @@ public class BlofinCore extends BlofinApi
             {
                 Helpers.addElementToObject(request, "clientOrderId", clientOrderId);
             }
-            Object response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
             return this.safeDict(response, "data");
         });
 
@@ -3459,7 +3459,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = (this.privateGetAccountMarginMode(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountMarginMode(parameters)).join();
             //
             //     {
             //         "code": "0",
@@ -3515,7 +3515,7 @@ public class BlofinCore extends BlofinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "marginMode", marginMode );
             }};
-            Object response = (this.privatePostAccountSetMarginMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSetMarginMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3547,7 +3547,7 @@ public class BlofinCore extends BlofinApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.privateGetAccountPositionMode(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositionMode(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String positionMode = this.safeString(data, "positionMode");
             //
@@ -3623,7 +3623,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object response = (this.privateGetAccountPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
             //
             //     {
             //         "code": "0",

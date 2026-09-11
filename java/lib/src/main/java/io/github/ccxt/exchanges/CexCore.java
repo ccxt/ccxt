@@ -509,7 +509,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicPostGetPairsInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicPostGetPairsInfo(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -613,7 +613,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicPostGetServerTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicPostGetServerTime(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -680,7 +680,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pairs", this.marketIds(symbols));
             }
-            Object response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -785,7 +785,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pageSize", Helpers.mathMin(limit, 10000)); // has a bug, still returns more trades
             }
-            Object response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -868,7 +868,7 @@ public class CexCore extends CexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -962,7 +962,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicPostGetCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetCandles(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -1010,7 +1010,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetMyCurrentFee(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetMyCurrentFee(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1083,7 +1083,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1149,7 +1149,7 @@ public class CexCore extends CexApi
             Object accountBalance = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostGetMyAccountStatusV3")))
             {
-                Object response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
+                java.util.Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
                 //
                 //    {
                 //        "ok": "ok",
@@ -1168,7 +1168,7 @@ public class CexCore extends CexApi
                 accountBalance = this.safeDict(balances, accountName, new java.util.HashMap<String, Object>() {{}});
             } else
             {
-                Object response = (this.privatePostGetMyWalletBalance(parameters)).join();
+                java.util.Map<String, Object> response = (this.privatePostGetMyWalletBalance(parameters)).join();
                 //
                 //    {
                 //        "ok": "ok",
@@ -1269,7 +1269,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "serverCreateTimestampTo", until);
             }
-            Object response = (this.privatePostGetMyOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetMyOrders(this.extend(request, parameters))).join();
             //
             // if called without `pair`
             //
@@ -1598,7 +1598,7 @@ public class CexCore extends CexApi
                 Helpers.addElementToObject(request, "type", "Stop Limit");
                 Helpers.addElementToObject(request, "stopPrice", triggerPrice);
             }
-            Object response = (this.privatePostDoMyNewOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDoMyNewOrder(this.extend(request, parameters))).join();
             //
             // on success
             //
@@ -1679,7 +1679,7 @@ public class CexCore extends CexApi
                 put( "cancelRequestId", Helpers.add("c_", String.valueOf((CexCore.this.milliseconds()))) );
                 put( "timestamp", CexCore.this.milliseconds() );
             }};
-            Object response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
             //
             //      {"ok":"ok","data":{}}
             //
@@ -1709,7 +1709,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostDoCancelAllOrders(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostDoCancelAllOrders(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1783,7 +1783,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "dateTo", until);
             }
-            Object response = (this.privatePostGetMyTransactionHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetMyTransactionHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -1901,7 +1901,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "dateTo", until);
             }
-            Object response = (this.privatePostGetMyFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetMyFundingHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -2075,7 +2075,7 @@ public class CexCore extends CexApi
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
-            Object response = (this.privatePostDoMyInternalTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDoMyInternalTransfer(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -2170,7 +2170,7 @@ public class CexCore extends CexApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
-            Object response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",

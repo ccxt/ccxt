@@ -2367,7 +2367,7 @@ public class KucoinCore extends KucoinApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.futuresPublicGetContractsActive(parameters)).join();
+            java.util.Map<String, Object> response = (this.futuresPublicGetContractsActive(parameters)).join();
             //
             //    {
             //        "code": "200000",
@@ -2768,7 +2768,7 @@ public class KucoinCore extends KucoinApi
             Object force = Helpers.getArg(optionalArgs, 0, false);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.options, "hf"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.options, "hf"), null)))) || Helpers.isTrue(force)))
             {
-                Object result = (this.privateGetHfAccountsOpened()).join();
+                java.util.Map<String, Object> result = (this.privateGetHfAccountsOpened()).join();
                 Helpers.addElementToObject(this.options, "hf", this.safeBool(result, "data"));
             }
             return true;
@@ -3059,7 +3059,7 @@ public class KucoinCore extends KucoinApi
                     Helpers.addElementToObject(request, "chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Object response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object withdrawFees = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(withdrawFees, code, this.safeNumber(data, "withdrawMinFee"));
@@ -3108,7 +3108,7 @@ public class KucoinCore extends KucoinApi
                     Helpers.addElementToObject(request, "chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Object response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -3711,7 +3711,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetMarkPriceAllSymbols(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarkPriceAllSymbols(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data);
         });
@@ -4053,7 +4053,7 @@ public class KucoinCore extends KucoinApi
                 }
                 Helpers.addElementToObject(request, "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "-"), suffix));
             }
-            Object response = (this.utaGetMarketKline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaGetMarketKline(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -4134,7 +4134,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "startAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, denominator)))))));
             }
             Helpers.addElementToObject(request, "endAt", this.parseToInt((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(endAt, denominator)))))));
-            Object response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketCandles(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":"200000",
@@ -4218,7 +4218,7 @@ public class KucoinCore extends KucoinApi
                 Helpers.addElementToObject(request, "from", since);
             }
             Helpers.addElementToObject(request, "to", endAt);
-            Object response = (this.futuresPublicGetKlineQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPublicGetKlineQuery(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -4267,7 +4267,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // docs mention "chain-name", but seems "chain-id" is used, like in "fetchDepositAddress"
             }
-            Object response = (this.privatePostDepositAddressCreate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDepositAddressCreate(this.extend(request, parameters))).join();
             // {"code":"260000","msg":"Deposit address already exists."}
             //
             //   {
@@ -4349,7 +4349,7 @@ public class KucoinCore extends KucoinApi
             }
             Object version = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "versions"), "private"), "GET"), "deposit-addresses");
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "versions"), "private"), "GET"), "deposit-addresses", "v1");
-            Object response = (this.privateGetDepositAddresses(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDepositAddresses(this.extend(request, parameters))).join();
             // BCH {"code":"200000","data":{"address":"bitcoincash:qza3m4nj9rx7l9r0cdadfqxts6f92shvhvr5ls4q7z","memo":""}}
             // BTC {"code":"200000","data":{"address":"36SjucKqQpQSvsak9A7h6qzFjrVXpRNZhE","memo":""}}
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "versions"), "private"), "GET"), "deposit-addresses", version);
@@ -4388,7 +4388,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", finalCurrencyId );
             }};
-            Object response = (this.futuresPrivateGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetDepositAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -5331,7 +5331,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createUtaOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.utaPrivatePostAccountModeOrderPlace(request)).join();
+            java.util.Map<String, Object> response = (this.utaPrivatePostAccountModeOrderPlace(request)).join();
             //
             //     {
             //         "code": "200000",
@@ -5832,7 +5832,7 @@ public class KucoinCore extends KucoinApi
                 Object orderRequest = this.createContractOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.futuresPrivatePostOrdersMulti(ordersRequests)).join();
+            java.util.Map<String, Object> response = (this.futuresPrivatePostOrdersMulti(ordersRequests)).join();
             //
             //     {
             //         "code": "200000",
@@ -5907,7 +5907,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "newPrice", this.priceToPrecision(symbol, price));
             }
-            Object response = (this.privatePostHfOrdersAlter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostHfOrdersAlter(this.extend(request, parameters))).join();
             //
             // {
             //     "code":"200000",
@@ -6270,7 +6270,7 @@ public class KucoinCore extends KucoinApi
             Object isUnified = (Helpers.isEqual(accountMode, "unified"));
             Object tradeType = this.handleTradeType(Helpers.GetValue(market, "contract"), marginMode, isUnified, parameters);
             Helpers.addElementToObject(request, "tradeType", tradeType);
-            Object response = (this.utaPrivatePostAccountModeOrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivatePostAccountModeOrderCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -6530,7 +6530,7 @@ public class KucoinCore extends KucoinApi
                 put( "tradeType", tradeType );
                 put( "orderFilter", orderFilter );
             }};
-            Object response = (this.utaPrivatePostAccountModeOrderCancelAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivatePostAccountModeOrderCancelAll(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -7506,7 +7506,7 @@ public class KucoinCore extends KucoinApi
             Object isUnified = (Helpers.isEqual(accountMode, "unified"));
             Object tradeType = this.handleTradeType(Helpers.GetValue(market, "contract"), marginMode, isUnified, parameters);
             Helpers.addElementToObject(request, "tradeType", tradeType);
-            Object response = (this.utaPrivateGetAccountModeOrderDetail(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivateGetAccountModeOrderDetail(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -8404,7 +8404,7 @@ public class KucoinCore extends KucoinApi
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.futuresPrivateGetFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetFills(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -8530,7 +8530,7 @@ public class KucoinCore extends KucoinApi
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.utaPrivateGetAccountModeOrderExecution(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivateGetAccountModeOrderExecution(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -9241,7 +9241,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "feeDeductType", "INTERNAL");
             }
-            Object response = (this.privatePostWithdrawals(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawals(this.extend(request, parameters))).join();
             //
             // the id is inside "data"
             //
@@ -9567,7 +9567,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "startAt", since);
             }
-            Object response = (this.futuresPrivateGetDepositList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetDepositList(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -9765,7 +9765,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "startAt", since);
             }
-            Object response = (this.futuresPrivateGetWithdrawalList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetWithdrawalList(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -10077,7 +10077,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.futuresPrivateGetAccountOverview(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetAccountOverview(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -10403,7 +10403,7 @@ public class KucoinCore extends KucoinApi
                 put( "SUB_TO_SUB", "3" );
             }};
             Helpers.addElementToObject(request, "type", this.safeString(types, transferType, transferType));
-            Object response = (this.utaPrivatePostAccountTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivatePostAccountTransfer(this.extend(request, parameters))).join();
             //
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -11402,7 +11402,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit); // default:50, min:10, max:500
             }
-            Object response = (this.privateGetMarginInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetMarginInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -11474,7 +11474,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit); // default:50, min:10, max:500
             }
-            Object response = (this.privateGetMarginInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetMarginInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -11562,7 +11562,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -11609,7 +11609,7 @@ public class KucoinCore extends KucoinApi
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
                 put( "timeInForce", "FOK" );
             }};
-            Object response = (this.privatePostMarginBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostMarginBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -11659,7 +11659,7 @@ public class KucoinCore extends KucoinApi
                 put( "timeInForce", "FOK" );
                 put( "isIsolated", true );
             }};
-            Object response = (this.privatePostMarginBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostMarginBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -11703,7 +11703,7 @@ public class KucoinCore extends KucoinApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privatePostMarginRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostMarginRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -11751,7 +11751,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "isIsolated", true );
             }};
-            Object response = (this.privatePostMarginRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostMarginRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -11812,7 +11812,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetCurrencies(parameters)).join();
             //
             //  [
             //      {
@@ -11872,7 +11872,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -12293,7 +12293,7 @@ public class KucoinCore extends KucoinApi
                 //         }
                 //     }
                 //
-                Object utaResponse = (this.utaGetMarketFundingRateHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> utaResponse = (this.utaGetMarketFundingRateHistory(this.extend(request, parameters))).join();
                 response = this.safeDict(utaResponse, "data", new java.util.HashMap<String, Object>() {{}});
                 resultKey = "list";
             } else
@@ -12401,7 +12401,7 @@ public class KucoinCore extends KucoinApi
                 var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object response = (this.utaPrivateGetPositionFundingHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.utaPrivateGetPositionFundingHistory(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "code": "200000",
@@ -12431,7 +12431,7 @@ public class KucoinCore extends KucoinApi
                     // * Since is ignored if limit is defined
                     Helpers.addElementToObject(request, "maxCount", limit);
                 }
-                Object response = (this.futuresPrivateGetFundingHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.futuresPrivateGetFundingHistory(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "code": "200000",
@@ -13154,7 +13154,7 @@ public class KucoinCore extends KucoinApi
                 put( "margin", KucoinCore.this.amountToPrecision(symbol, amount) );
                 put( "bizNo", uuid );
             }};
-            Object response = (this.futuresPrivatePostPositionMarginDepositMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivatePostPositionMarginDepositMargin(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -13240,7 +13240,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "withdrawAmount", amountString );
             }};
-            Object response = (this.futuresPrivatePostMarginWithdrawMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivatePostMarginWithdrawMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -13359,7 +13359,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -13423,7 +13423,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginMode", ((String)marginMode).toUpperCase() );
             }};
-            Object response = (this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivatePostPositionChangeMarginMode(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -13464,7 +13464,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "positionMode", posMode );
             }};
-            Object response = (this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -13494,7 +13494,7 @@ public class KucoinCore extends KucoinApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.futuresPrivateGetPositionGetPositionMode(parameters)).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetPositionGetPositionMode(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object positionMode = this.safeInteger(data, "positionMode");
             final Object finalPositionMode = positionMode;
@@ -13594,7 +13594,7 @@ public class KucoinCore extends KucoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.futuresPublicGetContractsRiskLimitSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.futuresPublicGetContractsRiskLimitSymbol(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "200000",
@@ -13715,7 +13715,7 @@ final Object finalMarket = market;
                 put( "accountType", "UNIFIED" );
                 put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
             }};
-            Object response = (this.utaGetMarketPositionTiers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaGetMarketPositionTiers(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -13795,7 +13795,7 @@ final Object finalMarket = market;
                     Helpers.addElementToObject(request, "symbol", String.join((String)",", (java.util.List<String>)marketIds));
                 }
             }
-            Object response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200000",
@@ -13909,7 +13909,7 @@ final Object finalMarket = market;
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.utaGetMarketOpenInterest(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data");
             return this.parseOpenInterestsHistory(data, market, since, limit);
         });
@@ -13933,7 +13933,7 @@ final Object finalMarket = market;
             Object uta = this.safeBool(this.options, "uta");
             if (Helpers.isTrue(Helpers.isEqual(uta, null)))
             {
-                Object response = (this.utaPrivateGetAccountMode(parameters)).join();
+                java.util.Map<String, Object> response = (this.utaPrivateGetAccountMode(parameters)).join();
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 String accountMode = this.safeString(data, "selfAccountMode");
                 uta = (Helpers.isEqual(accountMode, "UNIFIED"));
@@ -14153,7 +14153,7 @@ final Object finalMarket = market;
             var requestparametersVariable = this.handleUntilOption("endAt", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAccountsLedgers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountsLedgers(this.extend(request, parameters))).join();
             //
             // {
             //     "code": "200000",
@@ -14207,7 +14207,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object response = (this.futuresPrivateGetPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.futuresPrivateGetPositions(parameters)).join();
             //
             //     {
             //         "code": "200000",

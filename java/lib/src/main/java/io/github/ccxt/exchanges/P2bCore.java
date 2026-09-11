@@ -361,7 +361,7 @@ public class P2bCore extends P2bApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetMarkets(parameters)).join();
             //
             //    {
             //        "success": true,
@@ -479,7 +479,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             //    {
             //        success: true,
@@ -534,7 +534,7 @@ public class P2bCore extends P2bApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
             //    {
             //        success: true,
@@ -662,7 +662,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetDepthResult(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDepthResult(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -734,7 +734,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        success: true,
@@ -868,7 +868,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetMarketKline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketKline(this.extend(request, parameters))).join();
             //
             //    {
             //        success: true,
@@ -933,7 +933,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostAccountBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountBalances(parameters)).join();
             //
             //    {
             //        "success": true,
@@ -1026,7 +1026,7 @@ public class P2bCore extends P2bApi
                 put( "amount", P2bCore.this.amountToPrecision(symbol, amount) );
                 put( "price", P2bCore.this.priceToPrecision(symbol, price) );
             }};
-            Object response = (this.privatePostOrderNew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderNew(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1085,7 +1085,7 @@ public class P2bCore extends P2bApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
-            Object response = (this.privatePostOrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderCancel(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1153,7 +1153,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1221,7 +1221,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostAccountOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1316,7 +1316,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostAccountMarketDealHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountMarketDealHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1417,7 +1417,7 @@ public class P2bCore extends P2bApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostAccountOrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountOrderHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,

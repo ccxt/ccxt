@@ -6373,7 +6373,7 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.sapiGetSystemStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.sapiGetSystemStatus(parameters)).join();
             //
             //     {
             //         "status": 0,              // 0: normal，1：system maintenance
@@ -7636,7 +7636,7 @@ public class BinanceCore extends BinanceApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editSpotOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
             Object payload = this.editSpotOrderRequest(id, symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostOrderCancelReplace(payload)).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderCancelReplace(payload)).join();
             //
             // spot
             //
@@ -11706,7 +11706,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "accountType", accountType);
             }
-            Object response = (this.sapiGetAssetDribblet(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiGetAssetDribblet(this.extend(request, parameters))).join();
             //     {
             //       "total": "4",
             //       "userAssetDribblets": [
@@ -11895,7 +11895,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Helpers.addElementToObject(request, "endTime", until);
                 }
-                Object raw = (this.sapiGetFiatOrders(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> raw = (this.sapiGetFiatOrders(this.extend(request, parameters))).join();
                 response = this.safeList(raw, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -11998,7 +11998,7 @@ public class BinanceCore extends BinanceApi
                 {
                     Helpers.addElementToObject(request, "beginTime", since);
                 }
-                Object raw = (this.sapiGetFiatOrders(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> raw = (this.sapiGetFiatOrders(this.extend(request, parameters))).join();
                 response = this.safeList(raw, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -12501,7 +12501,7 @@ public class BinanceCore extends BinanceApi
                     Helpers.addElementToObject(request, "type", Helpers.add(Helpers.add(fromId, "_"), toId));
                 }
             }
-            Object response = (this.sapiPostAssetTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostAssetTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "tranId":13526853623
@@ -12644,7 +12644,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             // has support for the 'network' parameter
-            Object response = (this.sapiGetCapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiGetCapitalDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "XRP",
@@ -12719,7 +12719,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.sapiGetCapitalConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.sapiGetCapitalConfigGetall(parameters)).join();
             //
             //  [
             //     {
@@ -12854,7 +12854,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.sapiGetCapitalConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.sapiGetCapitalConfigGetall(parameters)).join();
             //
             //    [
             //        {
@@ -13024,7 +13024,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
             Helpers.addElementToObject(request, "amount", this.currencyToPrecision(Helpers.GetValue(currency, "code"), amount, networkCode));
-            Object response = (this.sapiPostCapitalWithdrawApply(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostCapitalWithdrawApply(this.extend(request, parameters))).join();
             //     { id: '9a67628b16ba4988ae20d329333f16bc' }
             return this.parseTransaction(response, currency);
         });
@@ -13415,7 +13415,7 @@ public class BinanceCore extends BinanceApi
                 put( "amount", amount );
                 put( "type", finalType );
             }};
-            Object response = (this.sapiPostFuturesTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostFuturesTransfer(this.extend(request, parameters))).join();
             //
             //   {
             //       "tranId": 100000001
@@ -14564,7 +14564,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.eapiPrivateGetPosition(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPrivateGetPosition(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -14634,7 +14634,7 @@ final Object finalMarket = market;
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.eapiPrivateGetPosition(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPrivateGetPosition(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -15581,7 +15581,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.eapiPublicGetExerciseHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPublicGetExerciseHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -15647,7 +15647,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.eapiPrivateGetExerciseRecord(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPrivateGetExerciseRecord(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -15797,7 +15797,7 @@ final Object finalMarket = market;
                 put( "recordId", id );
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.eapiPrivateGetBill(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPrivateGetBill(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -16644,7 +16644,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.sapiGetMarginInterestRateHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.sapiGetMarginInterestRateHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -16718,7 +16718,7 @@ final Object finalMarket = market;
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.sapiGetMarginIsolatedMarginData(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.sapiGetMarginIsolatedMarginData(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -16788,7 +16788,7 @@ final Object finalMarket = market;
                 Object now = this.milliseconds();
                 Helpers.addElementToObject(request, "endTime", Helpers.mathMin(endTime, now)); // cannot have an endTime later than current time
             }
-            Object response = (this.sapiGetMarginInterestRateHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.sapiGetMarginInterestRateHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -16894,7 +16894,7 @@ final Object finalMarket = market;
                 put( "token", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
-            Object response = (this.sapiPostGiftcardCreateCode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostGiftcardCreateCode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "000000",
@@ -16935,7 +16935,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "code", giftcardCode );
             }};
-            Object response = (this.sapiPostGiftcardRedeemCode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostGiftcardRedeemCode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "000000",
@@ -16970,7 +16970,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "referenceNo", id );
             }};
-            Object response = (this.sapiGetGiftcardVerify(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiGetGiftcardVerify(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "000000",
@@ -17199,7 +17199,7 @@ final Object finalMarket = market;
                 put( "isIsolated", "TRUE" );
                 put( "type", "REPAY" );
             }};
-            Object response = (this.sapiPostMarginBorrowRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostMarginBorrowRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "tranId": 108988250265,
@@ -17293,7 +17293,7 @@ final Object finalMarket = market;
                 put( "isIsolated", "TRUE" );
                 put( "type", "BORROW" );
             }};
-            Object response = (this.sapiPostMarginBorrowRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostMarginBorrowRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "tranId": 108988250265,
@@ -17877,7 +17877,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -17932,7 +17932,7 @@ final Object finalMarket = market;
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -18233,7 +18233,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.eapiPublicGetTicker(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.eapiPublicGetTicker(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -18422,7 +18422,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.sapiGetConvertAssetInfo(parameters)).join();
+            java.util.List<Object> response = (this.sapiGetConvertAssetInfo(parameters)).join();
             //
             //     [
             //         {
@@ -18509,7 +18509,7 @@ final Object finalMarket = market;
                 put( "toAsset", toCode );
                 put( "fromAmount", finalAmount );
             }};
-            Object response = (this.sapiPostConvertGetQuote(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPostConvertGetQuote(this.extend(request, parameters))).join();
             //
             //     {
             //         "quoteId":"12415572564",

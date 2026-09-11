@@ -798,7 +798,7 @@ public class TokocryptoCore extends TokocryptoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenV1CommonTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenV1CommonTime(parameters)).join();
             //
             // {
             //     "code": 0,
@@ -826,7 +826,7 @@ public class TokocryptoCore extends TokocryptoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenV1CommonSymbols(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenV1CommonSymbols(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -1266,7 +1266,7 @@ public class TokocryptoCore extends TokocryptoApi
                 }
                 // open/v1/market/trades answers an empty list for every market, the
                 // aggregate endpoint is the one that carries data for these markets
-                Object responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> responseInner = (this.publicGetOpenV1MarketAggTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "code": 0,
@@ -1574,7 +1574,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.binanceGetTickerBookTicker(parameters)).join();
+            java.util.List<Object> response = (this.binanceGetTickerBookTicker(parameters)).join();
             return this.parseTickers(response, symbols);
         });
 
@@ -1765,7 +1765,7 @@ public class TokocryptoCore extends TokocryptoApi
             String defaultMarginMode = this.safeString2(this.options, "marginMode", "defaultMarginMode");
             Object marginMode = this.safeStringLower(parameters, "marginMode", defaultMarginMode);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetOpenV1AccountSpot(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1AccountSpot(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -2208,7 +2208,7 @@ public class TokocryptoCore extends TokocryptoApi
                     Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
                 }
             }
-            Object response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2263,7 +2263,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2342,7 +2342,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1Orders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2459,7 +2459,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object response = (this.privatePostOpenV1OrdersCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenV1OrdersCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2539,7 +2539,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenV1OrdersTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1OrdersTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -2605,7 +2605,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
             // has support for the 'network' parameter
             // https://binance-docs.github.io/apidocs/spot/en/#deposit-address-supporting-network-user_data
-            Object response = (this.privateGetOpenV1DepositsAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1DepositsAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2689,7 +2689,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenV1Deposits(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1Deposits(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2761,7 +2761,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenV1Withdraws(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenV1Withdraws(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":0,
@@ -2994,7 +2994,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "network", ((String)networkId).toUpperCase());
             }
-            Object response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenV1Withdraws(this.extend(request, query))).join();
             //
             //     {
             //         "code": 0,

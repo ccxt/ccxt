@@ -709,7 +709,7 @@ public class CoinspotCore extends CoinspotApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
-            Object orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
         });
 
@@ -773,7 +773,7 @@ public class CoinspotCore extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = (this.publicGetLatest(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
@@ -815,7 +815,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetLatest(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             //
             //    {
             //        "status": "ok",
@@ -879,7 +879,7 @@ public class CoinspotCore extends CoinspotApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "status":"ok",
@@ -928,7 +928,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 Helpers.addElementToObject(request, "startdate", this.yyyymmdd(since));
             }
-            Object response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
             //  {
             //      "status": "ok",
             //      "buyorders": [

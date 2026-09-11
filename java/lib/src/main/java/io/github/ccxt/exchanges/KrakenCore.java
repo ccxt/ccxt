@@ -891,7 +891,7 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSystemStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSystemStatus(parameters)).join();
             //
             // {
             //     error: [],
@@ -926,7 +926,7 @@ public class KrakenCore extends KrakenApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetAssets(parameters)).join();
             //
             //     {
             //         "error": [],
@@ -1108,7 +1108,7 @@ public class KrakenCore extends KrakenApi
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "fee-info", true );
             }};
-            Object response = (this.privatePostTradeVolume(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeVolume(this.extend(request, parameters))).join();
             //
             //     {
             //        "error": [],
@@ -1200,7 +1200,7 @@ public class KrakenCore extends KrakenApi
             {
                 Helpers.addElementToObject(request, "count", limit); // 100
             }
-            Object response = (this.publicGetDepth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
             //
             //     {
             //         "error":[],
@@ -1323,7 +1323,7 @@ public class KrakenCore extends KrakenApi
                 }
                 Helpers.addElementToObject(request, "pair", String.join((String)",", (java.util.List<String>)marketIds));
             }
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object tickers = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(tickers);
             Object result = new java.util.HashMap<String, Object>() {{}};
@@ -1363,7 +1363,7 @@ public class KrakenCore extends KrakenApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object tickerResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.safeValue(tickerResult, Helpers.GetValue(market, "id"));
             return this.parseTicker(ticker, market);
@@ -1445,7 +1445,7 @@ public class KrakenCore extends KrakenApi
                 Object timeFrameInSeconds = Helpers.multiply(parsedTimeframe, 60);
                 Helpers.addElementToObject(request, "since", this.numberToString(Helpers.subtract(scaledSince, timeFrameInSeconds))); // expected to be in seconds
             }
-            Object response = (this.publicGetOHLC(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOHLC(this.extend(request, parameters))).join();
             //
             //     {
             //         "error":[],
@@ -1584,7 +1584,7 @@ public class KrakenCore extends KrakenApi
                 Object untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
-            Object response = (this.privatePostLedgers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostLedgers(this.extend(request, parameters))).join();
             // {  error: [],
             //   "result": { ledger: { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
             //                                                   "time":  1520103488.314,
@@ -1627,7 +1627,7 @@ public class KrakenCore extends KrakenApi
             Object request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", finalIds );
             }}, parameters);
-            Object response = (this.privatePostQueryLedgers(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostQueryLedgers(request)).join();
             // {  error: [],
             //   "result": { 'LPUAIB-TS774-UKHP7X': {   refid: "A2B4HBV-L4MDIE-JU4N3N",
             //                                         "time":  1520103488.314,
@@ -1881,7 +1881,7 @@ public class KrakenCore extends KrakenApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [],
@@ -1953,7 +1953,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostBalanceEx(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostBalanceEx(parameters)).join();
             //
             //     {
             //         "error": [],
@@ -2073,7 +2073,7 @@ public class KrakenCore extends KrakenApi
             Object orderRequest = this.orderRequest("createOrder", symbol, type, request, amount, price, parameters);
             String flags = this.safeString(Helpers.GetValue(orderRequest, 0), "oflags", "");
             Object isUsingCost = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "viqc"), Helpers.opNeg(1));
-            Object response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
+            java.util.Map<String, Object> response = (this.privatePostAddOrder(this.extend(Helpers.GetValue(orderRequest, 0), Helpers.GetValue(orderRequest, 1)))).join();
             //
             //     {
             //         "error": [],
@@ -2813,7 +2813,7 @@ final Object finalId = id;
                     Helpers.addElementToObject(request, "trigger_price", this.priceToPrecision(symbol, allTriggerPrices));
                 }
             }
-            Object response = (this.privatePostAmendOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAmendOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [],
@@ -2861,7 +2861,7 @@ final Object finalId = id;
                 Helpers.addElementToObject(request, "userref", clientOrderId);
                 query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("userref", "clientOrderId")));
             }
-            Object response = (this.privatePostQueryOrders(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostQueryOrders(this.extend(request, query))).join();
             //
             //     {
             //         "error":[],
@@ -2979,7 +2979,7 @@ final Object finalId = id;
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "txid", String.join((String)",", (java.util.List<String>)requestIds) );
                 }};
-                Object response = (this.privatePostQueryTrades(request)).join();
+                java.util.Map<String, Object> response = (this.privatePostQueryTrades(request)).join();
                 //
                 //     {
                 //         "error": [],
@@ -3037,7 +3037,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostQueryOrders(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.privatePostQueryOrders(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "trades", true );
                 put( "txid", String.join((String)",", (java.util.List<String>)ids) );
             }}, parameters))).join();
@@ -3096,7 +3096,7 @@ final Object finalId = id;
                 Object untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
-            Object response = (this.privatePostTradesHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradesHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [],
@@ -3221,7 +3221,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ids );
             }};
-            Object response = (this.privatePostCancelOrderBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrderBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [],
@@ -3257,7 +3257,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostCancelAll(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelAll(parameters)).join();
             //
             //    {
             //        error: [],
@@ -3308,7 +3308,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? (KrakenCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
             }};
-            Object response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [ ],
@@ -3366,7 +3366,7 @@ final Object finalId = id;
                 Helpers.addElementToObject(request, "cl_ord_id", clientOrderId);
                 parameters = this.omit(parameters, "clientOrderId");
             }
-            Object response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "error": [],
@@ -3473,7 +3473,7 @@ final Object finalId = id;
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privatePostClosedOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostClosedOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "error":[],
@@ -3734,7 +3734,7 @@ final Object finalId = id;
                 Object untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", Precise.stringAdd(untilDivided, "1"));
             }
-            Object response = (this.privatePostDepositStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDepositStatus(this.extend(request, parameters))).join();
             //
             //     {  error: [],
             //       "result": [ { "method": "Ether (Hex)",
@@ -3769,7 +3769,7 @@ final Object finalId = id;
 
             // https://www.kraken.com/en-us/features/api#get-server-time
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //    {
             //        "error": [],
@@ -3839,7 +3839,7 @@ final Object finalId = id;
                 Object untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", Precise.stringAdd(untilDivided, "1"));
             }
-            Object response = (this.privatePostWithdrawStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawStatus(this.extend(request, parameters))).join();
             //
             // with no pagination
             //     {  error: [],
@@ -3952,7 +3952,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostDepositMethods(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDepositMethods(this.extend(request, parameters))).join();
             //
             //     {
             //         "error":[],
@@ -4046,7 +4046,7 @@ final Object finalId = id;
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "method", finalDepositMethod );
             }};
-            Object response = (this.privatePostDepositAddresses(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDepositAddresses(this.extend(request, parameters))).join();
             //
             //     {
             //         "error":[],
@@ -4124,7 +4124,7 @@ final Object finalId = id;
                     Helpers.addElementToObject(request, "address", address);
                     this.checkAddress(address);
                 }
-                Object response = (this.privatePostWithdraw(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "error": [],
@@ -4165,7 +4165,7 @@ final Object finalId = id;
                 put( "docalcs", "true" );
                 put( "consolidation", "market" );
             }};
-            Object response = (this.privatePostOpenPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenPositions(this.extend(request, parameters))).join();
             //
             // no consolidation
             //
@@ -4337,7 +4337,7 @@ final Object finalId = id;
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " transfer cannot transfer from "), fromAccountParsed), " to "), toAccountParsed), ". Use krakenfutures instead to transfer from the futures account.")) ;
             }
-            Object response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
             //
             //   {
             //       "error":[

@@ -592,7 +592,7 @@ public class DydxCore extends DydxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.indexerGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.indexerGetTime(parameters)).join();
             //
             // {
             //     "iso": "2025-07-20T15:12:13.466Z",
@@ -727,7 +727,7 @@ public class DydxCore extends DydxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
             //
             // {
             //     "markets": {
@@ -833,7 +833,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "trades": [
@@ -923,7 +923,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "toIso", this.iso8601(until));
             }
-            Object response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "candles": [
@@ -993,7 +993,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "effectiveBeforeOrAt", this.iso8601(until));
             }
-            Object response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "historicalFunding": [
@@ -1164,7 +1164,7 @@ public class DydxCore extends DydxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            Object order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(order);
         });
 
@@ -1220,7 +1220,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.indexerGetOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.indexerGetOrders(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -1435,7 +1435,7 @@ public class DydxCore extends DydxApi
                 put( "subaccountNumber", finalSubAccountNumber );
                 put( "status", "OPEN" );
             }};
-            Object response = (this.indexerGetPerpetualPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetPerpetualPositions(this.extend(request, parameters))).join();
             //
             // {
             //     "positions": [
@@ -1579,7 +1579,7 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
             Object account = this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(account, "pub_key", new java.util.HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(Helpers.GetValue(account, "pub_key"), "key") );
@@ -1793,7 +1793,7 @@ public class DydxCore extends DydxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.nodeRpcGetAbciInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetAbciInfo(parameters)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -1869,7 +1869,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2003,7 +2003,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2091,7 +2091,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2138,7 +2138,7 @@ public class DydxCore extends DydxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "bids": [
@@ -2281,7 +2281,7 @@ public class DydxCore extends DydxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "txBytes", txBytes );
             }};
-            Object response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
             //
             // {
             //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -2440,7 +2440,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2659,7 +2659,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2826,7 +2826,7 @@ public class DydxCore extends DydxApi
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubAccountNumber );
             }};
-            Object response = (this.indexerGetTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetTransfers(this.extend(request, parameters))).join();
             //
             // {
             //     "transfers": [
@@ -2878,7 +2878,7 @@ public class DydxCore extends DydxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
             }};
-            Object response = (this.indexerGetAddressesAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetAddressesAddress(this.extend(request, parameters))).join();
             //
             // {
             //     "subaccounts": [
@@ -2974,7 +2974,7 @@ public class DydxCore extends DydxApi
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubaccountNumber );
             }};
-            Object response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, parameters))).join();
             //
             // {
             //     "subaccount": {

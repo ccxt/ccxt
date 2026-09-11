@@ -1246,7 +1246,7 @@ public class BingxCore extends BingxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.swapV2PublicGetServerTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.swapV2PublicGetServerTime(parameters)).join();
             //
             //    {
             //        "code": 0,
@@ -1285,7 +1285,7 @@ public class BingxCore extends BingxApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.walletsV1PrivateGetCapitalConfigGetall(parameters)).join();
+            java.util.Map<String, Object> response = (this.walletsV1PrivateGetCapitalConfigGetall(parameters)).join();
             //
             //    {
             //        "code": "0",
@@ -1399,7 +1399,7 @@ public class BingxCore extends BingxApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object response = (this.spotV1PublicGetCommonSymbols(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotV1PublicGetCommonSymbols(parameters)).join();
             //
             //    {
             //        "code": 0,
@@ -1439,7 +1439,7 @@ public class BingxCore extends BingxApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object response = (this.swapV2PublicGetQuoteContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.swapV2PublicGetQuoteContracts(parameters)).join();
             //
             //    {
             //        "code": 0,
@@ -1482,7 +1482,7 @@ public class BingxCore extends BingxApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object response = (this.cswapV1PublicGetMarketContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.cswapV1PublicGetMarketContracts(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -2473,7 +2473,7 @@ public class BingxCore extends BingxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters))).join();
             //
             //    {
             //        "code":0,
@@ -2583,7 +2583,7 @@ public class BingxCore extends BingxApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.swapV2PrivateGetUserIncome(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.swapV2PrivateGetUserIncome(this.extend(request, parameters))).join();
             //         {
             //             "code": 0,
             //             "msg": "",
@@ -5265,7 +5265,7 @@ public class BingxCore extends BingxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.swapV1PrivateGetTradeFullOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.swapV1PrivateGetTradeFullOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5750,7 +5750,7 @@ public class BingxCore extends BingxApi
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BingxCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.apiAssetV1PrivatePostTransfer(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeInteger(response, "timestamp");
             //
@@ -5852,7 +5852,7 @@ public class BingxCore extends BingxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.apiV3PrivateGetAssetTransferRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.apiV3PrivateGetAssetTransferRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "total": 2,
@@ -5937,7 +5937,7 @@ public class BingxCore extends BingxApi
                 put( "limit", 1000 );
                 put( "recvWindow", recvWindow );
             }};
-            Object response = (this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.walletsV1PrivateGetCapitalDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -6087,7 +6087,7 @@ public class BingxCore extends BingxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -6153,7 +6153,7 @@ public class BingxCore extends BingxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -6429,7 +6429,7 @@ public class BingxCore extends BingxApi
                 put( "amount", BingxCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
                 put( "type", finalType );
             }};
-            Object response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.swapV2PrivatePostTradePositionMargin(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": 0,
@@ -6835,7 +6835,7 @@ public class BingxCore extends BingxApi
                 Helpers.addElementToObject(request, "addressTag", tag);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("walletType", "network")));
-            Object response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.walletsV1PrivatePostCapitalWithdrawApply(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data");
             //    {
             //        "code":0,
@@ -7188,7 +7188,7 @@ public class BingxCore extends BingxApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchPositionMode() is not supported for inverse swap markets")) ;
             }
-            Object response = (this.swapV1PrivateGetPositionSideDual(parameters)).join();
+            java.util.Map<String, Object> response = (this.swapV1PrivateGetPositionSideDual(parameters)).join();
             //
             //     {
             //         "code": "0",
@@ -7569,7 +7569,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.swapV1PrivateGetMaintMarginRatio(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.swapV1PrivateGetMaintMarginRatio(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,

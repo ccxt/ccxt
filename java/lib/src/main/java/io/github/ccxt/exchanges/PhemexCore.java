@@ -1405,7 +1405,7 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v2GetPublicProducts(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2GetPublicProducts(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -4264,7 +4264,7 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "chainName", network);
                 parameters = this.omit(parameters, "network");
             }
-            Object response = (this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4323,7 +4323,7 @@ public class PhemexCore extends PhemexApi
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -4378,7 +4378,7 @@ public class PhemexCore extends PhemexApi
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -4755,7 +4755,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(200, limit));
             }
-            Object response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -5249,7 +5249,7 @@ public class PhemexCore extends PhemexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "posBalanceEv", PhemexCore.this.toEv(amount, market) );
             }};
-            Object response = (this.privatePostPositionsAssign(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPositionsAssign(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5434,7 +5434,7 @@ public class PhemexCore extends PhemexApi
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchLeverageTiers() supports USD settled markets only")) ;
                 }
             }
-            Object response = (this.publicGetCfgV2Products(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetCfgV2Products(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -5738,7 +5738,7 @@ final Object finalI = i;
                     put( "moveOp", finalDirection );
                     put( "amountEv", scaledAmmount );
                 }};
-                Object response = (this.privatePostAssetsTransfer(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privatePostAssetsTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "code": "0",
@@ -5766,7 +5766,7 @@ final Object finalI = i;
                     put( "currency", Helpers.GetValue(currency, "id") );
                     put( "bizType", PhemexCore.this.safeString(parameters, "bizType", "SPOT") );
                 }};
-                Object response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "code": "0",
@@ -5842,7 +5842,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetAssetsTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetsTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6116,7 +6116,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "addressTag", tag);
             }
-            Object response = (this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6177,7 +6177,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v2GetMdV2Ticker24hr(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2GetMdV2Ticker24hr(this.extend(request, parameters))).join();
             //
             //    {
             //        error: null,
@@ -6269,7 +6269,7 @@ final Object finalI = i;
                 put( "toCurrency", toCode );
                 put( "fromAmountEv", PhemexCore.this.toEn(amount, valueScale) );
             }};
-            Object response = (this.privateGetAssetsQuote(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetsQuote(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6329,7 +6329,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "fromAmountEv", this.toEn(amount, valueScale));
             }
-            Object response = (this.privatePostAssetsConvert(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetsConvert(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6398,7 +6398,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,

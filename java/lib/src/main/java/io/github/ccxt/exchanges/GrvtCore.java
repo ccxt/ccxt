@@ -790,7 +790,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "api_key", GrvtCore.this.apiKey );
             }};
-            Object response = (this.privateEdgePostAuthApiKeyLogin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateEdgePostAuthApiKeyLogin(this.extend(request, parameters))).join();
             //
             //    {
             //        "location": "",
@@ -824,7 +824,7 @@ public class GrvtCore extends GrvtApi
                 put( "signature", GrvtCore.this.defaultSignature() );
             }};
             request = this.createSignedRequest(request, "EIP712_WALLETLOGIN_TYPE");
-            Object response = (this.privateEdgePostAuthWalletLogin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateEdgePostAuthWalletLogin(this.extend(request, parameters))).join();
             //
             //    {
             //        "location": "",
@@ -893,7 +893,7 @@ public class GrvtCore extends GrvtApi
                         put( "signature", GrvtCore.this.defaultSignature() );
                     }};
                     request = this.createSignedRequest(request, "EIP712_BUILDER_APPROVAL_TYPE");
-                    Object authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(request, parameters))).join();
+                    java.util.Map<String, Object> authResponse = (this.privateTradingPostFullV1AuthorizeBuilder(this.extend(request, parameters))).join();
                     //
                     // {
                     //     "result": {
@@ -1090,7 +1090,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "", "" );
             }}; // workaround for php [] empty arr
-            Object response = (this.publicMarketPostFullV1Currency(request)).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1Currency(request)).join();
             //
             //    {
             //        "result": [
@@ -1173,7 +1173,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
             }};
-            Object response = (this.publicMarketPostFullV1Ticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1Ticker(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -1305,7 +1305,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "depth", this.findNearestCeiling(new java.util.ArrayList<Object>(java.util.Arrays.asList(10, 50, 100, 500)), limit));
             }
-            Object response = (this.publicMarketPostFullV1Book(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1Book(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -1369,7 +1369,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.publicMarketPostFullV1TradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1TradeHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "next": "eyJ0cmFkZUlkIjo2NDc5MTAyMywidHJhZGVJbmRleCI6MX0",
@@ -1551,7 +1551,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.publicMarketPostFullV1Kline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1Kline(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -1650,7 +1650,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.publicMarketPostFullV1Funding(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicMarketPostFullV1Funding(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -1731,7 +1731,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
-            Object response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -1867,7 +1867,7 @@ public class GrvtCore extends GrvtApi
                 return this.parseTransactions(transactions, currency, since, limit);
             } else
             {
-                Object response = (this.privateTradingPostFullV1DepositHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privateTradingPostFullV1DepositHistory(this.extend(request, parameters))).join();
                 //
                 // {
                 //     "result": [{
@@ -1942,7 +1942,7 @@ public class GrvtCore extends GrvtApi
                 return this.parseTransactions(transactions, currency, since, limit);
             } else
             {
-                Object response = (this.privateTradingPostFullV1WithdrawalHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privateTradingPostFullV1WithdrawalHistory(this.extend(request, parameters))).join();
                 //
                 // {
                 //     "result": [{
@@ -1982,7 +1982,7 @@ public class GrvtCore extends GrvtApi
             Object currency = Helpers.getArg(optionalArgs, 0, null);
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
-            Object response = (this.privateTradingPostFullV1TransferHistory(req)).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(req)).join();
             //
             //    {
             //        "result": [
@@ -2192,7 +2192,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.privateTradingPostFullV1TransferHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1TransferHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -2499,7 +2499,7 @@ public class GrvtCore extends GrvtApi
             }
             Helpers.addElementToObject(Helpers.GetValue(request, "signature"), "chain_id", networkId);
             request = this.createSignedRequest(request, "EIP712_WITHDRAWAL_TYPE", currency);
-            Object response = (this.privateTradingPostFullV1Withdrawal(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1Withdrawal(this.extend(request, query))).join();
             //
             // {
             //     "result": {
@@ -2695,7 +2695,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
             }};
-            Object response = (this.privateTradingPostFullV1CreateOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1CreateOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -2881,7 +2881,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.privateTradingPostFullV1FillHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1FillHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -2956,7 +2956,7 @@ public class GrvtCore extends GrvtApi
                     ((java.util.List<Object>)Helpers.GetValue(request, "quote")).add(Helpers.GetValue(market, "quoteId"));
                 }
             }
-            Object response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1Positions(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -3068,7 +3068,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
-            Object response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
             //
             //    {
             //        "results": [
@@ -3114,7 +3114,7 @@ public class GrvtCore extends GrvtApi
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "leverage", GrvtCore.this.numberToString(leverage) );
             }};
-            Object response = (this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1SetInitialLeverage(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true
@@ -3177,7 +3177,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
-            Object response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
             //
             //    {
             //        "results": [
@@ -3272,7 +3272,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1FundingPaymentHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -3368,7 +3368,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "start_time", this.numberToString(Helpers.multiply(since, 1000000)));
             }
-            Object response = (this.privateTradingPostFullV1OrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1OrderHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -3461,7 +3461,7 @@ public class GrvtCore extends GrvtApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
-            Object response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": [
@@ -3560,7 +3560,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "order_id", id);
             }
-            Object response = (this.privateTradingPostFullV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1Order(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -3833,7 +3833,7 @@ public class GrvtCore extends GrvtApi
                 Helpers.addElementToObject(request, "quote", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)Helpers.GetValue(request, "quote")).add(Helpers.GetValue(market, "quoteId"));
             }
-            Object response = (this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1CancelAllOrders(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {
@@ -3879,7 +3879,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "order_id", id);
             }
-            Object response = (this.privateTradingPostFullV1CancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateTradingPostFullV1CancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "result": {

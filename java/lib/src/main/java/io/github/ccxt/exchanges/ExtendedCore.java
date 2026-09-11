@@ -546,7 +546,7 @@ public class ExtendedCore extends ExtendedApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetInfoMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarkets(parameters)).join();
             //
             //     {
             //       "status": "OK",
@@ -820,7 +820,7 @@ public class ExtendedCore extends ExtendedApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PublicGetInfoAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoAssets(parameters)).join();
             //
             //     {
             //       "status": "OK",
@@ -927,7 +927,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PublicGetInfoMarketsMarketStats(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketStats(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -999,7 +999,7 @@ public class ExtendedCore extends ExtendedApi
                 }
                 Helpers.addElementToObject(request, "market", marketIds);
             }
-            Object response = (this.v1PublicGetInfoMarkets(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarkets(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1125,7 +1125,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PublicGetInfoMarketsMarketOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1183,7 +1183,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PublicGetInfoMarketsMarketTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarketsMarketTrades(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1247,7 +1247,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserTrades(this.extend(parameters, request))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserTrades(this.extend(parameters, request))).join();
             //
             //     {
             //         "status": "OK",
@@ -1341,7 +1341,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserFundingHistory(this.extend(parameters, request))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserFundingHistory(this.extend(parameters, request))).join();
             //
             //     {
             //         "status": "OK",
@@ -1563,7 +1563,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoCandlesMarketCandleType(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1660,7 +1660,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "endTime", finalEndTime );
                 put( "limit", finalLimit );
             }};
-            Object response = (this.v1PublicGetInfoMarketFunding(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarketFunding(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1773,7 +1773,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "endTime", finalEndTime );
                 put( "limit", finalLimit );
             }};
-            Object response = (this.v1PublicGetInfoMarketOpenInterests(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PublicGetInfoMarketOpenInterests(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -1830,7 +1830,7 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.v1PrivateGetUserSpotBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserSpotBalances(parameters)).join();
             //
             //     {
             //         "status": "OK",
@@ -1901,7 +1901,7 @@ public class ExtendedCore extends ExtendedApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PrivateGetUserAccountInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserAccountInfo(parameters)).join();
             //
             //     {
             //         "status": "OK",
@@ -1940,7 +1940,7 @@ public class ExtendedCore extends ExtendedApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PrivateGetUserAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserAccounts(parameters)).join();
             //
             // {
             //     "status": "OK",
@@ -2028,7 +2028,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
@@ -2149,7 +2149,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2296,7 +2296,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "settlement", settlement );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainId", "network", "settlementExpiration", "nonce", "recipient", "positionId", "l2Vault", "collateralId", "resolution")));
-            Object response = (this.v1PrivatePostUserWithdrawal(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostUserWithdrawal(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2372,7 +2372,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserAssetOperations(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
@@ -2448,7 +2448,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "settlement", settlement );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromVault", "senderPositionId", "fromL2Key", "senderPublicKey", "toVault", "receiverPositionId", "toL2Key", "receiverPublicKey", "settlementExpiration", "nonce", "assetId", "collateralId", "resolution")));
-            Object response = (this.v1PrivatePostUserTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostUserTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2651,7 +2651,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PrivateGetUserFees(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserFees(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2689,7 +2689,7 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.v1PrivateGetUserFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserFees(parameters)).join();
             //
             //     {
             //         "status": "OK",
@@ -2764,7 +2764,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v1PrivateGetUserLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2809,7 +2809,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "leverage", ExtendedCore.this.numberToString(leverage) );
             }};
-            Object response = (this.v1PrivatePatchUserLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePatchUserLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2867,7 +2867,7 @@ public class ExtendedCore extends ExtendedApi
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "market", marketIds);
             }
-            Object response = (this.v1PrivateGetUserPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -2965,7 +2965,7 @@ public class ExtendedCore extends ExtendedApi
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "market", marketIds);
             }
-            Object response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserPositionsHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "OK",
@@ -3540,7 +3540,7 @@ public class ExtendedCore extends ExtendedApi
             this.checkRequiredCredentials();
             Object extendedOrderRequest = (this.createExtendedOrderRequest(symbol, type, side, amount, price, parameters)).join();
             Object request = this.safeDict(extendedOrderRequest, "request", new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v1PrivatePostUserOrder(request)).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostUserOrder(request)).join();
             //
             //     {
             //         "status": "OK",
@@ -3593,7 +3593,7 @@ public class ExtendedCore extends ExtendedApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) || Helpers.isTrue((Helpers.isEqual(price, null)))) || Helpers.isTrue((Helpers.isEqual(expiryEpochMillis, null)))) || Helpers.isTrue((Helpers.isEqual(postOnly, null)))) || Helpers.isTrue((Helpers.isEqual(reduceOnly, null)))) || Helpers.isTrue((Helpers.isEqual(cancelId, null)))))
             {
                 final Object finalId = id;
-                Object response = (this.v1PrivateGetUserOrdersId(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> response = (this.v1PrivateGetUserOrdersId(new java.util.HashMap<String, Object>() {{
                     put( "id", finalId );
                 }})).join();
                 Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -3644,7 +3644,7 @@ public class ExtendedCore extends ExtendedApi
             }});
             Object extendedOrderRequest = (this.createExtendedOrderRequest(symbol, type, side, amount, price, requestParams)).join();
             Object request = this.safeDict(extendedOrderRequest, "request", new java.util.HashMap<String, Object>() {{}});
-            Object editResponse = (this.v1PrivatePostUserOrder(request)).join();
+            java.util.Map<String, Object> editResponse = (this.v1PrivatePostUserOrder(request)).join();
             //
             //     {
             //         "status": "OK",
@@ -3852,7 +3852,7 @@ public class ExtendedCore extends ExtendedApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
             }};
-            Object response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
+            String response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
             //
             // the endpoint answers with an empty string body
             //
@@ -3947,7 +3947,7 @@ public class ExtendedCore extends ExtendedApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.v1PrivateGetUserOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserOrders(this.extend(request, parameters))).join();
             //
             //     {
             //       "status": "OK",
@@ -4023,7 +4023,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v1PrivateGetUserOrdersHistory(this.extend(parameters, request))).join();
+            java.util.Map<String, Object> response = (this.v1PrivateGetUserOrdersHistory(this.extend(parameters, request))).join();
             //
             //     {
             //       "status": "OK",

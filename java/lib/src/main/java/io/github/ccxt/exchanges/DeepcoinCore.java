@@ -594,7 +594,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", DeepcoinCore.this.convertToInstrumentType(type) );
             }};
-            Object response = (this.publicGetDeepcoinMarketInstruments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinMarketInstruments(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -818,7 +818,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "sz", finalLimit );
             }};
-            Object response = (this.publicGetDeepcoinMarketBooks(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinMarketBooks(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -993,7 +993,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", DeepcoinCore.this.convertToInstrumentType(finalMarketType) );
             }};
-            Object response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinMarketTickers(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
@@ -1100,7 +1100,7 @@ public class DeepcoinCore extends DeepcoinApi
             }
             Object productGroup = this.getProductGroupFromMarket(market);
             Helpers.addElementToObject(request, "productGroup", productGroup);
-            Object response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinMarketTrades(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
@@ -1229,7 +1229,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", DeepcoinCore.this.convertToInstrumentType(finalMarketType) );
             }};
-            Object response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAccountBalances(this.extend(request, parameters))).join();
             return this.parseBalance(response);
         });
 
@@ -1326,7 +1326,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(request, "endTime", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAssetDepositList(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transactionParams = new java.util.HashMap<String, Object>() {{
@@ -1392,7 +1392,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(request, "endTime", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAssetWithdrawList(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transactionParams = new java.util.HashMap<String, Object>() {{
@@ -1496,7 +1496,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "currency_id", Helpers.GetValue(currency, "id") );
                 put( "lang", "en" );
             }};
-            Object response = (this.privateGetDeepcoinAssetRechargeChainList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAssetRechargeChainList(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -1668,7 +1668,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(request, "before", until);
                 parameters = this.omit(parameters, "until");
             }
-            Object response = (this.privateGetDeepcoinAccountBills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAccountBills(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -1798,7 +1798,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "to_id", toId );
                 put( "uid", finalUserId );
             }};
-            Object response = (this.privatePostDeepcoinAssetTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDeepcoinAssetTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -2318,7 +2318,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
-            Object response = (this.privateGetDeepcoinTradeFinishOrderByID(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinTradeFinishOrderByID(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -2402,7 +2402,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
-            Object response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object length = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
@@ -2876,7 +2876,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "IsCrossMargin", finalEncodedMarginMode );
                 put( "IsMergeMode", isMergedMode );
             }};
-            Object response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDeepcoinTradeSwapCancelAll(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market);
         });
@@ -3007,7 +3007,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "OrderSysIDs", ids );
             }};
-            Object response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDeepcoinTradeBatchCancelOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market);
         });
@@ -3203,7 +3203,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instType", instrumentType );
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))));
         });
@@ -3245,7 +3245,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", instrumentType );
             }};
-            Object response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinAccountPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3392,7 +3392,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "mrgPosition", finalMrgPosition );
             }};
-            Object response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDeepcoinAccountSetLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         code: '0',
@@ -3456,7 +3456,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", finalInstType );
             }};
-            Object response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3510,7 +3510,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "instType", DeepcoinCore.this.getProductGroupFromMarket(market) );
             }};
-            Object response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateCurrentFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3603,7 +3603,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "size", limit); // default 20, max 100
             }
-            Object response = (this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDeepcoinTradeFundRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3723,7 +3723,7 @@ public class DeepcoinCore extends DeepcoinApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "end", until);
             }
-            Object response = (this.privateGetDeepcoinTradeFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeepcoinTradeFills(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",

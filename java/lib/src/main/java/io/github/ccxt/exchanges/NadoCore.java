@@ -602,7 +602,7 @@ public class NadoCore extends NadoApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = (this.editOrderRequest(id, symbol, type, side, amount, price, parameters)).join();
-            Object response = (this.gatewayPrivatePostExecute(request)).join();
+            java.util.Map<String, Object> response = (this.gatewayPrivatePostExecute(request)).join();
             //
             //     {
             //         "status": "success",
@@ -1047,7 +1047,7 @@ public class NadoCore extends NadoApi
                 put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "digest", id );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "success",
@@ -1137,7 +1137,7 @@ public class NadoCore extends NadoApi
             String endpointAddress = this.safeString(contracts, "endpoint_addr");
             Object signature = this.signFetchTriggerOrders(tx, chainId, endpointAddress);
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.triggerPrivatePostQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.triggerPrivatePostQuery(this.extend(request, parameters))).join();
             //
             // {
             //     "status": "success",
@@ -1224,7 +1224,7 @@ public class NadoCore extends NadoApi
                 put( "type", "subaccount_orders" );
                 put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
             // single product
             //
@@ -1325,7 +1325,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", finalOrdersRequest );
             }};
-            Object response = (this.archivePost(this.deepExtend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //
             //     {
             //         "orders": [
@@ -1473,7 +1473,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "matches", finalMatchesRequest );
             }};
-            Object response = (this.archivePost(this.deepExtend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //
             //     {
             //         "matches": [
@@ -1547,7 +1547,7 @@ public class NadoCore extends NadoApi
                 put( "type", "subaccount_info" );
                 put( "subaccount", NadoCore.this.createSubaccount(NadoCore.this.walletAddress, finalSubaccount) );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "success",
@@ -1670,7 +1670,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "events", finalEventsRequest );
             }};
-            Object response = (this.archivePost(this.deepExtend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //
             //     {
             //         "events": [
@@ -1763,7 +1763,7 @@ public class NadoCore extends NadoApi
                 put( "type", "subaccount_info" );
                 put( "subaccount", NadoCore.this.createSubaccount(NadoCore.this.walletAddress, finalSubaccount) );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "success",
@@ -1843,7 +1843,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "time" );
             }};
-            Object response = (this.gatewayPublicGetEdgeQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetEdgeQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "success",
@@ -1874,7 +1874,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "status" );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "success",
@@ -2082,7 +2082,7 @@ public class NadoCore extends NadoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.gatewayV2PublicGetAssets(parameters)).join();
+            java.util.List<Object> response = (this.gatewayV2PublicGetAssets(parameters)).join();
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object assets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
@@ -2133,7 +2133,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.archiveV2PublicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.archiveV2PublicGetTickers(parameters)).join();
             //
             //     {
             //         "BTC-PERP_USDT0": {
@@ -2206,7 +2206,7 @@ public class NadoCore extends NadoApi
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
-            Object response = (this.archiveV2PublicGetContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
             //
             //     {
             //         "BTC-PERP_USDT0": {
@@ -2284,7 +2284,7 @@ public class NadoCore extends NadoApi
                     put( "limit", ((Helpers.isTrue((Helpers.isEqual(finalLimit, null))))) ? 100 : Helpers.mathMin(finalLimit, 100) );
                 }} );
             }};
-            Object response = (this.archivePost(this.deepExtend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //
             //     {
             //         "interest_payments": [],
@@ -2333,7 +2333,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, "swap", true);
-            Object response = (this.archiveV2PublicGetContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
             //
             //     {
             //         "BTC-PERP_USDT0": {
@@ -2392,7 +2392,7 @@ public class NadoCore extends NadoApi
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
-            Object response = (this.archiveV2PublicGetContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
             //
             //     {
             //         "BTC-PERP_USDT0": {
@@ -2441,7 +2441,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, "swap", true);
-            Object response = (this.archiveV2PublicGetContracts(parameters)).join();
+            java.util.Map<String, Object> response = (this.archiveV2PublicGetContracts(parameters)).join();
             //
             //     {
             //         "BTC-PERP_USDT0": {
@@ -2502,7 +2502,7 @@ public class NadoCore extends NadoApi
                 put( "ticker_id", tickerId );
                 put( "depth", ((Helpers.isTrue((Helpers.isEqual(finalLimit, null))))) ? 100 : finalLimit );
             }};
-            Object response = (this.gatewayV2PublicGetOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayV2PublicGetOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "product_id": 1,
@@ -2554,7 +2554,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 500));
             }
-            Object response = (this.archiveV2PublicGetTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.archiveV2PublicGetTrades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2614,7 +2614,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(Helpers.GetValue(request, "candlesticks"), "max_time", this.parseToInt(Helpers.divide(until, 1000)));
             }
-            Object response = (this.archivePost(this.deepExtend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
             //
             //     {
             //         "candlesticks": [
@@ -3548,7 +3548,7 @@ public class NadoCore extends NadoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "contracts" );
             }};
-            Object response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "gatewayContracts", data);
             return data;

@@ -665,7 +665,7 @@ public class LighterCore extends LighterApi
                     throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName1), "() requires an "), optionName1), "/"), optionName2), " parameter or walletAddress to fetch accountIndex. Alternatively set privateKey in credentials to enable automatic walletAddress detection.")) ;
                 }
                 final Object finalWalletAddress = walletAddress;
-                Object res = (this.publicGetAccountsByL1Address(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> res = (this.publicGetAccountsByL1Address(new java.util.HashMap<String, Object>() {{
                     put( "l1_address", finalWalletAddress );
                 }})).join();
                 //
@@ -901,7 +901,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", newTxInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return response;
         });
 
@@ -1201,7 +1201,7 @@ public class LighterCore extends LighterApi
             }
             final Object finalAccountIndex = accountIndex;
             final Object finalApiKeyIndex = apiKeyIndex;
-            Object response = (this.publicGetNextNonce(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.publicGetNextNonce(new java.util.HashMap<String, Object>() {{
                 put( "account_index", finalAccountIndex );
                 put( "api_key_index", finalApiKeyIndex );
             }})).join();
@@ -1319,7 +1319,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             //
             // {
             //     "code": 200,
@@ -1416,7 +1416,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrder(response, market);
         });
 
@@ -1436,7 +1436,7 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.rootGet(parameters)).join();
+            java.util.Map<String, Object> response = (this.rootGet(parameters)).join();
             //
             //     {
             //         "status": "1",
@@ -1471,7 +1471,7 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.rootGet(parameters)).join();
+            java.util.Map<String, Object> response = (this.rootGet(parameters)).join();
             //
             //     {
             //         "status": "1",
@@ -1498,7 +1498,7 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOrderBookDetails(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
             //
             //    {
             //        "code": "200",
@@ -1685,7 +1685,7 @@ public class LighterCore extends LighterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAssetDetails(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetAssetDetails(parameters)).join();
             if (Helpers.isTrue(this.checkRequiredCredentials(false)))
             {
                 (this.preLoadLighterLibrary()).join();
@@ -1789,7 +1789,7 @@ public class LighterCore extends LighterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
-            Object response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1952,7 +1952,7 @@ public class LighterCore extends LighterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_id", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderBookDetails(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookDetails(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2027,7 +2027,7 @@ public class LighterCore extends LighterApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetOrderBookDetails(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tickers = this.arrayConcat(spotTickers, swapTickers);
@@ -2129,7 +2129,7 @@ public class LighterCore extends LighterApi
                 put( "start_timestamp", finalStartTs );
                 put( "end_timestamp", finalEndTs );
             }};
-            Object response = (this.publicGetCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetCandles(this.extend(request, parameters))).join();
             //
             // {
             //     "code": 200,
@@ -2212,7 +2212,7 @@ public class LighterCore extends LighterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetFundingRates(this.extend(parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingRates(this.extend(parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2274,7 +2274,7 @@ public class LighterCore extends LighterApi
                 put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
-            Object response = (this.publicGetAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200",
@@ -2414,7 +2414,7 @@ public class LighterCore extends LighterApi
                 put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
-            Object response = (this.publicGetAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2587,7 +2587,7 @@ public class LighterCore extends LighterApi
                 put( "by", LighterCore.this.safeString(finalParameters, "by", "index") );
                 put( "value", finalAccountIndex );
             }};
-            Object response = (this.publicGetAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200",
@@ -2708,7 +2708,7 @@ public class LighterCore extends LighterApi
                 put( "market_id", Helpers.GetValue(market, "id") );
                 put( "account_index", finalAccountIndex );
             }};
-            Object response = (this.privateGetAccountActiveOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountActiveOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2808,7 +2808,7 @@ public class LighterCore extends LighterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
-            Object response = (this.privateGetAccountInactiveOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountInactiveOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3153,7 +3153,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseTransfer(response);
         });
 
@@ -3213,7 +3213,7 @@ public class LighterCore extends LighterApi
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetTransferHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTransferHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3353,7 +3353,7 @@ public class LighterCore extends LighterApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3437,7 +3437,7 @@ public class LighterCore extends LighterApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetWithdrawHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdrawHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "200",
@@ -3605,7 +3605,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseTransaction(response);
         });
 
@@ -3681,7 +3681,7 @@ public class LighterCore extends LighterApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "market_id", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -4015,7 +4015,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrder(response, market);
         });
 
@@ -4085,7 +4085,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(response)));
         });
 
@@ -4141,7 +4141,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return response;
         });
 
@@ -4258,7 +4258,7 @@ public class LighterCore extends LighterApi
                 put( "tx_type", txType );
                 put( "tx_info", txInfo );
             }};
-            Object response = (this.publicPostSendTx(request)).join();
+            java.util.Map<String, Object> response = (this.publicPostSendTx(request)).join();
             return this.parseMarginModification(response, market);
         });
 

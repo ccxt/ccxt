@@ -783,7 +783,7 @@ public class PacificaCore extends PacificaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetInfo(parameters)).join(); // meta
+            java.util.Map<String, Object> response = (this.publicGetInfo(parameters)).join(); // meta
             // {
             //   "success": true,
             //   "data": [
@@ -1027,7 +1027,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", finalUserAccount );
             }};
-            Object response = (this.publicGetAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -1183,7 +1183,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", finalUserAccount );
             }};
-            Object response = (this.publicGetAccountSettings(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccountSettings(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -1351,7 +1351,7 @@ public class PacificaCore extends PacificaApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "agg_level", finalAggLevel );
             }};
-            Object response = (this.publicGetBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetBook(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -1415,7 +1415,7 @@ public class PacificaCore extends PacificaApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetInfoPrices(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             //
             //  {
             //     "success": true,
@@ -1564,7 +1564,7 @@ public class PacificaCore extends PacificaApi
                 }
                 Helpers.addElementToObject(request, "end_time", until);
             }
-            Object response = (this.publicGetKline(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetKline(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -1639,7 +1639,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -1727,7 +1727,7 @@ public class PacificaCore extends PacificaApi
             {
                 Helpers.addElementToObject(request, "start_time", since);
             }
-            Object response = (this.publicGetTradesHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradesHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2171,7 +2171,7 @@ public class PacificaCore extends PacificaApi
             }
             (this.initializeClient()).join();
             Object request = this.createOrdersRequest(orders);
-            Object response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -2249,7 +2249,7 @@ public class PacificaCore extends PacificaApi
             }
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "clientOrderIds")));
-            Object response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersBatch(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2356,7 +2356,7 @@ public class PacificaCore extends PacificaApi
             (this.initializeClient()).join();
             Object request = this.cancelAllOrdersRequest(symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("excludeReduceOnly", "expiryWindow")));
-            Object response = (this.privatePostOrdersCancelAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersCancelAll(this.extend(request, parameters))).join();
             //
             // {
             //   success: true,
@@ -2517,7 +2517,7 @@ public class PacificaCore extends PacificaApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "clientOrderId")));
-            Object response = (this.privatePostOrdersEdit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersEdit(this.extend(request, parameters))).join();
             //
             // {
             //     'data': {
@@ -2622,7 +2622,7 @@ public class PacificaCore extends PacificaApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2682,7 +2682,7 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetInfoPrices(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetInfoPrices(parameters)).join();
             //
             //  {
             //   "success": true,
@@ -2889,7 +2889,7 @@ public class PacificaCore extends PacificaApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.publicGetOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -2975,7 +2975,7 @@ public class PacificaCore extends PacificaApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetOrdersHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrdersHistory(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -3059,7 +3059,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.publicGetOrdersHistoryById(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrdersHistoryById(this.extend(request, parameters))).join();
             //
             // {
             //   "success": true,
@@ -3354,7 +3354,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", finalUserAddress );
             }};
-            Object response = (this.publicGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPositions(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -3478,7 +3478,7 @@ public class PacificaCore extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow")));
-            Object response = (this.privatePostAccountMargin(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountMargin(request)).join();
             // {
             //     "success": true
             // }
@@ -3521,7 +3521,7 @@ public class PacificaCore extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow")));
-            Object response = (this.privatePostAccountLeverage(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountLeverage(request)).join();
             // {
             //     "success": true
             // }
@@ -3561,7 +3561,7 @@ public class PacificaCore extends PacificaApi
             }};
             Object request = this.postActionRequest(operationType, sigPayload, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow")));
-            Object response = (this.privatePostAccountWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountWithdraw(this.extend(request, parameters))).join();
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
@@ -3598,7 +3598,7 @@ public class PacificaCore extends PacificaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "account", finalUserAddress );
             }};
-            Object response = (this.publicGetAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccount(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": {
@@ -3807,7 +3807,7 @@ public class PacificaCore extends PacificaApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetAccountBalanceHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetAccountBalanceHistory(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -3939,7 +3939,7 @@ public class PacificaCore extends PacificaApi
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
-            Object response = (this.publicGetFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingHistory(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "data": [
@@ -4151,7 +4151,7 @@ public class PacificaCore extends PacificaApi
             Helpers.addElementToObject(finalHeaders, "timestamp", timestamp);
             Helpers.addElementToObject(finalHeaders, "expiry_window", expiryWindow);
             Object request = finalHeaders;
-            Object response = (this.privatePostAccountSubaccountCreate(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSubaccountCreate(request)).join();
             //
             // {
             //   "success": true,

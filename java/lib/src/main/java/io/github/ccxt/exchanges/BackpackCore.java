@@ -673,7 +673,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Assets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Assets(parameters)).join();
             //
             //     [
             //         {
@@ -794,7 +794,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object response = (this.publicGetApiV1Markets(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Markets(parameters)).join();
             return this.parseMarkets(response);
         });
 
@@ -1018,7 +1018,7 @@ public class BackpackCore extends BackpackApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         });
@@ -1048,7 +1048,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -1143,7 +1143,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Depth(this.extend(request, parameters))).join();
             //
             //     {
             //         "asks": [
@@ -1231,7 +1231,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "priceType", this.capitalize(price));
                 parameters = this.omit(parameters, "price");
             }
-            Object response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
             Object ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
@@ -1287,7 +1287,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         });
@@ -1359,7 +1359,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
             Object interest = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         });
@@ -1426,7 +1426,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            Object response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1FundingRates(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1557,7 +1557,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "fillType", "User"); // default
             }
-            Object response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
             Object responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
@@ -1667,7 +1667,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Status(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Status(parameters)).join();
             //
             //     {
             //         "message":null,
@@ -1705,7 +1705,7 @@ public class BackpackCore extends BackpackApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Time(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV1Time(parameters)).join();
             //
             //     1753131712992
             //
@@ -1732,7 +1732,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1Capital(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1Capital(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1817,7 +1817,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1CapitalDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
         });
 
@@ -1870,7 +1870,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "to", until);
             }
-            Object response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1CapitalWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency, since, limit);
         });
 
@@ -1919,7 +1919,7 @@ public class BackpackCore extends BackpackApi
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "blockchain", networkId);
-            Object response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostWapiV1CapitalWithdrawals(this.extend(request, query))).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -2096,7 +2096,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "blockchain", BackpackCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
-            Object response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWapiV1CapitalDepositAddress(this.extend(request, parameters))).join();
             return this.parseDepositAddress(response, currency);
         });
 
@@ -2166,7 +2166,7 @@ public class BackpackCore extends BackpackApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostApiV1Order(orderRequest)).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
         });
 
@@ -2205,7 +2205,7 @@ public class BackpackCore extends BackpackApi
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.privatePostApiV1Orders(ordersRequests)).join();
+            java.util.List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
             return this.parseOrders(response);
         });
 
@@ -2361,7 +2361,7 @@ public class BackpackCore extends BackpackApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -2397,7 +2397,7 @@ public class BackpackCore extends BackpackApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
-            Object response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2433,7 +2433,7 @@ public class BackpackCore extends BackpackApi
                 put( "orderId", id );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2467,7 +2467,7 @@ public class BackpackCore extends BackpackApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
         });
 
@@ -2508,7 +2508,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -2703,7 +2703,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1Position(parameters)).join();
+            java.util.List<Object> response = (this.privateGetApiV1Position(parameters)).join();
             Object positions = this.parsePositions(response);
             if (Helpers.isTrue(this.isEmpty(symbols)))
             {
@@ -2844,7 +2844,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWapiV1HistoryFunding(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
         });
 

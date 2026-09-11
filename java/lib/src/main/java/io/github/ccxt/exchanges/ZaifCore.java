@@ -315,7 +315,7 @@ public class ZaifCore extends ZaifApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object markets = (this.publicGetCurrencyPairsAll(parameters)).join();
+            java.util.List<Object> markets = (this.publicGetCurrencyPairsAll(parameters)).join();
             //
             //     [
             //         {
@@ -460,7 +460,7 @@ public class ZaifCore extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -491,7 +491,7 @@ public class ZaifCore extends ZaifApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         });
 
@@ -563,7 +563,7 @@ public class ZaifCore extends ZaifApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
             //
             // {
             //     "last": 9e-08,
@@ -648,7 +648,7 @@ public class ZaifCore extends ZaifApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
             //
             //      [
             //          {
@@ -712,7 +712,7 @@ public class ZaifCore extends ZaifApi
                 put( "amount", amount );
                 put( "price", price );
             }};
-            Object response = (this.privatePostTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -742,7 +742,7 @@ public class ZaifCore extends ZaifApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": 1,
@@ -853,7 +853,7 @@ public class ZaifCore extends ZaifApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         });
@@ -891,7 +891,7 @@ public class ZaifCore extends ZaifApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         });
@@ -939,7 +939,7 @@ public class ZaifCore extends ZaifApi
             {
                 Helpers.addElementToObject(request, "message", tag);
             }
-            Object result = (this.privatePostWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> result = (this.privatePostWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,

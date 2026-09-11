@@ -424,7 +424,7 @@ public class BitteamCore extends BitteamApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCcxtPairs(parameters)).join();
             //
             //     {
             //         "ok": true,
@@ -606,7 +606,7 @@ public class BitteamCore extends BitteamApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTradeApiCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCurrencies(parameters)).join();
             //
             //     {
             //         "ok": true,
@@ -857,7 +857,7 @@ public class BitteamCore extends BitteamApi
                 put( "pairName", Helpers.GetValue(market, "id") );
                 put( "resolution", resolution );
             }};
-            Object response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.historyGetApiTwHistoryPairNameResolution(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -933,7 +933,7 @@ public class BitteamCore extends BitteamApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiCmcOrderbookPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "timestamp": 1701166703284,
@@ -1007,7 +1007,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtOrdersOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1126,7 +1126,7 @@ public class BitteamCore extends BitteamApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1308,7 +1308,7 @@ public class BitteamCore extends BitteamApi
                     Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 }
             }
-            Object response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtOrdercreate(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1362,7 +1362,7 @@ public class BitteamCore extends BitteamApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtCancelorder(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1407,7 +1407,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "pairId", "0"); // '0' for all markets
             }
-            Object response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeApiCcxtCancelAllOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -1629,7 +1629,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTradeApiCmcSummary()).join();
+            java.util.List<Object> response = (this.publicGetTradeApiCmcSummary()).join();
             //
             //     [
             //         {
@@ -1701,7 +1701,7 @@ public class BitteamCore extends BitteamApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradeApiPairName(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -2056,7 +2056,7 @@ public class BitteamCore extends BitteamApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradeApiCmcTradesPair(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2118,7 +2118,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtTradesOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,
@@ -2394,7 +2394,7 @@ public class BitteamCore extends BitteamApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiCcxtBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -2507,7 +2507,7 @@ public class BitteamCore extends BitteamApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeApiTransactionsOfUser(this.extend(request, parameters))).join();
             //
             //     {
             //         "ok": true,

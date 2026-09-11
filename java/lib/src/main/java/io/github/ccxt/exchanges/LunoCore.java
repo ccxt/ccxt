@@ -508,7 +508,7 @@ public class LunoCore extends LunoApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.privateGetSendNetworks(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetSendNetworks(parameters)).join();
             //
             //     {
             //         "networks": [
@@ -603,7 +603,7 @@ public class LunoCore extends LunoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.exchangeGetMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.exchangeGetMarkets(parameters)).join();
             //
             //     {
             //         "markets":[
@@ -739,7 +739,7 @@ public class LunoCore extends LunoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.privateGetBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             Object wallets = this.safeList(response, "balance", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallets)); i++)
@@ -811,7 +811,7 @@ public class LunoCore extends LunoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             //
             //     {
             //         "balance": [
@@ -987,7 +987,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersId(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -1017,7 +1017,7 @@ public class LunoCore extends LunoApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetListorders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetListorders(this.extend(request, parameters))).join();
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
@@ -1160,7 +1160,7 @@ public class LunoCore extends LunoApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             Object rawTickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tickers = this.indexBy(rawTickers, "pair");
             Object ids = Helpers.objectKeys(tickers);
@@ -1201,7 +1201,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             // {
             //     "pair":"XBTAUD",
             //     "timestamp":1642201439301,
@@ -1355,7 +1355,7 @@ public class LunoCore extends LunoApi
             {
                 Helpers.addElementToObject(request, "since", since);
             }
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //      {
             //          "trades":[
@@ -1413,7 +1413,7 @@ public class LunoCore extends LunoApi
                 Object duration = Helpers.multiply(Helpers.multiply(1000, 1000), this.parseTimeframe(timeframe));
                 Helpers.addElementToObject(request, "since", Helpers.subtract(this.milliseconds(), duration));
             }
-            Object response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();
             //
             //     {
             //          "candles": [
@@ -1490,7 +1490,7 @@ public class LunoCore extends LunoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetListtrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetListtrades(this.extend(request, parameters))).join();
             //
             //      {
             //          "trades":[
@@ -1541,7 +1541,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetFeeInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFeeInfo(this.extend(request, parameters))).join();
             //
             //     {
             //          "maker_fee": "0.00250000",
@@ -1653,7 +1653,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostStoporder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostStoporder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true
@@ -1770,7 +1770,7 @@ public class LunoCore extends LunoApi
                 put( "min_row", finalMin_row );
                 put( "max_row", finalMax_row );
             }};
-            Object response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountsIdTransactions(this.extend(parameters, request))).join();
             Object entries = this.safeValue(response, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(entries, currency, since, limit);
         });
@@ -1905,7 +1905,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostFundingAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFundingAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "account_id": "string",
@@ -1956,7 +1956,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetFundingAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFundingAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "account_id": "string",
@@ -2042,7 +2042,7 @@ public class LunoCore extends LunoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetSendFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetSendFee(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "XBT",

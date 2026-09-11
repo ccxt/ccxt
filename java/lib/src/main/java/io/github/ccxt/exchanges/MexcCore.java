@@ -1471,7 +1471,7 @@ public class MexcCore extends MexcApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
             //
             // {
             //     "coin": "QANX",
@@ -1613,7 +1613,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.spotPublicGetExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotPublicGetExchangeInfo(parameters)).join();
             //
             //     {
             //         "timezone": "CST",
@@ -1753,7 +1753,7 @@ public class MexcCore extends MexcApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object currentRl = this.rateLimit;
             this.setProperty(this, "rateLimit", 10); // see comment: https://github.com/ccxt/ccxt/pull/23698
-            Object response = (this.contractPublicGetDetail(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPublicGetDetail(parameters)).join();
             this.setProperty(this, "rateLimit", currentRl);
             //
             //     {
@@ -1906,7 +1906,7 @@ public class MexcCore extends MexcApi
             Object orderbook = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.spotPublicGetDepth(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "lastUpdateId": "744267132",
@@ -1925,7 +1925,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object response = (this.contractPublicGetDepthSymbol(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.contractPublicGetDepthSymbol(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "success":true,
@@ -2042,7 +2042,7 @@ public class MexcCore extends MexcApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object response = (this.contractPublicGetDealsSymbol(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.contractPublicGetDealsSymbol(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "success": true,
@@ -2432,7 +2432,7 @@ public class MexcCore extends MexcApi
                 tickers = (this.spotPublicGetTicker24hr(this.extend(request, query))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                Object response = (this.contractPublicGetTicker(this.extend(request, query))).join();
+                java.util.Map<String, Object> response = (this.contractPublicGetTicker(this.extend(request, query))).join();
                 //
                 //     {
                 //         "success":true,
@@ -2505,7 +2505,7 @@ public class MexcCore extends MexcApi
                 ticker = (this.spotPublicGetTicker24hr(this.extend(request, query))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                Object response = (this.contractPublicGetTicker(this.extend(request, query))).join();
+                java.util.Map<String, Object> response = (this.contractPublicGetTicker(this.extend(request, query))).join();
                 //
                 //     {
                 //         "success":true,
@@ -3223,7 +3223,7 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", MexcCore.this.json(ordersRequests) );
             }};
-            Object response = (this.spotPrivatePostBatchOrders(request)).join();
+            java.util.List<Object> response = (this.spotPrivatePostBatchOrders(request)).join();
             //
             // [
             //     {
@@ -3309,7 +3309,7 @@ public class MexcCore extends MexcApi
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "order_id", id);
-                Object response = (this.contractPrivateGetOrderGetOrderId(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetOrderGetOrderId(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "success": true,
@@ -3607,7 +3607,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "order_ids", String.join((String)",", (java.util.List<String>)ids));
-                Object response = (this.contractPrivateGetOrderBatchQuery(this.extend(request, query))).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetOrderBatchQuery(this.extend(request, query))).join();
                 //
                 //     {
                 //         "success": true,
@@ -3762,7 +3762,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "page_size", 100); // max
                 }
-                Object swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters))).join();
                 Object data = this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market, since, limit, parameters);
             }
@@ -3997,7 +3997,7 @@ public class MexcCore extends MexcApi
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " cancelOrders() is not supported for "), marketType)) ;
             } else
             {
-                Object response = (this.contractPrivatePostOrderCancel(ids)).join(); // the request cannot be changed or extended. The only way to send.
+                java.util.Map<String, Object> response = (this.contractPrivatePostOrderCancel(ids)).join(); // the request cannot be changed or extended. The only way to send.
                 //
                 //     {
                 //         "success": true,
@@ -4066,7 +4066,7 @@ public class MexcCore extends MexcApi
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
-                Object response = (this.spotPrivateDeleteOpenOrders(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.spotPrivateDeleteOpenOrders(this.extend(request, parameters))).join();
                 //
                 // spot
                 //
@@ -4426,7 +4426,7 @@ public class MexcCore extends MexcApi
                 return (this.spotPrivateGetAccount(parameters)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
-                Object response = (this.contractPrivateGetAccountAssets(parameters)).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetAccountAssets(parameters)).join();
                 //
                 //     {
                 //         "success":true,
@@ -4526,7 +4526,7 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.spotPrivateGetTradeFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetTradeFee(this.extend(request, parameters))).join();
             //
             //  {
             //      "data":{
@@ -4918,7 +4918,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "page_size", limit);
                 }
-                Object response = (this.contractPrivateGetOrderListOrderDeals(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetOrderListOrderDeals(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "success": true,
@@ -4997,7 +4997,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "order_id", id);
-                Object response = (this.contractPrivateGetOrderDealDetailsOrderId(this.extend(request, query))).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetOrderDealDetailsOrderId(this.extend(request, query))).join();
                 //
                 //     {
                 //         "success": true,
@@ -5049,7 +5049,7 @@ public class MexcCore extends MexcApi
                 put( "amount", amount );
                 put( "type", addOrReduce );
             }};
-            Object response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -5185,7 +5185,7 @@ public class MexcCore extends MexcApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.contractPrivateGetPositionFundingRecords(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetPositionFundingRecords(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -5340,7 +5340,7 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPublicGetFundingRateSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPublicGetFundingRateSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -5398,7 +5398,7 @@ public class MexcCore extends MexcApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.contractPublicGetFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPublicGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -5467,7 +5467,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap", true, true);
-            Object response = (this.contractPublicGetDetail(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPublicGetDetail(parameters)).join();
             //
             //     {
             //         "success":true,
@@ -5676,7 +5676,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "network", networkId);
             }
             parameters = this.omit(parameters, "network");
-            Object response = (this.spotPrivateGetCapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalDepositAddress(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -5741,7 +5741,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "network", networkId);
             }
             parameters = this.omit(parameters, "network");
-            Object response = (this.spotPrivatePostCapitalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivatePostCapitalDepositAddress(this.extend(request, parameters))).join();
             //     {
             //        "coin": "EOS",
             //        "network": "EOS",
@@ -5850,7 +5850,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.spotPrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -5918,7 +5918,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.spotPrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -6116,7 +6116,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.contractPrivatePostPositionCloseAll(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionCloseAll(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -6179,7 +6179,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.contractPrivateGetPositionOpenPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetPositionOpenPositions(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -6351,7 +6351,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "transact_id", id );
                 }};
-                Object response = (this.spotPrivateGetAssetInternalTransferRecord(this.extend(request, query))).join();
+                java.util.Map<String, Object> response = (this.spotPrivateGetAssetInternalTransferRecord(this.extend(request, query))).join();
                 //
                 //     {
                 //         "code": "200",
@@ -6457,7 +6457,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     }
                     Helpers.addElementToObject(request, "size", limit);
                 }
-                Object response = (this.spotPrivateGetCapitalTransfer(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.spotPrivateGetCapitalTransfer(this.extend(request, parameters))).join();
                 //
                 //
                 // {
@@ -6483,7 +6483,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 {
                     Helpers.addElementToObject(request, "page_size", limit);
                 }
-                Object response = (this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.contractPrivateGetAccountTransferRecord(this.extend(request, parameters))).join();
                 Object data = this.safeValue(response, "data");
                 resultList = this.safeValue(data, "resultList");
             }
@@ -6552,7 +6552,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.spotPrivatePostCapitalTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivatePostCapitalTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "tranId": "ebb06123e6a64f4ab234b396c548d57e"
@@ -6716,7 +6716,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw() requires a toAccountType parameter for internal transfer to be of: EMAIL | UID | MOBILE")) ;
                 }
-                Object responseForInternal = (this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters))).join();
+                java.util.Map<String, Object> responseForInternal = (this.spotPrivatePostCapitalTransferInternal(this.extend(requestForInternal, parameters))).join();
                 //
                 //     {
                 //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -6743,7 +6743,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "netWork", network);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network", "netWork")));
             }
-            Object response = (this.spotPrivatePostCapitalWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivatePostCapitalWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //       "id":"7213fea8e94b4a5593d507237e5a555b"
@@ -6774,7 +6774,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "positionMode", ((Helpers.isTrue(hedged))) ? 1 : 2 );
             }};
-            Object response = (this.contractPrivatePostPositionChangePositionMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangePositionMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "success":true,
@@ -6802,7 +6802,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.contractPrivateGetPositionPositionMode(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetPositionPositionMode(parameters)).join();
             //
             //     {
             //         "success":true,
@@ -6840,7 +6840,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
             //
             //    [
             //       {
@@ -6959,7 +6959,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.spotPrivateGetCapitalConfigGetall(parameters)).join();
             //
             //    [
             //       {
@@ -7070,7 +7070,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetPositionLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetPositionLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -7206,7 +7206,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.contractPrivateGetPositionListHistoryPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetPositionListHistoryPositions(this.extend(request, parameters))).join();
             //
             //    {
             //        success: true,
@@ -7308,7 +7308,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 Helpers.addElementToObject(request, "positionType", ((Helpers.isTrue((Helpers.isEqual(direction, "short"))))) ? 2 : 1);
             }
             parameters = this.omit(parameters, "direction");
-            Object response = (this.contractPrivatePostPositionChangeLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangeLeverage(this.extend(request, parameters))).join();
             //
             // { success: true, code: '0' }
             //

@@ -759,7 +759,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1Ping(parameters)).join();
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );
@@ -785,7 +785,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1Time(parameters)).join();
             //
             //     {
             //         "serverTime": 1699827319559
@@ -810,7 +810,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.commonGetApiV1ExchangeInfo(parameters)).join();
             Helpers.addElementToObject(this.options, "exchangeInfo", response); // we store it in options for later use in fetchMarkets
             //
             //    {
@@ -1297,7 +1297,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetQuoteV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.commonGetQuoteV1Depth(this.extend(request, parameters))).join();
             //
             //    {
             //        "t": "1755593995237",
@@ -1363,7 +1363,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetQuoteV1Trades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1Trades(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1714,7 +1714,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1776,7 +1776,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetQuoteV1TickerBookTicker(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetQuoteV1TickerBookTicker(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1858,7 +1858,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.commonGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1947,7 +1947,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.commonGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.commonGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -2921,7 +2921,7 @@ public class ToobitCore extends ToobitApi
                 put( "fromAccountType", fromId );
                 put( "toAccountType", toId );
             }};
-            Object response = (this.privatePostApiV1SubAccountTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1SubAccountTransfer(this.extend(request, parameters))).join();
             //
             //    {
             //     "code": 200, // 200 = success
@@ -3386,7 +3386,7 @@ public class ToobitCore extends ToobitApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() : param[\"network\"] is required")) ;
             }
             Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
-            Object response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, paramsOmitted))).join();
             //
             //     {
             //         "canDeposit":false,//Is it possible to recharge
@@ -3463,7 +3463,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "addressExt", tag);
             }
-            Object response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
             //
             // {
             //     "status": 0,
@@ -3514,7 +3514,7 @@ public class ToobitCore extends ToobitApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", finalMarginMode );
             }};
-            Object response = (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesMarginType(this.extend(request, parameters))).join();
             //
             // {"code":200,"symbolId":"BTC-SWAP-USDT","marginType":"ISOLATED"}
             //
@@ -3553,7 +3553,7 @@ public class ToobitCore extends ToobitApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", leverage );
             }};
-            Object response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
             // {"code":200,"symbolId":"BTC-SWAP-USDT","leverage":"19"}
             //
@@ -3585,7 +3585,7 @@ public class ToobitCore extends ToobitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetApiV1FuturesAccountLeverage(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesAccountLeverage(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -3653,7 +3653,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
             //
             //    [
             //        {

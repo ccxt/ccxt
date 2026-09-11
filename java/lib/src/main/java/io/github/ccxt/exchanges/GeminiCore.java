@@ -956,7 +956,7 @@ public class GeminiCore extends GeminiApi
                     put( "symbol", marketId );
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
-                Object rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
                 ((java.util.List<Object>)result).add(this.parseMarket(rawResponse));
             }
             return result;
@@ -970,7 +970,7 @@ public class GeminiCore extends GeminiApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object marketIdsRaw = (this.publicGetV1Symbols(parameters)).join();
+            java.util.List<Object> marketIdsRaw = (this.publicGetV1Symbols(parameters)).join();
             //
             //     [
             //         "btcusd",
@@ -1256,7 +1256,7 @@ public class GeminiCore extends GeminiApi
                 Helpers.addElementToObject(request, "limit_bids", limit);
                 Helpers.addElementToObject(request, "limit_asks", limit);
             }
-            Object response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
         });
 
@@ -1276,7 +1276,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1PubtickerSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1PubtickerSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "bid":"9117.95",
@@ -1308,7 +1308,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV2TickerSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV2TickerSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol":"BTCUSD",
@@ -1503,7 +1503,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetV1Pricefeed(parameters)).join();
+            java.util.List<Object> response = (this.publicGetV1Pricefeed(parameters)).join();
             //
             //     [
             //         {
@@ -1626,7 +1626,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", since);
             }
-            Object response = (this.publicGetV1TradesSymbol(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetV1TradesSymbol(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1684,7 +1684,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Notionalvolume(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Notionalvolume(parameters)).join();
             //
             //      {
             //          "web_maker_fee_bps": 25,
@@ -1756,7 +1756,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Balances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Balances(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1966,7 +1966,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostV1OrderStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderStatus(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106028543717",
@@ -2019,7 +2019,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Orders(parameters)).join();
+            java.util.List<Object> response = (this.privatePostV1Orders(parameters)).join();
             //
             //      [
             //          {
@@ -2144,7 +2144,7 @@ public class GeminiCore extends GeminiApi
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList(options)));
                 }
             }
-            Object response = (this.privatePostV1OrderNew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderNew(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106027397702",
@@ -2197,7 +2197,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostV1OrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderCancel(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106028543717",
@@ -2267,7 +2267,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -2306,7 +2306,7 @@ public class GeminiCore extends GeminiApi
                 put( "amount", amount );
                 put( "address", address );
             }};
-            Object response = (this.privatePostV1WithdrawCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1WithdrawCurrency(this.extend(request, parameters))).join();
             //
             //   for BTC
             //     {
@@ -2383,7 +2383,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", since);
             }
-            Object response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
             return this.parseTransactions(response);
         });
 
@@ -2546,7 +2546,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "network", networkId );
             }};
-            Object response = (this.privatePostV1AddressesNetwork(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, parameters))).join();
             final Object finalNetworkCode = networkCode;
             final Object finalCode = code;
             Object results = this.parseDepositAddresses(response, new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), false, new java.util.HashMap<String, Object>() {{
@@ -2672,7 +2672,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters))).join();
             String address = this.safeString(response, "address");
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
@@ -2717,7 +2717,7 @@ public class GeminiCore extends GeminiApi
                 put( "timeframe", timeframeId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters))).join();
             //
             //     [
             //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -2758,7 +2758,7 @@ public class GeminiCore extends GeminiApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1RiskstatsSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1RiskstatsSymbol(this.extend(request, parameters))).join();
             //
             //    {
             //        product_type: 'PerpetualSwapContract',

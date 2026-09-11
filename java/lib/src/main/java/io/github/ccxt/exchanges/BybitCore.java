@@ -2615,7 +2615,7 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV5SystemStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV5SystemStatus(parameters)).join();
             //
             //     {
             //         "retCode": 0,
@@ -2690,7 +2690,7 @@ public class BybitCore extends BybitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV5MarketTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTime(parameters)).join();
             //
             //    {
             //         "retCode": "0",
@@ -2730,7 +2730,7 @@ public class BybitCore extends BybitApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.privateGetV5AssetCoinQueryInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetCoinQueryInfo(parameters)).join();
             //
             //     {
             //         "retCode": 0,
@@ -3599,7 +3599,7 @@ public class BybitCore extends BybitApi
             category = ((java.util.List<Object>) categoryparametersVariable).get(0);
             parameters = ((java.util.List<Object>) categoryparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", category);
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -3728,7 +3728,7 @@ public class BybitCore extends BybitApi
                 }
                 Helpers.addElementToObject(request, "baseCoin", code);
             }
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -4082,7 +4082,7 @@ public class BybitCore extends BybitApi
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "category", subType);
             }
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -4213,7 +4213,7 @@ public class BybitCore extends BybitApi
                     Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(limit, fundingInterval)));
                 }
             }
-            Object response = (this.publicGetV5MarketFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -4562,7 +4562,7 @@ public class BybitCore extends BybitApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", type);
-            Object response = (this.publicGetV5MarketRecentTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketRecentTrade(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -4644,7 +4644,7 @@ public class BybitCore extends BybitApi
                 }
             }
             Helpers.addElementToObject(request, "limit", ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : defaultLimit);
-            Object response = (this.publicGetV5MarketOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -5915,7 +5915,7 @@ public class BybitCore extends BybitApi
                 put( "category", finalCategory );
                 put( "request", ordersRequests );
             }};
-            Object response = (this.privatePostV5OrderCreateBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderCreateBatch(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object retInfo = this.safeDict(response, "retExtInfo", new java.util.HashMap<String, Object>() {{}});
@@ -6098,7 +6098,7 @@ public class BybitCore extends BybitApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostV5OrderAmend(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderAmend(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -6173,7 +6173,7 @@ public class BybitCore extends BybitApi
                 put( "category", finalCategory );
                 put( "request", ordersRequests );
             }};
-            Object response = (this.privatePostV5OrderAmendBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderAmendBatch(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object retInfo = this.safeDict(response, "retExtInfo", new java.util.HashMap<String, Object>() {{}});
@@ -6285,7 +6285,7 @@ public class BybitCore extends BybitApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object requestExtended = this.cancelOrderRequest(id, symbol, parameters);
-            Object response = (this.privatePostV5OrderCancel(requestExtended)).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderCancel(requestExtended)).join();
             //
             //     {
             //         "retCode": 0,
@@ -6369,7 +6369,7 @@ public class BybitCore extends BybitApi
                 put( "category", finalCategory );
                 put( "request", ordersRequests );
             }};
-            Object response = (this.privatePostV5OrderCancelBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderCancelBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": "0",
@@ -6451,7 +6451,7 @@ public class BybitCore extends BybitApi
             }};
             String product = this.safeString(productMap, type, type);
             Helpers.addElementToObject(request, "product", product);
-            Object response = (this.privatePostV5OrderDisconnectedCancelAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderDisconnectedCancelAll(this.extend(request, parameters))).join();
             //
             // {
             //     "retCode": 0,
@@ -6526,7 +6526,7 @@ public class BybitCore extends BybitApi
                 put( "category", finalCategory );
                 put( "request", ordersRequests );
             }};
-            Object response = (this.privatePostV5OrderCancelBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderCancelBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": "0",
@@ -6630,7 +6630,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "orderFilter", "StopOrder");
             }
-            Object response = (this.privatePostV5OrderCancelAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5OrderCancelAll(this.extend(request, parameters))).join();
             //
             // linear / inverse / option
             //     {
@@ -6779,7 +6779,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "orderFilter", "StopOrder");
             }
-            Object response = (this.privateGetV5OrderRealtime(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5OrderRealtime(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -6921,7 +6921,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "endTime", endTime);
             }
-            Object response = (this.privateGetV5OrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5OrderHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7144,7 +7144,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "endTime", endTime);
             }
-            Object response = (this.privateGetV5OrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5OrderHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7365,7 +7365,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV5OrderRealtime(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5OrderRealtime(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7532,7 +7532,7 @@ public class BybitCore extends BybitApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7634,7 +7634,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
             }
-            Object response = (this.privateGetV5AssetDepositQueryAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetDepositQueryAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7750,7 +7750,7 @@ public class BybitCore extends BybitApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5AssetDepositQueryRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetDepositQueryRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -7836,7 +7836,7 @@ public class BybitCore extends BybitApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5AssetWithdrawQueryRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetWithdrawQueryRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -8350,7 +8350,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "chain", ((String)networkId).toUpperCase());
             }
-            Object response = (this.privatePostV5AssetWithdrawCreate(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AssetWithdrawCreate(this.extend(request, query))).join();
             //
             //    {
             //         "retCode": "0",
@@ -8542,7 +8542,7 @@ public class BybitCore extends BybitApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type")));
             Helpers.addElementToObject(request, "category", type);
-            Object response = (this.privateGetV5PositionList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5PositionList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9097,7 +9097,7 @@ public class BybitCore extends BybitApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setLeverage() only support linear and inverse market")) ;
             }
-            Object response = (this.privatePostV5PositionSetLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5PositionSetLeverage(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -9161,7 +9161,7 @@ public class BybitCore extends BybitApi
                 Helpers.addElementToObject(request, "category", type);
             }
             parameters = this.omit(parameters, "type");
-            Object response = (this.privatePostV5PositionSwitchMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5PositionSwitchMode(this.extend(request, parameters))).join();
             //
             // v5
             //     {
@@ -9224,7 +9224,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9298,7 +9298,7 @@ public class BybitCore extends BybitApi
                 put( "intervalTime", finalInterval );
                 put( "category", category );
             }};
-            Object response = (this.publicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9437,7 +9437,7 @@ public class BybitCore extends BybitApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "vipLevel", "No VIP" );
             }};
-            Object response = (this.publicGetV5SpotMarginTradeData(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5SpotMarginTradeData(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9542,7 +9542,7 @@ public class BybitCore extends BybitApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5SpotCrossMarginTradeAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "ret_code": 0,
@@ -9616,7 +9616,7 @@ public class BybitCore extends BybitApi
                 endTime = Helpers.add(since, Helpers.multiply(86400000, 30)); // since + 30 days
             }
             Helpers.addElementToObject(request, "endTime", endTime);
-            Object response = (this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5SpotMarginTradeInterestRateHistory(this.extend(request, parameters))).join();
             //
             //   {
             //       "retCode": 0,
@@ -9704,7 +9704,7 @@ public class BybitCore extends BybitApi
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            Object response = (this.privatePostV5AssetTransferInterTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AssetTransferInterTransfer(this.extend(request, parameters))).join();
             //
             // {
             //     "retCode": 0,
@@ -9784,7 +9784,7 @@ public class BybitCore extends BybitApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5AssetTransferQueryInterTransferList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetTransferQueryInterTransferList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9838,7 +9838,7 @@ public class BybitCore extends BybitApi
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", BybitCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privatePostV5AccountBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AccountBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -9882,7 +9882,7 @@ public class BybitCore extends BybitApi
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", BybitCore.this.numberToString(amount) );
             }};
-            Object response = (this.privatePostV5AccountNoConvertRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AccountNoConvertRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10005,7 +10005,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "category", "inverse");
             }
-            Object response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10119,7 +10119,7 @@ public class BybitCore extends BybitApi
             category = ((java.util.List<Object>) categoryparametersVariable).get(0);
             parameters = ((java.util.List<Object>) categoryparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", category);
-            Object response = (this.privateGetV5AccountFeeRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AccountFeeRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10172,7 +10172,7 @@ public class BybitCore extends BybitApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFees() is not supported for spot market")) ;
             }
-            Object response = (this.privateGetV5AccountFeeRate(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AccountFeeRate(parameters)).join();
             //
             //     {
             //         "retCode": 0,
@@ -10296,7 +10296,7 @@ public class BybitCore extends BybitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetV5AssetCoinQueryInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetCoinQueryInfo(parameters)).join();
             //
             //     {
             //         "retCode": 0,
@@ -10380,7 +10380,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetV5MarketDeliveryPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketDeliveryPrice(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10455,7 +10455,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV5AssetDeliveryRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetDeliveryRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10585,7 +10585,7 @@ public class BybitCore extends BybitApi
                 put( "category", "option" );
                 put( "baseCoin", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.publicGetV5MarketHistoricalVolatility(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketHistoricalVolatility(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10654,7 +10654,7 @@ public class BybitCore extends BybitApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "category", "option" );
             }};
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10744,7 +10744,7 @@ public class BybitCore extends BybitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -10909,7 +10909,7 @@ public class BybitCore extends BybitApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11039,7 +11039,7 @@ public class BybitCore extends BybitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "category", finalSubType );
             }};
-            Object response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
             Object result = this.addPaginationCursorToResult(response);
             Object first = this.safeDict(result, 0);
             Object total = Helpers.getArrayLength(result);
@@ -11245,7 +11245,7 @@ final Object finalMarket = market;
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5ExecutionList(this.extend(request, parameters))).join();
             Object fundings = this.addPaginationCursorToResult(response);
             return this.parseIncomes(fundings, market, since, limit);
         });
@@ -11335,7 +11335,7 @@ final Object finalMarket = market;
                 put( "category", "option" );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11408,7 +11408,7 @@ final Object finalMarket = market;
                 put( "category", "option" );
                 put( "baseCoin", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11575,7 +11575,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.privateGetV5PositionClosedPnl(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5PositionClosedPnl(this.extend(request, parameters))).join();
             //
             //    {
             //        retCode: '0',
@@ -11654,7 +11654,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "accountType", finalAccountType );
             }};
-            Object response = (this.privateGetV5AssetExchangeQueryCoinList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetExchangeQueryCoinList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11777,7 +11777,7 @@ final Object finalMarket = market;
                 put( "requestCoin", fromCode );
                 put( "accountType", finalAccountType );
             }};
-            Object response = (this.privatePostV5AssetExchangeQuoteApply(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AssetExchangeQuoteApply(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11834,7 +11834,7 @@ final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quoteTxId", id );
             }};
-            Object response = (this.privatePostV5AssetExchangeConvertExecute(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV5AssetExchangeConvertExecute(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11889,7 +11889,7 @@ final Object finalMarket = market;
                 put( "quoteTxId", id );
                 put( "accountType", finalAccountType );
             }};
-            Object response = (this.privateGetV5AssetExchangeConvertResultQuery(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetExchangeConvertResultQuery(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -11964,7 +11964,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV5AssetExchangeQueryConvertHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AssetExchangeQueryConvertHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -12113,7 +12113,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetV5MarketAccountRatio(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV5MarketAccountRatio(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -12200,7 +12200,7 @@ final Object finalMarket = market;
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Helpers.addElementToObject(request, "category", type);
-            Object response = (this.privateGetV5PositionList(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV5PositionList(this.extend(request, parameters))).join();
             //
             //     {
             //         "retCode": 0,
@@ -12336,7 +12336,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = (this.privateGetV5AccountInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV5AccountInfo(parameters)).join();
             //
             //     {
             //         "retCode": 0,

@@ -1203,7 +1203,7 @@ public class CoinexCore extends CoinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -1351,7 +1351,7 @@ public class CoinexCore extends CoinexApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object response = (this.v2PublicGetSpotMarket(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetSpotMarket(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -1448,7 +1448,7 @@ public class CoinexCore extends CoinexApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object response = (this.v2PublicGetFuturesMarket(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetFuturesMarket(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -1811,7 +1811,7 @@ public class CoinexCore extends CoinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v2PublicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetTime(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -2216,7 +2216,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivateGetAssetsMarginBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsMarginBalance(parameters)).join();
             //
             //     {
             //         "data": [
@@ -2287,7 +2287,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivateGetAssetsSpotBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsSpotBalance(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -2333,7 +2333,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivateGetAssetsFuturesBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsFuturesBalance(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -2382,7 +2382,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivateGetAssetsFinancialBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsFinancialBalance(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -3855,7 +3855,7 @@ public class CoinexCore extends CoinexApi
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "chain", CoinexCore.this.networkCodeToId(finalNetwork, Helpers.GetValue(currency, "code")) );
             }};
-            Object response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAssetsRenewalDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -3905,7 +3905,7 @@ public class CoinexCore extends CoinexApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress() requires a \"network\" parameter")) ;
             }
             Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // required for on-chain, not required for inter-user transfer
-            Object response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4162,7 +4162,7 @@ public class CoinexCore extends CoinexApi
                 put( "market_type", "FUTURES" );
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v2PrivateGetFuturesPendingPosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetFuturesPendingPosition(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4424,7 +4424,7 @@ public class CoinexCore extends CoinexApi
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "market", String.join((String)",", (java.util.List<String>)marketIds));
             }
-            Object response = (this.v2PublicGetFuturesPositionLevel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetFuturesPositionLevel(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4510,7 +4510,7 @@ final Object finalI = i;
                 put( "market_type", "FUTURES" );
                 put( "amount", finalRequestAmount );
             }};
-            Object response = (this.v2PrivatePostFuturesAdjustPositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostFuturesAdjustPositionMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4720,7 +4720,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetFuturesPositionFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4793,7 +4793,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4930,7 +4930,7 @@ final Object finalI = i;
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "market", String.join((String)",", (java.util.List<String>)marketIds));
             }
-            Object response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5001,7 +5001,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"))); // required for on-chain, not required for inter-user transfer
             }
-            Object response = (this.v2PrivatePostAssetsWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAssetsWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5104,7 +5104,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5318,7 +5318,7 @@ final Object finalI = i;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " transfer() can only be between spot and swap, or spot and margin, either the fromAccount or toAccount must be spot")) ;
             }
-            Object response = (this.v2PrivatePostAssetsTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAssetsTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5424,7 +5424,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -5486,7 +5486,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v2PrivateGetAssetsWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -5560,7 +5560,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v2PrivateGetAssetsDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -5670,7 +5670,7 @@ final Object finalI = i;
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5728,7 +5728,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v2PrivateGetAssetsMarginBorrowHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsMarginBorrowHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -5826,7 +5826,7 @@ final Object finalI = i;
                 put( "borrow_amount", CoinexCore.this.currencyToPrecision(code, amount) );
                 put( "is_auto_renew", isAutoRenew );
             }};
-            Object response = (this.v2PrivatePostAssetsMarginBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAssetsMarginBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5882,7 +5882,7 @@ final Object finalI = i;
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "amount", CoinexCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.v2PrivatePostAssetsMarginRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAssetsMarginRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5952,7 +5952,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v2PublicGetAssetsDepositWithdrawConfig(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetAssetsDepositWithdrawConfig(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6012,7 +6012,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetAssetsAllDepositWithdrawConfig(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -6184,7 +6184,7 @@ final Object finalI = i;
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetAssetsMarginInterestLimit(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6269,7 +6269,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6358,7 +6358,7 @@ final Object finalI = i;
                 Helpers.addElementToObject(request, "client_id", clientOrderId);
             }
             parameters = this.omit(parameters, "clientOrderId");
-            Object response = (this.v2PrivatePostFuturesClosePosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostFuturesClosePosition(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6640,7 +6640,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.v2PrivateGetFuturesPositionMarginHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivateGetFuturesPositionMarginHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,

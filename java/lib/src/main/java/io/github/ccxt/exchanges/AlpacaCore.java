@@ -643,7 +643,7 @@ public class AlpacaCore extends AlpacaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.traderPrivateGetV2Clock(parameters)).join();
+            java.util.Map<String, Object> response = (this.traderPrivateGetV2Clock(parameters)).join();
             //
             //     {
             //         timestamp: '2023-11-22T08:07:57.654738097-05:00',
@@ -697,7 +697,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "asset_class", "crypto" );
                 put( "status", "active" );
             }};
-            Object assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
+            java.util.List<Object> assets = (this.traderPrivateGetV2Assets(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -878,7 +878,7 @@ public class AlpacaCore extends AlpacaApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                Object response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "next_page_token": null,
@@ -899,7 +899,7 @@ public class AlpacaCore extends AlpacaApi
                 symbolTrades = this.safeList(trades, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
             {
-                Object response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestTrades(this.extend(request, parameters))).join();
                 //
                 //    {
                 //       "trades": {
@@ -959,7 +959,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "symbols", id );
                 put( "loc", loc );
             }};
-            Object response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestOrderbooks(this.extend(request, parameters))).join();
             //
             //   {
             //       "orderbooks":{
@@ -1071,7 +1071,7 @@ public class AlpacaCore extends AlpacaApi
                     Helpers.addElementToObject(request, "end", this.iso8601(until));
                 }
                 Helpers.addElementToObject(request, "timeframe", this.safeString(this.timeframes, timeframe, timeframe));
-                Object response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "bars": {
@@ -1129,7 +1129,7 @@ public class AlpacaCore extends AlpacaApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestBars")))
             {
-                Object response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocLatestBars(this.extend(request, parameters))).join();
                 //
                 //    {
                 //        "bars": {
@@ -1240,7 +1240,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "loc", loc );
             }};
             parameters = this.omit(parameters, "loc");
-            Object response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.marketPublicGetV1beta3CryptoLocSnapshots(this.extend(request, parameters))).join();
             //
             //     {
             //         "snapshots": {
@@ -1501,7 +1501,7 @@ public class AlpacaCore extends AlpacaApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "triggerPrice")));
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
-            Object order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> order = (this.traderPrivatePostV2Orders(this.extend(request, parameters))).join();
             //
             //   {
             //      "id": "61e69015-8549-4bfd-b9c3-01e75843f47d",
@@ -1563,7 +1563,7 @@ public class AlpacaCore extends AlpacaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.traderPrivateDeleteV2OrdersOrderId(this.extend(request, parameters))).join();
             //
             //   {
             //       "code": 40410000,
@@ -1595,7 +1595,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.traderPrivateDeleteV2Orders(parameters)).join();
+            java.util.List<Object> response = (this.traderPrivateDeleteV2Orders(parameters)).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 return this.parseOrders(response);
@@ -1633,7 +1633,7 @@ public class AlpacaCore extends AlpacaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
             String marketId = this.safeString(order, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             return this.parseOrder(order, market);
@@ -1689,7 +1689,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.traderPrivateGetV2Orders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.traderPrivateGetV2Orders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1854,7 +1854,7 @@ public class AlpacaCore extends AlpacaApi
             }
             Helpers.addElementToObject(request, "client_order_id", this.generateClientOrderId(parameters));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
-            Object response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.traderPrivatePatchV2OrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(response, market);
         });
 
@@ -2026,7 +2026,7 @@ public class AlpacaCore extends AlpacaApi
             var requestparametersVariable = this.handleUntilOption("until", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2140,7 +2140,7 @@ public class AlpacaCore extends AlpacaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.traderPrivateGetV2Wallets(this.extend(request, parameters))).join();
             //
             //     {
             //         "asset_id": "4fa30c85-77b7-4cbc-92dd-7b7513640aad",
@@ -2216,7 +2216,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "address", finalAddress );
                 put( "amount", AlpacaCore.this.numberToString(amount) );
             }};
-            Object response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.traderPrivatePostV2WalletsTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2270,7 +2270,7 @@ public class AlpacaCore extends AlpacaApi
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "activity_types", "CSD,CSW,TRANS" );
                 }};
-                Object activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
+                java.util.List<Object> activities = (this.traderPrivateGetV2AccountActivities(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {
@@ -2302,7 +2302,7 @@ public class AlpacaCore extends AlpacaApi
                 }
                 return this.parseTransactions(filtered, currency, since, limit, parameters);
             }
-            Object response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
+            java.util.List<Object> response = (this.traderPrivateGetV2WalletsTransfers(parameters)).join();
             //
             //     {
             //         "id": "e27b70a6-5610-40d7-8468-a516a284b776",
@@ -2591,7 +2591,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.traderPrivateGetV2Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.traderPrivateGetV2Account(parameters)).join();
             //
             //     {
             //         "id": "43a01bde-4eb1-64fssc26adb5",

@@ -513,7 +513,7 @@ public class MudrexCore extends MudrexApi
                 put( "asset_id", Helpers.GetValue(market, "id") );
                 put( "is_symbol", 1 );
             }};
-            Object response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         });
@@ -541,7 +541,7 @@ public class MudrexCore extends MudrexApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetFutures(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFutures(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rows = ((Helpers.isTrue(Helpers.isArray(data)))) ? data : this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object resultTickers = new java.util.HashMap<String, Object>() {{}};
@@ -622,7 +622,7 @@ public class MudrexCore extends MudrexApi
                     put( "limit", pageLimit );
                     put( "offset", finalOffset );
                 }}, parameters);
-                Object response = (this.privateGetFutures(q)).join();
+                java.util.Map<String, Object> response = (this.privateGetFutures(q)).join();
                 Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 if (Helpers.isTrue(Helpers.isTrue((data instanceof java.util.Map)) && !Helpers.isTrue(Helpers.isArray(data))))
@@ -848,7 +848,7 @@ public class MudrexCore extends MudrexApi
                 put( "asset_id", Helpers.GetValue(market, "id") );
                 put( "is_symbol", 1 );
             }};
-            Object response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -896,7 +896,7 @@ public class MudrexCore extends MudrexApi
                 put( "leverage", leverage );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginType")));
-            Object response = (this.privatePostFuturesAssetIdLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesAssetIdLeverage(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -963,7 +963,7 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(riskRequest, "is_stoploss", true);
                     Helpers.addElementToObject(riskRequest, "stoploss_price", this.priceToPrecision(symbol, stopLossPrice));
                 }
-                Object riskResponse = (this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, parameters))).join();
+                java.util.Map<String, Object> riskResponse = (this.privatePostFuturesPositionsPositionIdRiskorder(this.extend(riskRequest, parameters))).join();
                 Object riskData = this.safeDict(riskResponse, "data", riskResponse);
                 return this.parseOrder(riskData, market);
             }
@@ -1000,7 +1000,7 @@ public class MudrexCore extends MudrexApi
                 Helpers.addElementToObject(request, "stoploss_price", this.priceToPrecision(symbol, this.safeStringN(stopLoss, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "price")))));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverage", "reduceOnly", "takeProfit", "stopLoss")));
-            Object response = (this.privatePostFuturesAssetIdOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesAssetIdOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
             Object merged = this.extend(data, new java.util.HashMap<String, Object>() {{
@@ -1056,7 +1056,7 @@ public class MudrexCore extends MudrexApi
             {
                 Helpers.addElementToObject(request, "order_price", this.priceToPrecision(symbol, price));
             }
-            Object response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         });
@@ -1192,7 +1192,7 @@ public class MudrexCore extends MudrexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         });
@@ -1228,7 +1228,7 @@ public class MudrexCore extends MudrexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
         });
@@ -1388,7 +1388,7 @@ public class MudrexCore extends MudrexApi
                 (this.loadMarkets()).join();
             }
             Object q = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetFuturesPositions(this.extend(q, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFuturesPositions(this.extend(q, parameters))).join();
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
@@ -1440,7 +1440,7 @@ public class MudrexCore extends MudrexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetFuturesPositionsHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFuturesPositionsHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -1594,11 +1594,11 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit_price", lp);
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
                 return partialResponse;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1649,7 +1649,7 @@ public class MudrexCore extends MudrexApi
                 put( "margin", MudrexCore.this.costToPrecision(symbol, amount) );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1730,7 +1730,7 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit", pageSize);
                     Helpers.addElementToObject(request, "offset", offset);
                 }
-                Object response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
                 Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object dataLength = Helpers.getArrayLength(data);
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)

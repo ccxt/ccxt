@@ -863,7 +863,7 @@ public class BitfinexCore extends BitfinexApi
             //    [0] // maintenance
             //
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetPlatformStatus(parameters)).join();
+            java.util.List<Object> response = (this.publicGetPlatformStatus(parameters)).join();
             String statusRaw = this.safeString(response, 0);
             return new java.util.HashMap<String, Object>() {{
                 put( "status", BitfinexCore.this.safeString(new java.util.HashMap<String, Object>() {{
@@ -898,7 +898,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
-            Object response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
             Object spotMarketsInfo = this.safeList(response, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object futuresMarketsInfo = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object securitiesMarketsIds = this.safeList(response, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1036,7 +1036,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
-            Object response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
             //
             //     [
             //
@@ -1283,7 +1283,7 @@ public class BitfinexCore extends BitfinexApi
             }
             Object isDerivative = Helpers.isEqual(requestedType, "derivatives");
             Object query = this.omit(parameters, "type");
-            Object response = (this.privatePostAuthRWallets(query)).join();
+            java.util.List<Object> response = (this.privatePostAuthRWallets(query)).join();
             Object balances = this.toArray(response);
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1370,7 +1370,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "from", finalFromId );
                 put( "to", finalToId );
             }};
-            Object response = (this.privatePostAuthWTransfer(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWTransfer(this.extend(request, parameters))).join();
             //
             //     [
             //         1616451183763,
@@ -1525,7 +1525,7 @@ public class BitfinexCore extends BitfinexApi
                 Helpers.addElementToObject(request, "len", limit);
             }
             Object fullRequest = this.extend(request, parameters);
-            Object orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
+            java.util.List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
             Object timestamp = this.milliseconds();
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -1706,7 +1706,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "symbols", "ALL");
             }
-            Object tickers = (this.publicGetTickers(this.extend(request, parameters))).join();
+            java.util.List<Object> tickers = (this.publicGetTickers(this.extend(request, parameters))).join();
             //
             //     [
             //         // on trading pairs (ex. tBTCUSD)
@@ -1774,7 +1774,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
+            java.util.List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
             return this.parseTicker(ticker, market);
         });
 
@@ -1928,7 +1928,7 @@ public class BitfinexCore extends BitfinexApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradesSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -2011,7 +2011,7 @@ public class BitfinexCore extends BitfinexApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetCandlesTradeTimeframeSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [1591503840000,0.025069,0.025068,0.025069,0.025068,1.97828998],
@@ -2319,7 +2319,7 @@ public class BitfinexCore extends BitfinexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostAuthWOrderSubmit(request)).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderSubmit(request)).join();
             //
             //      [
             //          1653325121,   // Timestamp in milliseconds
@@ -2419,7 +2419,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ops", ordersRequests );
             }};
-            Object response = (this.privatePostAuthWOrderMulti(request)).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderMulti(request)).join();
             //
             //     [
             //         1706762515553,
@@ -2483,7 +2483,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "all", 1 );
             }};
-            Object response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
             Object orders = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -2546,7 +2546,7 @@ public class BitfinexCore extends BitfinexApi
                     put( "id", Helpers.parseInt(id) );
                 }};
             }
-            Object response = (this.privatePostAuthWOrderCancel(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, parameters))).join();
             Object order = this.safeValue(response, 4);
             Object newOrder = new java.util.HashMap<String, Object>() {{
                 put( "result", order );
@@ -2591,7 +2591,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
             //
             //     [
             //         1706740198811,
@@ -2956,7 +2956,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             // valid for trades up to 10 days old
-            Object response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
             Object rawTrades = this.toArray(response);
             Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
@@ -3096,7 +3096,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "wallet", wallet );
                 put( "op_renew", 0 );
             }};
-            Object response = (this.privatePostAuthWDepositAddress(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWDepositAddress(this.extend(request, parameters))).join();
             //
             //     [
             //         1582269616687, // MTS Millisecond Time Stamp of the update
@@ -3333,7 +3333,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostAuthRSummary(parameters)).join();
+            java.util.List<Object> response = (this.privatePostAuthRSummary(parameters)).join();
             //
             //      Response Spec:
             //      [
@@ -3482,11 +3482,11 @@ public class BitfinexCore extends BitfinexApi
             {
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
-                Object currencyMovements = (this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters))).join();
+                java.util.List<Object> currencyMovements = (this.privatePostAuthRMovementsCurrencyHist(this.extend(request, parameters))).join();
                 response = this.toArray(currencyMovements);
             } else
             {
-                Object movements = (this.privatePostAuthRMovementsHist(this.extend(request, parameters))).join();
+                java.util.List<Object> movements = (this.privatePostAuthRMovementsHist(this.extend(request, parameters))).join();
                 response = this.toArray(movements);
             }
             //
@@ -3576,7 +3576,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 Helpers.addElementToObject(request, "fee_deduct", 1);
             }
-            Object response = (this.privatePostAuthWWithdraw(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWWithdraw(this.extend(request, parameters))).join();
             //
             //     [
             //         1582271520931, // MTS Millisecond Time Stamp of the update
@@ -3648,7 +3648,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.privatePostAuthRPositions(parameters)).join();
+            java.util.List<Object> response = (this.privatePostAuthRPositions(parameters)).join();
             //
             //     [
             //         [
@@ -4055,7 +4055,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "keys", String.join((String)",", (java.util.List<String>)marketIds) );
             }};
-            Object response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //   [
             //       [
@@ -4140,7 +4140,7 @@ public class BitfinexCore extends BitfinexApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //   [
             //       [
@@ -4332,7 +4332,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "keys", String.join((String)",", (java.util.List<String>)finalMarketIds) );
             }};
-            Object response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4391,7 +4391,7 @@ public class BitfinexCore extends BitfinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "keys", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4478,7 +4478,7 @@ public class BitfinexCore extends BitfinexApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetStatusDerivSymbolHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4634,7 +4634,7 @@ public class BitfinexCore extends BitfinexApi
             var requestparametersVariable = this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetLiquidationsHist(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4733,7 +4733,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "collateral", BitfinexCore.this.parseToNumeric(amount) );
             }};
-            Object response = (this.privatePostAuthWDerivCollateralSet(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWDerivCollateralSet(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -4950,7 +4950,7 @@ public class BitfinexCore extends BitfinexApi
                 Helpers.addElementToObject(request, "lev", leverage);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "timeInForce", "postOnly", "reduceOnly", "trailingAmount", "clientOrderId", "leverage")));
-            Object response = (this.privatePostAuthWOrderUpdate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostAuthWOrderUpdate(this.extend(request, parameters))).join();
             //
             //     [
             //         1706845376402,

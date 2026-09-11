@@ -358,7 +358,7 @@ public class CryptomusCore extends CryptomusApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV2UserApiExchangeMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV2UserApiExchangeMarkets(parameters)).join();
             //
             //     {
             //         "result": [
@@ -484,7 +484,7 @@ public class CryptomusCore extends CryptomusApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV1ExchangeMarketAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketAssets(parameters)).join();
             //
             //     {
             //         'state': '0',
@@ -584,7 +584,7 @@ public class CryptomusCore extends CryptomusApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetV1ExchangeMarketTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketTickers(parameters)).join();
             //
             //     {
             //         "data": [
@@ -673,7 +673,7 @@ public class CryptomusCore extends CryptomusApi
             level = ((java.util.List<Object>) levelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) levelparametersVariable).get(1);
             Helpers.addElementToObject(request, "level", level);
-            Object response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketOrderBookCurrencyPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -727,7 +727,7 @@ public class CryptomusCore extends CryptomusApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -806,7 +806,7 @@ public class CryptomusCore extends CryptomusApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -975,7 +975,7 @@ public class CryptomusCore extends CryptomusApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(request, "orderId", id);
-            Object response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true
@@ -1028,7 +1028,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV2UserApiExchangeOrdersHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeOrdersHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -1119,7 +1119,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -1291,7 +1291,7 @@ public class CryptomusCore extends CryptomusApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.privateGetV2UserApiExchangeAccountTariffs(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetV2UserApiExchangeAccountTariffs(parameters)).join();
             //
             //     {
             //         result: {

@@ -2515,7 +2515,7 @@ public class OkxCore extends OkxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSystemStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSystemStatus(parameters)).join();
             //
             // Note, if there is no maintenance around, the 'data' array is empty
             //
@@ -2585,7 +2585,7 @@ public class OkxCore extends OkxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetPublicTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicTime(parameters)).join();
             //
             //     {
             //         "code": "0",
@@ -2616,7 +2616,7 @@ public class OkxCore extends OkxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.privateGetAccountConfig(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountConfig(parameters)).join();
             //
             //     {
             //         "code": "0",
@@ -2954,7 +2954,7 @@ public class OkxCore extends OkxApi
                 }
                 return this.parseMarkets(markets);
             }
-            Object response = (this.publicGetPublicInstruments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicInstruments(this.extend(request, parameters))).join();
             //
             // spot, future, swap, option
             //
@@ -3041,7 +3041,7 @@ public class OkxCore extends OkxApi
             //
             //     {"msg":"Request header “OK_ACCESS_KEY“ can't be empty.","code":"50103"}
             //
-            Object response = (this.privateGetAssetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetCurrencies(parameters)).join();
             //
             //    {
             //        "code": "0",
@@ -3357,7 +3357,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3433,7 +3433,7 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(request, "uly", currencyId);
                 }
             }
-            Object response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -3489,7 +3489,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
             //
             // {
             //     "code": "0",
@@ -3552,7 +3552,7 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(request, "uly", currencyId);
                 }
             }
-            Object response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
@@ -3981,7 +3981,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":"0",
@@ -4155,7 +4155,7 @@ public class OkxCore extends OkxApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() supports spot, swap, future or option markets only")) ;
             }
-            Object response = (this.privateGetAccountTradeFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountTradeFee(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -4880,7 +4880,7 @@ public class OkxCore extends OkxApi
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
-            Object response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
             // {
             //     "code": "0",
             //     "data": [
@@ -5160,7 +5160,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ordId", id);
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId")));
-            Object response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
@@ -5463,7 +5463,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeOut", finalTimeOut );
             }};
-            Object response = (this.privatePostTradeCancelAllAfter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeCancelAllAfter(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":"0",
@@ -6622,7 +6622,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            Object response = (this.privateGetTradeFillsHistory(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privateGetTradeFillsHistory(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -7044,7 +7044,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetAssetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -7184,7 +7184,7 @@ public class OkxCore extends OkxApi
             }
             Helpers.addElementToObject(request, "fee", this.numberToString(fee)); // withdrawals to OKCoin or OKX are fee-free, please set 0
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee")));
-            Object response = (this.privatePostAssetWithdrawal(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetWithdrawal(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -7257,7 +7257,7 @@ public class OkxCore extends OkxApi
             var requestparametersVariable = this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -7332,7 +7332,7 @@ public class OkxCore extends OkxApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data");
             Object deposit = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(deposit, currency);
@@ -7392,7 +7392,7 @@ public class OkxCore extends OkxApi
             var requestparametersVariable = this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -7459,7 +7459,7 @@ public class OkxCore extends OkxApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -7696,7 +7696,7 @@ public class OkxCore extends OkxApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "mgnMode", finalMarginMode );
             }};
-            Object response = (this.privateGetAccountLeverageInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountLeverageInfo(this.extend(request, parameters))).join();
             //
             //     {
             //        "code": "0",
@@ -7786,7 +7786,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(type));
             }
-            Object response = (this.privateGetAccountPositions(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, query))).join();
             //
             //     {
             //         "code": "0",
@@ -8216,7 +8216,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "from", this.safeString(parameters, "from", "6"));
                 Helpers.addElementToObject(request, "to", this.safeString(parameters, "to", "6"));
             }
-            Object response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -8359,7 +8359,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "transId", id );
             }};
-            Object response = (this.privateGetAssetTransferState(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetTransferState(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -8428,7 +8428,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetAccountBillsArchive(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -8681,7 +8681,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFundingRate(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -8743,7 +8743,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", "ANY" );
             }};
-            Object response = (this.publicGetPublicFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFundingRate(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -8823,7 +8823,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(type));
             }
             // AccountBillsArchive has the same cost as AccountBills but supports three months of data
-            Object response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
             //
             //    {
             //        "bal": "0.0242946200998573",
@@ -8947,7 +8947,7 @@ public class OkxCore extends OkxApi
                 }
                 Helpers.addElementToObject(request, "posSide", posSide);
             }
-            Object response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //       "code": "0",
@@ -9043,7 +9043,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "posMode", finalHedgeMode );
             }};
-            Object response = (this.privatePostAccountSetPositionMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSetPositionMode(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -9107,7 +9107,7 @@ public class OkxCore extends OkxApi
                 put( "mgnMode", finalMarginMode );
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountSetLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //       "code": "0",
@@ -9145,7 +9145,7 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountInterestRate(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountInterestRate(parameters)).join();
             //
             //    {
             //        "code": "0",
@@ -9198,7 +9198,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetAccountInterestRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountInterestRate(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -9315,7 +9315,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -9371,7 +9371,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFinanceSavingsLendingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -9411,7 +9411,7 @@ public class OkxCore extends OkxApi
                 put( "type", type );
                 put( "posSide", posSide );
             }};
-            Object response = (this.privatePostAccountPositionMarginBalance(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountPositionMarginBalance(this.extend(request, parameters))).join();
             //
             //     {
             //       "code": "0",
@@ -9610,7 +9610,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "instId", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.publicGetPublicPositionTiers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicPositionTiers(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -9743,7 +9743,7 @@ public class OkxCore extends OkxApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instId", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetAccountInterestAccrued(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountInterestAccrued(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -9819,7 +9819,7 @@ public class OkxCore extends OkxApi
                 put( "amt", OkxCore.this.currencyToPrecision(code, amount) );
                 put( "side", "borrow" );
             }};
-            Object response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -9877,7 +9877,7 @@ public class OkxCore extends OkxApi
                 put( "side", "repay" );
                 put( "ordId", finalId );
             }};
-            Object response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountBorrowRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -9957,7 +9957,7 @@ public class OkxCore extends OkxApi
                 put( "uly", uly );
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10038,7 +10038,7 @@ public class OkxCore extends OkxApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterests() requires either uly or instFamily parameter for OPTION markets")) ;
             }
-            Object response = (this.publicGetPublicOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOpenInterest(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10258,7 +10258,7 @@ public class OkxCore extends OkxApi
                 Object ids = this.currencyIds(codes);
                 Helpers.addElementToObject(request, "ccy", String.join((String)",", (java.util.List<String>)ids));
             }
-            Object response = (this.privateGetAssetCurrencies(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetCurrencies(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -10438,7 +10438,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetPublicDeliveryExerciseHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicDeliveryExerciseHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10551,7 +10551,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", OkxCore.this.convertToInstrumentType(finalMarketType) );
             }};
-            Object response = (this.publicGetPublicUnderlying(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicUnderlying(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10597,7 +10597,7 @@ public class OkxCore extends OkxApi
                 put( "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily") );
                 put( "expTime", OkxCore.this.safeString(optionParts, 2) );
             }};
-            Object response = (this.publicGetPublicOptSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOptSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10702,7 +10702,7 @@ public class OkxCore extends OkxApi
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("uly", "instFamily")));
-            Object response = (this.publicGetPublicOptSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOptSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10852,7 +10852,7 @@ public class OkxCore extends OkxApi
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "1",
@@ -10900,7 +10900,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -10959,7 +10959,7 @@ public class OkxCore extends OkxApi
                 put( "uly", Helpers.add(Helpers.GetValue(currency, "code"), "-USD") );
                 put( "instType", "OPTION" );
             }};
-            Object response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -11070,7 +11070,7 @@ public class OkxCore extends OkxApi
                 put( "rfqSz", OkxCore.this.numberToString(amount) );
                 put( "side", "sell" );
             }};
-            Object response = (this.privatePostAssetConvertEstimateQuote(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetConvertEstimateQuote(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -11136,7 +11136,7 @@ public class OkxCore extends OkxApi
                 put( "sz", OkxCore.this.numberToString(amount) );
                 put( "side", "sell" );
             }};
-            Object response = (this.privatePostAssetConvertTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAssetConvertTrade(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -11194,7 +11194,7 @@ public class OkxCore extends OkxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "clTReqId", id );
             }};
-            Object response = (this.privateGetAssetConvertHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetConvertHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -11272,7 +11272,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetAssetConvertHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetConvertHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",
@@ -11393,7 +11393,7 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAssetConvertCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAssetConvertCurrencies(parameters)).join();
             //
             //     {
             //         "code": "0",
@@ -11684,7 +11684,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "instType", instType);
             }
-            Object response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        code: '0',
@@ -11778,7 +11778,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetRubikStatContractsLongShortAccountRatioContract(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0",

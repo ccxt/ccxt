@@ -458,7 +458,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -492,7 +492,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetDepth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         });
 
@@ -553,7 +553,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -578,7 +578,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             return this.parseTickers(response, symbols);
         });
 
@@ -653,7 +653,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
             //     [
             //          {
@@ -701,7 +701,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "type", side );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":true,
@@ -744,7 +744,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
             //
             //     {"result":true, "id":"11"}
             //
@@ -866,7 +866,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }}, parameters);
-            Object response = (this.privatePostTradeView(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeView(this.extend(request, parameters))).join();
             //
             //      {
             //          "id":11,
@@ -908,7 +908,7 @@ public class BtcboxCore extends BtcboxApi
                 put( "type", finalType );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeList(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //
             // [
             //      {

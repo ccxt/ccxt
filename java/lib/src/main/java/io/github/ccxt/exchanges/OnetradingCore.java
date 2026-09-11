@@ -465,7 +465,7 @@ public class OnetradingCore extends OnetradingApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //     {
             //         "iso": "2020-07-10T05:17:26.716Z",
@@ -491,7 +491,7 @@ public class OnetradingCore extends OnetradingApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetCurrencies(parameters)).join();
+            java.util.List<Object> response = (this.publicGetCurrencies(parameters)).join();
             //
             //     [
             //         {
@@ -550,7 +550,7 @@ public class OnetradingCore extends OnetradingApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetInstruments(parameters)).join();
+            java.util.List<Object> response = (this.publicGetInstruments(parameters)).join();
             //
             //     [
             //         {
@@ -726,7 +726,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetFees(parameters)).join();
+            java.util.List<Object> response = (this.publicGetFees(parameters)).join();
             //
             // [
             //     {
@@ -809,7 +809,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountFees(parameters)).join();
             //
             // {
             //    "account_id":"b7f4e27e-b34a-493a-b0d4-4bd341a3f2e0",
@@ -977,7 +977,7 @@ public class OnetradingCore extends OnetradingApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_code", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetMarketTickerInstrumentCode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetMarketTickerInstrumentCode(this.extend(request, parameters))).join();
             //
             //     {
             //         "instrument_code":"BTC_EUR",
@@ -1022,7 +1022,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetMarketTicker(parameters)).join();
+            java.util.List<Object> response = (this.publicGetMarketTicker(parameters)).join();
             //
             //     [
             //         {
@@ -1088,7 +1088,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetOrderBookInstrumentCode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookInstrumentCode(this.extend(request, parameters))).join();
             //
             // level 1
             //
@@ -1251,7 +1251,7 @@ public class OnetradingCore extends OnetradingApi
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
                 Helpers.addElementToObject(request, "to", this.iso8601(this.sum(since, Helpers.multiply(limit, duration))));
             }
-            Object response = (this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetCandlesticksInstrumentCode(this.extend(request, parameters))).join();
             //
             //     [
             //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9252.65","low":"9115.27","open":"9250.0","close":"9132.35","total_amount":"33.85924","volume":"311958.9635744","time":"2020-05-08T22:59:59.999Z","last_sequence":461123},
@@ -1396,7 +1396,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBalances(parameters)).join();
             //
             //     {
             //         "account_id":"4b95934f-55f1-460c-a525-bd5afc0cf071",
@@ -1627,7 +1627,7 @@ public class OnetradingCore extends OnetradingApi
             String timeInForce = this.safeString2(parameters, "timeInForce", "time_in_force", "GOOD_TILL_CANCELLED");
             parameters = this.omit(parameters, "timeInForce");
             Helpers.addElementToObject(request, "time_in_force", timeInForce);
-            Object response = (this.privatePostAccountOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "order_id": "d5492c24-2995-4c18-993a-5b8bf8fffc0d",
@@ -1724,7 +1724,7 @@ public class OnetradingCore extends OnetradingApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "instrument_code", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1761,7 +1761,7 @@ public class OnetradingCore extends OnetradingApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ids", String.join((String)",", (java.util.List<String>)ids) );
             }};
-            Object response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
@@ -1799,7 +1799,7 @@ public class OnetradingCore extends OnetradingApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "order": {
@@ -1892,7 +1892,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "max_page_size", limit);
             }
-            Object response = (this.privateGetAccountOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "order_history": [
@@ -2039,7 +2039,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "max_page_size", limit);
             }
-            Object response = (this.privateGetAccountOrdersOrderIdTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountOrdersOrderIdTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "trade_history": [
@@ -2127,7 +2127,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "max_page_size", limit);
             }
-            Object response = (this.privateGetAccountTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "trade_history": [

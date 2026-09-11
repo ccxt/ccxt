@@ -2328,7 +2328,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbols", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.spotPrivateGetV2ReferenceTransactFeeRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV2ReferenceTransactFeeRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":200,
@@ -2402,7 +2402,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", id );
             }};
-            Object response = (this.spotPublicGetV1CommonExchange(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPublicGetV1CommonExchange(this.extend(request, parameters))).join();
             //
             //     { status:   "ok",
             //         "data": {                                  symbol: "aidocbtc",
@@ -3728,7 +3728,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order-id", id );
             }};
-            Object response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
         });
@@ -4283,7 +4283,7 @@ public class HtxCore extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotPrivateGetV1AccountAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV1AccountAccounts(parameters)).join();
             //
             //     {
             //         "status":"ok",
@@ -4397,7 +4397,7 @@ public class HtxCore extends HtxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
             //
             //    {
             //        "code": 200,
@@ -8035,7 +8035,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? HtxCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) : 0 );
             }};
-            Object response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -8103,7 +8103,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.spotPrivateGetV2AccountDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV2AccountDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -8170,7 +8170,7 @@ public class HtxCore extends HtxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.spotPrivateGetV2AccountWithdrawAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV2AccountWithdrawAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -8249,7 +8249,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "size", limit); // max 100
             }
-            Object response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
             //
             //    {
             //         "status": "ok",
@@ -8328,7 +8328,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "size", limit); // max 100
             }
-            Object response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV1QueryDepositWithdraw(this.extend(request, parameters))).join();
             //
             //    {
             //         "status": "ok",
@@ -8581,7 +8581,7 @@ public class HtxCore extends HtxApi
                 amount = Helpers.parseFloat(amountAfterFee);
             }
             Helpers.addElementToObject(request, "amount", amount);
-            Object response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivatePostV1DwWithdrawApiCreate(this.extend(request, parameters))).join();
             //
             //     {
             //         "status": "ok",
@@ -8828,7 +8828,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV5AccountUniversalTransferRecords(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -8873,7 +8873,7 @@ public class HtxCore extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotPrivateGetV1MarginLoanInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV1MarginLoanInfo(parameters)).join();
             //
             // {
             //     "status": "ok",
@@ -10337,7 +10337,7 @@ public class HtxCore extends HtxApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.spotPrivateGetV2AccountLedger(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotPrivateGetV2AccountLedger(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -10395,7 +10395,7 @@ public class HtxCore extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(parameters)).join();
+            java.util.Map<String, Object> response = (this.contractPublicGetLinearSwapApiV1SwapAdjustfactor(parameters)).join();
             //
             //    {
             //        "status": "ok",
@@ -10874,7 +10874,7 @@ public class HtxCore extends HtxApi
                 put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostMarginOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostMarginOrders(this.extend(request, parameters))).join();
             //
             // Isolated
             //
@@ -10917,7 +10917,7 @@ public class HtxCore extends HtxApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privatePostCrossMarginOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCrossMarginOrders(this.extend(request, parameters))).join();
             //
             // Cross
             //
@@ -10962,7 +10962,7 @@ public class HtxCore extends HtxApi
                 put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
                 put( "accountId", accountId );
             }};
-            Object response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":200,
@@ -11012,7 +11012,7 @@ public class HtxCore extends HtxApi
                 put( "amount", HtxCore.this.currencyToPrecision(code, amount) );
                 put( "accountId", accountId );
             }};
-            Object response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAccountRepayment(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":200,
@@ -11242,7 +11242,7 @@ public class HtxCore extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotPublicGetV2ReferenceCurrencies(parameters)).join();
             //
             //    {
             //        "code": 200,
@@ -11754,7 +11754,7 @@ public class HtxCore extends HtxApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setPositionMode can only be used for linear markets")) ;
             }
-            Object response = (this.contractPrivatePostV5PositionMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostV5PositionMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,

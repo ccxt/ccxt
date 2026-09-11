@@ -438,7 +438,7 @@ public class UpbitCore extends UpbitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", id );
             }};
-            Object response = (this.privateGetWithdrawsChance(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdrawsChance(this.extend(request, parameters))).join();
             //
             //     {
             //         "member_level": {
@@ -561,7 +561,7 @@ public class UpbitCore extends UpbitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", id );
             }};
-            Object response = (this.privateGetOrdersChance(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersChance(this.extend(request, parameters))).join();
             //
             //     {
             //         "bid_fee": "0.0015",
@@ -677,7 +677,7 @@ public class UpbitCore extends UpbitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetMarketAll(parameters)).join();
+            java.util.List<Object> response = (this.publicGetMarketAll(parameters)).join();
             //
             //    [
             //        {
@@ -802,7 +802,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //     [ {          currency: "BTC",
             //                   "balance": "0.005",
@@ -864,7 +864,7 @@ public class UpbitCore extends UpbitApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //
             //     [ {          market:   "BTC-ETH",
             //               "timestamp":    1542899030043,
@@ -1271,7 +1271,7 @@ public class UpbitCore extends UpbitApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "count", finalLimit );
             }};
-            Object response = (this.publicGetTradesTicks(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradesTicks(this.extend(request, parameters))).join();
             //
             //     [ {             market: "BTC-ETH",
             //             "trade_date_utc": "2018-11-22",
@@ -1323,7 +1323,7 @@ public class UpbitCore extends UpbitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOrdersChance(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersChance(this.extend(request, parameters))).join();
             //
             //     {
             //         "bid_fee": "0.0005",
@@ -1753,7 +1753,7 @@ public class UpbitCore extends UpbitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "uuid", id );
             }};
-            Object response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "uuid": "cdd92199-2897-4e14-9448-f923320408ad",
@@ -1912,7 +1912,7 @@ public class UpbitCore extends UpbitApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("newTimeInForce", "new_time_in_force", "postOnly", "newClientOrderId", "cost", "selfTradePrevention", "new_smp_type")));
             // console.log ('check the each request params: ', request);
-            Object response = (this.privatePostOrdersCancelAndNew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersCancelAndNew(this.extend(request, parameters))).join();
             //   {
             //     uuid: '63b38774-27db-4439-ac20-1be16a24d18e',        //previous order data
             //     side: 'bid',                                         //previous order data
@@ -1979,7 +1979,7 @@ public class UpbitCore extends UpbitApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default is 100
             }
-            Object response = (this.privateGetDeposits(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetDeposits(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2033,7 +2033,7 @@ public class UpbitCore extends UpbitApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetDeposit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDeposit(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "deposit",
@@ -2090,7 +2090,7 @@ public class UpbitCore extends UpbitApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default is 100
             }
-            Object response = (this.privateGetWithdraws(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWithdraws(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2145,7 +2145,7 @@ public class UpbitCore extends UpbitApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "withdraw",
@@ -2482,7 +2482,7 @@ public class UpbitCore extends UpbitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2556,7 +2556,7 @@ public class UpbitCore extends UpbitApi
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2631,7 +2631,7 @@ public class UpbitCore extends UpbitApi
             var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrdersClosed(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2685,7 +2685,7 @@ public class UpbitCore extends UpbitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "uuid", id );
             }};
-            Object response = (this.privateGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "uuid": "a08f09b1-1718-42e2-9358-f0e5e083d3ee",
@@ -2755,7 +2755,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetDepositsCoinAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetDepositsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -2837,7 +2837,7 @@ public class UpbitCore extends UpbitApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddress requires params[\"network\"]")) ;
             }
             final Object finalNetworkCode = networkCode;
-            Object response = (this.privateGetDepositsCoinAddress(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.privateGetDepositsCoinAddress(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "net_type", UpbitCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }}, parameters))).join();
@@ -2879,7 +2879,7 @@ public class UpbitCore extends UpbitApi
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             // https://github.com/ccxt/ccxt/issues/6452
-            Object response = (this.privatePostDepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostDepositsGenerateCoinAddress(this.extend(request, parameters))).join();
             //
             // https://docs.upbit.com/v1.0/reference#%EC%9E%85%EA%B8%88-%EC%A3%BC%EC%86%8C-%EC%83%9D%EC%84%B1-%EC%9A%94%EC%B2%AD
             // can be any of the two responses:

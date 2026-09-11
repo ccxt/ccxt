@@ -350,7 +350,7 @@ public class BitflyerCore extends BitflyerApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object jp_markets = (this.publicGetGetmarkets(parameters)).join();
+            java.util.List<Object> jp_markets = (this.publicGetGetmarkets(parameters)).join();
             //
             //     [
             //         // spot
@@ -367,14 +367,14 @@ public class BitflyerCore extends BitflyerApi
             //         },
             //     ];
             //
-            Object us_markets = (this.publicGetGetmarketsUsa(parameters)).join();
+            java.util.List<Object> us_markets = (this.publicGetGetmarketsUsa(parameters)).join();
             //
             //     [
             //         { "product_code": "BTC_USD", "market_type": "Spot" },
             //         { "product_code": "BTC_JPY", "market_type": "Spot" },
             //     ];
             //
-            Object eu_markets = (this.publicGetGetmarketsEu(parameters)).join();
+            java.util.List<Object> eu_markets = (this.publicGetGetmarketsEu(parameters)).join();
             //
             //     [
             //         { "product_code": "BTC_EUR", "market_type": "Spot" },
@@ -555,7 +555,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetGetbalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetGetbalance(parameters)).join();
             //
             //     [
             //         {
@@ -605,7 +605,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", Helpers.GetValue(market, "id") );
             }};
-            Object orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> orderbook = (this.publicGetGetboard(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "size");
         });
 
@@ -664,7 +664,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetGetticker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -776,7 +776,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.publicGetGetexecutions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetGetexecutions(this.extend(request, parameters))).join();
             //
             //    [
             //     {
@@ -818,7 +818,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetGettradingcommission(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGettradingcommission(this.extend(request, parameters))).join();
             //
             //   {
             //       commission_rate: '0.0020'
@@ -868,7 +868,7 @@ public class BitflyerCore extends BitflyerApi
                 put( "price", price );
                 put( "size", amount );
             }};
-            Object result = (this.privatePostSendchildorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> result = (this.privatePostSendchildorder(this.extend(request, parameters))).join();
             // { "status": - 200, "error_message": "Insufficient funds", "data": null }
             String id = this.safeString(result, "child_order_acceptance_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -909,7 +909,7 @@ public class BitflyerCore extends BitflyerApi
                 put( "product_code", BitflyerCore.this.marketId(finalSymbol) );
                 put( "child_order_acceptance_id", id );
             }};
-            Object response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelchildorder(this.extend(request, parameters))).join();
             //
             //    200 OK.
             //
@@ -1016,7 +1016,7 @@ public class BitflyerCore extends BitflyerApi
                 put( "product_code", Helpers.GetValue(market, "id") );
                 put( "count", limit );
             }};
-            Object response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetchildorders(this.extend(request, parameters))).join();
             Object orders = this.parseOrders(response, market, since, limit);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1151,7 +1151,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.privateGetGetexecutions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetexecutions(this.extend(request, parameters))).join();
             //
             //    [
             //     {
@@ -1199,7 +1199,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", BitflyerCore.this.marketIds(finalSymbols) );
             }};
-            Object response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1256,7 +1256,7 @@ public class BitflyerCore extends BitflyerApi
                 put( "currency_code", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
-            Object response = (this.privatePostWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "message_id": "69476620-5056-4003-bcbe-42658a2b041b"
@@ -1301,7 +1301,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Helpers.addElementToObject(request, "count", limit); // default 100
             }
-            Object response = (this.privateGetGetcoinins(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetcoinins(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1355,7 +1355,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Helpers.addElementToObject(request, "count", limit); // default 100
             }
-            Object response = (this.privateGetGetcoinouts(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetcoinouts(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1509,7 +1509,7 @@ public class BitflyerCore extends BitflyerApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetGetfundingrate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetfundingrate(this.extend(request, parameters))).join();
             //
             //    {
             //        "current_funding_rate": -0.003750000000

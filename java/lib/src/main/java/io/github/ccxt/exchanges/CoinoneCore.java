@@ -447,7 +447,7 @@ public class CoinoneCore extends CoinoneApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.v2PublicGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetCurrencies(parameters)).join();
             //
             //     {
             //         "result": "success",
@@ -524,7 +524,7 @@ public class CoinoneCore extends CoinoneApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", "KRW" );
             }};
-            Object response = (this.v2PublicGetTickerNewQuoteCurrency(request)).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetTickerNewQuoteCurrency(request)).join();
             //
             //     {
             //         "result": "success",
@@ -666,7 +666,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivatePostAccountBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAccountBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -702,7 +702,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 Helpers.addElementToObject(request, "size", limit); // only support 5, 10, 15, 16
             }
-            Object response = (this.v2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetOrderbookQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -833,7 +833,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
             }};
-            Object response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetTickerNewQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1041,7 +1041,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 200));
             }
-            Object response = (this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PublicGetTradesQuoteCurrencyTargetCurrency(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1114,7 +1114,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "price", CoinoneCore.this.priceToPrecision(symbol, finalPrice) );
                 put( "qty", CoinoneCore.this.amountToPrecision(symbol, amount) );
             }};
-            Object response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2_1PrivatePostOrderLimit(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1156,7 +1156,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "order_id", id );
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v2PrivatePostOrderQueryOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostOrderQueryOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1371,7 +1371,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "quote_currency", Helpers.GetValue(market, "quoteId") );
                 put( "target_currency", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2_1PrivatePostOrderOpenOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1426,7 +1426,7 @@ public class CoinoneCore extends CoinoneApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.v2PrivatePostOrderCompleteOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostOrderCompleteOrders(this.extend(request, parameters))).join();
             //
             // despite the name of the endpoint it returns trades which may have a duplicate orderId
             // https://github.com/ccxt/ccxt/pull/7067
@@ -1495,7 +1495,7 @@ public class CoinoneCore extends CoinoneApi
                 put( "is_ask", finalIsAsk );
                 put( "currency", CoinoneCore.this.marketId(finalSymbol) );
             }};
-            Object response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostOrderCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": "success",
@@ -1526,7 +1526,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.v2PrivatePostAccountDepositAddress(parameters)).join();
+            java.util.Map<String, Object> response = (this.v2PrivatePostAccountDepositAddress(parameters)).join();
             //
             //     {
             //         "result": "success",

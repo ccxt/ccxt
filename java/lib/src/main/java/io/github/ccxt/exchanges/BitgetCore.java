@@ -3676,7 +3676,7 @@ public class BitgetCore extends BitgetApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicCommonGetV2PublicTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicCommonGetV2PublicTime(parameters)).join();
             //
             //     {
             //         "code": "00000",
@@ -4351,7 +4351,7 @@ public class BitgetCore extends BitgetApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetV2SpotPublicCoins(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetV2SpotPublicCoins(parameters)).join();
             //
             //    {
             //        "code": "00000",
@@ -6337,7 +6337,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "businessType", "mix");
             }
-            Object response = (this.privateCommonGetV2CommonTradeRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateCommonGetV2CommonTradeRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -8201,7 +8201,7 @@ final Object finalMinNotional = minNotional;
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = (this.privateUtaPostV3TradePlaceBatch(ordersRequests)).join();
+            java.util.Map<String, Object> response = (this.privateUtaPostV3TradePlaceBatch(ordersRequests)).join();
             //
             //     {
             //         "code": "00000",
@@ -8884,7 +8884,7 @@ final Object finalMinNotional = minNotional;
                 }};
                 ((java.util.List<Object>)requestList).add(order);
             }
-            Object response = (this.privateUtaPostV3TradeCancelBatch(requestList)).join();
+            java.util.Map<String, Object> response = (this.privateUtaPostV3TradeCancelBatch(requestList)).join();
             //
             //     {
             //         "code": "00000",
@@ -12133,7 +12133,7 @@ final Object finalMinNotional = minNotional;
                 put( "productType", finalProductType );
             }};
             parameters = this.omit(parameters, "holdSide");
-            Object response = (this.privateMixPostV2MixAccountSetMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMixPostV2MixAccountSetMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -12265,7 +12265,7 @@ final Object finalMinNotional = minNotional;
                 put( "marginCoin", Helpers.GetValue(market, "settleId") );
                 put( "productType", finalProductType );
             }};
-            Object response = (this.privateMixGetV2MixAccountAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMixGetV2MixAccountAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -12432,7 +12432,7 @@ final Object finalMinNotional = minNotional;
                 put( "marginMode", finalMarginMode );
                 put( "productType", finalProductType );
             }};
-            Object response = (this.privateMixPostV2MixAccountSetMarginMode(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMixPostV2MixAccountSetMarginMode(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -12655,7 +12655,7 @@ final Object finalMinNotional = minNotional;
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateSpotGetV2SpotAccountTransferRecords(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetV2SpotAccountTransferRecords(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -12900,7 +12900,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicSpotGetV2SpotPublicCoins(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetV2SpotPublicCoins(parameters)).join();
             //
             //     {
             //         "code": "00000",
@@ -12961,7 +12961,7 @@ final Object finalMinNotional = minNotional;
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "borrowAmount", BitgetCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privateMarginPostV2MarginCrossedAccountBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -13008,7 +13008,7 @@ final Object finalMinNotional = minNotional;
                 put( "borrowAmount", BitgetCore.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateMarginPostV2MarginIsolatedAccountBorrow(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountBorrow(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -13056,7 +13056,7 @@ final Object finalMinNotional = minNotional;
                 put( "repayAmount", BitgetCore.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateMarginPostV2MarginIsolatedAccountRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostV2MarginIsolatedAccountRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -13102,7 +13102,7 @@ final Object finalMinNotional = minNotional;
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "repayAmount", BitgetCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = (this.privateMarginPostV2MarginCrossedAccountRepay(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostV2MarginCrossedAccountRepay(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -13396,7 +13396,7 @@ final Object finalMinNotional = minNotional;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateMarginGetV2MarginIsolatedInterestRateAndLimit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginGetV2MarginIsolatedInterestRateAndLimit(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -13952,7 +13952,7 @@ final Object finalMinNotional = minNotional;
                 put( "marginCoin", Helpers.GetValue(market, "settleId") );
                 put( "productType", finalProductType );
             }};
-            Object response = (this.privateMixGetV2MixAccountAccount(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMixGetV2MixAccountAccount(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -14102,7 +14102,7 @@ final Object finalMinNotional = minNotional;
                 put( "toCoin", toCode );
                 put( "fromCoinSize", BitgetCore.this.numberToString(amount) );
             }};
-            Object response = (this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateConvertGetV2ConvertQuotedPrice(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -14175,7 +14175,7 @@ final Object finalMinNotional = minNotional;
                 put( "toCoinSize", finalToAmount );
                 put( "cnvtPrice", finalPrice );
             }};
-            Object response = (this.privateConvertPostV2ConvertTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateConvertPostV2ConvertTrade(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -14244,7 +14244,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             parameters = this.omit(parameters, "until");
-            Object response = (this.privateConvertGetV2ConvertConvertRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateConvertGetV2ConvertConvertRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "00000",
@@ -14350,7 +14350,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateConvertGetV2ConvertCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateConvertGetV2ConvertCurrencies(parameters)).join();
             //
             //     {
             //         "code": "00000",

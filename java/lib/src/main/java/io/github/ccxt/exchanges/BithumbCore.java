@@ -587,7 +587,7 @@ public class BithumbCore extends BithumbApi
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Helpers.addElementToObject(request, "isDetails", true);
-                Object response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
+                java.util.List<Object> response = (this.publicGetV1MarketAll(this.extend(request, parameters))).join();
                 //
                 //     [
                 //         {
@@ -1695,7 +1695,7 @@ public class BithumbCore extends BithumbApi
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 Object transactionDate = Helpers.GetValue(parts, 0);
-                Object transactionTime = Helpers.GetValue(parts, 1);
+                String transactionTime = (String) Helpers.GetValue(parts, 1);
                 if (Helpers.isTrue(Helpers.isLessThan(((String)transactionTime).length(), 8)))
                 {
                     transactionTime = Helpers.add("0", transactionTime);
@@ -1918,7 +1918,7 @@ public class BithumbCore extends BithumbApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batch_orders", ordersRequests );
             }};
-            Object response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV2OrdersBatch(this.extend(request, parameters))).join();
             //
             //     {
             //         "batch_orders_response": [
@@ -2227,7 +2227,7 @@ public class BithumbCore extends BithumbApi
                 sideRequest = "ask";
             }
             Helpers.addElementToObject(request, "side", sideRequest);
-            Object response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Twap(this.extend(request, parameters))).join();
             //
             //     {
             //         "algo_order_id": "019f3ed7-4f92-7179-beee-84b4c71e53fa"
@@ -3083,7 +3083,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "order_ids", ids);
             }
-            Object response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV2OrdersCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": [
@@ -3375,7 +3375,7 @@ public class BithumbCore extends BithumbApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchWithdrawalWhitelist() is only supported for the generation 2 API")) ;
             }
-            Object response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetV1WithdrawsCoinAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -3438,7 +3438,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            Object response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1Withdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "withdraw",
@@ -3583,7 +3583,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "uuid", id);
             }
-            Object response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1Deposit(this.extend(request, parameters))).join();
             //
             //     {
             //         "type": "deposit",
@@ -3725,7 +3725,7 @@ public class BithumbCore extends BithumbApi
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " createDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            Object response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1DepositsGenerateCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3779,7 +3779,7 @@ public class BithumbCore extends BithumbApi
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), code), " fetchDepositAddress() requires a network parameter")) ;
             }
             Helpers.addElementToObject(request, "net_type", network);
-            Object response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1DepositsCoinAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "currency": "BTC",
@@ -3822,7 +3822,7 @@ public class BithumbCore extends BithumbApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchDepositAddresses() is only supported for the generation 2 API")) ;
             }
-            Object response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetV1DepositsCoinAddresses(parameters)).join();
             //
             //     [
             //         {

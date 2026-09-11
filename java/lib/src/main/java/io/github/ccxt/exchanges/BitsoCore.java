@@ -402,7 +402,7 @@ public class BitsoCore extends BitsoApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetLedger(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetLedger(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -573,7 +573,7 @@ public class BitsoCore extends BitsoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAvailableBooks(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetAvailableBooks(parameters)).join();
             //
             //     {
             //         "success":true,
@@ -728,7 +728,7 @@ public class BitsoCore extends BitsoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object catalogues = (this.publicGetCatalogues(parameters)).join();
+            java.util.Map<String, Object> catalogues = (this.publicGetCatalogues(parameters)).join();
             //
             //     {
             //         "payload": {
@@ -837,7 +837,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetBalance(parameters)).join();
             //
             //     {
             //       "success": true,
@@ -893,7 +893,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
             Object orderbook = this.safeValue(response, "payload");
             Long timestamp = this.parse8601(this.safeString(orderbook, "updated_at"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
@@ -971,7 +971,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object ticker = this.safeValue(response, "payload");
             //
             //     {
@@ -1038,7 +1038,7 @@ public class BitsoCore extends BitsoApi
                 Helpers.addElementToObject(request, "end", now);
                 Helpers.addElementToObject(request, "start", Helpers.subtract(now, Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), 1000), limit)));
             }
-            Object response = (this.publicGetOhlc(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOhlc(this.extend(request, parameters))).join();
             //
             //     {
             //         "success":true,
@@ -1234,7 +1234,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
         });
@@ -1259,7 +1259,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFees(parameters)).join();
             //
             //    {
             //        "success": true,
@@ -1372,7 +1372,7 @@ public class BitsoCore extends BitsoApi
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "limit", limit );
             }};
-            Object response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
         });
@@ -1415,7 +1415,7 @@ public class BitsoCore extends BitsoApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
             }
-            Object response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String id = this.safeString(payload, "oid");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1450,7 +1450,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
-            Object response = (this.privateDeleteOrdersOid(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrdersOid(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -1497,7 +1497,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -1536,7 +1536,7 @@ public class BitsoCore extends BitsoApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelAllOrders() deletes all orders for user, it does not support filtering by symbol.")) ;
             }
-            Object response = (this.privateDeleteOrdersAll(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrdersAll(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -1665,7 +1665,7 @@ public class BitsoCore extends BitsoApi
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "limit", limit );
             }};
-            Object response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = this.parseOrders(payload, market, since, limit);
             return orders;
@@ -1694,7 +1694,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetOrdersOid(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.privateGetOrdersOid(new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }})).join();
             Object payload = this.safeValue(response, "payload");
@@ -1740,7 +1740,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
-            Object response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market);
         });
@@ -1771,7 +1771,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "fid", id );
             }};
-            Object response = (this.privateGetFundingsFid(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFundingsFid(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -1831,7 +1831,7 @@ public class BitsoCore extends BitsoApi
             {
                 currency = this.currency(code);
             }
-            Object response = (this.privateGetFundings(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFundings(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -1883,7 +1883,7 @@ public class BitsoCore extends BitsoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "fund_currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
             Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
             Object tag = null;
@@ -1929,7 +1929,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFees(parameters)).join();
             //
             //    {
             //        "success": true,
@@ -2045,7 +2045,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFees(parameters)).join();
             //
             //    {
             //        "success": true,

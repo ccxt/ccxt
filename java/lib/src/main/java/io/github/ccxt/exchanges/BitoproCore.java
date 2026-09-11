@@ -392,7 +392,7 @@ public class BitoproCore extends BitoproApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetProvisioningCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetProvisioningCurrencies(parameters)).join();
             //
             //     {
             //         "data":[
@@ -464,7 +464,7 @@ public class BitoproCore extends BitoproApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetProvisioningTradingPairs()).join();
+            java.util.Map<String, Object> response = (this.publicGetProvisioningTradingPairs()).join();
             Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -624,7 +624,7 @@ public class BitoproCore extends BitoproApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersPair(this.extend(request, parameters))).join();
             Object ticker = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
@@ -664,7 +664,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTickers()).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers()).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -715,7 +715,7 @@ public class BitoproCore extends BitoproApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetOrderBookPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "bids":[
@@ -874,7 +874,7 @@ public class BitoproCore extends BitoproApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
             Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -911,7 +911,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetProvisioningLimitationsAndFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetProvisioningLimitationsAndFees(parameters)).join();
             Object tradingFeeRate = this.safeDict(response, "tradingFeeRate", new java.util.HashMap<String, Object>() {{}});
             Object first = this.safeValue(tradingFeeRate, 0);
             //
@@ -1054,7 +1054,7 @@ public class BitoproCore extends BitoproApi
                 Helpers.addElementToObject(request, "from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
                 Helpers.addElementToObject(request, "to", this.sum(Helpers.GetValue(request, "from"), Helpers.multiply(limit, timeframeInSeconds)));
             }
-            Object response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -1174,7 +1174,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountsBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountsBalance(parameters)).join();
             Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -1373,7 +1373,7 @@ public class BitoproCore extends BitoproApi
             {
                 Helpers.addElementToObject(request, "timeInForce", "POST_ONLY");
             }
-            Object response = (this.privatePostOrdersPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "orderId": "2220595581",
@@ -1419,7 +1419,7 @@ public class BitoproCore extends BitoproApi
                 put( "id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateDeleteOrdersPairId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrdersPairId(this.extend(request, parameters))).join();
             //
             //     {
             //         "orderId":"8777138788",
@@ -1487,7 +1487,7 @@ final Object finalJ = j;
             {
                 Helpers.addElementToObject(request, id, ids);
             }
-            Object response = (this.privatePutOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":{
@@ -1581,7 +1581,7 @@ final Object finalJ = j;
                 put( "orderId", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOrdersPairOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersPairOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "id":"8777138788",
@@ -1650,7 +1650,7 @@ final Object finalJ = j;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOrdersAllPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersAllPair(this.extend(request, parameters))).join();
             Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isEqual(orders, null)))
             {
@@ -1718,7 +1718,7 @@ final Object finalJ = j;
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
             Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
@@ -1785,7 +1785,7 @@ final Object finalJ = j;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOrdersTradesPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrdersTradesPair(this.extend(request, parameters))).join();
             Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -1954,7 +1954,7 @@ final Object finalJ = j;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters))).join();
             Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -2022,7 +2022,7 @@ final Object finalJ = j;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters))).join();
             Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
@@ -2079,7 +2079,7 @@ final Object finalJ = j;
                 put( "serial", id );
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
@@ -2151,7 +2151,7 @@ final Object finalJ = j;
             {
                 Helpers.addElementToObject(request, "message", tag);
             }
-            Object response = (this.privatePostWalletWithdrawCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWalletWithdrawCurrency(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
@@ -2218,7 +2218,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetProvisioningCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetProvisioningCurrencies(parameters)).join();
             //
             //     {
             //         "data":[

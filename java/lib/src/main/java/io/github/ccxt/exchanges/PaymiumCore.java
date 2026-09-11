@@ -259,7 +259,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetUser(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetUser(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -290,7 +290,7 @@ public class PaymiumCore extends PaymiumApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
         });
 
@@ -370,7 +370,7 @@ public class PaymiumCore extends PaymiumApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
-            Object ticker = (this.publicGetDataCurrencyTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> ticker = (this.publicGetDataCurrencyTicker(this.extend(request, parameters))).join();
             //
             // {
             //     "high":"33740.82",
@@ -449,7 +449,7 @@ public class PaymiumCore extends PaymiumApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -474,7 +474,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostUserAddresses(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostUserAddresses(parameters)).join();
             //
             //     {
             //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -510,7 +510,7 @@ public class PaymiumCore extends PaymiumApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "address", code );
             }};
-            Object response = (this.privateGetUserAddressesAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserAddressesAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "address": "1HdjGr6WCTcnmW1tNNsHX7fh4Jr5C2PeKe",
@@ -544,7 +544,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetUserAddresses(parameters)).join();
+            java.util.List<Object> response = (this.privateGetUserAddresses(parameters)).join();
             //
             //     [
             //         {
@@ -618,7 +618,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 Helpers.addElementToObject(request, "price", price);
             }
-            Object response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostUserOrders(this.extend(request, parameters))).join();
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", PaymiumCore.this.safeString(response, "uuid") );
@@ -647,7 +647,7 @@ public class PaymiumCore extends PaymiumApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "uuid", id );
             }};
-            Object response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }});
@@ -692,7 +692,7 @@ public class PaymiumCore extends PaymiumApi
                 put( "amount", PaymiumCore.this.currencyToPrecision(finalCode, amount) );
                 put( "email", toAccount );
             }};
-            Object response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostUserEmailTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "uuid": "968f4580-e26c-4ad8-8bcd-874d23d55296",

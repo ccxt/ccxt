@@ -871,7 +871,7 @@ public class WeexCore extends WeexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV3Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV3Ping(parameters)).join();
             // returns an empty response if the exchange is alive, otherwise will trigger an error
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
@@ -936,7 +936,7 @@ public class WeexCore extends WeexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV3Coins(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV3Coins(parameters)).join();
             //
             //     [
             //         {
@@ -1605,7 +1605,7 @@ public class WeexCore extends WeexApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchLastPrices() supports spot markets only, use fetchMarkPrices() or fetchTickers() for contract markets")) ;
             }
-            Object response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiV3MarketTickerPrice(parameters)).join();
             //
             //     [
             //         {
@@ -1675,7 +1675,7 @@ public class WeexCore extends WeexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "priceType", finalPriceType );
             }};
-            Object response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractGetCapiV3MarketSymbolPrice(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol": "ETHUSDT",
@@ -1718,7 +1718,7 @@ public class WeexCore extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, "swap"); // reject non-contract symbols instead of silently filtering the result to an empty dict
-            Object response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
+            java.util.List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(parameters)).join();
             //
             //     [
             //         {
@@ -1874,7 +1874,7 @@ public class WeexCore extends WeexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", WeexCore.this.safeString(WeexCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV3MarketKlines(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
@@ -2212,7 +2212,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractGetCapiV3MarketOpenInterest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractGetCapiV3MarketOpenInterest(this.extend(request, parameters))).join();
             return this.parseOpenInterest(response, market);
         });
 
@@ -2274,7 +2274,7 @@ public class WeexCore extends WeexApi
                 Object market = this.getMarketFromSymbols(symbols);
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
             }
-            Object response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractGetCapiV3MarketPremiumIndex(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2376,7 +2376,7 @@ public class WeexCore extends WeexApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractGetCapiV3MarketFundingRate(this.extend(request, parameters))).join();
             return this.parseFundingRateHistories(response, market, since, limit);
         });
 
@@ -2571,7 +2571,7 @@ public class WeexCore extends WeexApi
             var requestparametersVariable = this.handleUntilOption("before", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV3AccountTransferRecords(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2693,7 +2693,7 @@ public class WeexCore extends WeexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createSpotOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostApiV3Order(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV3Order(request)).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -3677,7 +3677,7 @@ public class WeexCore extends WeexApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV3AllOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4261,7 +4261,7 @@ public class WeexCore extends WeexApi
                 var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> contractResponse = (this.contractPrivatePostCapiV3AccountIncome(this.extend(request, parameters))).join();
                 items = this.safeList(contractResponse, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(accountType, "funding")))
             {
@@ -4276,7 +4276,7 @@ public class WeexCore extends WeexApi
                 var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> fundingResponse = (this.privatePostApiV3AccountFundingBills(this.extend(request, parameters))).join();
                 items = this.safeList(fundingResponse, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -4291,7 +4291,7 @@ public class WeexCore extends WeexApi
                 var requestparametersVariable = this.handleUntilOption("before", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-                Object billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
+                java.util.List<Object> billsResponse = (this.privatePostApiV3AccountBills(this.extend(request, parameters))).join();
                 items = this.toArray(billsResponse);
             }
             return this.parseLedger(items, currency, since, limit);
@@ -4499,7 +4499,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountPositionSinglePosition(this.extend(request, parameters))).join();
             return this.parsePositions(response, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))));
         });
 
@@ -4651,7 +4651,7 @@ public class WeexCore extends WeexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.contractPrivatePostCapiV3ClosePositions(parameters)).join();
+            java.util.List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(parameters)).join();
             //
             //     [
             //         {
@@ -4692,7 +4692,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
             java.util.List<Object> orders = this.parseOrders(response, market);
             return this.safeDict(orders, 0);
         });
@@ -4726,7 +4726,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetCapiV3AccountCommissionRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivateGetCapiV3AccountCommissionRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol": "DOGEUSDT",
@@ -4784,7 +4784,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4824,7 +4824,7 @@ public class WeexCore extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseMarginModes(this.toArray(response), symbols, "symbol", "swap");
         });
 
@@ -4923,7 +4923,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Object marginMode = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(marginMode, market);
         });
@@ -4951,7 +4951,7 @@ public class WeexCore extends WeexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(parameters)).join();
             return this.parseLeverages(this.toArray(response), symbols, "symbol", "swap");
         });
 
@@ -5072,7 +5072,7 @@ public class WeexCore extends WeexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.contractPrivateGetCapiV3AccountSymbolConfig(this.extend(request, parameters))).join();
             Object entry = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             String separatedType = this.safeString(entry, "separatedType");
             final Object finalSeparatedType = separatedType;
@@ -5156,7 +5156,7 @@ public class WeexCore extends WeexApi
                 put( "type", finalType );
             }};
             Object parsedType = ((Helpers.isTrue((Helpers.isEqual(type, 1))))) ? "add" : "reduce";
-            Object response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostCapiV3AccountPositionMargin(this.extend(request, parameters))).join();
             return this.extend(this.parseMarginModification(response, market), new java.util.HashMap<String, Object>() {{
                 put( "amount", WeexCore.this.parseNumber(amount) );
                 put( "type", parsedType );

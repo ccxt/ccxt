@@ -2427,7 +2427,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object signature = this.signL1Action(action, nonce);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -2543,7 +2543,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(request, "expiresAfter", expiresAfter);
                 parameters = this.omit(parameters, "expiresAfter");
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             // {
             //     "status":"ok",
             //     "response":{
@@ -2591,7 +2591,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             (this.initializeClient()).join();
             Object request = this.createOrdersRequest(orders, parameters);
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status": "ok",
@@ -2939,7 +2939,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             (this.initializeClient()).join();
             Object request = this.cancelOrdersRequest(ids, symbol, parameters);
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status":"ok",
@@ -3026,7 +3026,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(request, "expiresAfter", expiresAfter);
                 parameters = this.omit(parameters, "expiresAfter");
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //  {
             //     "status":"ok",
@@ -3197,7 +3197,7 @@ final Object finalClientOrderId = clientOrderId;
                 parameters = this.omit(parameters, "vaultAddress");
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status":"ok",
@@ -3263,7 +3263,7 @@ final Object finalClientOrderId = clientOrderId;
                 parameters = this.omit(parameters, "vaultAddress");
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status":"err",
@@ -3485,7 +3485,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             (this.initializeClient()).join();
             Object request = this.editOrdersRequest(orders, parameters);
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status": "ok",
@@ -3565,7 +3565,7 @@ final Object finalClientOrderId = clientOrderId;
             Object signature = this.signL1Action(action, nonce);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             //
             // {
             //     "status": "ok",
@@ -4731,7 +4731,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         'response': {
@@ -4798,7 +4798,7 @@ final Object finalClientOrderId = clientOrderId;
                 parameters = this.omit(parameters, "vaultAddress");
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         'response': {
@@ -4898,7 +4898,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         'response': {
@@ -5002,7 +5002,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "nonce", nonce );
                     put( "signature", transferSig );
                 }};
-                Object transferResponse = (this.privatePostExchange(transferRequest)).join();
+                java.util.Map<String, Object> transferResponse = (this.privatePostExchange(transferRequest)).join();
                 //
                 // {'response': {'type': 'default'}, 'status': 'ok'}
                 //
@@ -5050,7 +5050,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "nonce", nonce );
                     put( "signature", sig );
                 }};
-                Object response = (this.privatePostExchange(request)).join();
+                java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
                 //
                 // {'response': {'type': 'default'}, 'status': 'ok'}
                 //
@@ -5083,7 +5083,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "nonce", nonce );
                     put( "signature", sig );
                 }};
-                Object response = (this.privatePostExchange(request)).join();
+                java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
                 return this.parseTransfer(response);
             }
         });
@@ -5190,7 +5190,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "nonce", nonce );
                 put( "signature", finalSig );
             }};
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             return this.parseTransaction(response);
         });
 
@@ -5922,7 +5922,7 @@ final Object finalClientOrderId = clientOrderId;
             Object signature = this.signL1Action(action, nonce);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -5960,7 +5960,7 @@ final Object finalClientOrderId = clientOrderId;
             Object signature = this.signL1Action(action, nonce, null, expiresAfter);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "signature", signature);
-            Object response = (this.privatePostExchange(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(this.extend(request, parameters))).join();
             return response;
         });
 

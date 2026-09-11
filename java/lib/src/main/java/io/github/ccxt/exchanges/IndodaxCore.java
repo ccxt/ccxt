@@ -368,7 +368,7 @@ public class IndodaxCore extends IndodaxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiServerTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiServerTime(parameters)).join();
             //
             //     {
             //         "timezone": "UTC",
@@ -394,7 +394,7 @@ public class IndodaxCore extends IndodaxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiPairs(parameters)).join();
+            java.util.List<Object> response = (this.publicGetApiPairs(parameters)).join();
             //
             //     [
             //         {
@@ -537,7 +537,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             //
             //     {
             //         "success":1,
@@ -598,7 +598,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buy", "sell");
         });
 
@@ -671,7 +671,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiTickerPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiTickerPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "ticker": {
@@ -728,7 +728,7 @@ public class IndodaxCore extends IndodaxApi
             //     }
             // }
             //
-            Object response = (this.publicGetApiTickerAll(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Object tickers = this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(tickers);
             Object parsedTickers = new java.util.HashMap<String, Object>() {{}};
@@ -794,7 +794,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -863,7 +863,7 @@ public class IndodaxCore extends IndodaxApi
                 Object duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.subtract(now, Helpers.multiply(limit, duration)), 1));
             }
-            Object response = (this.publicGetTradingviewHistoryV2(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTradingviewHistoryV2(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1033,7 +1033,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Object orders = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
@@ -1075,7 +1075,7 @@ public class IndodaxCore extends IndodaxApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
             Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
@@ -1136,7 +1136,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
             Object historyResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.parseOrders(Helpers.GetValue(historyResult, "orders"), market);
             orders = this.filterBy(orders, "status", "closed");
@@ -1228,7 +1228,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "baseId")), this.amountToPrecision(symbol, amount));
             }
-            Object result = (this.privatePostTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> result = (this.privatePostTrade(this.extend(request, parameters))).join();
             Object data = this.safeValue(result, "return", new java.util.HashMap<String, Object>() {{}});
             String id = this.safeString(data, "order_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1276,7 +1276,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "type", finalSide );
             }};
-            Object response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": 1,
@@ -1325,7 +1325,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,
@@ -1367,7 +1367,7 @@ public class IndodaxCore extends IndodaxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,
@@ -1420,7 +1420,7 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(request, "start", startTime);
                 Helpers.addElementToObject(request, "end", this.yyyymmdd(this.milliseconds()));
             }
-            Object response = (this.privatePostTransHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTransHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,
@@ -1554,7 +1554,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 Helpers.addElementToObject(request, "withdraw_memo", tag);
             }
-            Object response = (this.privatePostWithdrawCoin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWithdrawCoin(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": 1,
@@ -1687,7 +1687,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostGetInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostGetInfo(parameters)).join();
             //
             //    {
             //        success: '1',

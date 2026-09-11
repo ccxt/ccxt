@@ -763,7 +763,7 @@ public class BitrueCore extends BitrueApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.spotV1PublicGetPing(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotV1PublicGetPing(parameters)).join();
             //
             // empty means working status.
             //
@@ -797,7 +797,7 @@ public class BitrueCore extends BitrueApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.spotV1PublicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotV1PublicGetTime(parameters)).join();
             //
             //     {
             //         "serverTime":1635467280514
@@ -821,7 +821,7 @@ public class BitrueCore extends BitrueApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
             //
             //     {
             //         "timezone":"CTT",
@@ -2564,7 +2564,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 1000
             }
-            Object response = (this.spotV1PrivateGetAllOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.spotV1PrivateGetAllOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2999,7 +2999,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.spotV1PrivateGetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotV1PrivateGetDepositHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code":200,
@@ -3083,7 +3083,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.spotV1PrivateGetWithdrawHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotV1PrivateGetWithdrawHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": 200,
@@ -3321,7 +3321,7 @@ public class BitrueCore extends BitrueApi
             {
                 Helpers.addElementToObject(request, "tag", tag);
             }
-            Object response = (this.spotV1PrivatePostWithdrawCommit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.spotV1PrivatePostWithdrawCommit(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3419,7 +3419,7 @@ public class BitrueCore extends BitrueApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.spotV1PublicGetExchangeInfo(parameters)).join();
             Object coins = this.safeList(response, "coins");
             return this.parseDepositWithdrawFees(coins, codes, "coin");
         });
@@ -3524,7 +3524,7 @@ public class BitrueCore extends BitrueApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.fapiV2PrivateGetFuturesTransferHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         'code': '0',
@@ -3577,7 +3577,7 @@ public class BitrueCore extends BitrueApi
                 put( "amount", BitrueCore.this.currencyToPrecision(code, amount) );
                 put( "transferType", Helpers.add(Helpers.add(finalFromId, "_to_"), toId) );
             }};
-            Object response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.fapiV2PrivatePostFuturesTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         'code': '0',

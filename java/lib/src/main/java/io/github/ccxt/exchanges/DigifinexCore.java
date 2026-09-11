@@ -659,7 +659,7 @@ public class DigifinexCore extends DigifinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetCurrencies(parameters)).join();
             //
             //     {
             //         "data":[
@@ -967,7 +967,7 @@ public class DigifinexCore extends DigifinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetMarkets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetMarkets(parameters)).join();
             //
             //     {
             //         "data": [
@@ -1750,7 +1750,7 @@ public class DigifinexCore extends DigifinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetTime(parameters)).join();
             //
             //     {
             //         "server_time": 1589873762,
@@ -1776,7 +1776,7 @@ public class DigifinexCore extends DigifinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetPing(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetPing(parameters)).join();
             //
             //     {
             //         "msg": "pong",
@@ -2567,7 +2567,7 @@ public class DigifinexCore extends DigifinexApi
                 put( "market", orderType );
                 put( "order_id", String.join((String)",", (java.util.List<String>)ids) );
             }};
-            Object response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotPostSpotOrderCancel(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -3498,7 +3498,7 @@ public class DigifinexCore extends DigifinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateSpotGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "data":[
@@ -3902,7 +3902,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            Object response = (this.privateSpotPostWithdrawNew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotPostWithdrawNew(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3935,7 +3935,7 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateSpotGetMarginPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetMarginPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "margin": "45.71246418952618",
@@ -4020,7 +4020,7 @@ public class DigifinexCore extends DigifinexApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.privateSpotGetMarginAssets(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetMarginAssets(this.extend(request, parameters))).join();
             //
             //     {
             //         "list": [
@@ -4072,7 +4072,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateSpotGetMarginAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateSpotGetMarginAssets(parameters)).join();
             //
             //     {
             //         "list": [
@@ -4171,7 +4171,7 @@ public class DigifinexCore extends DigifinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicSwapGetPublicFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicSwapGetPublicFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4306,7 +4306,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicSwapGetPublicFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicSwapGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4372,7 +4372,7 @@ public class DigifinexCore extends DigifinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateSwapGetAccountTradingFeeRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetAccountTradingFeeRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4859,7 +4859,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 20 max 100
             }
-            Object response = (this.privateSwapGetAccountTransferRecord(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetAccountTransferRecord(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4901,7 +4901,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicSwapGetPublicInstruments(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSwapGetPublicInstruments(parameters)).join();
             //
             //     {
             //         "code": 0,
@@ -4965,7 +4965,7 @@ public class DigifinexCore extends DigifinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_id", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicSwapGetPublicInstrument(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicSwapGetPublicInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5102,7 +5102,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicSpotGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetCurrencies(parameters)).join();
             //
             //   {
             //       "data": [
@@ -5289,7 +5289,7 @@ final Object finalI = i;
                 put( "type", type );
                 put( "side", side );
             }};
-            Object response = (this.privateSwapPostAccountPositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapPostAccountPositionMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5382,7 +5382,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "start_timestamp", since);
             }
-            Object response = (this.privateSwapGetAccountFundingFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateSwapGetAccountFundingFee(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,

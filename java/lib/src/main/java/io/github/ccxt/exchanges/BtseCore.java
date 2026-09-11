@@ -735,7 +735,7 @@ public class BtseCore extends BtseApi
             {
                 (this.loadTimeDifference()).join();
             }
-            Object response = (this.publicGetPublicApiMarketV1Markets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Markets(parameters)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
@@ -983,7 +983,7 @@ public class BtseCore extends BtseApi
                     Helpers.addElementToObject(request, "end", this.parseToInt(Helpers.divide(until, 1000)));
                 }
             }
-            Object response = (this.publicGetPublicApiMarketV1Klines(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Klines(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1051,7 +1051,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "depth", Helpers.mathMin(limit, 50)); // the endpoint supports a maximum depth of 50
             }
-            Object response = (this.publicGetPublicApiMarketV1Orderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Orderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -1137,7 +1137,7 @@ public class BtseCore extends BtseApi
             var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
-            Object response = (this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1217,7 +1217,7 @@ public class BtseCore extends BtseApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object walletResponse = (this.privateGetPublicApiWalletV1UserAssets(parameters)).join();
+                java.util.Map<String, Object> walletResponse = (this.privateGetPublicApiWalletV1UserAssets(parameters)).join();
                 //
                 //     {
                 //         "data": [
@@ -1347,7 +1347,7 @@ public class BtseCore extends BtseApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            Object response = (this.publicGetPublicApiMarketV1RiskLimits(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1RiskLimits(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1476,7 +1476,7 @@ public class BtseCore extends BtseApi
             symbols = this.marketSymbols(symbols, null, true, true);
             // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
             parameters = this.omit(parameters, "type");
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
@@ -1503,7 +1503,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1622,7 +1622,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
             Object interest = this.safeDict(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(interest, null)))
             {
@@ -1652,7 +1652,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1713,7 +1713,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
@@ -1743,7 +1743,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1862,7 +1862,7 @@ public class BtseCore extends BtseApi
             var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
-            Object response = (this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -3886,7 +3886,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.privateGetFuturesApiV3TradePositions(parameters)).join();
+            java.util.List<Object> response = (this.privateGetFuturesApiV3TradePositions(parameters)).join();
             //
             // the response is a bare array of position rows
             //
@@ -4066,7 +4066,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
             }};
-            Object response = (this.privateGetFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetFuturesApiV3TradePositionMode(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4144,7 +4144,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
             }};
-            Object response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         });
@@ -4321,7 +4321,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
             }};
-            Object response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4417,7 +4417,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "marginMode", ((String)marginMode).toUpperCase());
             }
-            Object response = (this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
             return response;
         });
 

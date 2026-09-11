@@ -1975,7 +1975,7 @@ public class GateCore extends GateApi
                     //         "copy_trading_role": 0
                     //     }
                     //
-                    Object response = (this.privateAccountGetDetail(parameters)).join();
+                    java.util.Map<String, Object> response = (this.privateAccountGetDetail(parameters)).join();
                     Object result = this.safeDict(response, "key", new java.util.HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(this.options, "unifiedAccount", Helpers.isEqual(this.safeInteger(result, "mode"), 2));
                 } catch(Exception e)
@@ -2014,7 +2014,7 @@ public class GateCore extends GateApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicSpotGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicSpotGetTime(parameters)).join();
             //
             //     {
             //         "server_time": 1731447921098
@@ -2314,7 +2314,7 @@ public class GateCore extends GateApi
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
-                Object response = (this.publicFuturesGetSettleContracts(this.extend(request, parameters))).join();
+                java.util.List<Object> response = (this.publicFuturesGetSettleContracts(this.extend(request, parameters))).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object contract = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
@@ -2345,7 +2345,7 @@ public class GateCore extends GateApi
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "settle", settleId );
                 }};
-                Object response = (this.publicDeliveryGetSettleContracts(this.extend(request, parameters))).join();
+                java.util.List<Object> response = (this.publicDeliveryGetSettleContracts(this.extend(request, parameters))).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
                 {
                     Object contract = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
@@ -2568,7 +2568,7 @@ public class GateCore extends GateApi
                 Object underlying = Helpers.GetValue(underlyings, i);
                 Object query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
                 Helpers.addElementToObject(query, "underlying", underlying);
-                Object response = (this.publicOptionsGetContracts(query)).join();
+                java.util.List<Object> response = (this.publicOptionsGetContracts(query)).join();
                 //
                 //    [
                 //        {
@@ -2700,7 +2700,7 @@ public class GateCore extends GateApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object underlyingsResponse = (this.publicOptionsGetUnderlyings()).join();
+            java.util.List<Object> underlyingsResponse = (this.publicOptionsGetUnderlyings()).join();
             //
             //    [
             //        {
@@ -2911,7 +2911,7 @@ public class GateCore extends GateApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.publicSpotGetCurrencies(parameters)).join();
+            java.util.List<Object> response = (this.publicSpotGetCurrencies(parameters)).join();
             //
             //    [
             //      {
@@ -3035,7 +3035,7 @@ public class GateCore extends GateApi
             var requestqueryVariable = this.prepareRequest(market, null, parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
-            Object response = (this.publicFuturesGetSettleContractsContract(this.extend(request, query))).join();
+            java.util.Map<String, Object> response = (this.publicFuturesGetSettleContractsContract(this.extend(request, query))).join();
             //
             //    [
             //        {
@@ -3115,7 +3115,7 @@ public class GateCore extends GateApi
             var requestqueryVariable = this.prepareRequest(market, "swap", parameters);
             var request = ((java.util.List<Object>) requestqueryVariable).get(0);
             var query = ((java.util.List<Object>) requestqueryVariable).get(1);
-            Object response = (this.publicFuturesGetSettleContracts(this.extend(request, query))).join();
+            java.util.List<Object> response = (this.publicFuturesGetSettleContracts(this.extend(request, query))).join();
             //
             //    [
             //        {
@@ -3267,7 +3267,7 @@ public class GateCore extends GateApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             Object addresses = this.safeValue(response, "multichain_addresses");
             String currencyId = this.safeString(response, "currency");
             code = ((String)this.safeCurrencyCode(currencyId));
@@ -3330,7 +3330,7 @@ public class GateCore extends GateApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(finalCurrency, "id") );
             }};
-            Object response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateWalletGetDepositAddress(this.extend(request, parameters))).join();
             Object chains = this.safeValue(response, "multichain_addresses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String currencyId = this.safeString(response, "currency");
             currency = (java.util.Map<String, Object>) this.safeCurrency(currencyId, currency);
@@ -3419,7 +3419,7 @@ public class GateCore extends GateApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency_pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateWalletGetFee(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateWalletGetFee(this.extend(request, parameters))).join();
             //
             //    {
             //        "user_id": 1486602,
@@ -3457,7 +3457,7 @@ public class GateCore extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateWalletGetFee(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateWalletGetFee(parameters)).join();
             //
             //    {
             //        "user_id": 1486602,
@@ -3545,7 +3545,7 @@ public class GateCore extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateWalletGetWithdrawStatus(parameters)).join();
+            java.util.List<Object> response = (this.privateWalletGetWithdrawStatus(parameters)).join();
             //
             //    {
             //        "currency": "MTN",
@@ -3624,7 +3624,7 @@ public class GateCore extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateWalletGetWithdrawStatus(parameters)).join();
+            java.util.List<Object> response = (this.privateWalletGetWithdrawStatus(parameters)).join();
             //
             //    [
             //        {
@@ -4694,7 +4694,7 @@ public class GateCore extends GateApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
-            Object response = (this.publicOptionsGetCandlesticks(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicOptionsGetCandlesticks(this.extend(request, parameters))).join();
             return this.parseOHLCVs(this.toArray(response), market, timeframe, since, limit);
         });
 
@@ -4761,7 +4761,7 @@ public class GateCore extends GateApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "to", this.parseToInt(Helpers.divide(until, 1000)));
             }
-            Object response = (this.publicFuturesGetSettleFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicFuturesGetSettleFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "r": "0.00063521",
@@ -5432,7 +5432,7 @@ final Object finalPointFee = pointFee;
             var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateWalletGetDeposits(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateWalletGetDeposits(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency);
         });
 
@@ -5492,7 +5492,7 @@ final Object finalPointFee = pointFee;
             var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.privateWalletGetWithdrawals(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateWalletGetWithdrawals(this.extend(request, parameters))).join();
             return this.parseTransactions(response, currency);
         });
 
@@ -5543,7 +5543,7 @@ final Object finalPointFee = pointFee;
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
-            Object response = (this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateWithdrawalsPostWithdrawals(this.extend(request, parameters))).join();
             //
             //    {
             //        "id": "w13389675",
@@ -7073,7 +7073,7 @@ final Object finalRebate = rebate;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateFuturesGetSettleOrdersTimerange(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -7599,7 +7599,7 @@ final Object finalRebate = rebate;
             {
                 ((java.util.List<Object>)finalList).add(Helpers.GetValue(ids, i));
             }
-            Object response = (this.privateFuturesPostSettleBatchCancelOrders(finalList)).join();
+            java.util.List<Object> response = (this.privateFuturesPostSettleBatchCancelOrders(finalList)).join();
             return this.parseOrders(response);
         });
 
@@ -7644,7 +7644,7 @@ final Object finalRebate = rebate;
                 }};
                 ((java.util.List<Object>)ordersRequests).add(orderItem);
             }
-            Object response = (this.privateSpotPostCancelBatchOrders(ordersRequests)).join();
+            java.util.List<Object> response = (this.privateSpotPostCancelBatchOrders(ordersRequests)).join();
             //
             // [
             //     {
@@ -7825,7 +7825,7 @@ final Object finalRebate = rebate;
             {
                 Helpers.addElementToObject(request, "settle", Helpers.GetValue(currency, "id")); // todo: currencies have network-junctions
             }
-            Object response = (this.privateWalletPostTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateWalletPostTransfers(this.extend(request, parameters))).join();
             //
             // according to the docs (however actual response seems to be an empty string '')
             //
@@ -8671,7 +8671,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             Helpers.addElementToObject(request, "type", "repay");
-            Object response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
             //
             // empty response
             //
@@ -8759,7 +8759,7 @@ final Object finalI = i;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             Helpers.addElementToObject(request, "type", "borrow");
-            Object response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateMarginPostUniLoans(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "34267567",
@@ -9299,7 +9299,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object response = (this.publicFuturesGetSettleContractStats(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicFuturesGetSettleContractStats(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -9408,7 +9408,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicOptionsGetSettlements(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicOptionsGetSettlements(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -9975,7 +9975,7 @@ final Object finalI = i;
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchUnderlyingAssets() supports option markets only")) ;
             }
-            Object response = (this.publicOptionsGetUnderlyings(parameters)).join();
+            java.util.List<Object> response = (this.publicOptionsGetUnderlyings(parameters)).join();
             //
             //    [
             //        {
@@ -10044,7 +10044,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.publicFuturesGetSettleLiqOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicFuturesGetSettleLiqOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -10279,7 +10279,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "underlying", Helpers.GetValue(Helpers.GetValue(market, "info"), "underlying") );
             }};
-            Object response = (this.publicOptionsGetTickers(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicOptionsGetTickers(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -10531,7 +10531,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "contract", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicOptionsGetContractsContract(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicOptionsGetContractsContract(this.extend(request, parameters))).join();
             //
             //     {
             //         "is_active": true,
@@ -10602,7 +10602,7 @@ final Object finalI = i;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "underlying", Helpers.add(Helpers.GetValue(currency, "code"), "_USDT") );
             }};
-            Object response = (this.publicOptionsGetContracts(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicOptionsGetContracts(this.extend(request, parameters))).join();
             //
             //     [
             //         {

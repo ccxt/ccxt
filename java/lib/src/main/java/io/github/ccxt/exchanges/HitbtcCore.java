@@ -846,7 +846,7 @@ public class HitbtcCore extends HitbtcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetPublicSymbol(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicSymbol(parameters)).join();
             //
             //     {
             //         "AAVEUSDT_PERP":{
@@ -1014,7 +1014,7 @@ public class HitbtcCore extends HitbtcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetPublicCurrency(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicCurrency(parameters)).join();
             //
             //    {
             //        "DFC": {
@@ -1152,7 +1152,7 @@ public class HitbtcCore extends HitbtcApi
                 }
                 parameters = this.omit(parameters, "network");
             }
-            Object response = (this.privatePostWalletCryptoAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWalletCryptoAddress(this.extend(request, parameters))).join();
             //
             //  {"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}
             //
@@ -1202,7 +1202,7 @@ public class HitbtcCore extends HitbtcApi
                 }
                 parameters = this.omit(parameters, "network");
             }
-            Object response = (this.privateGetWalletCryptoAddress(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWalletCryptoAddress(this.extend(request, parameters))).join();
             //
             //  [{"currency":"ETH","address":"0xd0d9aea60c41988c3e68417e2616065617b7afd3"}]
             //
@@ -1317,7 +1317,7 @@ public class HitbtcCore extends HitbtcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicTickerSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicTickerSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "ask": "0.020572",
@@ -1364,7 +1364,7 @@ public class HitbtcCore extends HitbtcApi
                 Object delimited = String.join((String)",", (java.util.List<String>)marketIds);
                 Helpers.addElementToObject(request, "symbols", delimited);
             }
-            Object response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
             //
             //     {
             //       "BTCUSDT": {
@@ -1478,10 +1478,10 @@ public class HitbtcCore extends HitbtcApi
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-                Object responseInner = (this.publicGetPublicTradesSymbol(this.extend(request, parameters))).join();
+                java.util.List<Object> responseInner = (this.publicGetPublicTradesSymbol(this.extend(request, parameters))).join();
                 return this.parseTrades(responseInner, market);
             }
-            Object response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -1716,7 +1716,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
             //
             //     [
             //       {
@@ -1967,7 +1967,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object marketIds = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -2012,7 +2012,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetPublicOrderbookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicOrderbookSymbol(this.extend(request, parameters))).join();
             Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
             return this.parseOrderBook(response, symbol, timestamp, "bid", "ask");
         });
@@ -3286,7 +3286,7 @@ public class HitbtcCore extends HitbtcApi
                 put( "source", finalFromId );
                 put( "destination", toId );
             }};
-            Object response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWalletTransfer(this.extend(request, parameters))).join();
             //
             //     [
             //         "2db6ebab-fb26-4537-9ef8-1a689472d236"
@@ -3359,7 +3359,7 @@ public class HitbtcCore extends HitbtcApi
                 put( "to_currency", finalToNetwork );
                 put( "amount", HitbtcCore.this.currencyToPrecision(finalCode, amount) );
             }};
-            Object response = (this.privatePostWalletConvert(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostWalletConvert(this.extend(request, parameters))).join();
             // {"result":["587a1868-e62d-4d8e-b27c-dbdb2ee96149","e168df74-c041-41f2-b76c-e43e4fed5bc7"]}
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -3422,7 +3422,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "include_fee", true);
             }
-            Object response = (this.privatePostWalletCryptoWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostWalletCryptoWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "id":"084cfcd5-06b9-4826-882e-fdb75ec3625d"
@@ -3470,7 +3470,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchFundingRates() does not support "), type), " markets")) ;
             }
-            Object response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTCUSDT_PERP": {
@@ -3561,7 +3561,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetPublicFuturesHistoryFunding(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFuturesHistoryFunding(this.extend(request, parameters))).join();
             //
             //    {
             //        "BTCUSDT_PERP": [
@@ -3943,7 +3943,7 @@ public class HitbtcCore extends HitbtcApi
                 marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIds));
             }
-            Object response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTCUSDT_PERP": {
@@ -4002,7 +4002,7 @@ public class HitbtcCore extends HitbtcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "contract_type": "perpetual",
@@ -4050,7 +4050,7 @@ public class HitbtcCore extends HitbtcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "contract_type": "perpetual",
@@ -4459,7 +4459,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetPublicCurrency(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetPublicCurrency(parameters)).join();
             //
             //     {
             //       "WEALTH": {
@@ -4583,7 +4583,7 @@ public class HitbtcCore extends HitbtcApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "margin_mode", finalMarginMode );
             }};
-            Object response = (this.privateDeleteFuturesPositionMarginModeSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteFuturesPositionMarginModeSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "id":"202471640",

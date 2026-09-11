@@ -673,7 +673,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetCurrencies(parameters)).join();
+            java.util.List<Object> response = (this.publicGetCurrencies(parameters)).join();
             //
             //   {
             //     "id": "USDT",
@@ -795,7 +795,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetProducts(parameters)).join();
+            java.util.List<Object> response = (this.publicGetProducts(parameters)).join();
             //
             //     [
             //         {
@@ -934,7 +934,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //     [
             //         {
@@ -1022,7 +1022,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1056,7 +1056,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "id", CoinbaseexchangeCore.this.marketId(symbol) );
                 put( "level", 2 );
             }};
-            Object response = (this.publicGetProductsIdBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetProductsIdBook(this.extend(request, parameters))).join();
             //
             //     {
             //         "sequence":1924393896,
@@ -1194,7 +1194,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             symbols = this.marketSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.publicGetProductsSparkLines(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetProductsSparkLines(this.extend(request, parameters))).join();
             //
             //     {
             //         YYY-USD: [
@@ -1433,7 +1433,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "end_date", this.iso8601(until));
             }
-            Object response = (this.privateGetFills(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -1470,7 +1470,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100
             }
-            Object response = (this.publicGetProductsIdTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetProductsIdTrades(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -1505,7 +1505,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetFees(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetFees(parameters)).join();
             //
             //    {
             //        "maker_fee_rate": "0.0050",
@@ -1624,7 +1624,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     Helpers.addElementToObject(request, "end", this.iso8601(until));
                 }
             }
-            Object response = (this.publicGetProductsIdCandles(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetProductsIdCandles(this.extend(request, parameters))).join();
             //
             //     [
             //         [1591514160,0.02507,0.02507,0.02507,0.02507,0.02816506],
@@ -1650,7 +1650,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTime(parameters)).join();
             //
             //     {
             //         "iso":"2020-05-12T08:00:51.504Z",
@@ -1830,7 +1830,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetFills(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -1920,7 +1920,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "end_date", this.iso8601(until));
             }
-            Object response = (this.privateGetOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -2034,7 +2034,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                     Helpers.addElementToObject(request, "size", this.amountToPrecision(symbol, amount));
                 }
             }
-            Object response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "d0c5340b-6d6c-49d9-b567-48c4bfca13d2",
@@ -2139,7 +2139,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "product_id", Helpers.GetValue(market, "symbol")); // the request will be more performant if you include it
             }
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
@@ -2368,7 +2368,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "end_date", this.iso8601(until));
             }
-            Object response = (this.privateGetAccountsIdLedger(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetAccountsIdLedger(this.extend(request, parameters))).join();
             Object entries = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
             {
@@ -2434,7 +2434,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
-                Object transfers = (this.privateGetTransfers(this.extend(request, parameters))).join();
+                java.util.List<Object> transfers = (this.privateGetTransfers(this.extend(request, parameters))).join();
                 //
                 //    [
                 //        {
@@ -2473,7 +2473,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 }
             } else
             {
-                Object accountTransfers = (this.privateGetAccountsIdTransfers(this.extend(request, parameters))).join();
+                java.util.List<Object> accountTransfers = (this.privateGetAccountsIdTransfers(this.extend(request, parameters))).join();
                 //
                 //    [
                 //        {
@@ -2714,7 +2714,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(finalAccount, "id") );
             }};
-            Object response = (this.privatePostCoinbaseAccountsIdAddresses(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCoinbaseAccountsIdAddresses(this.extend(request, parameters))).join();
             String address = this.safeString(response, "address");
             String tag = this.safeString(response, "destination_tag");
             return new java.util.HashMap<String, Object>() {{

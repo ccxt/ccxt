@@ -537,7 +537,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSettings(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSettings(parameters)).join();
             // full response sample under `fetchStatus`
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.safeIntegerProduct(result, "server_time", 0.001);
@@ -558,7 +558,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetSettings(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetSettings(parameters)).join();
             //
             //     {
             //         "result": {
@@ -641,7 +641,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetAssets(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetAssets(parameters)).join();
             //
             //    {
             //        "result": [
@@ -818,7 +818,7 @@ public class DeltaCore extends DeltaApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetProducts(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetProducts(parameters)).join();
             //
             //     {
             //         "meta":{ "after":null, "before":null, "limit":100, "total_count":81 },
@@ -1317,7 +1317,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -1466,7 +1466,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             // spot
             //
@@ -1645,7 +1645,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetL2orderbookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetL2orderbookSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -1806,7 +1806,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTradesSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTradesSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":[
@@ -1906,7 +1906,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "until")));
-            Object response = (this.publicGetHistoryCandles(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetHistoryCandles(this.extend(request, parameters))).join();
             //
             //     {
             //         "success":true,
@@ -1959,7 +1959,7 @@ public class DeltaCore extends DeltaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.privateGetWalletBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletBalances(parameters)).join();
             //
             //     {
             //         "result":[
@@ -2006,7 +2006,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2040,7 +2040,7 @@ public class DeltaCore extends DeltaApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object response = (this.privateGetPositionsMargined(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetPositionsMargined(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -2335,7 +2335,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "reduce_only", reduceOnly);
                 parameters = this.omit(parameters, "reduceOnly");
             }
-            Object response = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2419,7 +2419,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
             }
-            Object response = (this.privatePutOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePutOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2470,7 +2470,7 @@ public class DeltaCore extends DeltaApi
                 put( "id", Helpers.parseInt(id) );
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":{
@@ -2768,7 +2768,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.privateGetFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             //
             //     {
             //         "meta":{
@@ -2852,7 +2852,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWalletTransactions(this.extend(request, parameters))).join();
             //
             //     {
             //         "meta":{"after":null,"before":null,"limit":10,"total_count":1},
@@ -2983,7 +2983,7 @@ public class DeltaCore extends DeltaApi
                 Helpers.addElementToObject(request, "network", this.networkCodeToId(networkCode, code));
                 parameters = this.omit(parameters, "network");
             }
-            Object response = (this.privateGetDepositsAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDepositsAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -3062,7 +3062,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3135,7 +3135,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "contract_types", "perpetual_futures" );
             }};
-            Object response = (this.publicGetTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -3322,7 +3322,7 @@ public class DeltaCore extends DeltaApi
                 put( "product_id", Helpers.GetValue(market, "numericId") );
                 put( "delta_margin", finalAmount );
             }};
-            Object response = (this.privatePostPositionsChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPositionsChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3416,7 +3416,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3561,7 +3561,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "numericId") );
             }};
-            Object response = (this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetProductsProductIdOrdersLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3671,7 +3671,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.publicGetProducts(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetProducts(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": [
@@ -3834,7 +3834,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -3993,7 +3993,7 @@ public class DeltaCore extends DeltaApi
                 put( "close_all_portfolio", true );
                 put( "close_all_isolated", true );
             }};
-            Object response = (this.privatePostPositionsCloseAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostPositionsCloseAll(this.extend(request, parameters))).join();
             //
             // {"result":{},"success":true}
             //
@@ -4024,7 +4024,7 @@ public class DeltaCore extends DeltaApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetProfile(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetProfile(parameters)).join();
             //
             //     {
             //         "result": {
@@ -4159,7 +4159,7 @@ public class DeltaCore extends DeltaApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "result": {
@@ -4315,7 +4315,7 @@ public class DeltaCore extends DeltaApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            Object response = (this.privateGetPositionsMargined(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetPositionsMargined(parameters)).join();
             //
             //     {
             //         "result":

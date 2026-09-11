@@ -762,7 +762,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicPostGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicPostGetTime(parameters)).join();
             //
             // {
             //     "result": 1735846536758,
@@ -788,7 +788,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
+            java.util.Map<String, Object> tokenResponse = (this.publicGetGetAllCurrencies(parameters)).join();
             //
             //    {
             //        "result": [
@@ -954,7 +954,7 @@ public class DeriveCore extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "erc20" );
             }};
-            Object response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
@@ -972,7 +972,7 @@ public class DeriveCore extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "perp" );
             }};
-            Object response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
@@ -990,7 +990,7 @@ public class DeriveCore extends DeriveApi
                 put( "expired", false );
                 put( "instrument_type", "option" );
             }};
-            Object response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
@@ -1148,7 +1148,7 @@ public class DeriveCore extends DeriveApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             //
             // spot
             //
@@ -1353,7 +1353,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "to_timestamp", until);
             }
-            Object response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -1514,7 +1514,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "to_timestamp", until);
             }
-            Object response = (this.publicPostGetFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicPostGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -1960,7 +1960,7 @@ public class DeriveCore extends DeriveApi
             }
             Helpers.addElementToObject(request, "signature", signature);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "time_in_force", "postOnly", "clientOrderId")));
-            Object response = (this.privatePostReplace(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostReplace(this.extend(request, parameters))).join();
             //
             //   {
             //     "result":
@@ -2286,7 +2286,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "status", "untriggered");
             }
-            Object response = (this.privatePostGetOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetOrders(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -2664,7 +2664,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "from_timestamp", since);
             }
-            Object response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -2764,7 +2764,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "from_timestamp", since);
             }
-            Object response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetTradeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -2848,7 +2848,7 @@ public class DeriveCore extends DeriveApi
                 put( "subaccount_id", finalSubaccountId );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccount_id")));
-            Object response = (this.privatePostGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetPositions(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -3033,7 +3033,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = (this.privatePostGetFundingHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetFundingHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -3136,7 +3136,7 @@ public class DeriveCore extends DeriveApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalDeriveWalletAddress );
             }};
-            Object response = (this.privatePostGetAllPortfolios(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, parameters))).join();
             //
             // {
             //     "result": [{
@@ -3260,7 +3260,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "start_timestamp", since);
             }
-            Object response = (this.privatePostGetDepositHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetDepositHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {
@@ -3324,7 +3324,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "start_timestamp", since);
             }
-            Object response = (this.privatePostGetWithdrawalHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostGetWithdrawalHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "result": {

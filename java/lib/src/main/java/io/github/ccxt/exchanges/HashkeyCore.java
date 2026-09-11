@@ -760,7 +760,7 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Time(parameters)).join();
             //
             //     {
             //         "serverTime": 1721661553214
@@ -785,7 +785,7 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1Ping(parameters)).join();
             //
             // {}
             //
@@ -816,7 +816,7 @@ public class HashkeyCore extends HashkeyApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.publicGetApiV1ExchangeInfo(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(this.extend(request, parameters))).join();
             //
             //     {
             //         "timezone": "UTC",
@@ -1311,7 +1311,7 @@ public class HashkeyCore extends HashkeyApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
             Object coins = this.safeList(response, "coins");
             //
             //     {
@@ -1437,7 +1437,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetQuoteV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetQuoteV1Depth(this.extend(request, parameters))).join();
             //
             //     {
             //         "t": 1721681436393,
@@ -1490,7 +1490,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetQuoteV1Trades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetQuoteV1Trades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1786,7 +1786,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.publicGetQuoteV1Klines(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetQuoteV1Klines(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -1851,7 +1851,7 @@ public class HashkeyCore extends HashkeyApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetQuoteV1Ticker24hr(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetQuoteV1Ticker24hr(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1895,7 +1895,7 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetQuoteV1Ticker24hr(parameters)).join();
+            java.util.List<Object> response = (this.publicGetQuoteV1Ticker24hr(parameters)).join();
             return this.parseTickers(response, symbols);
         });
 
@@ -1977,7 +1977,7 @@ public class HashkeyCore extends HashkeyApi
             }
             symbols = this.marketSymbols(symbols);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.publicGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetQuoteV1TickerPrice(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2036,7 +2036,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
-                Object response = (this.privateGetApiV1FuturesBalance(parameters)).join();
+                java.util.List<Object> response = (this.privateGetApiV1FuturesBalance(parameters)).join();
                 //
                 //     [
                 //         {
@@ -2053,7 +2053,7 @@ public class HashkeyCore extends HashkeyApi
                 return this.parseSwapBalance(balance);
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                Object response = (this.privateGetApiV1Account(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.privateGetApiV1Account(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "balances": [
@@ -2180,7 +2180,7 @@ public class HashkeyCore extends HashkeyApi
                 networkCode = this.defaultNetworkCode(code);
             }
             Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, code));
-            Object response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1AccountDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "canDeposit": true,
@@ -2282,7 +2282,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2353,7 +2353,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1AccountWithdrawOrders(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2429,7 +2429,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "chainType", this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code")));
             }
-            Object response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1AccountWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2595,7 +2595,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
-            Object response = (this.privatePostApiV1AccountAssetTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1AccountAssetTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2652,7 +2652,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1AccountType(parameters)).join();
+            java.util.List<Object> response = (this.privateGetApiV1AccountType(parameters)).join();
             //
             //     [
             //         {
@@ -2787,7 +2787,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "accountType", this.encodeAccountType(accountType));
             }
-            Object response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -3230,7 +3230,7 @@ public class HashkeyCore extends HashkeyApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createSwapOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "time": "1722429951611",
@@ -4192,7 +4192,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "timestamp", HashkeyCore.this.milliseconds() );
             }};
-            Object response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
             //     [
             //         { "symbol": "ETHUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" }
@@ -4228,7 +4228,7 @@ public class HashkeyCore extends HashkeyApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timestamp", HashkeyCore.this.milliseconds() );
             }};
-            Object response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1FuturesFundingRate(this.extend(request, parameters))).join();
             //
             //     [
             //         { "symbol": "BTCUSDT-PERPETUAL", "rate": "0.0001", "nextSettleTime": "1722297600000" },
@@ -4315,7 +4315,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetApiV1FuturesHistoryFundingRate(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4421,7 +4421,7 @@ public class HashkeyCore extends HashkeyApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesPositions(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4509,7 +4509,7 @@ public class HashkeyCore extends HashkeyApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetApiV1FuturesLeverage(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4569,7 +4569,7 @@ public class HashkeyCore extends HashkeyApi
             }};
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-            Object response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0000",
@@ -4715,7 +4715,7 @@ public class HashkeyCore extends HashkeyApi
                 put( "side", finalSide );
                 put( "amount", finalAmountString );
             }};
-            Object response = (this.privatePostApiV1FuturesPositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostApiV1FuturesPositionMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": "0000",
@@ -4776,7 +4776,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetApiV1ExchangeInfo(parameters)).join();
             // response is the same as in fetchMarkets()
             Object data = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             symbols = this.marketSymbols(symbols);
@@ -4948,7 +4948,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetApiV1AccountVipInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetApiV1AccountVipInfo(parameters)).join();
             //
             //     {
             //         "code": 0,

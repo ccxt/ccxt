@@ -1162,7 +1162,7 @@ public class AsterCore extends AsterApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object sapiResult = (this.sapiPublicGetV3ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> sapiResult = (this.sapiPublicGetV3ExchangeInfo(parameters)).join();
             Object sapiRows = this.safeList(sapiResult, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     [
@@ -2460,7 +2460,7 @@ public class AsterCore extends AsterApi
             {
                 symbols = this.marketSymbols(symbols);
             }
-            Object response = (this.fapiPublicGetV3FundingInfo(parameters)).join();
+            java.util.List<Object> response = (this.fapiPublicGetV3FundingInfo(parameters)).join();
             //
             //     [
             //         {
@@ -2521,7 +2521,7 @@ public class AsterCore extends AsterApi
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2652,7 +2652,7 @@ public class AsterCore extends AsterApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", finalMarginMode );
             }};
-            Object response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.fapiPrivatePostV3MarginType(this.extend(request, parameters))).join();
             //
             //     { "code": 200,"msg": "success" }
             //
@@ -2677,7 +2677,7 @@ public class AsterCore extends AsterApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.fapiPrivateGetV3PositionSideDual(parameters)).join();
+            java.util.Map<String, Object> response = (this.fapiPrivateGetV3PositionSideDual(parameters)).join();
             //
             //     {
             //         "dualSidePosition": true // "true": Hedge Mode; "false": One-way Mode
@@ -3359,7 +3359,7 @@ public class AsterCore extends AsterApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
             }};
-            Object response = (this.fapiPrivatePostV3BatchOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPrivatePostV3BatchOrders(this.extend(request, parameters))).join();
             //
             //    [
             //        {
@@ -3787,7 +3787,7 @@ public class AsterCore extends AsterApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", finalLeverage );
             }};
-            Object response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.fapiPrivatePostV3Leverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "leverage": 21,
@@ -3817,7 +3817,7 @@ public class AsterCore extends AsterApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
             //
             //     [
             //         {
@@ -3911,7 +3911,7 @@ public class AsterCore extends AsterApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3PositionRisk(parameters)).join();
             //
             //
             //     [
@@ -4022,7 +4022,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3PositionMarginHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4101,7 +4101,7 @@ public class AsterCore extends AsterApi
                 put( "amount", finalAmount );
             }};
             Object code = Helpers.GetValue(market, "quote");
-            Object response = (this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.fapiPrivatePostV3PositionMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "amount": 100.0,
@@ -4232,7 +4232,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // max 1000
             }
-            Object response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
             return this.parseIncomes(response, market, since, limit);
         });
 
@@ -4345,7 +4345,7 @@ public class AsterCore extends AsterApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3Income(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4593,7 +4593,7 @@ public class AsterCore extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             (this.loadLeverageBrackets(false, parameters)).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object response = (this.fapiPrivateGetV3PositionRisk(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.fapiPrivateGetV3PositionRisk(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -4950,7 +4950,7 @@ public class AsterCore extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             (this.loadLeverageBrackets(false, parameters)).join();
-            Object response = (this.fapiPrivateGetV4Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.fapiPrivateGetV4Account(parameters)).join();
             Object filterClosed = null;
             var filterClosedparametersVariable = this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
             filterClosed = ((java.util.List<Object>) filterClosedparametersVariable).get(0);
@@ -4975,7 +4975,7 @@ public class AsterCore extends AsterApi
             Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(leverageBrackets, null))) || Helpers.isTrue((reload))))
             {
-                Object response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
+                java.util.List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
                 //
                 //    [
                 //        {
@@ -5141,7 +5141,7 @@ public class AsterCore extends AsterApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("chainId", "network", "fee")));
             Helpers.addElementToObject(request, "amount", this.currencyToPrecision(code, amount, network));
             Helpers.addElementToObject(request, "userSignature", this.signWithdrawPayload(request, network));
-            Object response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPrivatePostV3AsterUserWithdraw(this.extend(request, parameters))).join();
             //
             //   {
             //       "withdrawId": "1097219372504338432",
@@ -5233,7 +5233,7 @@ public class AsterCore extends AsterApi
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
-            Object response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.sapiPrivatePostV3AssetWalletTransfer(this.extend(request, parameters))).join();
             return this.parseTransfer(response, currency);
         });
 
@@ -5492,7 +5492,7 @@ public class AsterCore extends AsterApi
             {
                 return true;  // skip if builder fee is already approved
             }
-            Object result = (this.fapiPrivateGetV3Builder()).join();
+            java.util.List<Object> result = (this.fapiPrivateGetV3Builder()).join();
             //
             //    [
             //        {
@@ -5528,7 +5528,7 @@ public class AsterCore extends AsterApi
                         put( "signatureChainId", AsterCore.this.safeInteger(AsterCore.this.options, "v3ChainId", 1666) );
                         put( "asterChain", "Mainnet" );
                     }};
-                    Object authResponse = (this.fapiPrivatePostV3ApproveBuilder(this.extend(request, parameters))).join();
+                    java.util.Map<String, Object> authResponse = (this.fapiPrivatePostV3ApproveBuilder(this.extend(request, parameters))).join();
                     //
                     // {"code": 200,"msg": "success"}
                     //
