@@ -1212,7 +1212,7 @@ class limitless extends limitless$1["default"] {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents(this.extend(request, params));
         //
