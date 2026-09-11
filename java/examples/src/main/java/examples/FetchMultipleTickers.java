@@ -30,7 +30,9 @@ public class FetchMultipleTickers {
         System.out.println("-".repeat(72));
 
         for (String symbol : symbols) {
-            Ticker t = tickers.get(symbol);
+            // getOrNull (not get): a symbol the exchange did not return is skipped below,
+            // whereas get() throws NoSuchElementException and would abort the loop.
+            Ticker t = tickers.getOrNull(symbol);
             if (t != null) {
                 System.out.printf("%-12s %12.4f %12.4f %12.4f %9.2f%% %12.2f%n",
                         t.symbol,
