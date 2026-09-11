@@ -538,7 +538,8 @@
                 "activeMajorCurrencies": "todo",
                 "withdraw": "not provided",
                 "deposit": "not provided",
-                "networks": "not provided"
+                "networks": "not provided",
+                "currencyIdAndCode": "broken"
             },
             "orderBook": {
                 "compareToZero": "tmp",
