@@ -360,12 +360,12 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //   }
         //
         const marketId = this.safeString (ticker, 'product_id');
-        const datetime = this.safeString (ticker, 'time');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market, '-'),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': undefined,
             'low': undefined,
             'bid': undefined,
@@ -430,13 +430,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //       "type": "UPDATE"
         //    }
         //
-        const datetime = this.safeString (ticker, 'time');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'time'));
         const marketId = this.safeString (ticker, 'product_id');
         return this.safeTicker ({
             'info': ticker,
             'symbol': this.safeSymbol (marketId, market),
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'bid': this.safeNumber (ticker, 'bid_price'),
             'bidVolume': this.safeNumber (ticker, 'bid_qty'),
             'ask': this.safeNumber (ticker, 'ask_price'),
@@ -605,13 +605,13 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
         //       "type": "UPDATE"
         //    }
         const marketId = this.safeString2 (trade, 'symbol', 'product_id');
-        const datetime = this.safeString (trade, 'time');
+        const timestamp = this.parse8601 (this.safeString (trade, 'time'));
         return this.safeTrade ({
             'info': trade,
             'id': this.safeString (trade, 'match_id'),
             'order': undefined,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'symbol': this.safeSymbol (marketId, market),
             'type': undefined,
             'side': this.safeStringLower (trade, 'agressor_side'),
@@ -706,8 +706,9 @@ export default class coinbaseinternational extends coinbaseinternationalRest {
             this.handleDeltas (orderbook, changes);
         }
         orderbook['nonce'] = this.safeInteger (message, 'sequence');
-        orderbook['datetime'] = datetime;
-        orderbook['timestamp'] = this.parse8601 (datetime);
+        const timestamp = this.parse8601 (datetime);
+        orderbook['datetime'] = this.iso8601 (timestamp);
+        orderbook['timestamp'] = timestamp;
         this.orderbooks[symbol] = orderbook;
         client.resolve (orderbook, channel + '::' + symbol);
     }

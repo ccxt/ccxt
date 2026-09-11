@@ -723,6 +723,7 @@ export default class polymarket extends Exchange {
             const priceMax = this.parseNumber (Precise.stringSub ('1', this.numberToString (tickSize)));
             const negRisk = this.safeBool (market, 'negRisk', false);
             const endDate = this.safeString (market, 'endDate', this.safeString (market, 'end_date_iso'));
+            const expiry = ((endDate !== undefined) && (endDate !== '')) ? this.parse8601 (endDate) : undefined;
             // Gamma API returns these arrays as JSON-encoded strings
             let outcomeLabels: any[] = [];
             let clobTokenIds: any[] = [];
@@ -836,8 +837,8 @@ export default class polymarket extends Exchange {
                 'linear': undefined,
                 'inverse': undefined,
                 'contractSize': undefined,
-                'expiry': (endDate !== undefined && endDate !== '') ? this.parse8601 (endDate) : undefined,
-                'expiryDatetime': endDate,
+                'expiry': expiry,
+                'expiryDatetime': this.iso8601 (expiry),
                 'strike': undefined,
                 'optionType': undefined,
                 'taker': 0.0,
@@ -2599,7 +2600,9 @@ export default class polymarket extends Exchange {
         // the snake_case fallbacks cover older payload shapes
         const createdAt = this.safeString2 (rawEvent, 'createdAt', 'created_date_iso');
         const endDate = this.safeString2 (rawEvent, 'endDate', 'end_date_iso');
-        const updatedAt = this.safeString2 (rawEvent, 'updatedAt', 'last_updated_date_iso');
+        const created = this.parse8601 (createdAt);
+        const end = this.parse8601 (endDate);
+        const lastUpdated = this.parse8601 (this.safeString2 (rawEvent, 'updatedAt', 'last_updated_date_iso'));
         const rawActive = this.safeBool (rawEvent, 'active');
         const closed = this.safeBool (rawEvent, 'closed', false);
         let active: Bool = undefined;
@@ -2629,13 +2632,13 @@ export default class polymarket extends Exchange {
             'active': active,
             'url': this.safeString (rawEvent, 'url'),
             'image': this.safeString2 (rawEvent, 'image', 'image_url'),
-            'created': this.parse8601 (createdAt),
-            'createdDatetime': createdAt,
-            'end': this.parse8601 (endDate),
-            'endDatetime': endDate,
+            'created': created,
+            'createdDatetime': this.iso8601 (created),
+            'end': end,
+            'endDatetime': this.iso8601 (end),
             'category': this.safeString (rawEvent, 'category'),
-            'lastUpdatedAt': this.parse8601 (updatedAt),
-            'lastUpdatedAtDatetime': updatedAt,
+            'lastUpdatedAt': lastUpdated,
+            'lastUpdatedAtDatetime': this.iso8601 (lastUpdated),
             'resolutionSource': this.safeString2 (rawEvent, 'resolutionSource', 'resolution_source'),
             'resolved': this.safeBool2 (rawEvent, 'closed', 'resolved'),
             'info': rawEvent,

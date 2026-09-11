@@ -363,12 +363,12 @@ export default class lbank extends lbankRest {
         //
         const marketId = this.safeString (ticker, 'pair');
         const symbol = this.safeSymbol (marketId, market);
-        const datetime = this.safeString (ticker, 'TS');
+        const timestamp = this.parse8601 (this.safeString (ticker, 'TS'));
         const tickerData = this.safeValue (ticker, 'tick');
         return this.safeTicker ({
             'symbol': symbol,
-            'timestamp': this.parse8601 (datetime),
-            'datetime': datetime,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
             'high': this.safeString (tickerData, 'high'),
             'low': this.safeString (tickerData, 'low'),
             'bid': undefined,
@@ -516,9 +516,8 @@ export default class lbank extends lbankRest {
         //    }
         //
         let timestamp = this.safeInteger (trade, 0);
-        const datetime = (timestamp !== undefined) ? (this.iso8601 (timestamp)) : (this.safeString (trade, 'TS'));
         if (timestamp === undefined) {
-            timestamp = this.parse8601 (datetime);
+            timestamp = this.parse8601 (this.safeString (trade, 'TS'));
         }
         const rawSide = this.safeString2 (trade, 'direction', 3);
         const parts = (rawSide as string).split ('_');
@@ -531,7 +530,7 @@ export default class lbank extends lbankRest {
         }
         return this.safeTrade ({
             'timestamp': timestamp,
-            'datetime': datetime,
+            'datetime': this.iso8601 (timestamp),
             'symbol': undefined,
             'id': undefined,
             'order': undefined,
