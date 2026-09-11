@@ -3552,20 +3552,20 @@ public partial class limitless : PredictionExchange
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    public override object sign(object path, object section = null, object method = null, object parameters = null, object headers = null, object body = null)
+    public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
     {
-        section ??= "limitless";
+        api ??= "limitless";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        object apiGroup = ((bool) isTrue((section is string))) ? section : getValue(section, 0);
-        object access = ((bool) isTrue((section is string))) ? "public" : getValue(section, 1);
+        object apiGroup = ((bool) isTrue((api is string))) ? api : getValue(api, 0);
+        object access = ((bool) isTrue((api is string))) ? "public" : getValue(api, 1);
         object baseUrls = getValue(this.urls, "api");
         object baseUrl = this.safeString(baseUrls, apiGroup, getValue(baseUrls, "limitless"));
         object url = add("/", this.implodeParams(path, parameters));
@@ -3598,10 +3598,13 @@ public partial class limitless : PredictionExchange
             object payload = add(add(add(add(add(add(timestamp, newline), method), newline), url), newline), bodyString);
             string signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256, "base64");
             headers = this.extend(headers, new Dictionary<string, object>() {
-                { "lmts-api-key", this.apiKey },
                 { "lmts-timestamp", timestamp },
                 { "lmts-signature", signature },
             });
+            string headerKey = add("lmts-api", "-key"); // concatenating because of the php version
+            Dictionary<string, object> headersKey = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)headersKey)[(string)headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         url = add(baseUrl, url);
         return new Dictionary<string, object>() {

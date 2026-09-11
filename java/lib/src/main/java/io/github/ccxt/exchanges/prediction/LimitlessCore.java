@@ -3761,7 +3761,7 @@ public class LimitlessCore extends LimitlessApi
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
@@ -3770,13 +3770,13 @@ public class LimitlessCore extends LimitlessApi
      */
     public Object sign(Object path, Object... optionalArgs)
     {
-        Object section = Helpers.getArg(optionalArgs, 0, "limitless");
+        Object api = Helpers.getArg(optionalArgs, 0, "limitless");
         Object method = Helpers.getArg(optionalArgs, 1, "GET");
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object apiGroup = ((Helpers.isTrue((section instanceof String)))) ? section : Helpers.GetValue(section, 0);
-        Object access = ((Helpers.isTrue((section instanceof String)))) ? "public" : Helpers.GetValue(section, 1);
+        Object apiGroup = ((Helpers.isTrue((api instanceof String)))) ? api : Helpers.GetValue(api, 0);
+        Object access = ((Helpers.isTrue((api instanceof String)))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = Helpers.GetValue(this.urls, "api");
         Object baseUrl = this.safeString(baseUrls, apiGroup, Helpers.GetValue(baseUrls, "limitless"));
         Object url = Helpers.add("/", this.implodeParams(path, parameters));
@@ -3810,10 +3810,13 @@ public class LimitlessCore extends LimitlessApi
             Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
-                put( "lmts-api-key", LimitlessCore.this.apiKey );
                 put( "lmts-timestamp", finalTimestamp );
                 put( "lmts-signature", signature );
             }});
+            Object headerKey = Helpers.add("lmts-api", "-key"); // concatenating because of the php version
+            java.util.Map<String, Object> headersKey = new java.util.HashMap<String, Object>() {{}};
+            Helpers.addElementToObject(headersKey, headerKey, this.apiKey);
+            headers = this.extend(headers, headersKey);
         }
         url = Helpers.add(baseUrl, url);
         final Object finalUrl = url;
