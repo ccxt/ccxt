@@ -18,9 +18,12 @@ public final class PredictionTickers implements Iterable<PredictionTicker> {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.tickers = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (!"info".equals(entry.getKey())) {
-                this.tickers.put(entry.getKey(), new PredictionTicker(entry.getValue()));
+                this.tickers.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new PredictionTicker(entry.getValue()) : null);
             }
         }
     }

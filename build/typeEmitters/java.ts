@@ -109,8 +109,6 @@ interface ExistingFile {
     ctorAnnotated: boolean;
     /** true when the constructor starts with `Map<String, Object> data = TypeHelper.toMap(raw);` */
     mapCtor: boolean;
-    /** object-typed fields constructed via `data.containsKey(...)` rather than `TypeHelper.safeValue` */
-    containsKeyStyle: Record<string, boolean>;
     /** hand-written members after the constructor, verbatim */
     tail: string[];
     text: string;
@@ -189,14 +187,7 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
             break;
         }
     }
-    const containsKeyStyle: Record<string, boolean> = {};
     const mapCtor = lines[ctorLine + 1] === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);';
-    for (let i = ctorLine + 1; i < ctorEnd; i++) {
-        const assign = lines[i].match (/^ {8}this\.([A-Za-z0-9_]+) = data\.containsKey\(/);
-        if (assign !== null) {
-            containsKeyStyle[assign[1]] = true;
-        }
-    }
     const tail: string[] = [];
     for (let i = ctorEnd + 1; i < lines.length; i++) {
         if (lines[i] === '}') {
@@ -216,7 +207,6 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
         'fieldByName': fieldByName,
         'ctorAnnotated': ctorAnnotated,
         'mapCtor': mapCtor,
-        'containsKeyStyle': containsKeyStyle,
         'tail': tail,
         'text': text,
     };
@@ -324,9 +314,33 @@ function arrayElement (field: IRField): string | undefined {
     return field.kind === 'array' ? field.elementType : undefined;
 }
 
+/**
+ * Classes whose constructor legitimately accepts a raw value that is NOT a map
+ * (`OHLCV` is built from the `[timestamp, o, h, l, c, v]` list tuple, `OrderBook`
+ * also unwraps io.github.ccxt.ws.WsOrderBook), so a nested value of one of these
+ * types must not be gated behind an `instanceof Map` check.
+ */
+const NON_MAP_RAW_CLASSES: Record<string, boolean> = {
+    'OHLCV': true,
+    'OrderBook': true,
+};
+
+/**
+ * A nested value is only turned into a nominal type when it really is a map; anything
+ * else (a string, a list, a number) stays `null`, which is what the TS side sees for a
+ * payload of the wrong shape. Blind-casting makes the constructor throw
+ * ClassCastException where TS simply yields undefined.
+ */
+function nestedCtorExpr (className: string, raw: string): string {
+    if (NON_MAP_RAW_CLASSES[className] === true) {
+        return raw + ' != null ? new ' + className + '(' + raw + ') : null';
+    }
+    return raw + ' instanceof Map<?, ?> ? new ' + className + '(' + raw + ') : null';
+}
+
 interface Emitted { javaType: string; statements: string[]; needsCollectors: boolean }
 
-function renderField (ir: TypesIR, field: IRField, javaName: string, existing: ExistingField | undefined, containsKey: boolean): Emitted | undefined {
+function renderField (ir: TypesIR, field: IRField, javaName: string, existing: ExistingField | undefined): Emitted | undefined {
     const key = unquote (field.name);
     const raw = javaName + 'Raw';
     // `info` is the raw exchange payload; every other `any` member is a passthrough param bag
@@ -369,7 +383,7 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
         if (isNumericTuple (element)) {
             return {
                 'javaType': 'List<List<Double>>',
-                'statements': [ BODY + 'this.' + javaName + ' = parseEntries(data.get("' + key + '"));' ],
+                'statements': [ BODY + 'this.' + javaName + ' = parseEntries(data == null ? null : data.get("' + key + '"));' ],
                 'needsCollectors': false,
             };
         }
@@ -392,7 +406,7 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
                 'statements': [
                     BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
                     BODY + 'if (' + raw + ' instanceof List<?> ' + javaName + 'List) {',
-                    BODY + INDENT + 'this.' + javaName + ' = ((List<Object>) ' + javaName + 'List).stream().map(' + elementClass + '::new).collect(Collectors.toList());',
+                    BODY + INDENT + 'this.' + javaName + ' = ((List<Object>) ' + javaName + 'List).stream().map(e -> e instanceof Map<?, ?> ? new ' + elementClass + '(e) : null).collect(Collectors.toList());',
                     BODY + '}',
                 ],
                 'needsCollectors': true,
@@ -417,7 +431,7 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
                 BODY + 'if (' + raw + ' instanceof Map<?, ?> ' + javaName + 'Map) {',
                 BODY + INDENT + 'this.' + javaName + ' = new LinkedHashMap<>();',
                 BODY + INDENT + 'for (Map.Entry<String, Object> entry : ((Map<String, Object>) ' + javaName + 'Map).entrySet()) {',
-                BODY + INDENT + INDENT + 'this.' + javaName + '.put(entry.getKey(), new ' + elementClass + '(entry.getValue()));',
+                BODY + INDENT + INDENT + 'this.' + javaName + '.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new ' + elementClass + '(entry.getValue()) : null);',
                 BODY + INDENT + '}',
                 BODY + '}',
             ],
@@ -432,18 +446,15 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
     if (objectClass === undefined) {
         return undefined;
     }
-    if (containsKey) {
-        return {
-            'javaType': objectClass,
-            'statements': [ BODY + 'this.' + javaName + ' = data.containsKey("' + key + '") && data.get("' + key + '") != null ? new ' + objectClass + '(data.get("' + key + '")) : null;' ],
-            'needsCollectors': false,
-        };
-    }
+    // Historically a handful of files built these fields with `data.containsKey(...)`; that is
+    // now folded into the uniform `safeValue + instanceof Map` path below, which also treats an
+    // empty-string value as absent and never blind-casts a non-map (a `new MinMax("")` used to
+    // throw ClassCastException).
     return {
         'javaType': objectClass,
         'statements': [
             BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
-            BODY + 'this.' + javaName + ' = ' + raw + ' != null ? new ' + objectClass + '(' + raw + ') : null;',
+            BODY + 'this.' + javaName + ' = ' + nestedCtorExpr (objectClass, raw) + ';',
         ],
         'needsCollectors': false,
     };
@@ -553,8 +564,7 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
         const key = unquote (field.name);
         const javaName = FIELD_RENAMES[key] !== undefined ? FIELD_RENAMES[key] : key;
         const existingField = existing === undefined ? undefined : existing.fieldByName[javaName];
-        const containsKey = existing !== undefined && existing.containsKeyStyle[javaName] === true;
-        const emitted = renderField (ir, field, javaName, existingField, containsKey);
+        const emitted = renderField (ir, field, javaName, existingField);
         if (emitted === undefined) {
             // a shape this port does not model (e.g. an index signature); leave it out rather
             // than emit something that will not compile
@@ -695,9 +705,78 @@ function renderDictionary (ir: TypesIR, className: string, valueType: string, ex
         return undefined;
     }
     if (current === elementClass) {
-        return existing.text;
+        // One-time in-place upgrade: wrappers written before the null-safe guards (`data == null`
+        // early return, `instanceof Map` element gate) get their constructor patched. Doing this
+        // textually rather than re-rendering the body keeps every port-local detail intact (the map
+        // field's name where it is not in DICT_FIELD — DepositAddresses, AllGreeks —, whether
+        // `info` is populated, the get() local name, the class-level comment block).
+        if (existing.text.indexOf ('if (data == null)') >= 0 && existing.text.indexOf ('instanceof Map<?, ?>') >= 0) {
+            return existing.text;
+        }
+        const upgraded = guardDictionaryCtor (className, existing);
+        return upgraded === undefined ? existing.text : upgraded;
     }
     return existing.text.replace (new RegExp ('\\b' + current + '\\b', 'g'), elementClass);
+}
+
+/**
+ * Inserts `if (data == null) { return; }` immediately before the fill loop and gates every element
+ * construction behind `instanceof Map<?, ?>` (a wrong-shaped value keeps its key with a null
+ * element instead of throwing ClassCastException). Returns undefined when the body does not match
+ * the expected wrapper shape, in which case the file is left untouched.
+ */
+function guardDictionaryCtor (className: string, existing: ExistingFile): string | undefined {
+    const startAnchor = INDENT + 'public ' + className + '(Object raw) {\n';
+    const at = existing.text.indexOf (startAnchor);
+    const bodyStart = at < 0 ? -1 : at + startAnchor.length;
+    const end = bodyStart < 0 ? -1 : existing.text.indexOf ('\n' + INDENT + '}', bodyStart);
+    const loopAnchor = BODY + 'for (Map.Entry<String, Object> entry : data.entrySet()) {';
+    const loopAt = end < 0 ? -1 : existing.text.indexOf (loopAnchor, bodyStart);
+    if (at < 0 || end < 0 || loopAt < 0) {
+        return undefined;
+    }
+    const guard = BODY + 'if (data == null) {\n' + BODY + INDENT + 'return;\n' + BODY + '}\n';
+    const patched = existing.text.slice (loopAt, end)
+        .replace (/new ([A-Z][A-Za-z0-9_]*)\(entry\.getValue\(\)\)/g, 'entry.getValue() instanceof Map<?, ?> ? new $1(entry.getValue()) : null')
+        .replace (/\.map\(([A-Z][A-Za-z0-9_]*)::new\)/g, '.map(e -> e instanceof Map<?, ?> ? new $1(e) : null)');
+    return existing.text.slice (0, loopAt) + guard + patched + existing.text.slice (end);
+}
+
+/**
+ * Constructor lines (anchor through closing brace) of a `extends Dictionary<T>` wrapper. Shared
+ * by the full-file renderer and the in-place upgrade path so the two can never drift apart.
+ */
+function dictionaryCtorLines (className: string, elementClass: string, elementIsList: boolean): string[] {
+    const fieldName = DICT_FIELD[className];
+    const hasInfo = DICT_HAS_INFO[className] === true;
+    const skipInfo = DICT_SKIP_INFO_KEY[className] === true;
+    const lines: string[] = [];
+    lines.push (INDENT + '@SuppressWarnings("unchecked")');
+    lines.push (INDENT + 'public ' + className + '(Object raw) {');
+    lines.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
+    if (hasInfo) {
+        lines.push (BODY + 'this.info = TypeHelper.getInfo(data);');
+    }
+    lines.push (BODY + 'this.' + fieldName + ' = new LinkedHashMap<>();');
+    lines.push (BODY + 'if (data == null) {');
+    lines.push (BODY + INDENT + 'return;');
+    lines.push (BODY + '}');
+    lines.push (BODY + 'for (Map.Entry<String, Object> entry : data.entrySet()) {');
+    if (elementIsList) {
+        lines.push (BODY + INDENT + 'if (entry.getValue() instanceof List<?> list) {');
+        lines.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(),');
+        lines.push (BODY + INDENT + INDENT + INDENT + '((List<Object>) list).stream().map(e -> e instanceof Map<?, ?> ? new ' + elementClass + '(e) : null).collect(Collectors.toList()));');
+        lines.push (BODY + INDENT + '}');
+    } else if (skipInfo) {
+        lines.push (BODY + INDENT + 'if (!"info".equals(entry.getKey())) {');
+        lines.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new ' + elementClass + '(entry.getValue()) : null);');
+        lines.push (BODY + INDENT + '}');
+    } else {
+        lines.push (BODY + INDENT + 'this.' + fieldName + '.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new ' + elementClass + '(entry.getValue()) : null);');
+    }
+    lines.push (BODY + '}');
+    lines.push (INDENT + '}');
+    return lines;
 }
 
 function renderNewDictionary (className: string, elementClass: string, elementIsList: boolean): string | undefined {
@@ -707,7 +786,6 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     }
     const mapValue = elementIsList ? ('List<' + elementClass + '>') : elementClass;
     const hasInfo = DICT_HAS_INFO[className] === true;
-    const skipInfo = DICT_SKIP_INFO_KEY[className] === true;
     // match existing ports: list wrappers use the map field's first letter (`t` for tiers)
     const shortVar = elementIsList ? fieldName.charAt (0) : elementClass.charAt (0).toLowerCase ();
     const out: string[] = [ 'package io.github.ccxt.types;', '' ];
@@ -727,28 +805,7 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
         out.push (INDENT + 'public Map<String, Object> info;');
     }
     out.push ('');
-    out.push (INDENT + '@SuppressWarnings("unchecked")');
-    out.push (INDENT + 'public ' + className + '(Object raw) {');
-    out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
-    if (hasInfo) {
-        out.push (BODY + 'this.info = TypeHelper.getInfo(data);');
-    }
-    out.push (BODY + 'this.' + fieldName + ' = new LinkedHashMap<>();');
-    out.push (BODY + 'for (Map.Entry<String, Object> entry : data.entrySet()) {');
-    if (elementIsList) {
-        out.push (BODY + INDENT + 'if (entry.getValue() instanceof List<?> list) {');
-        out.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(),');
-        out.push (BODY + INDENT + INDENT + INDENT + '((List<Object>) list).stream().map(' + elementClass + '::new).collect(Collectors.toList()));');
-        out.push (BODY + INDENT + '}');
-    } else if (skipInfo) {
-        out.push (BODY + INDENT + 'if (!"info".equals(entry.getKey())) {');
-        out.push (BODY + INDENT + INDENT + 'this.' + fieldName + '.put(entry.getKey(), new ' + elementClass + '(entry.getValue()));');
-        out.push (BODY + INDENT + '}');
-    } else {
-        out.push (BODY + INDENT + 'this.' + fieldName + '.put(entry.getKey(), new ' + elementClass + '(entry.getValue()));');
-    }
-    out.push (BODY + '}');
-    out.push (INDENT + '}');
+    out.push (...dictionaryCtorLines (className, elementClass, elementIsList));
     out.push ('');
     out.push (INDENT + 'public ' + mapValue + ' get(String key) {');
     out.push (BODY + mapValue + ' ' + shortVar + ' = ' + fieldName + '.get(key);');

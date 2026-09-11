@@ -14,9 +14,12 @@ public final class Currencies implements Iterable<CurrencyInterface> {
     public Currencies(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currencies = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (!"info".equals(entry.getKey())) {
-                this.currencies.put(entry.getKey(), new CurrencyInterface(entry.getValue()));
+                this.currencies.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new CurrencyInterface(entry.getValue()) : null);
             }
         }
     }

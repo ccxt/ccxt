@@ -14,8 +14,11 @@ public final class OptionChain implements Iterable<Option> {
     public OptionChain(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.options = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.options.put(entry.getKey(), new Option(entry.getValue()));
+            this.options.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new Option(entry.getValue()) : null);
         }
     }
 

@@ -46,7 +46,7 @@ public final class Transaction {
         this.status = TypeHelper.safeString(data, "status");
         this.updated = TypeHelper.safeInteger(data, "updated");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
         this.network = TypeHelper.safeString(data, "network");
         this.comment = TypeHelper.safeString(data, "comment");
         this.internal = TypeHelper.safeBool(data, "internal");

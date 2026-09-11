@@ -62,10 +62,10 @@ public final class PredictionOrder {
         this.reduceOnly = TypeHelper.safeBool(data, "reduceOnly");
         this.postOnly = TypeHelper.safeBool(data, "postOnly");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
         Object tradesRaw = TypeHelper.safeValue(data, "trades");
         if (tradesRaw instanceof List<?> tradesList) {
-            this.trades = ((List<Object>) tradesList).stream().map(PredictionTrade::new).collect(Collectors.toList());
+            this.trades = ((List<Object>) tradesList).stream().map(e -> e instanceof Map<?, ?> ? new PredictionTrade(e) : null).collect(Collectors.toList());
         }
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.outcomeId = TypeHelper.safeString(data, "outcomeId");

@@ -3745,7 +3745,12 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     protected static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+        if (raw == null) {
+            // an untyped method that resolved to nothing stays nothing; without this the cast
+            // below NPEs where the untyped surface returns null
+            return null;
+        }
+        return ((List<Object>) raw).stream().map(e -> e == null ? null : ctor.apply(e)).collect(java.util.stream.Collectors.toList());
     }
 
     /**

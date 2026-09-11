@@ -14,8 +14,11 @@ public final class Leverages implements Iterable<Leverage> {
     public Leverages(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.leverages = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.leverages.put(entry.getKey(), new Leverage(entry.getValue()));
+            this.leverages.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new Leverage(entry.getValue()) : null);
         }
     }
 

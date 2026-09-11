@@ -25,8 +25,8 @@ public final class PredictionOrderBook {
     @SuppressWarnings("unchecked")
     public PredictionOrderBook(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.bids = parseEntries(data.get("bids"));
-        this.asks = parseEntries(data.get("asks"));
+        this.bids = parseEntries(data == null ? null : data.get("bids"));
+        this.asks = parseEntries(data == null ? null : data.get("asks"));
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.nonce = TypeHelper.safeInteger(data, "nonce");
@@ -35,22 +35,18 @@ public final class PredictionOrderBook {
         this.market = TypeHelper.safeString(data, "market");
     }
 
-    @SuppressWarnings("unchecked")
     private static List<List<Double>> parseEntries(Object raw) {
-        if (raw == null) return new ArrayList<>();
-        List<Object> entries = (List<Object>) raw;
+        if (!(raw instanceof List<?> entries)) return new ArrayList<>();
         List<List<Double>> result = new ArrayList<>(entries.size());
         for (Object entry : entries) {
-            List<Object> pair = (List<Object>) entry;
+            if (!(entry instanceof List<?> pair)) {
+                // wrong-shaped level: keep the position, drop the value (TS has no cast to throw on)
+                result.add(null);
+                continue;
+            }
             List<Double> parsed = new ArrayList<>(pair.size());
             for (Object val : pair) {
-                if (val instanceof Number n) {
-                    parsed.add(n.doubleValue());
-                } else if (val != null) {
-                    try { parsed.add(Double.parseDouble(String.valueOf(val))); } catch (Exception e) { parsed.add(null); }
-                } else {
-                    parsed.add(null);
-                }
+                parsed.add(TypeHelper.toDouble(val));
             }
             result.add(parsed);
         }

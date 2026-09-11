@@ -16,9 +16,12 @@ public final class Tickers implements Iterable<Ticker> {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.tickers = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (!"info".equals(entry.getKey())) {
-                this.tickers.put(entry.getKey(), new Ticker(entry.getValue()));
+                this.tickers.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new Ticker(entry.getValue()) : null);
             }
         }
     }

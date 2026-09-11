@@ -318,7 +318,11 @@ function genReturnExpr(m: MethodInfo): string {
     if (m.javaReturnType === 'Boolean') return '(Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return '(Map<String, Object>) res';
     if (m.javaReturnType === OHLCV_BY_SYMBOL_TYPE) return 'TypeHelper.toTypedOhlcvBySymbol(res)';
-    return `new ${m.javaReturnType}(res)`;
+    // A null result must stay null: several unified methods legitimately resolve to
+    // undefined in TS (e.g. upbit/btcturk/cryptocom/bigone/poloniex fetchTicker return
+    // `this.safeValue (tickers, symbol)`), and `new Ticker(null)` would hand the caller an
+    // object whose every field is null instead of the missing result.
+    return `res == null ? null : new ${m.javaReturnType}(res)`;
 }
 
 function genAsyncReturnExpr(m: MethodInfo): string {
@@ -330,7 +334,7 @@ function genAsyncReturnExpr(m: MethodInfo): string {
     if (m.javaReturnType === 'Boolean') return 'res -> (Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return 'res -> (Map<String, Object>) res';
     if (m.javaReturnType === OHLCV_BY_SYMBOL_TYPE) return 'res -> TypeHelper.toTypedOhlcvBySymbol(res)';
-    return `${m.javaReturnType}::new`;
+    return `res -> res == null ? null : new ${m.javaReturnType}(res)`;
 }
 
 /**

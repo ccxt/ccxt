@@ -22,25 +22,25 @@ public final class Balances {
         this.free = new LinkedHashMap<>();
         this.used = new LinkedHashMap<>();
         this.total = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         Object freeRaw = TypeHelper.safeValue(data, "free");
         if (freeRaw instanceof Map<?, ?> freeMap) {
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) freeMap).entrySet()) {
-                Double val = entry.getValue() instanceof Number n ? n.doubleValue() : null;
-                this.free.put(entry.getKey(), val);
+                this.free.put(entry.getKey(), TypeHelper.toDouble(entry.getValue()));
             }
         }
         Object usedRaw = TypeHelper.safeValue(data, "used");
         if (usedRaw instanceof Map<?, ?> usedMap) {
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) usedMap).entrySet()) {
-                Double val = entry.getValue() instanceof Number n ? n.doubleValue() : null;
-                this.used.put(entry.getKey(), val);
+                this.used.put(entry.getKey(), TypeHelper.toDouble(entry.getValue()));
             }
         }
         Object totalRaw = TypeHelper.safeValue(data, "total");
         if (totalRaw instanceof Map<?, ?> totalMap) {
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) totalMap).entrySet()) {
-                Double val = entry.getValue() instanceof Number n ? n.doubleValue() : null;
-                this.total.put(entry.getKey(), val);
+                this.total.put(entry.getKey(), TypeHelper.toDouble(entry.getValue()));
             }
         }
         for (Map.Entry<String, Object> entry : data.entrySet()) {

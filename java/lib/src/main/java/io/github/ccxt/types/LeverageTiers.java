@@ -16,10 +16,13 @@ public final class LeverageTiers implements Iterable<List<LeverageTier>> {
     public LeverageTiers(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.tiers = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (entry.getValue() instanceof List<?> list) {
                 this.tiers.put(entry.getKey(),
-                    ((List<Object>) list).stream().map(LeverageTier::new).collect(Collectors.toList()));
+                    ((List<Object>) list).stream().map(e -> e instanceof Map<?, ?> ? new LeverageTier(e) : null).collect(Collectors.toList()));
             }
         }
     }

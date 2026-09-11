@@ -26,7 +26,7 @@ public final class Network {
         this.deposit = TypeHelper.safeBool(data, "deposit");
         this.withdraw = TypeHelper.safeBool(data, "withdraw");
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
-        this.limits = limitsRaw != null ? new NetworkLimits(limitsRaw) : null;
+        this.limits = limitsRaw instanceof Map<?, ?> ? new NetworkLimits(limitsRaw) : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

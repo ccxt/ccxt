@@ -40,7 +40,7 @@ public final class PredictionOutcome {
         this.winner = TypeHelper.safeBool(data, "winner");
         this.settleFraction = TypeHelper.safeFloat(data, "settleFraction");
         Object precisionRaw = TypeHelper.safeValue(data, "precision");
-        this.precision = precisionRaw != null ? new Precision(precisionRaw) : null;
+        this.precision = precisionRaw instanceof Map<?, ?> ? new Precision(precisionRaw) : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

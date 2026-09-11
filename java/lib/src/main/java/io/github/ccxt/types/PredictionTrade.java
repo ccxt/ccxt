@@ -43,7 +43,7 @@ public final class PredictionTrade {
         this.side = TypeHelper.safeString(data, "side");
         this.takerOrMaker = TypeHelper.safeString(data, "takerOrMaker");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
         this.outcome = TypeHelper.safeString(data, "outcome");
         this.outcomeId = TypeHelper.safeString(data, "outcomeId");
         this.label = TypeHelper.safeString(data, "label");
