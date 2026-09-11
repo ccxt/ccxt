@@ -2392,7 +2392,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3270,7 +3270,7 @@ public class DeltaCore extends DeltaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3302,7 +3302,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object type3 = type2;

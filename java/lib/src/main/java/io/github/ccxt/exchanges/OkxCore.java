@@ -5059,7 +5059,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type2, Object side, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8180,7 +8180,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9392,7 +9392,7 @@ public class OkxCore extends OkxApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9549,7 +9549,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

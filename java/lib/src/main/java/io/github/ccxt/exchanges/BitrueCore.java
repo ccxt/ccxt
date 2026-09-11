@@ -3557,7 +3557,7 @@ public class BitrueCore extends BitrueApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3681,7 +3681,7 @@ public class BitrueCore extends BitrueApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -2350,7 +2350,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         final Object fromAccount3 = fromAccount2;

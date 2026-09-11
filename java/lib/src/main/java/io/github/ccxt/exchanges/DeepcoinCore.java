@@ -1767,7 +1767,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {string} [params.userId] user id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2228,7 +2228,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2900,7 +2900,7 @@ public class DeepcoinCore extends DeepcoinApi
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -1885,7 +1885,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -3527,7 +3527,7 @@ public class PhemexCore extends PhemexApi
      * @param {string} [params.posSide] either 'Merged' or 'Long' or 'Short'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5234,7 +5234,7 @@ public class PhemexCore extends PhemexApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5706,7 +5706,7 @@ final Object finalI = i;
      * @param {string} [params.bizType] for transferring between main and sub-acounts either 'SPOT' or 'PERPETUAL' default is 'SPOT'
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

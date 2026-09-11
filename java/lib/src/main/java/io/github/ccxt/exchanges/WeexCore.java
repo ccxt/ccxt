@@ -5131,7 +5131,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5225,7 +5225,7 @@ public class WeexCore extends WeexApi
      * @param {string} params.positionId the id of the position to add margin to, required
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

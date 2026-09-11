@@ -1320,7 +1320,7 @@ public class HyperliquidCore extends HyperliquidApi
         return this.safeDict(outcomesList, 0, new java.util.HashMap<String, Object>() {{}});
     }
 
-    public Object parseOutcomeInputSideHint(Object outcomeInput)
+    public Object parseOutcomeInputSideHint(String outcomeInput)
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(outcomeInput, null))) || Helpers.isTrue((Helpers.isEqual(outcomeInput, "")))))
         {

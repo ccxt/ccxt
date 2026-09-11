@@ -2267,7 +2267,7 @@ public class GrvtCore extends GrvtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;

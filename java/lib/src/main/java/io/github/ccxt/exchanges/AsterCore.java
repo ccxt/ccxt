@@ -4085,7 +4085,7 @@ public class AsterCore extends AsterApi
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4148,7 +4148,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5193,7 +5193,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;

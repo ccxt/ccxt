@@ -5400,7 +5400,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5488,7 +5488,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5510,7 +5510,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6928,7 +6928,7 @@ public Object describe()
         return this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
-    public Object calculateFeeWithRate(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
+    public Object calculateFeeWithRate(String symbol, String type, String side, Object amount, Object price, Object... optionalArgs)
     {
         Object takerOrMaker = Helpers.getArg(optionalArgs, 0, "taker");
         Object feeRate = Helpers.getArg(optionalArgs, 1, null);
@@ -10440,7 +10440,7 @@ public Object describe()
         return result;
     }
 
-    public String feeToPrecision(Object symbol, Object fee)
+    public String feeToPrecision(String symbol, Object fee)
     {
         if (Helpers.isTrue(Helpers.isEqual(fee, null)))
         {
@@ -10813,7 +10813,7 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseBorrowRate() is not supported yet")) ;
     }
 
-    public Object parseBorrowRateHistory(Object response, Object code, Object since, Object limit)
+    public Object parseBorrowRateHistory(Object response, String code, Object since, Object limit)
     {
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)

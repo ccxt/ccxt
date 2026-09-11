@@ -1947,7 +1947,7 @@ public class ZebpayCore extends ZebpayApi
      * @param {string} [params.timestamp] Tiemstamp.
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

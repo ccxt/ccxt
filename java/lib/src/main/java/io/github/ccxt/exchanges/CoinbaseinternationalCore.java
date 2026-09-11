@@ -1218,7 +1218,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] parameters specific to the exchange API endpoint
      * @returns {object} A [margin structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol2, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2164,7 +2164,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2541,7 +2541,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {string} params.clientOrderId client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

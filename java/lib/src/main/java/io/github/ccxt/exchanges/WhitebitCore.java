@@ -2515,7 +2515,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2727,7 +2727,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -3887,7 +3887,7 @@ public class WhitebitCore extends WhitebitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

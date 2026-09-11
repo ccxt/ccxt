@@ -1799,7 +1799,7 @@ public class UpbitCore extends UpbitApi
      * @param {string} [params.selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' {@link https://global-docs.upbit.com/docs/smp}
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id2, Object symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object id3 = id2;
         final Object type3 = type2;

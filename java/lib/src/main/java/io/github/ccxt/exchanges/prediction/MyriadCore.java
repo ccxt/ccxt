@@ -1292,7 +1292,7 @@ public class MyriadCore extends MyriadApi
      * @param {string} [params.networkId] the order-book network id, required when using params.rawOrder without an embedded network id
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object outcome, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object outcome, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

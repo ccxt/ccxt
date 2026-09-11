@@ -1359,7 +1359,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1810,7 +1810,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

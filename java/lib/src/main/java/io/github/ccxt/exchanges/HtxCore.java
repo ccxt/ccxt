@@ -3712,7 +3712,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchSpotOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchSpotOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8675,7 +8675,7 @@ public class HtxCore extends HtxApi
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

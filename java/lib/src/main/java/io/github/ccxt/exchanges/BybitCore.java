@@ -6081,7 +6081,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.tpTriggerby] 'IndexPrice', 'MarkPrice' or 'LastPrice', default is 'LastPrice', required if no initial value for takeProfit
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9177,7 +9177,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDerivativesOpenInterestHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDerivativesOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9682,7 +9682,7 @@ public class BybitCore extends BybitApi
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9985,7 +9985,7 @@ public class BybitCore extends BybitApi
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDerivativesMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDerivativesMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

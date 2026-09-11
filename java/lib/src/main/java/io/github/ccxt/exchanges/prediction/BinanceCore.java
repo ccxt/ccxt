@@ -2165,7 +2165,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -3439,7 +3439,7 @@ final Object finalClientOrderId = clientOrderId;
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id2, Object symbol, Object type, Object side, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4824,7 +4824,7 @@ final Object finalClientOrderId = clientOrderId;
      * @param {string} [params.subAccountAddress] sub account user address
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4858,7 +4858,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4949,7 +4949,7 @@ final Object finalClientOrderId = clientOrderId;
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object code3 = code2;
         final Object fromAccount3 = fromAccount2;

@@ -7619,7 +7619,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editSpotOrder(Object id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editSpotOrder(String id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7918,7 +7918,7 @@ public class BinanceCore extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editContractOrder(Object id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editContractOrder(String id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8007,7 +8007,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9642,7 +9642,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12395,7 +12395,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16467,7 +16467,7 @@ final Object finalMarket = market;
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16610,7 +16610,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

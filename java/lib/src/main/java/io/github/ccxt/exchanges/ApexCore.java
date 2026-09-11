@@ -1716,7 +1716,7 @@ public class ApexCore extends ApexApi
      * @param {string} [params.transferId] UUID, which is unique across the platform
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount2, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;

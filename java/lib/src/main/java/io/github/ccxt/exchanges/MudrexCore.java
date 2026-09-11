@@ -1028,7 +1028,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1615,7 +1615,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1893,7 +1893,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

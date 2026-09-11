@@ -1882,7 +1882,7 @@ public class FoxbitCore extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type2, Object side2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         final Object type3 = type2;

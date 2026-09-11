@@ -2839,7 +2839,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type2, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         final Object type3 = type2;
@@ -3255,7 +3255,7 @@ public class HitbtcCore extends HitbtcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -4113,7 +4113,7 @@ public class HitbtcCore extends HitbtcApi
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object type, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4276,7 +4276,7 @@ public class HitbtcCore extends HitbtcApi
      * @param {bool} [params.margin] true for adding spot-margin
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -2410,7 +2410,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {int} [params.settlementExpiration] settlement expiration timestamp in seconds, defaults to now + 21 days
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -3084,7 +3084,7 @@ public class ExtendedCore extends ExtendedApi
         }});
     }
 
-    public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
+    public Object getExtendedStarkAmount(String amount, Object resolution, Object... optionalArgs)
     {
         Object roundUp = Helpers.getArg(optionalArgs, 0, false);
         Object resolutionString = this.numberToString(resolution);
@@ -3574,7 +3574,7 @@ public class ExtendedCore extends ExtendedApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id2, Object symbol, Object type, Object side, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

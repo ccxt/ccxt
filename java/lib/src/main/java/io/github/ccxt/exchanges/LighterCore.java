@@ -623,7 +623,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public Object handleApiKeyIndex(Object parameters, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
+    public Object handleApiKeyIndex(Object parameters, String methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object apiKeyIndex = null;
@@ -639,7 +639,7 @@ public class LighterCore extends LighterApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(apiKeyIndex), parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, String methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         final Object parameters3 = parameters2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1348,7 +1348,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3085,7 +3085,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount2, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount2, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;
@@ -4156,7 +4156,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4204,7 +4204,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol2, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

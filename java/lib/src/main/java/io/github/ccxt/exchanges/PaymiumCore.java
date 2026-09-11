@@ -667,7 +667,7 @@ public class PaymiumCore extends PaymiumApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

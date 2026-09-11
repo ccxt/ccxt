@@ -1984,7 +1984,7 @@ public class CexCore extends CexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -2011,7 +2011,7 @@ public class CexCore extends CexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferBetweenMainAndSubAccount(Object code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferBetweenMainAndSubAccount(String code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2058,7 +2058,7 @@ public class CexCore extends CexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transferBetweenSubAccounts(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transferBetweenSubAccounts(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

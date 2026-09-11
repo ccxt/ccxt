@@ -1202,7 +1202,7 @@ public class LatokenCore extends LatokenApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPublicTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPublicTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1238,7 +1238,7 @@ public class LatokenCore extends LatokenApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPrivateTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPrivateTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2128,7 +2128,7 @@ public class LatokenCore extends LatokenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

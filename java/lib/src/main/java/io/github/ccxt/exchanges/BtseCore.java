@@ -2844,7 +2844,7 @@ public class BtseCore extends BtseApi
      * @param {bool} [params.slide] *contract markets only* if true and only the price is amended, the price slides to the best available price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id2, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id2, Object symbol, Object type, Object side, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

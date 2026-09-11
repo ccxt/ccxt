@@ -1201,7 +1201,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitOrder(Object id, Object symbol, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editLimitOrder(String id, String symbol, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1213,7 +1213,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1513,7 +1513,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

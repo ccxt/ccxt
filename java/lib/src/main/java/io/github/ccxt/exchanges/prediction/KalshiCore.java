@@ -2623,7 +2623,7 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object outcome, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object outcome, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

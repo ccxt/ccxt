@@ -1124,7 +1124,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseLeverageFromSetting(Object symbol, Object setting)
+    public Object parseLeverageFromSetting(String symbol, Object setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1300,7 +1300,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseMarginModeFromSetting(Object symbol, Object setting)
+    public Object parseMarginModeFromSetting(String symbol, Object setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -2501,7 +2501,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4010,7 +4010,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

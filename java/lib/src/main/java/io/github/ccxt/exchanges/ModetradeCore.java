@@ -2252,7 +2252,7 @@ public class ModetradeCore extends ModetradeApi
      * @param {float} [params.takeProfitPrice] price to trigger take-profit orders
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side2, Object... optionalArgs)
     {
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

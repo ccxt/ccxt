@@ -675,7 +675,7 @@ public class KrakenCore extends KrakenApi
         }});
     }
 
-    public String feeToPrecision(Object symbol, Object fee)
+    public String feeToPrecision(String symbol, Object fee)
     {
         return this.decimalToPrecision(fee, TRUNCATE, Helpers.GetValue(Helpers.GetValue(this.market(symbol), "precision"), "amount"), this.precisionMode);
     }
@@ -1985,7 +1985,7 @@ public class KrakenCore extends KrakenApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2755,7 +2755,7 @@ final Object finalId = id;
      * @param {string} [params.clientOrderId] the orders client order id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type2, Object side, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4313,7 +4313,7 @@ final Object finalId = id;
      * @param {object} [params] Exchange specific parameters
      * @returns a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
