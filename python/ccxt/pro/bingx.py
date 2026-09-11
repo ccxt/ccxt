@@ -1634,10 +1634,11 @@ class bingx(ccxt.async_support.bingx):
             balance = data[i]
             currencyId = self.safe_string(balance, 'a')
             code = self.safe_currency_code(currencyId)
+            previous = self.safe_dict(self.balance[type], code, {})
             account = self.account()
             account['info'] = balance
-            account['used'] = self.safe_string(balance, 'lk')
-            account['free'] = self.safe_string(balance, 'wb')
+            account['total'] = self.safe_string(balance, 'wb')
+            account['used'] = self.safe_string(previous, 'used')
             if (type is not None) and (code is not None):
                 self.balance[type][code] = account
         self.balance[type] = self.safe_balance(self.balance[type])
