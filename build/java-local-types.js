@@ -1600,6 +1600,33 @@ const WS_RECEIVER_METHODS = new Set ([
     'clear', 'snapshot', 'get', 'put', 'containsKey', 'entrySet', 'toMap', 'copy',
 ]);
 
+// argument positions the printer hard-casts: `(String)` — startsWith/endsWith arg 0,
+// replace/replaceAll args 1+2, join arg 0, padEnd/padStart arg 1; `(Number)` — the
+// padEnd/padStart length. A narrowed local in one of those positions must be castable
+// to the cast type (`(String) integer` / `(Number) str` are inconvertible in javac).
+const STRING_CAST_ARGUMENT_POSITIONS = {
+    'startsWith': [ 0 ], 'endsWith': [ 0 ], 'replace': [ 1, 2 ], 'replaceAll': [ 1, 2 ],
+    'join': [ 0 ], 'padEnd': [ 1 ], 'padStart': [ 1 ],
+};
+const NUMBER_CAST_ARGUMENT_POSITIONS = { 'padEnd': [ 0 ], 'padStart': [ 0 ] };
+
+function argumentCastIsSafe (method, index, javaType) {
+    const stringPositions = STRING_CAST_ARGUMENT_POSITIONS[method];
+    if (stringPositions !== undefined && stringPositions.includes (index)) {
+        return javaType === 'String';
+    }
+    const numberPositions = NUMBER_CAST_ARGUMENT_POSITIONS[method];
+    if (numberPositions !== undefined && numberPositions.includes (index)) {
+        return javaType === 'Integer' || javaType === 'Long' || javaType === 'Double';
+    }
+    return true;
+}
+
+const INTEGER_RECEIVER_METHODS = new Set ([ 'toString', 'intValue', 'longValue', 'doubleValue' ]);
+const DOUBLE_RECEIVER_METHODS = new Set ([ 'toString', 'doubleValue', 'intValue', 'longValue' ]);
+const BOOLEAN_RECEIVER_METHODS = new Set ([ 'toString', 'booleanValue' ]);
+
+
 function receiverCallIsSafe (method, javaType) {
     if (javaType === 'String') {
         // `x.join(sep)` prints `(java.util.List<String>)x`: a String receiver is
