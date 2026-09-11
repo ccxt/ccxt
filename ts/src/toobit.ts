@@ -1982,8 +1982,8 @@ export default class toobit extends Exchange {
         let rawSideLower = this.safeStringLower (order, 'side');
         let reduceOnly: Bool = undefined;
         if (rawSideLower !== undefined) {
-            // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
-            // the suffix is the only signal that carries reduceOnly, so read
+            // a contract order carries a suffixed side, BUY_OPEN or SELL_CLOSE,
+            // and the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
             const sideParts = rawSideLower.split ('_');
             const sideSuffix = this.safeString (sideParts, 1);
