@@ -1928,6 +1928,39 @@ std::any ExchangeBase::callDynamically (const std::string& name, std::any args) 
     if (name == "sleep") return this->sleep (a0);
     if (name == "getCcxtVersion") return this->getCcxtVersion ();
     if (name == "fetch") return this->fetch (a0, a1, a2, a3);
+    // free-form test helpers (transpiled test.sharedMethods passes the exchange
+    // itself as a0 inside the args list; it rides as a shared_ptr<ExchangeBase>)
+    const auto unwrapSelf = [] (const std::any& selfAny) -> ExchangeBase* {
+        if (selfAny.type () == typeid (std::shared_ptr<ExchangeBase>)) {
+            return std::any_cast<std::shared_ptr<ExchangeBase>> (selfAny).get ();
+        }
+        if (selfAny.type () == typeid (ExchangeBase*)) {
+            return std::any_cast<ExchangeBase*> (selfAny);
+        }
+        return nullptr;
+    };
+    if (name == "getProperty") {
+        ExchangeBase* self = unwrapSelf (a0);
+        if (self == nullptr) self = this;
+        try {
+            return self->getProperty (str (a1));
+        } catch (const NotSupported&) {
+            return a2;   // TS returns the defaultValue (undefined) for a missing property
+        }
+    }
+    if (name == "setProperty") {
+        ExchangeBase* self = unwrapSelf (a0);
+        if (self == nullptr) self = this;
+        try {
+            self->setProperty (str (a1), a2);
+        } catch (const NotSupported&) {
+            // TS would create an expando property; the C++ port has no bag for those
+        }
+        return std::any {};
+    }
+    if (name == "jsonStringifyWithNull") return this->json (a0);
+    if (name == "capitalize") return this->capitalize (a0);
+    if (name == "exceptionMessage") return this->exceptionMessage (a0, a1);
     // implicit API endpoints (e.g. accountV1PrivateGetAccountApiRestrictions): the
     // static request fixtures call them directly; route through callEndpoint. The
     // endpoint default is an empty params dict, mirroring TS's `params = {}`.
