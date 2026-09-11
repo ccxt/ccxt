@@ -206,7 +206,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -220,7 +220,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+                Object result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -272,7 +272,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -382,7 +382,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -391,14 +391,14 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
+                String suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
             }
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+                Object result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -449,7 +449,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -458,7 +458,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
-                Object suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
+                String suffix = ((Helpers.isTrue((Helpers.isEqual(use1sFreq, true))))) ? "@1s" : "";
                 ((java.util.List<Object>)subscriptionArgs).add(Helpers.add(Helpers.add(this.safeStringLower(market, "id"), "@markPrice"), suffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol")));
             }
@@ -593,7 +593,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -607,7 +607,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object newTicker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+                Object result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -654,7 +654,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -807,7 +807,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
                 put( "id", 1 );
@@ -868,7 +868,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -1014,7 +1014,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object e = this.safeString(trade, "e");
-        Boolean isPublicTrade = Helpers.isTrue((Helpers.isEqual(e, "trade"))) || Helpers.isTrue((Helpers.isEqual(e, "aggTrade")));
+        Object isPublicTrade = Helpers.isTrue((Helpers.isEqual(e, "trade"))) || Helpers.isTrue((Helpers.isEqual(e, "aggTrade")));
         Object id = this.safeString2(trade, "t", "a");
         Object timestamp = this.safeInteger(trade, "T");
         Object price = this.safeString2(trade, "L", "p");
@@ -1039,7 +1039,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object defaultType = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? this.safeString(this.options, "defaultType", "spot") : Helpers.GetValue(market, "type");
         String symbol = (String) this.safeSymbol(marketId, market, null, defaultType);
         String side = (String)this.safeStringLower(trade, "S");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
         if (Helpers.isTrue(Helpers.inOp(trade, "m")))
         {
@@ -1176,7 +1176,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -1236,7 +1236,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -1400,7 +1400,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -1470,7 +1470,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), type);
             java.util.List<Object> subscriptionArgs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
@@ -2056,9 +2056,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
-        Object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
+        String contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
         String positionSide = (String)this.safeStringLower(position, "ps");
-        Boolean hedged = true;
+        Object hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {
             hedged = false;
@@ -2230,8 +2230,8 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object executionType = this.safeString(message, "x");
         if (Helpers.isTrue(Helpers.isEqual(executionType, "TRADE")))
         {
-            Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
-            Object type = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
+            Object isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
+            String type = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
             Object fakeMarket = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                 put( "type", type );
             }});
@@ -2254,7 +2254,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                         Object fee = this.safeValue(order, "fee");
                         if (!Helpers.isTrue(this.isEmpty(fees)))
                         {
-                            Boolean insertNewFeeCurrency = true;
+                            Object insertNewFeeCurrency = true;
                             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
                             {
                                 Object orderFee = Helpers.GetValue(fees, i);
@@ -2503,7 +2503,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
     {
         Object messageInner = this.safeDict(message, "data", message); // can be either wrapped in 'data' or full object itself
         Object eventVar = this.safeString(messageInner, "e");
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Object methods = new java.util.HashMap<String, Object>() {{
             put( "24hrTicker", "handleTicker");
             put( "aggTrade", "handleTrade");
             put( "depthUpdate", "handleOrderBook");

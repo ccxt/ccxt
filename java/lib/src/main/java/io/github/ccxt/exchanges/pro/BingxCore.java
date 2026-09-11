@@ -131,7 +131,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), marketType);
             }
             Object id = this.uuid();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "dataType", dataType );
                 put( "reqType", "unsub" );
@@ -141,7 +141,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 ((java.util.List<Object>)symbols).add(Helpers.GetValue(market, "symbol"));
             }
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
@@ -201,7 +201,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@ticker");
             Object messageHash = this.getMessageHash("ticker", Helpers.GetValue(market, "symbol"));
             Object uuid = this.uuid();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", dataType );
             }};
@@ -209,7 +209,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -309,8 +309,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         // const marketId = messageHash.split('@')[0];
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
-        Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
+        Object isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = this.parseWsTicker(data, market);
@@ -460,7 +460,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object rawHash = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             Object messageHash = Helpers.add("trade::", symbol);
             Object uuid = this.uuid();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", rawHash );
             }};
@@ -468,7 +468,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -608,8 +608,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawHash = this.safeString(message, "dataType", "");
         Object marketId = Helpers.GetValue(Helpers.split(rawHash, "@"), 0);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
-        Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
+        Object isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("trade::", symbol);
@@ -680,7 +680,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", Helpers.GetValue(market, "symbol"));
             Object uuid = this.uuid();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
             }};
@@ -688,7 +688,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            java.util.Map<String, Object> subscriptionArgs = new java.util.HashMap<String, Object>() {{}};
+            Object subscriptionArgs = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 final Object finalParameters = parameters;
@@ -827,10 +827,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object dataType = this.safeString(message, "dataType", "");
         Object parts = Helpers.split(dataType, "@");
         Object firstPart = Helpers.GetValue(parts, 0);
-        Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
+        Object isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(data, "symbol", firstPart);
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
-        Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
+        Object isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -884,9 +884,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         // for spot, opening-time (t) is used instead of closing-time (T), to be compatible with fetchOHLCV
         // for linear swap, (T) is the opening time
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Boolean isSpot = (Helpers.isEqual(this.safeBool(market, "spot"), true));
-        Boolean isInverse = (Helpers.isEqual(this.safeBool(market, "inverse"), true));
-        Object timestamp = ((Helpers.isTrue(isSpot))) ? "t" : "T";
+        Object isSpot = (Helpers.isEqual(this.safeBool(market, "spot"), true));
+        Object isInverse = (Helpers.isEqual(this.safeBool(market, "inverse"), true));
+        String timestamp = ((Helpers.isTrue(isSpot))) ? "t" : "T";
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
             timestamp = ((Helpers.isTrue(isInverse))) ? "t" : "T";
@@ -960,13 +960,13 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
+        Object isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
         Object dataType = this.safeString(message, "dataType", "");
         Object parts = Helpers.split(dataType, "@");
         Object firstPart = Helpers.GetValue(parts, 0);
-        Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
+        Object isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(message, "s", firstPart);
-        Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
+        String marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object candles = null;
         if (Helpers.isTrue(isSwap))
@@ -1071,7 +1071,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object messageHash = this.getMessageHash("ohlcv", Helpers.GetValue(market, "symbol"), timeframe);
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), rawTimeframe);
             Object uuid = this.uuid();
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
             }};
@@ -1080,7 +1080,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
             final Object finalParameters = parameters;
-            java.util.Map<String, Object> subscriptionArgs = new java.util.HashMap<String, Object>() {{
+            Object subscriptionArgs = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "unsubscribe", false );
                 put( "interval", rawTimeframe );
@@ -1176,12 +1176,12 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object spotHash = "spot:private";
-            Object swapHash = "swap:private";
-            Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
-            Object spotMessageHash = "spot:order";
-            Object swapMessageHash = "swap:order";
+            Object isSpot = (Helpers.isEqual(type, "spot"));
+            String spotHash = "spot:private";
+            String swapHash = "swap:private";
+            String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
+            String spotMessageHash = "spot:order";
+            String swapMessageHash = "swap:order";
             Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
@@ -1207,7 +1207,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), Helpers.GetValue(this.options, "listenKey"));
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1262,12 +1262,12 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object spotHash = "spot:private";
-            Object swapHash = "swap:private";
-            Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
-            Object spotMessageHash = "spot:mytrades";
-            Object swapMessageHash = "swap:mytrades";
+            Object isSpot = (Helpers.isEqual(type, "spot"));
+            String spotHash = "spot:private";
+            String swapHash = "swap:private";
+            String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
+            String spotMessageHash = "spot:mytrades";
+            String swapMessageHash = "swap:mytrades";
             Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
@@ -1275,7 +1275,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object uuid = this.uuid();
             Object baseUrl = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -1293,7 +1293,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), Helpers.GetValue(this.options, "listenKey"));
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1336,13 +1336,13 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object spotSubHash = "spot:balance";
-            Object swapSubHash = "swap:private";
-            Object spotMessageHash = "spot:balance";
-            Object swapMessageHash = "swap:balance";
-            Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
-            Object subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
+            Object isSpot = (Helpers.isEqual(type, "spot"));
+            String spotSubHash = "spot:balance";
+            String swapSubHash = "swap:private";
+            String spotMessageHash = "spot:balance";
+            String swapMessageHash = "swap:balance";
+            String messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
+            String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotSubHash : swapSubHash;
             Object request = null;
             Object baseUrl = null;
             Object uuid = this.uuid();
@@ -1378,7 +1378,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1462,7 +1462,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             (this.authenticate()).join();
             Object market = null;
-            Object messageHash = "";
+            String messageHash = "";
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
@@ -1500,7 +1500,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             awaitPositionsSnapshot = ((java.util.List<Object>) awaitPositionsSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) awaitPositionsSnapshotparametersVariable).get(1);
             Object uuid = this.uuid();
-            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
+            Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1589,9 +1589,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
-        Object contractsAbs = Precise.stringAbs(contracts);
+        String contractsAbs = Precise.stringAbs(contracts);
         String positionSide = (String)this.safeStringLower(position, "ps");
-        Boolean hedged = true;
+        Object hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {
             hedged = false;
@@ -1952,7 +1952,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //        }
         //    }
         //
-        Boolean isSpot = (Helpers.inOp(message, "dataType"));
+        Object isSpot = (Helpers.inOp(message, "dataType"));
         Object data = this.safeValue2(message, "data", "o", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -1963,9 +1963,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object parsedOrder = this.parseOrder(data);
         Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
-        Object spotHash = "spot:order";
-        Object swapHash = "swap:order";
-        Object messageHash = ((Helpers.isTrue((isSpot)))) ? spotHash : swapHash;
+        String spotHash = "spot:order";
+        String swapHash = "swap:order";
+        String messageHash = ((Helpers.isTrue((isSpot)))) ? spotHash : swapHash;
         client.resolve(stored, messageHash);
         client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), symbol));
     }
@@ -2028,7 +2028,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //        }
         //    }
         //
-        Boolean isSpot = (Helpers.inOp(message, "dataType"));
+        Object isSpot = (Helpers.inOp(message, "dataType"));
         Object result = this.safeDict2(message, "data", "o", new java.util.HashMap<String, Object>() {{}});
         Object cachedTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
@@ -2037,14 +2037,14 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = cachedTrades;
         }
-        Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Object marketId = this.safeString(result, "s");
         Object market = this.safeMarket(marketId, null, "-", type);
         Object parsed = this.parseTrade(result, market);
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        Object spotHash = "spot:mytrades";
-        Object swapHash = "swap:mytrades";
-        Object messageHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
+        String spotHash = "spot:mytrades";
+        String swapHash = "swap:mytrades";
+        String messageHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
         Helpers.callDynamically(cachedTrades, "append", new Object[]{parsed});
         client.resolve(cachedTrades, messageHash);
         client.resolve(cachedTrades, Helpers.add(Helpers.add(messageHash, ":"), symbol));
@@ -2092,8 +2092,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeList(a, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         Object spotUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
-        Boolean isSpot = Helpers.isTrue((!Helpers.isEqual(spotUrl, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0)));
-        Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        Object isSpot = Helpers.isTrue((!Helpers.isEqual(spotUrl, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0)));
+        String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});

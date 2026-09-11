@@ -1088,7 +1088,7 @@ public class MudrexCore extends MudrexApi
         market = this.safeMarket(oms, market);
         String oid = this.safeString2(order, "order_id", "id");
         String rawSide = (String)this.safeStringUpper(order, "order_type");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
             side = "buy";
@@ -1116,7 +1116,7 @@ public class MudrexCore extends MudrexApi
             }
         }
         String trig = (String)this.safeStringUpper(order, "trigger_type");
-        Object typ = null;
+        String typ = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
             typ = "market";
@@ -1477,7 +1477,7 @@ public class MudrexCore extends MudrexApi
         String symbol = (String) this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         String rawSide = (String)this.safeStringUpper2(position, "order_type", "position_type");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, "LONG")))
         {
             side = "long";
@@ -1830,7 +1830,7 @@ public class MudrexCore extends MudrexApi
         Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         String side = (String)this.safeStringLower(trade, "order_type");
-        Object tradeSide = null;
+        String tradeSide = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "long")))
         {
             tradeSide = "buy";
@@ -1839,7 +1839,7 @@ public class MudrexCore extends MudrexApi
             tradeSide = "sell";
         }
         String trig = (String)this.safeStringUpper(trade, "trigger_type");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(trig, "MARKET")))
         {
             // a market execution always takes liquidity, a limit execution can be either

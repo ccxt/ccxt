@@ -16,11 +16,11 @@ public class TestCreateOrder extends BaseTest {
     public Object tcoDebug(BaseExchange exchange, Object symbol, Object message)
     {
         // just for debugging purposes
-        Boolean debugCreateOrder = true;
+        Object debugCreateOrder = true;
         if (Helpers.isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            Object msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
+            String msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
             System.out.println(msg);
         }
         return true;
@@ -32,15 +32,15 @@ public class TestCreateOrder extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-        Boolean hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
-        Boolean hasCancelOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), false)));
-        Boolean hasCancelAllOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)));
+        Object hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
+        Object hasCancelOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), false)));
+        Object hasCancelAllOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)));
         Assert(Helpers.isTrue(Helpers.isTrue(hasCancelOrder) || Helpers.isTrue(hasCancelOrders)) || Helpers.isTrue(hasCancelAllOrders), Helpers.add(logPrefix, " does not have cancelOrder|cancelOrders|canelAllOrders method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         // pre-define some coefficients, which will be used down below
-        Double limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
+        Object limitPriceSafetyMultiplierFromMedian = 1.045; // todo: when this https://github.com/ccxt/ccxt/issues/22442 is implemented, we'll remove hardcoded value. atm 5% is enough
         Object market = exchange.market(symbol);
-        Boolean isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
-        Boolean hasFetchBalance = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), false)));
+        Object isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
+        Object hasFetchBalance = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchBalance"), false)));
         Assert(hasFetchBalance, Helpers.add(logPrefix, " does not have fetchBalance() method, which is needed to make tests for `createOrder` method. Skipping the test..."));
         Object balance = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchBalance", new Object[]{})).join();
         Object initialBaseBalance = Helpers.GetValue(Helpers.GetValue(balance, Helpers.GetValue(market, "base")), "free");
@@ -157,10 +157,10 @@ public class TestCreateOrder extends BaseTest {
         Object predefinedAmount = Helpers.getArg(optionalArgs, 0, null);
         try
         {
-            Boolean isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
-            Boolean isBuy = (Helpers.isEqual(buyOrSellString, "buy"));
-            Object entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
-            Object exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
+            Object isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
+            Object isBuy = (Helpers.isEqual(buyOrSellString, "buy"));
+            String entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
+            String exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
             Object entryorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
             Object exitorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             Object symbol = Helpers.GetValue(market, "symbol");
@@ -170,7 +170,7 @@ public class TestCreateOrder extends BaseTest {
             Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(entryorderFilled, "id"), skippedProperties)).join();
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
             Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
-            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>() {{}};
+            Object parameters = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSwapFuture))
             {
                 Helpers.addElementToObject(parameters, "reduceOnly", true);
@@ -196,8 +196,8 @@ public class TestCreateOrder extends BaseTest {
         Assert(!Helpers.isEqual(filledString, null), Helpers.add(Helpers.add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
-        Object maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
-        Object minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
+        String maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
+        String minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
         Assert(Precise.stringLe(filledString, maxExpectedFilledAmount), Helpers.add(Helpers.add(logPrefix, " filled amount is more than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         Assert(Precise.stringGe(filledString, minExpectedFilledAmount), Helpers.add(Helpers.add(logPrefix, " filled amount is less than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         // order state should be "closed"
@@ -303,7 +303,7 @@ public class TestCreateOrder extends BaseTest {
         }
         // because it's possible that calculated value might get truncated down in "createOrder" (i.e. 0.129 -> 0.12), we should ensure that final amount * price would bypass minimum cost requirements, by adding the "minimum precision"
         Object amountPrecision = exchange.safeNumber(Helpers.GetValue(market, "precision"), "amount");
-        Boolean isTickSizePrecision = Helpers.isEqual(exchange.precisionMode, 4);
+        Object isTickSizePrecision = Helpers.isEqual(exchange.precisionMode, 4);
         if (Helpers.isTrue(Helpers.isEqual(amountPrecision, null)))
         {
             amountPrecision = 1e-15; // todo: revise this for better way in future

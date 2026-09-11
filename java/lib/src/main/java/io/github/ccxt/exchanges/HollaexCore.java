@@ -584,7 +584,7 @@ public class HollaexCore extends HollaexApi
         String code = (String) this.safeCurrencyCode(id);
         Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
+        String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = Helpers.objectKeys(rawNetworks);

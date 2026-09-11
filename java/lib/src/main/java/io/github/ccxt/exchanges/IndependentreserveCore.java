@@ -755,7 +755,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             quote = Helpers.GetValue(market, "quote");
         }
         String orderType = this.safeString2(order, "Type", "OrderType");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "Bid"), 0)))
@@ -776,7 +776,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         Long timestamp = this.parse8601(this.safeString(order, "CreatedTimestampUtc"));
         String filled = this.safeString(order, "VolumeFilled");
         String feeRate = this.safeString(order, "FeePercent");
-        Object feeCost = null;
+        String feeCost = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(feeRate, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             feeCost = Precise.stringMul(feeRate, filled);

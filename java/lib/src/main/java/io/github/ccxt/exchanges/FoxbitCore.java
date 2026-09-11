@@ -444,7 +444,7 @@ public class FoxbitCore extends FoxbitApi
         Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
         Object networks = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String type = (String)this.safeStringLower(rawCurrency, "type");
-        java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
+        Object parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
@@ -452,8 +452,8 @@ public class FoxbitCore extends FoxbitApi
             Object networkCode = this.networkIdToCode(networkId, code);
             Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
             Object networkDepositInfo = this.safeDict(network, "deposit_info");
-            Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
-            Boolean isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
+            Object isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
+            Object isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -648,7 +648,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.v3PublicGetMarketsMarketTicker24hr(this.extend(request, parameters))).join();
@@ -766,7 +766,7 @@ public class FoxbitCore extends FoxbitApi
             //     }
             // ]
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -804,7 +804,7 @@ public class FoxbitCore extends FoxbitApi
             Object market = this.market(symbol);
             Object defaultLimit = 20;
             final Object finalLimit = limit;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "depth", ((Helpers.isTrue((Helpers.isEqual(finalLimit, null))))) ? defaultLimit : finalLimit );
             }};
@@ -863,7 +863,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -917,7 +917,7 @@ public class FoxbitCore extends FoxbitApi
             }
             Object market = this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
             }};
@@ -984,7 +984,7 @@ public class FoxbitCore extends FoxbitApi
             //     ]
             // }
             Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
@@ -995,7 +995,7 @@ public class FoxbitCore extends FoxbitApi
                 String total = this.safeString(account, "balance");
                 String used = this.safeString(account, "balance_locked");
                 String free = this.safeString(account, "balance_available");
-                java.util.Map<String, Object> balanceObj = new java.util.HashMap<String, Object>() {{
+                Object balanceObj = new java.util.HashMap<String, Object>() {{
                     put( "free", free );
                     put( "used", used );
                     put( "total", total );
@@ -1088,7 +1088,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "state", status );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1160,7 +1160,7 @@ public class FoxbitCore extends FoxbitApi
             }
             final Object finalSide = side;
             final Object finalType = type;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)finalSide).toUpperCase() );
                 put( "type", finalType );
@@ -1253,7 +1253,7 @@ public class FoxbitCore extends FoxbitApi
                 Object postOnly = this.safeBool(orderParams, "postOnly", false);
                 Object triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "market_symbol", Helpers.GetValue(market, "id") );
                     put( "side", FoxbitCore.this.safeStringUpper(order, "side") );
                     put( "type", finalType );
@@ -1299,7 +1299,7 @@ public class FoxbitCore extends FoxbitApi
                 }
                 ((java.util.List<Object>)ordersRequests).add(this.extend(request, orderParams));
             }
-            java.util.Map<String, Object> createOrdersRequest = new java.util.HashMap<String, Object>() {{
+            Object createOrdersRequest = new java.util.HashMap<String, Object>() {{
                 put( "data", ordersRequests );
             }};
             Object response = (this.v3PrivatePostOrdersBatch(this.extend(createOrdersRequest, parameters))).join();
@@ -1345,7 +1345,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", FoxbitCore.this.parseNumber(id) );
                 put( "type", "ID" );
             }};
@@ -1385,7 +1385,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "ALL" );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1431,7 +1431,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object response = (this.v3PrivateGetOrdersByOrderIdId(this.extend(request, parameters))).join();
@@ -1486,7 +1486,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1563,7 +1563,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1620,7 +1620,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency_symbol", Helpers.GetValue(currency, "id") );
             }};
             var networkCodeparamsOmitedVariable = this.handleNetworkCodeAndParams(parameters);
@@ -1670,7 +1670,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1735,7 +1735,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1853,7 +1853,7 @@ public class FoxbitCore extends FoxbitApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object attributes = this.safeDict(data, "attributes", new java.util.HashMap<String, Object>() {{}});
             String statusRaw = this.safeString(attributes, "status");
-            java.util.Map<String, Object> statusMap = new java.util.HashMap<String, Object>() {{
+            Object statusMap = new java.util.HashMap<String, Object>() {{
                 put( "NORMAL", "ok" );
                 put( "UNDER_MAINTENANCE", "maintenance" );
             }};
@@ -1914,7 +1914,7 @@ public class FoxbitCore extends FoxbitApi
             }
             final Object finalType = type;
             final Object finalSide = side;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "mode", "ALLOW_FAILURE" );
                 put( "cancel", new java.util.HashMap<String, Object>() {{
                     put( "type", "ID" );
@@ -1986,7 +1986,7 @@ public class FoxbitCore extends FoxbitApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency_symbol", Helpers.GetValue(currency, "id") );
                 put( "amount", FoxbitCore.this.numberToString(amount) );
                 put( "destination_address", address );
@@ -2040,7 +2040,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLedger() requires a code argument")) ;
@@ -2196,8 +2196,8 @@ public class FoxbitCore extends FoxbitApi
         String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
         String privateSideField = (String)this.safeStringLower(trade, "side");
         Object side = this.safeStringLower(trade, "taker_side", privateSideField);
-        Object cost = Precise.stringMul(price, amount);
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+        String cost = Precise.stringMul(price, amount);
+        Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", FoxbitCore.this.safeSymbol(FoxbitCore.this.safeString(trade, "fee_currency_symbol")) );
             put( "cost", FoxbitCore.this.safeNumber(trade, "fee") );
             put( "rate", null );
@@ -2221,7 +2221,7 @@ public class FoxbitCore extends FoxbitApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PARTIALLY_CANCELED", "open" );
             put( "ACTIVE", "open" );
             put( "PARTIALLY_FILLED", "open" );
@@ -2249,7 +2249,7 @@ public class FoxbitCore extends FoxbitApi
         String filled = this.safeString(order, "quantity_executed");
         String remaining = this.safeString(order, "quantity");
         // TODO: validate logic of amount here, should this be calculated?
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(remaining, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             amount = Precise.stringAdd(remaining, filled);
@@ -2323,7 +2323,7 @@ public class FoxbitCore extends FoxbitApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SUBMITTING", "pending" );
             put( "SUBMITTED", "pending" );
             put( "REJECTED", "failed" );
@@ -2367,9 +2367,9 @@ public class FoxbitCore extends FoxbitApi
             // actualAmount = amount - fee;
             actualAmount = Precise.stringSub(amount, fee);
         }
-        Object feeRate = Precise.stringDiv(fee, actualAmount);
+        String feeRate = Precise.stringDiv(fee, actualAmount);
         final Object finalFee = fee;
-        java.util.Map<String, Object> feeObj = new java.util.HashMap<String, Object>() {{
+        Object feeObj = new java.util.HashMap<String, Object>() {{
             put( "cost", FoxbitCore.this.parseNumber(finalFee) );
             put( "currency", currencyCode );
             put( "rate", FoxbitCore.this.parseNumber(feeRate) );
@@ -2402,7 +2402,7 @@ public class FoxbitCore extends FoxbitApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Object types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSITING", "transaction" );
             put( "WITHDRAWING", "transaction" );
             put( "TRADING", "trade" );
@@ -2437,7 +2437,7 @@ public class FoxbitCore extends FoxbitApi
         Object amount = this.safeNumber(item, "amount");
         Object realAmount = amount;
         Object balance = this.safeNumber(item, "balance");
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+        Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", FoxbitCore.this.safeNumber(item, "fee") );
             put( "currency", currencySymbol );
         }};
@@ -2494,7 +2494,7 @@ public class FoxbitCore extends FoxbitApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
+        String fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isEqual(version, "status")))
         {
             fullPath = "/status";

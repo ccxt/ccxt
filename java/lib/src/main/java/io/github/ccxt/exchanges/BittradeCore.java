@@ -1203,7 +1203,7 @@ public class BittradeCore extends BittradeApi
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "filled-amount", "amount");
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         Object fee = null;
         Object feeCost = this.safeString(trade, "filled-fees");
         String feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
@@ -1974,7 +1974,7 @@ public class BittradeCore extends BittradeApi
         String id = this.safeString(order, "id");
         Object side = null;
         Object type = null;
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.inOp(order, "type")))
         {
             Object orderType = Helpers.split(Helpers.GetValue(order, "type"), "-");

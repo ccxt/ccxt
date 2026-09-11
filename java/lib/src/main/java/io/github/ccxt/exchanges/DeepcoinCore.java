@@ -1717,8 +1717,8 @@ public class DeepcoinCore extends DeepcoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(item, "ts");
         String change = this.safeString(item, "balChg");
-        Object amount = Precise.stringAbs(change);
-        Object direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
+        String amount = Precise.stringAbs(change);
+        String direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
         String currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         String type = this.safeString(item, "type");
@@ -2074,7 +2074,7 @@ public class DeepcoinCore extends DeepcoinApi
             mrgPosition = ((java.util.List<Object>) mrgPositionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) mrgPositionparametersVariable).get(1);
             Helpers.addElementToObject(request, "mrgPosition", mrgPosition);
-            Object posSide = null;
+            String posSide = null;
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {

@@ -136,7 +136,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 put( "params", request );
                 put( "id", GrvtCore.this.requestId() );
             }};
-            Object apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
+            String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
             return (this.watchMultiple(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
         });
 

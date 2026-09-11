@@ -1171,7 +1171,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object messageHash = "positions";
+            String messageHash = "positions";
             symbols = this.marketSymbols(symbols);
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {

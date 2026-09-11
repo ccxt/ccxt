@@ -123,7 +123,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             subscription = this.extend(subscription, new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }});
-            Object type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type), "/public");
             return (this.watchMultiple(url, messageHashes, this.deepExtend(message, parameters), messageHashes, subscription)).join();
         });
@@ -138,7 +138,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object isContract = Helpers.getArg(optionalArgs, 0, false);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String type = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type), "/private");
             this.authenticate(url);
             String method = "SUBSCRIBE";
@@ -1399,7 +1399,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
-            Object subHash = ((Helpers.isTrue(isContract))) ? "myContractTrades" : "myTrades";
+            String subHash = ((Helpers.isTrue(isContract))) ? "myContractTrades" : "myTrades";
             Object unSubHash = Helpers.add("unsubscribe::", subHash);
             Object channel = "fill";
             Object subscription = new java.util.HashMap<String, Object>() {{
@@ -1650,7 +1650,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
-            Object subHash = ((Helpers.isTrue(isContract))) ? "contractOrders" : "orders";
+            String subHash = ((Helpers.isTrue(isContract))) ? "contractOrders" : "orders";
             Object unSubHash = Helpers.add("unsubscribe::", subHash);
             Object channel = "orders";
             Object subscription = new java.util.HashMap<String, Object>() {{
@@ -1942,7 +1942,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
-            Object urlType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String urlType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), urlType), "/private");
             this.authenticate(url);
             Client client = this.client(url);

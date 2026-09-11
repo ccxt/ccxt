@@ -1056,7 +1056,7 @@ final Object finalBase = base;
         String marketId = this.safeString(trade, "market");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
         Object taker = this.safeValue(trade, "taker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(taker, null)))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(taker, true))))) ? "taker" : "maker";
@@ -1496,7 +1496,7 @@ final Object finalBase = base;
             Object currency = this.currency(code);
             Object subaccountId = this.safeString(parameters, "subaccountId");
             parameters = this.omit(parameters, "subaccountId");
-            Object direction = null;
+            String direction = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromAccount, "master"))) && Helpers.isTrue((Helpers.isEqual(toAccount, "master")))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount to be different (one master and one subaccount id)")) ;
@@ -1798,7 +1798,7 @@ final Object finalBase = base;
             {
                 Object priceString = this.numberToString(price);
                 Object amountString = this.numberToString(amount);
-                Object quoteAmount = Precise.stringMul(amountString, priceString);
+                String quoteAmount = Precise.stringMul(amountString, priceString);
                 cost = this.parseNumber(quoteAmount);
             } else
             {
@@ -3097,7 +3097,7 @@ final Object finalBase = base;
                 put( "currency", code );
             }};
         }
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(transaction, "success"))) || Helpers.isTrue((Helpers.inOp(transaction, "address")))))
         {
             type = "withdrawal";

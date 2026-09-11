@@ -19,13 +19,13 @@ public class TestWatchTradesForSymbols extends BaseTest {
         String method = "watchTradesForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Integer maxIdleTime = 5000;
-        Boolean idle = false;
+        Object maxIdleTime = 5000;
+        Object idle = false;
         java.util.List<Object> returnedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;
-            Boolean success = true;
+            Object success = true;
             Object startTime = exchange.milliseconds();
             try
             {

@@ -324,7 +324,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object message = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(newTopicsCount, 0)))
             {
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "op", "subscribe" );
                     put( "args", newTopics );
                 }};
@@ -399,7 +399,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //     }
         //
         Object type = this.safeString(message, "type");
-        Boolean isSnapshot = (Helpers.isEqual(type, "snapshot"));
+        Object isSnapshot = (Helpers.isEqual(type, "snapshot"));
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         Object market = this.safeMarket(marketId, null);
@@ -508,7 +508,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+                Object result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -679,8 +679,8 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
         Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-        Boolean isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
-        Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+        Object isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
+        String marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
@@ -791,7 +791,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "";
+            String messageHash = "";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
@@ -887,7 +887,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+        Object symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
             Object rawTrade = Helpers.GetValue(lists, i);
@@ -944,7 +944,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+        Object symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
             Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
@@ -1097,7 +1097,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 // auth sign
                 final Object finalTimestamp = timestamp;
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "type", "login" );
                     put( "topics", new java.util.ArrayList<Object>(java.util.Arrays.asList("ws_zk_accounts_v3")) );
                     put( "httpMethod", http_method );
@@ -1107,7 +1107,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                     put( "timestamp", finalTimestamp );
                     put( "signature", signature );
                 }};
-                java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+                Object message = new java.util.HashMap<String, Object>() {{
                     put( "op", "login" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.json(request))) );
                 }};
@@ -1203,7 +1203,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                String messageHash = "authenticated";
+                Object messageHash = "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -1232,7 +1232,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             return;
         }
         Object topic = this.safeString2(message, "topic", "op", "");
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Object methods = new java.util.HashMap<String, Object>() {{
             put( "ws_zk_accounts_v3", "handleAccount");
             put( "orderBook", "handleOrderBook");
             put( "depth", "handleOrderBook");
@@ -1360,7 +1360,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //
         Object success = this.safeValue(message, "success");
         Object code = this.safeInteger(message, "retCode");
-        String messageHash = "authenticated";
+        Object messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {
             Object future = this.safeValue(client.futures, messageHash);

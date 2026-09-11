@@ -67,7 +67,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "topic", topic );
                 put( "event", "sub" );
@@ -705,9 +705,9 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(trade, "t");
         Object isBuyerMaker = this.safeBool(trade, "m");
-        Boolean isPublicTrade = Helpers.isEqual(this.safeString(trade, "e"), null);
+        Object isPublicTrade = Helpers.isEqual(this.safeString(trade, "e"), null);
         Object side = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
             if (Helpers.isTrue(isPublicTrade))
@@ -974,8 +974,8 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object eventVar = this.safeString(message, "e");
         Object data = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balanceUpdate = this.safeDict(data, 0);
-        Boolean isSpot = Helpers.isEqual(eventVar, "outboundAccountInfo");
-        Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        Object isSpot = Helpers.isEqual(eventVar, "outboundAccountInfo");
+        String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});
@@ -1071,7 +1071,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
                 return null;
             }
             final Object finalListenKey = listenKey;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "listenKey", finalListenKey );
             }};
             try

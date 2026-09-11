@@ -857,7 +857,7 @@ public class MercadoCore extends MercadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "order_id");
         String order_type = this.safeString(order, "order_type");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Helpers.inOp(order, "order_type")))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(order_type, "1"))))) ? "buy" : "sell";
@@ -1287,7 +1287,7 @@ public class MercadoCore extends MercadoApi
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
+            String auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", MercadoCore.this.apiKey );

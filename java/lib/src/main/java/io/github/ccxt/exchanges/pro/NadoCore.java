@@ -1659,7 +1659,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         market = this.safeMarket(marketId, market);
         Object timestamp = this.parseWsTimestamp(trade, "timestamp");
         Object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTakerBuyer, null)))
         {
             side = ((Helpers.isTrue(isTakerBuyer))) ? "buy" : "sell";
@@ -1709,13 +1709,13 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         market = this.safeMarket(marketId, market);
         Object timestamp = this.parseWsTimestamp(trade, "timestamp");
         Object isBid = this.safeBool(trade, "is_bid");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBid, null)))
         {
             side = ((Helpers.isTrue(isBid))) ? "buy" : "sell";
         }
         Object isTaker = this.safeBool(trade, "is_taker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isTaker))) ? "taker" : "maker";
@@ -1855,7 +1855,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object filled = this.parseX18(this.safeString(order, "filled_qty"));
         Object average = this.parseX18(this.safeString(order, "filled_price"));
         Object reason = this.safeString(order, "reason");
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.isEqual(reason, "placed")))
         {
             status = "open";
@@ -1936,7 +1936,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object timestamp = this.parseWsTimestamp(position, "timestamp");
         Object amountString = this.safeString(position, "amount");
         Object vQuoteAmount = this.safeString(position, "v_quote_amount");
-        Object side = null;
+        String side = null;
         Object contracts = null;
         Object entryPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(amountString, null)))
@@ -1948,7 +1948,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             {
                 side = "short";
             }
-            Object absoluteAmount = Precise.stringAbs(amountString);
+            String absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(vQuoteAmount, null))) && !Helpers.isTrue(Precise.stringEquals(absoluteAmount, "0"))))
             {

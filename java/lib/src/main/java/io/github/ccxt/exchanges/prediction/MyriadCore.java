@@ -304,7 +304,7 @@ public class MyriadCore extends MyriadApi
                 rawMarkets = (this.fetchRawMarketsList(rest)).join();
             }
             java.util.List<Object> flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
+            Object eventsDict = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object raw = Helpers.GetValue(rawMarkets, i);
@@ -344,7 +344,7 @@ public class MyriadCore extends MyriadApi
             Object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
             Object state = this.safeString(parameters, "state", this.safeString(this.options, "defaultMarketStatus", "open"));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit", "state")));
-            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
+            Object seen = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
             {
@@ -489,7 +489,7 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object parts = Helpers.split(id, ":");
             Object partsLength = Helpers.getArrayLength(parts);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 1)))
             {
                 Helpers.addElementToObject(request, "network_id", this.safeString(parts, 0));
@@ -518,7 +518,7 @@ public class MyriadCore extends MyriadApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object result = null;
@@ -531,7 +531,7 @@ public class MyriadCore extends MyriadApi
                 {
                     throw (e instanceof RuntimeException ? (RuntimeException)e : new RuntimeException(e));
                 }
-                java.util.Map<String, Object> keywordRequest = new java.util.HashMap<String, Object>() {{
+                Object keywordRequest = new java.util.HashMap<String, Object>() {{
                     put( "keyword", id );
                     put( "limit", 50 );
                 }};
@@ -575,7 +575,7 @@ public class MyriadCore extends MyriadApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "defaultFetchEventsLimit", 50));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
-            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
+            Object seen = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> rawQuestions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
             {
@@ -623,13 +623,13 @@ public class MyriadCore extends MyriadApi
             Object state = this.safeString2(parameters, "state", "status", this.safeString(this.options, "defaultMarketStatus", "open"));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("state", "status", "limit", "tradingModel", "trading_model")));
             java.util.List<Object> allRawQuestions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
+            Object seen = new java.util.HashMap<String, Object>() {{}};
             Object collected = 0;
             Object page = 1;
             while (true)
             {
                 final Object finalPage = page;
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "limit", limit );
                     put( "page", finalPage );
                 }};
@@ -782,7 +782,7 @@ public class MyriadCore extends MyriadApi
         Object value = this.safeNumber(position, "value");
         Object profit = this.safeNumber(position, "profit");
         Object roi = this.safeString(position, "roi");
-        Object percentage = null;
+        String percentage = null;
         if (Helpers.isTrue(!Helpers.isEqual(roi, null)))
         {
             percentage = Precise.stringMul(roi, "100");
@@ -832,7 +832,7 @@ public class MyriadCore extends MyriadApi
             Object outcomeId = this.safeInteger(info, "outcomeId");
             Object sideStr = ((String)((String)side)).toLowerCase();
             final Object finalSideStr = sideStr;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_id", MyriadCore.this.parseToInt(marketId) );
                 put( "network_id", MyriadCore.this.parseToInt(networkId) );
                 put( "outcome_id", outcomeId );
@@ -964,13 +964,13 @@ public class MyriadCore extends MyriadApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
+            Object payload = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "id", 1 );
                 put( "method", method );
                 put( "params", rpcParams );
             }};
-            java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
+            Object headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
             Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
@@ -1079,7 +1079,7 @@ public class MyriadCore extends MyriadApi
             Object order = this.safeDict(built, "order");
             Object networkId = this.safeString(built, "networkId");
             Object timeInForce = this.safeString(built, "timeInForce");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "order", order );
                 put( "signature", MyriadCore.this.safeString(built, "signature") );
                 put( "network_id", MyriadCore.this.parseToInt(networkId) );
@@ -1093,7 +1093,7 @@ public class MyriadCore extends MyriadApi
             //         "timeInForce": "GTC"
             //     }
             //
-            java.util.Map<String, Object> orderForResponse = new java.util.HashMap<String, Object>() {{
+            Object orderForResponse = new java.util.HashMap<String, Object>() {{
                 put( "trader", MyriadCore.this.safeString(order, "trader") );
                 put( "marketId", MyriadCore.this.safeString(order, "marketId") );
                 put( "outcomeId", MyriadCore.this.safeNumber(order, "outcomeId") );
@@ -1174,8 +1174,8 @@ public class MyriadCore extends MyriadApi
         Object typeStr = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "limit" : ((String)type).toLowerCase();
         Object sideStr = ((String)((String)side)).toLowerCase();
         Object sideInt = ((Helpers.isTrue((Helpers.isEqual(sideStr, "buy"))))) ? 0 : 1;
-        Boolean isMarket = (Helpers.isEqual(typeStr, "market"));
-        Object defaultTif = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
+        Object isMarket = (Helpers.isEqual(typeStr, "market"));
+        String defaultTif = ((Helpers.isTrue(isMarket))) ? "FOK" : "GTC";
         Object timeInForce = this.safeStringUpper(parameters, "timeInForce", defaultTif);
         Object priceValue = price;
         if (Helpers.isTrue(Helpers.isEqual(priceValue, null)))
@@ -1209,7 +1209,7 @@ public class MyriadCore extends MyriadApi
         Object minFillAmount = this.safeString(parameters, "minFillAmount", "0");
         final Object finalSideInt = sideInt;
         final Object finalPriceWei = priceWei;
-        java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
+        Object order = new java.util.HashMap<String, Object>() {{
             put( "trader", trader );
             put( "marketId", marketId );
             put( "outcomeId", MyriadCore.this.parseToNumeric(outcomeId) );
@@ -1373,7 +1373,7 @@ public class MyriadCore extends MyriadApi
             }
             Object fromAddress = this.ethGetAddressFromPrivateKey(this.privateKey);
             Object txHashParam = this.safeString2(parameters, "transactionHash", "txHash");
-            Boolean hasPreBroadcastTxHash = (!Helpers.isEqual(txHashParam, null));
+            Object hasPreBroadcastTxHash = (!Helpers.isEqual(txHashParam, null));
             Object skipAllowance = this.safeBool(parameters, "skipAllowance", hasPreBroadcastTxHash);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sideStr, "buy"))) && Helpers.isTrue((!Helpers.isEqual(tokenAddress, null)))) && Helpers.isTrue((!Helpers.isEqual(skipAllowance, true)))))
             {
@@ -1440,7 +1440,7 @@ public class MyriadCore extends MyriadApi
         Object domainName = this.safeString(this.options, "obDomainName", "MyriadCTFExchange");
         Object domainVersion = this.safeString(this.options, "obDomainVersion", "1");
         final Object finalExchangeAddress = exchangeAddress;
-        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
+        Object domain = new java.util.HashMap<String, Object>() {{
             put( "name", domainName );
             put( "version", domainVersion );
             put( "chainId", MyriadCore.this.parseToInt(networkId) );
@@ -1616,7 +1616,7 @@ public class MyriadCore extends MyriadApi
     public Object toOrderbookWei(Object value)
     {
         Object valueStr = this.numberToString(value);
-        Object scaled = Precise.stringMul(valueStr, "1000000000000000000");
+        String scaled = Precise.stringMul(valueStr, "1000000000000000000");
         // use > -1 (not >= 0): when '.' is absent PHP's mb_strpos returns false, and false >= 0
         // coerces to true (wrongly truncating to empty), whereas false > -1 correctly coerces to false
         if (Helpers.isTrue(Helpers.isEqual(scaled, null)))
@@ -1637,7 +1637,7 @@ public class MyriadCore extends MyriadApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
             put( "pending", "open" );
             put( "partially_filled", "open" );
@@ -1655,7 +1655,7 @@ public class MyriadCore extends MyriadApi
         Object inner = this.safeDict(order, "order", new java.util.HashMap<String, Object>() {{}});
         Object orderHash = this.safeString2(order, "orderHash", "hash");
         Object sideInt = this.safeInteger(inner, "side");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(sideInt, 1))))) ? "sell" : "buy";
+        String side = ((Helpers.isTrue((Helpers.isEqual(sideInt, 1))))) ? "sell" : "buy";
         Object amountWei = this.safeString(inner, "amount");
         Object priceWei = this.safeString(inner, "price");
         Object filledWei = this.safeString(order, "filledAmount");
@@ -1666,7 +1666,7 @@ public class MyriadCore extends MyriadApi
         Object status = this.parseOrderStatus(statusRaw);
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
         String tif = (String)this.safeStringUpper(order, "timeInForce");
-        Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
+        Object isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
         Object outcome = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : this.safeString(market, "outcome");
         Object outcomeObj = market;
@@ -1756,7 +1756,7 @@ public class MyriadCore extends MyriadApi
         Object timestamp = this.safeTimestamp(trade, "timestamp");
         Object amountStr = this.safeString(trade, "shares");
         Object costStr = this.safeString(trade, "value");
-        Object priceStr = null;
+        String priceStr = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountStr, null))) && Helpers.isTrue((!Helpers.isEqual(costStr, null)))) && !Helpers.isTrue(Precise.stringEq(amountStr, "0"))))
         {
             priceStr = Precise.stringDiv(costStr, amountStr);
@@ -1834,7 +1834,7 @@ public class MyriadCore extends MyriadApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() for AMM history requires a trader address or wallet/privateKey")) ;
             }
             final Object finalTrader = trader;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "address", finalTrader );
             }};
             Object outcomeObj = null;
@@ -1971,7 +1971,7 @@ public class MyriadCore extends MyriadApi
             Object message = this.clobOrderMessage(rawOrder);
             Object signature = this.signClobOrder(message, networkId);
             final Object finalNetworkId = networkId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "hash", id );
                 put( "order", message );
                 put( "signature", signature );
@@ -2032,14 +2032,14 @@ public class MyriadCore extends MyriadApi
             // timestamp defaults to now (unix seconds) but can be pinned via params for idempotent retries
             Object timestamp = this.safeString(parameters, "timestamp", this.numberToString(this.seconds()));
             final Object finalMarketId = marketId;
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Object message = new java.util.HashMap<String, Object>() {{
                 put( "trader", trader );
                 put( "marketId", finalMarketId );
                 put( "timestamp", timestamp );
             }};
             Object signature = this.signCancelAll(message, networkId);
             final Object finalNetworkId = networkId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "trader", trader );
                 put( "market_id", MyriadCore.this.parseToInt(finalMarketId) );
                 put( "timestamp", timestamp );
@@ -2137,7 +2137,7 @@ public class MyriadCore extends MyriadApi
                 }}));
             }
             final Object finalNetworkId = networkId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", signedOrders );
                 put( "network_id", MyriadCore.this.parseToInt(finalNetworkId) );
             }};
@@ -2234,7 +2234,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object trader = this.safeString(parameters, "trader");
             if (Helpers.isTrue(Helpers.isEqual(trader, null)))
             {
@@ -2330,7 +2330,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
@@ -2358,7 +2358,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
@@ -2386,7 +2386,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }};
             return (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
@@ -2416,7 +2416,7 @@ public class MyriadCore extends MyriadApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }};
             Object orders = (this.fetchOrders(outcome, since, limit, this.extend(request, parameters))).join();
@@ -2504,7 +2504,7 @@ public class MyriadCore extends MyriadApi
     }}, "latest"));
             Object raw = (this.ethRpc(rpcUrl, "eth_call", callParams)).join();
             Object balanceString = this.fromWeiWithDecimals(raw, decimals);
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+            Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "balanceHex", raw );
                     put( "token", finalToken );
@@ -2531,13 +2531,13 @@ public class MyriadCore extends MyriadApi
         Object chars = this.stringToCharsArray(((String)stripped).toLowerCase());
         Object n = Helpers.getArrayLength(chars);
         String digits = "0123456789abcdef";
-        Object result = "0";
+        String result = "0";
         for (var i = 0; Helpers.isLessThan(i, n); i++)
         {
             Object v = Helpers.getIndexOf(digits, Helpers.GetValue(chars, i));
             if (Helpers.isTrue(Helpers.isGreaterThan(v, Helpers.opNeg(1))))
             {
-                Object mul = Precise.stringMul(result, "16");
+                String mul = Precise.stringMul(result, "16");
                 Object digit = this.numberToString(v);
                 result = Precise.stringAdd(mul, digit);
             }
@@ -2645,12 +2645,12 @@ public class MyriadCore extends MyriadApi
         Object rawOutcomes = (java.util.List<Object>)(this.safeList(raw, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object endDate = this.safeString(raw, "expiresAt");
         Object state = this.safeString(raw, "state", "open");
-        Boolean active = Helpers.isEqual(state, "open");
+        Object active = Helpers.isEqual(state, "open");
         // resolution: resolvedOutcomeId is "-1" until the market resolves, then the winning outcome id
         Object resolvedOutcomeId = this.safeString(raw, "resolvedOutcomeId", "-1");
         Object voided = this.safeBool(raw, "voided", false);
-        Boolean hasResolution = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "-1"))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, null)))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "")));
-        Boolean marketResolved = Helpers.isTrue(hasResolution) || Helpers.isTrue(voided);
+        Object hasResolution = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "-1"))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, null)))) && Helpers.isTrue((!Helpers.isEqual(resolvedOutcomeId, "")));
+        Object marketResolved = Helpers.isTrue(hasResolution) || Helpers.isTrue(voided);
         Object resolvedOutcome = null;
         Object volume24h = this.safeNumber(raw, "volume24h");
         // qualify the handle only with a real event slug (when passed); myriad market slugs are
@@ -2727,7 +2727,7 @@ final Object finalNetworkId = networkId;
             }});
         }
         Object marketTradingModel = this.safeString(raw, "tradingModel", "amm");
-        Object marketExecutionModel = ((Helpers.isTrue((Helpers.isEqual(marketTradingModel, "amm"))))) ? "amm" : "clob";
+        String marketExecutionModel = ((Helpers.isTrue((Helpers.isEqual(marketTradingModel, "amm"))))) ? "amm" : "clob";
         Object outcomesLength = Helpers.getArrayLength(outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
@@ -2821,7 +2821,7 @@ final Object finalNetworkId = networkId;
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object networkId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "networkId");
             Object marketId = this.safeString(Helpers.GetValue(outcomeObj, "info"), "marketId");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
             }};
@@ -2921,7 +2921,7 @@ final Object finalNetworkId = networkId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", MyriadCore.this.safeString(info, "marketId") );
                 put( "network_id", MyriadCore.this.safeString(info, "networkId") );
             }};
@@ -3122,7 +3122,7 @@ final Object finalNetworkId = networkId;
             Object tradingModel = this.safeString(Helpers.GetValue(outcomeObj, "info"), "tradingModel", "amm");
             if (Helpers.isTrue(Helpers.isEqual(tradingModel, "ob")))
             {
-                java.util.Map<String, Object> obRequest = new java.util.HashMap<String, Object>() {{
+                Object obRequest = new java.util.HashMap<String, Object>() {{
                     put( "id", marketId );
                     put( "network_id", networkId );
                     put( "outcome", outcomeId );
@@ -3136,7 +3136,7 @@ final Object finalNetworkId = networkId;
                 //
                 return this.safePredictionOrderBook(this.parseWeiOrderBook(obResponse, this.safeOutcomeSymbol(outcome, outcomeObj)), outcomeObj);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
             }};
@@ -3252,7 +3252,7 @@ final Object finalNetworkId = networkId;
             {
                 ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(ask, synthSize)));
             }
-            java.util.Map<String, Object> orderbook = new java.util.HashMap<String, Object>() {{
+            Object orderbook = new java.util.HashMap<String, Object>() {{
                 put( "outcome", MyriadCore.this.safeOutcomeSymbol(outcome, outcomeObj) );
                 put( "bids", bids );
                 put( "asks", asks );
@@ -3487,10 +3487,10 @@ final Object finalNetworkId = networkId;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             // resolve the uncached outcomes first, then group by parent market to fetch each market only once
             (this.loadOutcomes(outcomes)).join();
-            java.util.Map<String, Object> outcomesByMarket = new java.util.HashMap<String, Object>() {{}};
+            Object outcomesByMarket = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> marketKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
             {
@@ -3567,7 +3567,7 @@ final Object finalNetworkId = networkId;
             Object networkId = this.safeString(info, "networkId");
             Object marketId = this.safeString(info, "marketId");
             Object outcomeId = this.safeString(info, "outcomeId");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", marketId );
                 put( "network_id", networkId );
             }};
@@ -3637,7 +3637,7 @@ final Object finalNetworkId = networkId;
         Object timestamp = this.safeTimestamp(trade, "timestamp");
         Object amountStr = this.safeString(trade, "shares");
         Object costStr = this.safeString(trade, "value");
-        Object priceStr = null;
+        String priceStr = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amountStr, null))) && Helpers.isTrue((!Helpers.isEqual(costStr, null)))) && !Helpers.isTrue(Precise.stringEq(amountStr, "0"))))
         {
             priceStr = Precise.stringDiv(costStr, amountStr);
@@ -3750,7 +3750,7 @@ final Object finalNetworkId = networkId;
             {
                 this.markets = this.createSafeDictionary();
             }
-            java.util.Map<String, Object> seenMarketHandles = new java.util.HashMap<String, Object>() {{}};
+            Object seenMarketHandles = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawQuestionsLength = Helpers.getArrayLength(rawQuestions);
             for (var i = 0; Helpers.isLessThan(i, rawQuestionsLength); i++)
@@ -3914,7 +3914,7 @@ final Object finalNetworkId = networkId;
                 Object requestId = this.requestId(url);
                 // give the anonymous connect a name so the params object is non-empty (PHP serialises an
                 // empty array as a JSON array, which Centrifugo rejects)
-                java.util.Map<String, Object> connectMsg = new java.util.HashMap<String, Object>() {{
+                Object connectMsg = new java.util.HashMap<String, Object>() {{
                     put( "connect", new java.util.HashMap<String, Object>() {{
                         put( "name", "ccxt" );
                     }} );
@@ -3956,7 +3956,7 @@ final Object finalNetworkId = networkId;
             // finish the connect handshake first so the subscribe frame is sent after the connect reply
             (this.connectCentrifugo(url)).join();
             Object requestId = this.requestId(url);
-            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
+            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "subscribe", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
                 }} );
@@ -4066,7 +4066,7 @@ final Object finalNetworkId = networkId;
             // finish the connect handshake first so the client exists and the subscribe follows the connect reply
             (this.connectCentrifugo(url)).join();
             Client client = this.client(url);
-            Boolean isNewSubscription = Helpers.isEqual(this.safeValue(client.subscriptions, channel), null);
+            Object isNewSubscription = Helpers.isEqual(this.safeValue(client.subscriptions, channel), null);
             if (Helpers.isTrue(isNewSubscription))
             {
                 // the channel only streams deltas, so (re)seed the live book from the REST snapshot on a
@@ -4074,7 +4074,7 @@ final Object finalNetworkId = networkId;
                 (this.seedOrderBook(outcome, sym, limit)).join();
             }
             Object requestId = this.requestId(url);
-            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
+            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "subscribe", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
                 }} );
@@ -4115,7 +4115,7 @@ final Object finalNetworkId = networkId;
         Object ts = this.safeInteger(data, "ts");
         Object changes = this.safeList(data, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object changesLength = Helpers.getArrayLength(changes);
-        java.util.Map<String, Object> updated = new java.util.HashMap<String, Object>() {{}};
+        Object updated = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
         {
             Object change = Helpers.GetValue(changes, i);
@@ -4400,7 +4400,7 @@ final Object finalNetworkId = networkId;
             (this.connectCentrifugo(url)).join();
             (this.loadOutcomes(outcomes)).join();
             Client client = this.client(url);
-            java.util.Map<String, Object> seenChannels = new java.util.HashMap<String, Object>() {{}};
+            Object seenChannels = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> resolvedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
             {
@@ -4414,7 +4414,7 @@ final Object finalNetworkId = networkId;
                 {
                     Helpers.addElementToObject(seenChannels, channel, true);
                     Object requestId = this.requestId(url);
-                    java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
+                    Object subscribeMsg = new java.util.HashMap<String, Object>() {{
                         put( "subscribe", new java.util.HashMap<String, Object>() {{
                             put( "channel", channel );
                         }} );
@@ -4574,7 +4574,7 @@ final Object finalNetworkId = networkId;
         Object filled = this.fromWei(this.safeString(data, "filledAmount"));
         Object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
         String tif = (String)this.safeStringUpper(data, "timeInForce");
-        Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
+        Object isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
         final Object finalSym = sym;
         final Object finalTif = tif;
@@ -4641,7 +4641,7 @@ final Object finalNetworkId = networkId;
             Object url = this.safeString(Helpers.GetValue(this.urls, "api"), "ws");
             (this.connectCentrifugo(url)).join();
             Client client = this.client(url);
-            Boolean isNewSubscription = Helpers.isEqual(this.safeValue(client.subscriptions, channel), null);
+            Object isNewSubscription = Helpers.isEqual(this.safeValue(client.subscriptions, channel), null);
             if (Helpers.isTrue(isNewSubscription))
             {
                 // the channel pushes only signed deltas; seed absolute share balances from REST so
@@ -4649,7 +4649,7 @@ final Object finalNetworkId = networkId;
                 (this.seedPositionBalances(trader)).join();
             }
             Object requestId = this.requestId(url);
-            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
+            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "subscribe", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
                 }} );
@@ -4673,7 +4673,7 @@ final Object finalNetworkId = networkId;
             Object positions = (this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
                 put( "address", trader );
             }})).join();
-            java.util.Map<String, Object> balances = new java.util.HashMap<String, Object>() {{}};
+            Object balances = new java.util.HashMap<String, Object>() {{}};
             Object positionsLength = Helpers.getArrayLength(positions);
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
             {
@@ -4711,7 +4711,7 @@ final Object finalNetworkId = networkId;
         {
             deltaStr = Helpers.slice(deltaStr, 1, null);
         }
-        Object deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
+        String deltaShares = Precise.stringDiv(deltaStr, "1000000000000000000");
         Object contracts = null;
         Object posId = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkId, null))) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))) && Helpers.isTrue((!Helpers.isEqual(outcomeId, null)))))
@@ -4719,7 +4719,7 @@ final Object finalNetworkId = networkId;
             posId = Helpers.add(Helpers.add(Helpers.add(Helpers.add(networkId, ":"), marketId), "/"), outcomeId);
             Object balances = this.safeDict(this.options, "positionBalances", new java.util.HashMap<String, Object>() {{}});
             Object prior = this.safeString(balances, posId, "0");
-            Object updated = Precise.stringAdd(prior, deltaShares);
+            String updated = Precise.stringAdd(prior, deltaShares);
             if (Helpers.isTrue(!Helpers.isEqual(posId, null)))
             {
                 Helpers.addElementToObject(balances, posId, updated);
@@ -4757,7 +4757,7 @@ final Object finalNetworkId = networkId;
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.
         // check length too: an unset walletAddress is an empty string (not undefined) in some languages
         Object address = this.walletAddress;
-        Boolean hasWallet = Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isGreaterThan(((String)this.walletAddress).length(), 0)));
+        Object hasWallet = Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isGreaterThan(((String)this.walletAddress).length(), 0)));
         if (!Helpers.isTrue(hasWallet))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.privateKey, null)))

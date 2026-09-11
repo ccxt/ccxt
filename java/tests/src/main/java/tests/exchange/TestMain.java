@@ -114,7 +114,7 @@ public class TestMain extends BaseTest
                 put( "isWs", TestMain.this.wsTests );
                 put( "useProxy", getCliArgValue("--useProxy") );
             }}, newLine);
-            java.util.Map<String, Object> exchangeArgs = new java.util.HashMap<String, Object>() {{
+            Object exchangeArgs = new java.util.HashMap<String, Object>() {{
                 put( "verbose", TestMain.this.verbose );
                 put( "debug", TestMain.this.debug );
                 put( "enableRateLimit", true );
@@ -232,7 +232,7 @@ public class TestMain extends BaseTest
             {
                 Object key = Helpers.GetValue(settingKeys, i);
                 Object settingValue = Helpers.GetValue(exchangeSettings, key);
-                Boolean settingIsEmpty = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(settingValue, null))) || Helpers.isTrue((Helpers.isEqual(settingValue, null)))) || Helpers.isTrue((Helpers.isEqual(settingValue, "")))) || Helpers.isTrue((Helpers.isEqual(settingValue, false)))) || Helpers.isTrue((Helpers.isEqual(settingValue, 0)));
+                Object settingIsEmpty = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(settingValue, null))) || Helpers.isTrue((Helpers.isEqual(settingValue, null)))) || Helpers.isTrue((Helpers.isEqual(settingValue, "")))) || Helpers.isTrue((Helpers.isEqual(settingValue, false)))) || Helpers.isTrue((Helpers.isEqual(settingValue, 0)));
                 if (!Helpers.isTrue(settingIsEmpty))
                 {
                     Object finalValue = null;
@@ -307,18 +307,18 @@ public class TestMain extends BaseTest
                 return true;
             }
             Object skippedPropertiesForMethod = this.getSkips(exchange, methodName);
-            Boolean isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
-            Boolean isFetchCurrencies = (Helpers.isEqual(methodName, "fetchCurrencies"));
-            Boolean isProxyTest = (Helpers.isEqual(methodName, this.proxyTestFileName));
-            Boolean isConstructorTest = (Helpers.isEqual(methodName, "afterConstruct"));
-            Boolean isFeatureTest = (Helpers.isEqual(methodName, "features"));
+            Object isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
+            Object isFetchCurrencies = (Helpers.isEqual(methodName, "fetchCurrencies"));
+            Object isProxyTest = (Helpers.isEqual(methodName, this.proxyTestFileName));
+            Object isConstructorTest = (Helpers.isEqual(methodName, "afterConstruct"));
+            Object isFeatureTest = (Helpers.isEqual(methodName, "features"));
             // if this is a private test, and the implementation was already tested in public, then no need to re-test it in private test (exception is fetchCurrencies, because our approach in base exchange)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isPublic) && Helpers.isTrue((Helpers.inOp(this.checkedPublicTests, methodName)))) && !Helpers.isTrue(isFetchCurrencies)))
             {
                 return true;
             }
-            Object skipMessage = null;
-            Boolean supportedByExchange = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(exchange.has, methodName))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, methodName), null)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, methodName), false)));
+            String skipMessage = null;
+            Object supportedByExchange = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(exchange.has, methodName))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, methodName), null)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, methodName), false)));
             if (Helpers.isTrue(!Helpers.isTrue(isLoadMarkets) && Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(Helpers.getArrayLength(this.onlySpecificTests), 0))) && Helpers.isTrue((!Helpers.isEqual(exchange.inArray(methodName, this.onlySpecificTests), true)))))))
             {
                 skipMessage = "[INFO] IGNORED_TEST";
@@ -351,7 +351,7 @@ public class TestMain extends BaseTest
                 }
                 return true;
             }
-            Object argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            String argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
             if (Helpers.isTrue(isSync()))
             {
@@ -392,7 +392,7 @@ public class TestMain extends BaseTest
             }
         }
         // get "object-specific" skips
-        java.util.Map<String, Object> objectSkips = new java.util.HashMap<String, Object>() {{
+        Object objectSkips = new java.util.HashMap<String, Object>() {{
             put( "orderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols")) );
             put( "ticker", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchTicker", "fetchTickers", "watchTicker", "watchTickers")) );
             put( "trade", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchTrades", "watchTrades", "watchTradesForSymbols")) );
@@ -447,7 +447,7 @@ public class TestMain extends BaseTest
             // run-tests.js, so the exceptions are still printed out to console from there.
             Object args = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object isPublic = Helpers.getArg(optionalArgs, 1, false);
-            Integer maxRetries = 3;
+            Object maxRetries = 3;
             Object argsStringified = exchange.json(args); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             for (var i = 0; Helpers.isLessThan(i, maxRetries); i++)
             {
@@ -461,18 +461,18 @@ public class TestMain extends BaseTest
                     // RUNTEST_TIMED_OUT run-tests.js doesn't misreport a failed method as hung
                     dump(this.addPadding("[INFO] TESTING FAILED", 25), exchange.id, methodName);
                     Object e = getRootException(ex);
-                    Boolean isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
-                    Boolean isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
-                    Boolean isNotSupported = (Helpers.isInstance(e, NotSupported.class));
-                    Boolean isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                    Object lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", exchange.last_request_url), " )");
+                    Object isLoadMarkets = (Helpers.isEqual(methodName, "loadMarkets"));
+                    Object isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
+                    Object isNotSupported = (Helpers.isInstance(e, NotSupported.class));
+                    Object isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
+                    String lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", exchange.last_request_url), " )");
                     if (Helpers.isTrue(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
                         if (Helpers.isTrue(Helpers.isEqual(i, Helpers.subtract(maxRetries, 1))))
                         {
-                            Boolean isOnMaintenance = (Helpers.isInstance(e, OnMaintenance.class));
-                            Boolean isExchangeNotAvailable = (Helpers.isInstance(e, ExchangeNotAvailable.class));
+                            Object isOnMaintenance = (Helpers.isInstance(e, OnMaintenance.class));
+                            Object isExchangeNotAvailable = (Helpers.isInstance(e, ExchangeNotAvailable.class));
                             Object shouldFail = null;
                             Object retSuccess = null;
                             if (Helpers.isTrue(isLoadMarkets))
@@ -503,7 +503,7 @@ public class TestMain extends BaseTest
                                 }
                             }
                             // output the message
-                            Object failType = ((Helpers.isTrue(shouldFail))) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
+                            String failType = ((Helpers.isTrue(shouldFail))) ? "[TEST_FAILURE]" : "[TEST_WARNING]";
                             dump(failType, exchange.id, methodName, argsStringified, lastUrlMsg, "Method could not be tested due to a repeated Network/Availability issues", " | ", exceptionMessage(e));
                             return retSuccess;
                         } else
@@ -558,7 +558,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object primarySymbol = Helpers.GetValue(symbols, 0);
-            java.util.Map<String, Object> tests = new java.util.HashMap<String, Object>() {{
+            Object tests = new java.util.HashMap<String, Object>() {{
                 put( "features", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "afterConstruct", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -638,7 +638,7 @@ public class TestMain extends BaseTest
                     ((java.util.List<Object>)failedMethods).add(testName);
                 }
             }
-            Object testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
+            String testPrefixString = ((Helpers.isTrue(isPublicTest))) ? "PUBLIC_TESTS" : "PRIVATE_TESTS";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(failedMethods), 0)))
             {
                 Object errorsString = String.join((String)", ", (java.util.List<String>)failedMethods);
@@ -720,7 +720,7 @@ public class TestMain extends BaseTest
     public Object getMarketsFromExchange(BaseExchange exchange, Object... optionalArgs)
     {
         Object spot = Helpers.getArg(optionalArgs, 0, true);
-        java.util.Map<String, Object> res = new java.util.HashMap<String, Object>() {{}};
+        Object res = new java.util.HashMap<String, Object>() {{}};
         Object markets = exchange.markets;
         Object keys = Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -743,16 +743,16 @@ public class TestMain extends BaseTest
         Object spot = Helpers.getArg(optionalArgs, 0, true);
         Object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
         java.util.List<Object> codes = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
-        Object spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
-        Object swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
-        Object targetSymbols = ((Helpers.isTrue(spot))) ? spotSymbols : swapSymbols;
+        java.util.List<Object> spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
+        java.util.List<Object> swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
+        java.util.List<Object> targetSymbols = ((Helpers.isTrue(spot))) ? spotSymbols : swapSymbols;
         Object symbol = this.getTestSymbol(exchange, spot, targetSymbols);
         // if symbols wasn't found from above hardcoded list, then try to locate any symbol which has our target hardcoded 'base' code
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
-                String currentCode = (String) Helpers.GetValue(codes, i);
+                Object currentCode = Helpers.GetValue(codes, i);
                 Object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 Object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
                 Object symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
@@ -837,7 +837,7 @@ public class TestMain extends BaseTest
             // an explicit per-exchange pin is a deliberate maintainer choice (it usually
             // works around a venue-specific quirk), so never rank around it
             Object isSpot = exchange.safeBool(defaultMarket, "spot", false);
-            Object preferredKey = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
+            String preferredKey = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? "preferredSpotSymbol" : "preferredSwapSymbol";
             Object preferredSymbol = exchange.safeString(this.skippedSettingsForExchange, preferredKey);
             if (Helpers.isTrue(!Helpers.isEqual(preferredSymbol, null)))
             {
@@ -876,16 +876,16 @@ public class TestMain extends BaseTest
                     // exchanges keep returning tickers for delisted markets, and those
                     // never push a websocket update at all, so skip inactive markets
                     Object isActive = exchange.safeBool(market, "active", true);
-                    Boolean sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
-                    Boolean sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
-                    Boolean sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
+                    Object sameType = Helpers.isEqual(exchange.safeString(market, "type"), marketType);
+                    Object sameQuote = Helpers.isEqual(exchange.safeString(market, "quote"), quote);
+                    Object sameSettle = Helpers.isEqual(exchange.safeString(market, "settle"), settle);
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isActive, true))) && Helpers.isTrue(sameType)) && Helpers.isTrue(sameQuote)) && Helpers.isTrue(sameSettle)))
                     {
                         Object ticker = exchange.safeDict(tickers, tickerSymbol, new java.util.HashMap<String, Object>() {{}});
                         Object volume = this.getTickerVolume(exchange, ticker);
                         if (Helpers.isTrue(Helpers.isGreaterThan(volume, 0)))
                         {
-                            java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>() {{}};
+                            Object entry = new java.util.HashMap<String, Object>() {{}};
                             Helpers.addElementToObject(entry, "symbol", tickerSymbol);
                             Helpers.addElementToObject(entry, "volume", volume);
                             ((java.util.List<Object>)candidates).add(entry);
@@ -925,8 +925,8 @@ public class TestMain extends BaseTest
             Object spotSymbols = null;
             Object swapSymbols = null;
             // `has` values can be true, false, undefined or 'emulated', so only false/undefined mean unsupported
-            Boolean hasSpot = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "spot"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "spot"), false)));
-            Boolean hasSwap = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "swap"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "swap"), false)));
+            Object hasSpot = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "spot"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "spot"), false)));
+            Object hasSwap = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "swap"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "swap"), false)));
             if (Helpers.isTrue(!Helpers.isEqual(providedSymbol, null)))
             {
                 Object market = exchange.market(providedSymbol);
@@ -1041,7 +1041,7 @@ public class TestMain extends BaseTest
             {
                 // validate the pin against the live listing - venues can rotate ids/handles
                 // (hyperliquid re-assigns outcome ids), which would strand a stale pin
-                Boolean pinFound = false;
+                Object pinFound = false;
                 Object pinnedKeys = Helpers.objectKeys(exchange.markets);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pinnedKeys)); i++)
                 {
@@ -1122,12 +1122,12 @@ public class TestMain extends BaseTest
                         // derive one from the selected outcome handle (the market words with
                         // separators as spaces) so the scoped contract holds even without a pin
                         Object handleParts = Helpers.split(outcomeSymbol, ":");
-                        String marketPart = (String) Helpers.GetValue(handleParts, 0);
+                        Object marketPart = Helpers.GetValue(handleParts, 0);
                         Object lowerPart = ((String)marketPart).toLowerCase();
                         Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
                         eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
                     }
-                    java.util.Map<String, Object> eventParams = new java.util.HashMap<String, Object>() {{}};
+                    Object eventParams = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
                     {
                         Helpers.addElementToObject(eventParams, "query", eventQuery);
@@ -1224,7 +1224,7 @@ public class TestMain extends BaseTest
             }
             dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
             final Object finalOutcomeSymbol = outcomeSymbol;
-            java.util.Map<String, Object> publicTests = new java.util.HashMap<String, Object>() {{
+            Object publicTests = new java.util.HashMap<String, Object>() {{
                 put( "fetchStatus", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTime", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTradingFee", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol)) );
@@ -1250,7 +1250,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(this.privateTest) || Helpers.isTrue(this.privateTestOnly))) && !Helpers.isTrue(this.wsTests)))
             {
                 final Object finalOutcomeSymbol_2 = outcomeSymbol;
-                java.util.Map<String, Object> privateTests = new java.util.HashMap<String, Object>() {{
+                Object privateTests = new java.util.HashMap<String, Object>() {{
                     put( "fetchBalance", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                     put( "fetchPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol_2)) );
                     put( "fetchMyTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol_2)) );
@@ -1286,7 +1286,7 @@ public class TestMain extends BaseTest
     {
         // validates one PredictionEvent structure (id, event handle, markets each carrying an
         // outcomes list, and the optional typed fields when present)
-        Object logText = Helpers.add(" event: ", exchange.json(eventVar));
+        String logText = Helpers.add(" event: ", exchange.json(eventVar));
         Assert(Helpers.isEqual(exchange.isDictionary(eventVar), true), Helpers.add(Helpers.add(exchange.id, " event should be a dict"), logText));
         Assert(!Helpers.isEqual(exchange.safeString(eventVar, "id"), null), Helpers.add(Helpers.add(exchange.id, " event missing id"), logText));
         Assert(!Helpers.isEqual(exchange.safeString(eventVar, "event"), null), Helpers.add(Helpers.add(exchange.id, " event missing the unified event handle"), logText));
@@ -1349,7 +1349,7 @@ public class TestMain extends BaseTest
                 dump("[INFO] skipping prediction createOrder test", exchange.id, createOrderSkip);
                 return true;
             }
-            Boolean canCancel = Helpers.isTrue((Helpers.isEqual(exchange.safeBool(exchange.has, "cancelOrder", false), true))) || Helpers.isTrue((Helpers.isEqual(exchange.safeBool(exchange.has, "cancelAllOrders", false), true)));
+            Object canCancel = Helpers.isTrue((Helpers.isEqual(exchange.safeBool(exchange.has, "cancelOrder", false), true))) || Helpers.isTrue((Helpers.isEqual(exchange.safeBool(exchange.has, "cancelAllOrders", false), true)));
             if (!Helpers.isTrue(canCancel))
             {
                 dump("[INFO] skipping prediction createOrder test", exchange.id, "no cancelOrder/cancelAllOrders");
@@ -1455,7 +1455,7 @@ public class TestMain extends BaseTest
             //     await test ('InvalidOrder', exchange, symbol);
             //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
             // }
-            java.util.Map<String, Object> tests = new java.util.HashMap<String, Object>() {{
+            Object tests = new java.util.HashMap<String, Object>() {{
                 put( "signIn", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchBalance", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchAccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1539,7 +1539,7 @@ public class TestMain extends BaseTest
                 return true;
             }
             // try proxy several times
-            Integer maxRetries = 3;
+            Object maxRetries = 3;
             Object exceptionMessageString = null;
             for (var j = 0; Helpers.isLessThan(j, maxRetries); j++)
             {
@@ -1556,7 +1556,7 @@ public class TestMain extends BaseTest
             // if exception was set, then throw it
             if (Helpers.isTrue(!Helpers.isEqual(exceptionMessageString, null)))
             {
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
                 // temporary comment the below, because c# transpilation failure
                 // throw new Exchange Error (errorMessage.toString ());
                 dump(Helpers.add("[TEST_WARNING]", errorMessage));
@@ -1730,7 +1730,7 @@ public class TestMain extends BaseTest
     public Object loadStaticData(Object folder, Object... optionalArgs)
     {
         Object targetExchange = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(targetExchange, null)) && Helpers.isTrue(!Helpers.isEqual(targetExchange, ""))))
         {
             // read a single exchange
@@ -1774,7 +1774,7 @@ public class TestMain extends BaseTest
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(i, 2)))
             {
-                String current = (String) Helpers.GetValue(urlParts, i);
+                Object current = Helpers.GetValue(urlParts, i);
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1))))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
@@ -1792,18 +1792,18 @@ public class TestMain extends BaseTest
 
     public Object urlencodedToDict(Object url)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         Object parts = Helpers.split(url, "&");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parts)); i++)
         {
-            String part = (String) Helpers.GetValue(parts, i);
+            Object part = Helpers.GetValue(parts, i);
             Object keyValue = Helpers.split(part, "=");
             Object keysLength = Helpers.getArrayLength(keyValue);
             if (Helpers.isTrue(!Helpers.isEqual(keysLength, 2)))
             {
                 continue;
             }
-            String key = (String) Helpers.GetValue(keyValue, 0);
+            Object key = Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith(((String)"[")))) || Helpers.isTrue((((String)value).startsWith(((String)"{"))))))))
             {
@@ -1990,7 +1990,7 @@ public class TestMain extends BaseTest
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
             Object newOutputString = ((Helpers.isTrue((!Helpers.isEqual(sanitizedNewOutput, null))))) ? String.valueOf(sanitizedNewOutput) : "undefined";
             Object storedOutputString = ((Helpers.isTrue((!Helpers.isEqual(sanitizedStoredOutput, null))))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
-            Object messageError = Helpers.add(Helpers.add(Helpers.add("output value mismatch:", newOutputString), " != "), storedOutputString);
+            String messageError = Helpers.add(Helpers.add(Helpers.add("output value mismatch:", newOutputString), " != "), storedOutputString);
             if (Helpers.isTrue(Helpers.isTrue(strictTypeCheck) && Helpers.isTrue((!Helpers.isEqual(this.lang, "C#")))))
             {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -1998,13 +1998,13 @@ public class TestMain extends BaseTest
                 this.AssertStaticError(Helpers.isEqual(sanitizedNewOutput, sanitizedStoredOutput), messageError, storedOutput, newOutput, AssertingKey);
             } else
             {
-                Boolean isComputedBool = ((sanitizedNewOutput instanceof Boolean));
-                Boolean isStoredBool = ((sanitizedStoredOutput instanceof Boolean));
-                Boolean isComputedString = ((sanitizedNewOutput instanceof String));
-                Boolean isStoredString = ((sanitizedStoredOutput instanceof String));
-                Boolean isComputedUndefined = (Helpers.isEqual(sanitizedNewOutput, null));
-                Boolean isStoredUndefined = (Helpers.isEqual(sanitizedStoredOutput, null));
-                Boolean shouldBeSame = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isComputedBool, isStoredBool))) && Helpers.isTrue((Helpers.isEqual(isComputedString, isStoredString)))) && Helpers.isTrue((Helpers.isEqual(isComputedUndefined, isStoredUndefined)));
+                Object isComputedBool = ((sanitizedNewOutput instanceof Boolean));
+                Object isStoredBool = ((sanitizedStoredOutput instanceof Boolean));
+                Object isComputedString = ((sanitizedNewOutput instanceof String));
+                Object isStoredString = ((sanitizedStoredOutput instanceof String));
+                Object isComputedUndefined = (Helpers.isEqual(sanitizedNewOutput, null));
+                Object isStoredUndefined = (Helpers.isEqual(sanitizedStoredOutput, null));
+                Object shouldBeSame = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isComputedBool, isStoredBool))) && Helpers.isTrue((Helpers.isEqual(isComputedString, isStoredString)))) && Helpers.isTrue((Helpers.isEqual(isComputedUndefined, isStoredUndefined)));
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(shouldBeSame) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(this.lang, "PY"))) || Helpers.isTrue((Helpers.isEqual(this.lang, "C#")))))) && !Helpers.isTrue(isComputedBool)) && !Helpers.isTrue(isStoredBool)) && !Helpers.isTrue(isComputedUndefined)) && !Helpers.isTrue(isStoredUndefined)))
                 {
                     // python parses json numbers natively (arbitrary-precision ints), while fixtures
@@ -2017,7 +2017,7 @@ public class TestMain extends BaseTest
                     // STRING side needs parsing - parseToNumeric round-trips a double through
                     // numberToString/decimal and drops its last significant digit, so a real
                     // 81003.30644700001 stopped matching the stored "81003.306447000009".
-                    Boolean isNumber = false;
+                    Object isNumber = false;
                     Object computedNumeric = sanitizedNewOutput;
                     Object storedNumeric = sanitizedStoredOutput;
                     try
@@ -2042,15 +2042,15 @@ public class TestMain extends BaseTest
                     }
                 }
                 this.AssertStaticError(shouldBeSame, "output type mismatch", storedOutput, newOutput, AssertingKey);
-                Boolean isBoolean = Helpers.isTrue(isComputedBool) || Helpers.isTrue(isStoredBool);
-                Boolean isString = Helpers.isTrue(isComputedString) || Helpers.isTrue(isStoredString);
-                Boolean isUndefined = Helpers.isTrue(isComputedUndefined) || Helpers.isTrue(isStoredUndefined); // undefined is a perfetly valid value
+                Object isBoolean = Helpers.isTrue(isComputedBool) || Helpers.isTrue(isStoredBool);
+                Object isString = Helpers.isTrue(isComputedString) || Helpers.isTrue(isStoredString);
+                Object isUndefined = Helpers.isTrue(isComputedUndefined) || Helpers.isTrue(isStoredUndefined); // undefined is a perfetly valid value
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isBoolean) || Helpers.isTrue(isString)) || Helpers.isTrue(isUndefined)))
                 {
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.lang, "C#"))) || Helpers.isTrue((Helpers.isEqual(this.lang, "GO")))))
                     {
                         // tmp c# number comparsion
-                        Boolean isNumber = false;
+                        Object isNumber = false;
                         try
                         {
                             exchange.parseToNumeric(sanitizedNewOutput);
@@ -2254,7 +2254,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.requestTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             return true;
@@ -2287,7 +2287,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.responseTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -2436,7 +2436,7 @@ public class TestMain extends BaseTest
                     // worker could execute it inline on the blocked stack and the
                     // rejection loop would then wait on the very watch side it is
                     // buried on top of
-                    java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.injectWsMessages(exchange, url, messages, true), this.watchAndAssertSequence(exchange, url, method, input, skipKeys, expectedResults)));
                     (Helpers.promiseAll(promises)).join();
                     this.AssertWsSentMessages(exchange, url, data);
                 } else
@@ -2444,7 +2444,7 @@ public class TestMain extends BaseTest
                     // 'parsedResponse' Asserts the final state after every frame
                     // was replayed — live structures like orderbooks keep updating
                     // after the first resolution, so serialize only at the end
-                    java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)));
+                    Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(callExchangeMethodDynamically(exchange, method, input), this.injectWsMessages(exchange, url, messages)));
                     Object results = (Helpers.promiseAll(promises)).join();
                     Object unifiedResult = jsonParse(jsonStringify(Helpers.GetValue(results, 0)));
                     this.AssertStaticResponseOutput(exchange, skipKeys, unifiedResult, Helpers.GetValue(data, "parsedResponse"));
@@ -2453,7 +2453,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.staticWsTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -2597,7 +2597,7 @@ public class TestMain extends BaseTest
         final Object finalCurrencies = currencies;
         final Object finalLibraryPath = libraryPath;
         final Object finalWasmExecPath = wasmExecPath;
-        java.util.Map<String, Object> options = new java.util.HashMap<String, Object>() {{
+        Object options = new java.util.HashMap<String, Object>() {{
             put( "markets", finalMarkets );
             put( "currencies", finalCurrencies );
             put( "enableRateLimit", false );
@@ -3024,7 +3024,7 @@ public class TestMain extends BaseTest
                 {
                     this.responseTestsFailed = true;
                 }
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)) || Helpers.isTrue(this.staticWsTestsFailed)))
@@ -3032,8 +3032,8 @@ public class TestMain extends BaseTest
                 exitScript(1);
             } else
             {
-                Object prefix = ((Helpers.isTrue((isSync())))) ? "[SYNC]" : "";
-                Object successMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), String.valueOf(sum)), " static "), type), " tests passed.");
+                String prefix = ((Helpers.isTrue((isSync())))) ? "[SYNC]" : "";
+                String successMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), String.valueOf(sum)), " static "), type), " tests passed.");
                 dump(Helpers.add("[INFO]", successMessage));
             }
             return true;  // required in c#
@@ -3089,7 +3089,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()));
             (Helpers.promiseAll(promises)).join();
-            Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
+            String successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
             exitScript(0);
             return true;
@@ -3148,7 +3148,7 @@ public class TestMain extends BaseTest
                     put( "triggerPrice", 101000 );
                 }})).join();
                 Object checkOrderRequest = this.urlencodedToDict(exchange.last_request_body);
-                Boolean algoOrderIdDefined = (!Helpers.isEqual(Helpers.GetValue(checkOrderRequest, "algoOrderId"), null));
+                Object algoOrderIdDefined = (!Helpers.isEqual(Helpers.GetValue(checkOrderRequest, "algoOrderId"), null));
                 Assert(algoOrderIdDefined, "binance - swap clientOrderId needs to be sent as algoOrderId but algoOrderId is not defined");
                 Object clientAlgoIdSwap = Helpers.GetValue(swapAlgoOrderRequest, "clientAlgoId");
                 Object swapAlgoIdString = String.valueOf(swapId);
@@ -3906,7 +3906,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>() {{
+                Object parameters = new java.util.HashMap<String, Object>() {{
                     put( "subaccount_id", 1234 );
                     put( "max_fee", 10 );
                     put( "deriveWalletAddress", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749" );

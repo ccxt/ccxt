@@ -180,7 +180,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object trailingPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingPercent)) : null;
         Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
         Object trailingLimitPercentString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitPercent, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitPercent)) : null;
-        Object priceType = ((Helpers.isTrue((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))))) ? "pct" : "quote";
+        String priceType = ((Helpers.isTrue((Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrailingLimitPercentOrder))))) ? "pct" : "quote";
         if (Helpers.isTrue(Helpers.isEqual(method, "createOrderWs")))
         {
             Object reduceOnly = this.safeBool(parameters, "reduceOnly");
@@ -617,7 +617,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object symbol = ((String)this.safeString(ticker, "symbol"));
         Object messageHash = this.getMessageHash("ticker", null, symbol);
         Object vwap = this.safeString(ticker, "vwap");
-        Object quoteVolume = null;
+        String quoteVolume = null;
         Object baseVolume = this.safeString(ticker, "volume");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(baseVolume, null)) && Helpers.isTrue(!Helpers.isEqual(vwap, null))))
         {
@@ -1535,7 +1535,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         }
         Object datetime = this.safeString(trade, "timestamp");
         Object liquidityIndicator = this.safeString(trade, "liquidity_ind");
-        Object takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(liquidityIndicator, "t"))))) ? "taker" : "maker";
+        String takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(liquidityIndicator, "t"))))) ? "taker" : "maker";
         final Object finalSymbol = symbol;
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{

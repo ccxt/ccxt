@@ -377,17 +377,17 @@ public class BlockchaincomCore extends BlockchaincomApi
                 String minPriceIncrementString = this.safeString(market, "min_price_increment");
                 String minPriceIncrementScaleString = this.safeString(market, "min_price_increment_scale");
                 Object minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
-                Object pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
+                String pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
                 // amount precision
                 String lotSizeString = this.safeString(market, "lot_size");
                 String lotSizeScaleString = this.safeString(market, "lot_size_scale");
                 Object lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
-                Object amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
+                String amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
                 // minimum order size
                 String minOrderSizeString = this.safeString(market, "min_order_size");
                 String minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
                 Object minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
-                Object minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
+                String minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
                 Object minOrderSize = this.parseNumber(minOrderSizePreciseString);
                 // maximum order size
                 Object maxOrderSize = null;
@@ -396,7 +396,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 {
                     String maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
                     Object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
-                    Object maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
+                    String maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                     maxOrderSize = this.parseNumber(maxOrderSizeValueString);
                 }
     final Object finalBase = base;
@@ -1196,7 +1196,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object type = null;
+        String type = null;
         Object id = null;
         Object amount = this.safeNumber(transaction, "amount");
         Object timestamp = this.safeInteger(transaction, "timestamp");
@@ -1558,7 +1558,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
+        String requestPath = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))

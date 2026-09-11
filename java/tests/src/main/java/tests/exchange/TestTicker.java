@@ -137,8 +137,8 @@ public class TestTicker extends BaseTest {
             Object isInverse = exchange.safeBool(market, "inverse", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue((!Helpers.isEqual(isInverse, true)))))
             {
-                Object baseLow = Precise.stringMul(baseVolume, low);
-                Object baseHigh = Precise.stringMul(baseVolume, high);
+                String baseLow = Precise.stringMul(baseVolume, low);
+                String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 Object mPrecision = exchange.safeDict(market, "precision");
                 Object amountPrecision = exchange.safeString(mPrecision, "amount");
@@ -219,9 +219,9 @@ public class TestTicker extends BaseTest {
         String allowedPercentageVariation = "0.01";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isFetchTickerCalled) && Helpers.isTrue(!Helpers.isEqual(lastString, null))) && Helpers.isTrue(!Helpers.isEqual(bidString, null))) && Helpers.isTrue(!Helpers.isEqual(askString, null))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
-            Object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
-            Object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
-            Object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
             Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), Helpers.add("last price should be within 1% of the bid/ask median price", logText));
         }
         Object percentage = exchange.safeString(entry, "percentage");

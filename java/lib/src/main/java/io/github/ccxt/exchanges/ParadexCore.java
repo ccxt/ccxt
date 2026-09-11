@@ -896,11 +896,11 @@ public class ParadexCore extends ParadexApi
         //  }
         //
         String assetKind = this.safeString(market, "asset_kind");
-        Boolean isOptionPerpetual = (Helpers.isEqual(assetKind, "PERP_OPTION"));
-        Boolean isOptionDelivery = (Helpers.isEqual(assetKind, "OPTION"));
-        Boolean isOption = Helpers.isTrue(isOptionPerpetual) || Helpers.isTrue(isOptionDelivery);
-        Object type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
-        Boolean isSwap = (Helpers.isEqual(type, "swap"));
+        Object isOptionPerpetual = (Helpers.isEqual(assetKind, "PERP_OPTION"));
+        Object isOptionDelivery = (Helpers.isEqual(assetKind, "OPTION"));
+        Object isOption = Helpers.isTrue(isOptionPerpetual) || Helpers.isTrue(isOptionDelivery);
+        String type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
+        Object isSwap = (Helpers.isEqual(type, "swap"));
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
         String baseId = this.safeString(market, "base_currency");
@@ -916,7 +916,7 @@ public class ParadexCore extends ParadexApi
         Object makerFee = this.parseNumber("-0.00005");
         if (Helpers.isTrue(isOption))
         {
-            Object optionTypeSuffix = ((Helpers.isTrue((Helpers.isEqual(optionType, "CALL"))))) ? "C" : "P";
+            String optionTypeSuffix = ((Helpers.isTrue((Helpers.isEqual(optionType, "CALL"))))) ? "C" : "P";
             Object deliveryValue = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? "" : Helpers.add(this.yymmdd(expiry), "-");
             symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
@@ -924,7 +924,7 @@ public class ParadexCore extends ParadexApi
         {
             expiry = null;
         }
-        Object expireDatetime = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? null : this.iso8601(expiry);
+        String expireDatetime = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? null : this.iso8601(expiry);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1046,7 +1046,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetMarkets(this.extend(request, parameters))).join();
@@ -1115,7 +1115,7 @@ public class ParadexCore extends ParadexApi
             //     }
             //
             Object fees = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
@@ -1155,7 +1155,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "resolution", ParadexCore.this.safeString(ParadexCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1247,7 +1247,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -1298,7 +1298,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -1420,7 +1420,7 @@ public class ParadexCore extends ParadexApi
                 }
             }
             final Object finalTarget = target;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", finalTarget );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -1488,7 +1488,7 @@ public class ParadexCore extends ParadexApi
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
         String rate = this.safeString(contract, "funding_rate");
-        Boolean funds = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(rate, null)))) && Helpers.isTrue((!Helpers.isEqual(rate, "")));
+        Object funds = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && Helpers.isTrue((!Helpers.isEqual(rate, null)))) && Helpers.isTrue((!Helpers.isEqual(rate, "")));
         // the funding period belongs to the market and is not always eight hours:
         // fetchMarkets documents one on twenty four. funding accrues each second
         // against an index, and this rate is the amount for a whole period
@@ -1545,7 +1545,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetOrderbookMarket(this.extend(request, parameters))).join();
@@ -1698,8 +1698,8 @@ public class ParadexCore extends ParadexApi
         String amountString = this.safeString(trade, "size");
         String side = (String)this.safeStringLower(trade, "side");
         String liability = (String)this.safeStringLower(trade, "liquidity", "taker");
-        Boolean isTaker = Helpers.isEqual(liability, "taker");
-        Object takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
+        Object isTaker = Helpers.isEqual(liability, "taker");
+        String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
@@ -1748,7 +1748,7 @@ public class ParadexCore extends ParadexApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -1887,14 +1887,14 @@ public class ParadexCore extends ParadexApi
             Object systemConfig = (this.getSystemConfig()).join();
             if (Helpers.isTrue(Helpers.isEqual(l1, true)))
             {
-                java.util.Map<String, Object> l1D = new java.util.HashMap<String, Object>() {{
+                Object l1D = new java.util.HashMap<String, Object>() {{
                     put( "name", "Paradex" );
                     put( "chainId", Helpers.GetValue(systemConfig, "l1_chain_id") );
                     put( "version", "1" );
                 }};
                 return l1D;
             }
-            java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
+            Object domain = new java.util.HashMap<String, Object>() {{
                 put( "name", "Paradex" );
                 put( "chainId", Helpers.GetValue(systemConfig, "starknet_chain_id") );
                 put( "version", 1 );
@@ -1917,13 +1917,13 @@ public class ParadexCore extends ParadexApi
             this.checkRequiredCredentials();
             Object systemConfig = (this.getSystemConfig()).join();
             Object domain = (this.prepareParadexDomain(true)).join();
-            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
+            Object messageTypes = new java.util.HashMap<String, Object>() {{
                 put( "Constant", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "action" );
         put( "type", "string" );
     }})) );
             }};
-            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
+            Object message = new java.util.HashMap<String, Object>() {{
                 put( "action", "STARK Key" );
             }};
             Object msg = this.ethEncodeStructuredData(domain, messageTypes, message);
@@ -1942,11 +1942,11 @@ public class ParadexCore extends ParadexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object account = (this.retrieveAccount()).join();
-            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
+            Object req = new java.util.HashMap<String, Object>() {{
                 put( "action", "Onboarding" );
             }};
             Object domain = (this.prepareParadexDomain()).join();
-            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
+            Object messageTypes = new java.util.HashMap<String, Object>() {{
                 put( "Constant", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "action" );
         put( "type", "felt" );
@@ -1987,7 +1987,7 @@ public class ParadexCore extends ParadexApi
             // https://docs.paradex.trade/api-reference/general-information/authentication
             Object expires = Helpers.add(now, 180);
             final Object finalNow = now;
-            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
+            Object req = new java.util.HashMap<String, Object>() {{
                 put( "method", "POST" );
                 put( "path", "/v1/auth" );
                 put( "body", "" );
@@ -1995,7 +1995,7 @@ public class ParadexCore extends ParadexApi
                 put( "expiration", expires );
             }};
             Object domain = (this.prepareParadexDomain()).join();
-            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
+            Object messageTypes = new java.util.HashMap<String, Object>() {{
                 put( "Request", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "method" );
         put( "type", "felt" );
@@ -2132,7 +2132,7 @@ public class ParadexCore extends ParadexApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "IOC", "IOC" );
             put( "GTC", "GTC" );
             put( "POST_ONLY", "PO" );
@@ -2144,7 +2144,7 @@ public class ParadexCore extends ParadexApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+            Object statuses = new java.util.HashMap<String, Object>() {{
                 put( "NEW", "open" );
                 put( "UNTRIGGERED", "open" );
                 put( "OPEN", "open" );
@@ -2157,7 +2157,7 @@ public class ParadexCore extends ParadexApi
 
     public String parseOrderType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "STOP_LIMIT", "limit" );
@@ -2188,7 +2188,7 @@ public class ParadexCore extends ParadexApi
         Object orderType = ((String)type).toUpperCase();
         Object orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
             put( "side", orderSide );
             put( "type", finalOrderType );
@@ -2197,10 +2197,10 @@ public class ParadexCore extends ParadexApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
-        Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
-        Boolean isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
-        Boolean isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
-        Boolean isStopOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isStopLossOrder);
+        Object isMarket = Helpers.isEqual(orderType, "MARKET");
+        Object isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
+        Object isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
+        Object isStopOrder = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isStopLossOrder);
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         if (!Helpers.isTrue(isMarket))
@@ -2294,9 +2294,9 @@ public class ParadexCore extends ParadexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " signOrderRequest() missing orderType")) ;
             }
-            Boolean isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
+            Object isMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "MARKET"), 0));
             final Object finalNow = now;
-            java.util.Map<String, Object> orderReq = new java.util.HashMap<String, Object>() {{
+            Object orderReq = new java.util.HashMap<String, Object>() {{
                 put( "timestamp", Helpers.multiply(finalNow, 1000) );
                 put( "market", ParadexCore.this.stringToBase16(Helpers.GetValue(request, "market")) );
                 put( "side", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(request, "side"), "BUY"))))) ? "1" : "2" );
@@ -2323,7 +2323,7 @@ public class ParadexCore extends ParadexApi
         put( "name", "price" );
         put( "type", "felt" );
     }}));
-            java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{}};
+            Object messageTypes = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(modify))
             {
                 Helpers.addElementToObject(orderReq, "id", Helpers.GetValue(request, "id"));
@@ -2601,7 +2601,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2646,13 +2646,13 @@ public class ParadexCore extends ParadexApi
             }
             Object clientOrderIds = this.safeListN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
-            Boolean hasOrderIds = Helpers.isTrue((!Helpers.isEqual(ids, null))) && Helpers.isTrue((Helpers.isArray(ids)));
-            Boolean hasClientOrderIds = Helpers.isTrue((!Helpers.isEqual(clientOrderIds, null))) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
+            Object hasOrderIds = Helpers.isTrue((!Helpers.isEqual(ids, null))) && Helpers.isTrue((Helpers.isArray(ids)));
+            Object hasClientOrderIds = Helpers.isTrue((!Helpers.isEqual(clientOrderIds, null))) && Helpers.isTrue((Helpers.isArray(clientOrderIds)));
             if (Helpers.isTrue(!Helpers.isTrue(hasOrderIds) && !Helpers.isTrue(hasClientOrderIds)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a non-empty ids argument or a non-empty clientOrderIds parameter")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(hasOrderIds))
             {
                 Helpers.addElementToObject(request, "order_ids", ids);
@@ -2687,14 +2687,14 @@ public class ParadexCore extends ParadexApi
             // }
             //
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object result = Helpers.GetValue(results, i);
                 String marketId = this.safeString(result, "market");
                 Object market = this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
-                Object orderStatus = null;
+                String orderStatus = null;
                 if (Helpers.isTrue(Helpers.isEqual(status, "QUEUED_FOR_CANCELLATION")))
                 {
                     orderStatus = "canceled";
@@ -2745,7 +2745,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
@@ -2783,7 +2783,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Object response = null;
@@ -2955,7 +2955,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3040,7 +3040,7 @@ public class ParadexCore extends ParadexApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -3643,8 +3643,8 @@ public class ParadexCore extends ParadexApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         if (Helpers.isTrue(Helpers.isEqual(kind, "DEPOSIT")))
         {
             fromAccount = "external";
@@ -3727,7 +3727,7 @@ public class ParadexCore extends ParadexApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "pending" );
             put( "AVAILABLE", "pending" );
             put( "COMPLETED", "ok" );
@@ -3757,7 +3757,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
@@ -3823,7 +3823,7 @@ public class ParadexCore extends ParadexApi
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
             parameters = ((java.util.List<Object>) leverageparametersVariable).get(1);
             final Object finalLeverage = leverage;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "leverage", finalLeverage );
                 put( "margin_type", ParadexCore.this.encodeMarginMode(marginMode) );
@@ -3854,7 +3854,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privateGetAccountMargin(this.extend(request, parameters))).join();
@@ -3894,7 +3894,7 @@ public class ParadexCore extends ParadexApi
 
     public Object encodeMarginMode(Object mode)
     {
-        java.util.Map<String, Object> modes = new java.util.HashMap<String, Object>() {{
+        Object modes = new java.util.HashMap<String, Object>() {{
             put( "cross", "CROSS" );
             put( "isolated", "ISOLATED" );
         }};
@@ -3931,7 +3931,7 @@ public class ParadexCore extends ParadexApi
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "leverage", leverage );
                 put( "margin_type", ParadexCore.this.encodeMarginMode(finalMarginMode) );
@@ -3961,7 +3961,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -4027,7 +4027,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true, true, true);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", "ALL" );
             }};
             Object response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
@@ -4275,7 +4275,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))

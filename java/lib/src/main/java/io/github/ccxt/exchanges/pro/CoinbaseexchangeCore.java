@@ -680,11 +680,11 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
     put( "sell", "buy" );
 }}, currentSide, currentSide));
         }
-        Object idKey = ((Helpers.isTrue(isMaker))) ? "maker_order_id" : "taker_order_id";
+        String idKey = ((Helpers.isTrue(isMaker))) ? "maker_order_id" : "taker_order_id";
         Helpers.addElementToObject(parsed, "order", this.safeString(trade, idKey));
         market = this.market(Helpers.GetValue(parsed, "symbol"));
         Object feeCurrency = Helpers.GetValue(market, "quote");
-        Object feeCost = null;
+        String feeCost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(parsed, "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(feeRate, null)))))
         {
             Object cost = this.safeString(parsed, "cost");
@@ -925,7 +925,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object orderType = this.safeString(order, "order_type");
         Object remaining = this.safeString(order, "remaining_size");
         Object type = this.safeString(order, "type");
-        Object filled = null;
+        String filled = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(remaining, null)))))
         {
             filled = Precise.stringSub(amount, remaining);

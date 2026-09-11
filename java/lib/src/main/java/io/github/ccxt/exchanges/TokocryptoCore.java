@@ -1176,7 +1176,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object side = null;
         String orderId = this.safeString(trade, "orderId");
         Object buyerMaker = this.safeValue2(trade, "m", "isBuyerMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(buyerMaker, true))))) ? "sell" : "buy"; // this is reversed intentionally

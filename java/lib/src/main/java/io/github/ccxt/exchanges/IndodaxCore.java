@@ -621,8 +621,8 @@ public class IndodaxCore extends IndodaxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
-        Object baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
-        Object quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
+        String baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
+        String quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1185,7 +1185,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
-                    Object quoteAmount = null;
+                    String quoteAmount = null;
                     Object cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -1199,7 +1199,7 @@ public class IndodaxCore extends IndodaxApi
                         }
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object costRequest = Precise.stringMul(amountString, priceString);
+                        String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                     Helpers.addElementToObject(request, ((String)Helpers.GetValue(market, "quoteId")), quoteAmount);
@@ -1802,7 +1802,7 @@ public class IndodaxCore extends IndodaxApi
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
         {
             Object query = this.omit(parameters, this.extractParams(path));
-            Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
+            String requestPath = Helpers.add("/", this.implodeParams(path, parameters));
             url = Helpers.add(url, requestPath);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
             {

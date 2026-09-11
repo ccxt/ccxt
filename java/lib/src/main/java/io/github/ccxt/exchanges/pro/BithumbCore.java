@@ -618,7 +618,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         //    }
         //
         Object sideId = this.safeString(delta, "orderType");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(sideId, "bid"))))) ? "bids" : "asks";
+        String side = ((Helpers.isTrue((Helpers.isEqual(sideId, "bid"))))) ? "bids" : "asks";
         Object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         Object orderbookSide = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(orderbookSide, "storeArray", new Object[]{bidAsk});
@@ -855,7 +855,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             Object errorName = this.safeString(error, "name", "Error");
             Object errorMessage = this.safeString(error, "message", "");
-            Object addedMessage = null;
+            String addedMessage = null;
             if (Helpers.isTrue((Helpers.isGreaterThan(((String)errorMessage).length(), 0))))
             {
                 addedMessage = (Helpers.add(" ", errorMessage));
@@ -1173,7 +1173,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             side = ((Helpers.isTrue((Helpers.isEqual(sideId, "BID"))))) ? ("buy") : ("sell");
         }
         Object typeId = this.safeString(order, "order_type");
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.isEqual(typeId, "limit")))
         {
             type = "limit";
@@ -1185,7 +1185,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             type = "market";
         }
         Object stateId = this.safeString(order, "state");
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.isEqual(stateId, "wait")))
         {
             status = "open";

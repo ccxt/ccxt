@@ -813,7 +813,7 @@ public class BitoproCore extends BitoproApi
             }};
         }
         Object isTaker = this.safeBool(trade, "isTaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTaker, null)))
         {
             if (Helpers.isTrue(isTaker))

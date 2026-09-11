@@ -700,7 +700,7 @@ public class BtcturkCore extends BtcturkApi
         String id = this.safeString2(trade, "tid", "id");
         String order = this.safeString(trade, "orderId");
         String priceString = this.safeString(trade, "price");
-        Object amountString = Precise.stringAbs(this.safeString(trade, "amount"));
+        String amountString = Precise.stringAbs(this.safeString(trade, "amount"));
         String marketId = this.safeString(trade, "pair");
         String symbol = (String) this.safeSymbol(marketId, market);
         String side = this.safeString2(trade, "side", "orderType");
@@ -1180,7 +1180,7 @@ public class BtcturkCore extends BtcturkApi
         String id = this.safeString(order, "id");
         String price = this.safeString(order, "price");
         String amountString = this.safeString2(order, "amount", "quantity");
-        Object amount = Precise.stringAbs(amountString);
+        String amount = Precise.stringAbs(amountString);
         String remaining = this.safeString(order, "leftAmount");
         String marketId = this.safeString(order, "pairSymbol");
         String symbol = (String) this.safeSymbol(marketId, market);

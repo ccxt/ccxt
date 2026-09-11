@@ -496,7 +496,7 @@ public class CoincheckCore extends CoincheckApi
             Object response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             Object rawOrders = this.safeValue(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
             {
                 ((java.util.List<Object>)result).add(this.extend(Helpers.GetValue(parsedOrders, i), new java.util.HashMap<String, Object>() {{
@@ -716,7 +716,7 @@ public class CoincheckCore extends CoincheckApi
         Object baseId = Helpers.GetValue(market, "baseId");
         Object quoteId = Helpers.GetValue(market, "quoteId");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object amountString = null;
         Object costString = null;
         Object side = null;

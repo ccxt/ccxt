@@ -1256,7 +1256,7 @@ public class KrakenCore extends KrakenApi
         String baseVolume = this.safeString(v, 1);
         Object p = this.safeValue(ticker, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String vwap = this.safeString(p, 1);
-        Object quoteVolume = Precise.stringMul(baseVolume, vwap);
+        String quoteVolume = Precise.stringMul(baseVolume, vwap);
         Object c = this.safeValue(ticker, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String last = this.safeString(c, 0);
         Object high = this.safeValue(ticker, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1497,7 +1497,7 @@ public class KrakenCore extends KrakenApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "id");
-        Object direction = null;
+        String direction = null;
         Object account = null;
         String referenceId = this.safeString(item, "refid");
         Object referenceAccount = null;
@@ -1581,7 +1581,7 @@ public class KrakenCore extends KrakenApi
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
-                Object untilDivided = Precise.stringDiv(until, "1000");
+                String untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
             Object response = (this.privatePostLedgers(this.extend(request, parameters))).join();
@@ -1803,7 +1803,7 @@ public class KrakenCore extends KrakenApi
         }
         String cost = this.safeString(trade, "cost");
         Object maker = this.safeBool(trade, "maker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
@@ -2520,7 +2520,7 @@ final Object finalId = id;
                 stopLossPrice = triggerPrice;
             }
         }
-        Object typeParsed = this.parseOrderType(rawType);
+        String typeParsed = this.parseOrderType(rawType);
         // unlike from endpoints which provide eg: "take-profit-limit"
         // for "space-delimited" orders we dont have market/limit suffixes, their format is
         // eg: `stop loss > limit 123`, so we need to parse them manually
@@ -2647,12 +2647,12 @@ final Object finalId = id;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder)))
         {
-            Object trailingPercentString = null;
+            String trailingPercentString = null;
             if (Helpers.isTrue(!Helpers.isEqual(trailingPercent, null)))
             {
                 trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (Helpers.add("+", trailingPercent)) : (Helpers.add(Helpers.add("+", trailingPercent), "%"));
             }
-            Object trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add("+", trailingAmount) : null; // must use + for this
+            String trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add("+", trailingAmount) : null; // must use + for this
             String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
             Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
@@ -3093,7 +3093,7 @@ final Object finalId = id;
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
-                Object untilDivided = Precise.stringDiv(until, "1000");
+                String untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", this.parseToInt(Precise.stringAdd(untilDivided, "1")));
             }
             Object response = (this.privatePostTradesHistory(this.extend(request, parameters))).join();
@@ -3625,7 +3625,7 @@ final Object finalId = id;
         Object code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");
         Object amount = this.safeNumber(transaction, "amount");
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String statusProp = this.safeString(transaction, "status-prop");
         Boolean isOnHoldDeposit = Helpers.isEqual(statusProp, "on-hold");
         Boolean isCancellationRequest = Helpers.isEqual(statusProp, "cancel-pending");
@@ -3731,7 +3731,7 @@ final Object finalId = id;
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
-                Object untilDivided = Precise.stringDiv(until, "1000");
+                String untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", Precise.stringAdd(untilDivided, "1"));
             }
             Object response = (this.privatePostDepositStatus(this.extend(request, parameters))).join();
@@ -3836,7 +3836,7 @@ final Object finalId = id;
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till")));
-                Object untilDivided = Precise.stringDiv(until, "1000");
+                String untilDivided = Precise.stringDiv(until, "1000");
                 Helpers.addElementToObject(request, "end", Precise.stringAdd(untilDivided, "1"));
             }
             Object response = (this.privatePostWithdrawStatus(this.extend(request, parameters))).join();
@@ -4237,7 +4237,7 @@ final Object finalId = id;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "pair");
         String rawSide = this.safeString(position, "type");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );

@@ -795,7 +795,7 @@ public class BtcboxCore extends BtcboxApi
         String remaining = this.safeString(order, "amount_outstanding");
         String price = this.safeString(order, "price");
         // status is set by fetchOrder method only
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {

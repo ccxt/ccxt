@@ -2167,7 +2167,7 @@ public class HtxCore extends HtxApi
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object status = null;
+            String status = null;
             Object eta = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -4455,7 +4455,7 @@ public class HtxCore extends HtxApi
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         String assetType = this.safeString(rawCurrency, "assetType");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(assetType, "1"))))) ? "crypto" : "fiat";
+        String type = ((Helpers.isTrue((Helpers.isEqual(assetType, "1"))))) ? "crypto" : "fiat";
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
@@ -6312,7 +6312,7 @@ public class HtxCore extends HtxApi
         String marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         String rejectedCreateOrders = this.safeString2(order, "err_code", "err-code");
-        Object status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
+        String status = this.parseOrderStatus(this.safeString2(order, "state", "status"));
         if (Helpers.isTrue(!Helpers.isEqual(rejectedCreateOrders, null)))
         {
             status = "rejected";
@@ -6564,7 +6564,7 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                Object defaultOperator = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "lte" : "gte";
+                String defaultOperator = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "lte" : "gte";
                 String stopOperator = this.safeString(parameters, "operator", defaultOperator);
                 Helpers.addElementToObject(request, "stop-price", this.priceToPrecision(symbol, triggerPrice));
                 Helpers.addElementToObject(request, "operator", stopOperator);
@@ -6863,7 +6863,7 @@ public class HtxCore extends HtxApi
             }
         } else if (Helpers.isTrue(isTrailingPercentOrder))
         {
-            Object trailingPercentString = Precise.stringDiv(trailingPercent, "100");
+            String trailingPercentString = Precise.stringDiv(trailingPercent, "100");
             Helpers.addElementToObject(request, "callback_rate", this.parseToNumeric(trailingPercentString));
             Helpers.addElementToObject(request, "order_price_type", this.safeString(parameters, "order_price_type", "formula_price"));
             Helpers.addElementToObject(request, "active_price", trailingTriggerPrice);
@@ -8560,8 +8560,8 @@ public class HtxCore extends HtxApi
                 Object feeString = this.currencyToPrecision(code, fee, networkCode);
                 parameters = this.omit(parameters, "fee");
                 Object amountString = this.numberToString(amount);
-                Object amountSubtractedString = Precise.stringSub(amountString, feeString);
-                Object amountSubtractedParsed = amountSubtractedString;
+                String amountSubtractedString = Precise.stringSub(amountString, feeString);
+                String amountSubtractedParsed = amountSubtractedString;
                 if (Helpers.isTrue(Helpers.isEqual(amountSubtractedParsed, null)))
                 {
                     amountSubtractedParsed = "0";
@@ -8630,7 +8630,7 @@ public class HtxCore extends HtxApi
         String fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
         String toAccount = this.safeString(accountsById, toAccountRaw, toAccountRaw);
         String statusRaw = this.safeString(transfer, "status");
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.isEqual(statusRaw, "success")))
         {
             status = "ok";
@@ -9105,7 +9105,7 @@ public class HtxCore extends HtxApi
         Object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
         String fundingTimeString = this.safeString(contract, "funding_time");
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
-        Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         String marketId = this.safeString(contract, "contract_code");
         String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
@@ -9394,7 +9394,7 @@ public class HtxCore extends HtxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marketId, null))))) ? "cross" : "isolated";
+        String marginMode = ((Helpers.isTrue((Helpers.isEqual(marketId, null))))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
         String symbol = this.safeString(market, "symbol");
         Object timestamp = this.safeInteger(info, "accrued-at");
@@ -9950,7 +9950,7 @@ public class HtxCore extends HtxApi
         Object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         String initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         String rawSide = this.safeString(position, "direction");
-        Object directionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
+        String directionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
         String rawPositionSide = this.safeString(position, "position_side");
         // in one-way mode, "position_side" is "both" and the actual long/short signal is only present in "direction"
         Object side = directionSide;
@@ -9962,10 +9962,10 @@ public class HtxCore extends HtxApi
         Object unrealizedProfit = this.safeNumber(position, "profit_unreal");
         String marginMode = this.safeString(position, "margin_mode");
         String leverage = this.safeString(position, "lever_rate");
-        Object percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
+        String percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
         String lastPrice = this.safeString(position, "last_price");
-        Object faceValue = Precise.stringMul(contracts, contractSizeString);
-        Object notional = null;
+        String faceValue = Precise.stringMul(contracts, contractSizeString);
+        String notional = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
         {
             notional = Precise.stringMul(faceValue, lastPrice);
@@ -9974,12 +9974,12 @@ public class HtxCore extends HtxApi
             notional = Precise.stringDiv(faceValue, lastPrice);
             marginMode = "cross";
         }
-        Object intialMarginPercentage = Precise.stringDiv(initialMargin, notional);
+        String intialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         String collateral = this.safeString2(position, "margin_balance", "margin");
         String adjustmentFactor = this.safeString(position, "adjust_factor");
         String maintenanceMarginLinear = this.safeString(position, "maintenance_margin");
         String marginRatioLinear = this.safeString(position, "margin_rate");
-        Object maintenanceMarginPercentage = null;
+        String maintenanceMarginPercentage = null;
         Object maintenanceMargin = null;
         Object marginRatio = null;
         Object maintenanceMarginPercentageResult = null;
@@ -10436,7 +10436,7 @@ public class HtxCore extends HtxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(info, "trade_partition");
         String marketId = this.safeString(info, "contract_code");
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object brackets = this.safeList(info, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
@@ -11741,7 +11741,7 @@ public class HtxCore extends HtxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object posMode = ((Helpers.isTrue(hedged))) ? "dual_side" : "single_side";
+            String posMode = ((Helpers.isTrue(hedged))) ? "dual_side" : "single_side";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {

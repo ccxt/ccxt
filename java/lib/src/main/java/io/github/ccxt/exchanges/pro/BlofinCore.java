@@ -980,7 +980,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
     }}));
             }
             Object request = this.getSubscriptionRequest(rawSubscriptions);
-            Object privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
+            String privateOrPublic = ((Helpers.isTrue(isPublic))) ? "public" : "private";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), privateOrPublic);
             return (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
         });

@@ -2075,8 +2075,8 @@ public class MexcCore extends MexcApi
         Object symbol = null;
         Object fee = null;
         Object type = null;
-        Object side = null;
-        Object takerOrMaker = null;
+        String side = null;
+        String takerOrMaker = null;
         Object priceString = null;
         Object amountString = null;
         Object costString = null;
@@ -2874,7 +2874,7 @@ public class MexcCore extends MexcApi
                 {
                     Object amountString = this.numberToString(amount);
                     Object priceString = this.numberToString(price);
-                    Object quoteAmount = Precise.stringMul(amountString, priceString);
+                    String quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     Helpers.addElementToObject(request, "quoteOrderQty", this.costToPrecision(symbol, amount));
                 }
@@ -4319,7 +4319,7 @@ public class MexcCore extends MexcApi
         {
             String takerFee = this.safeString(order, "takerFee");
             String makerFee = this.safeString(order, "makerFee");
-            Object feeSum = Precise.stringAdd(takerFee, makerFee);
+            String feeSum = Precise.stringAdd(takerFee, makerFee);
             final Object finalFeeCurrency = feeCurrency;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", finalFeeCurrency );
@@ -5220,7 +5220,7 @@ public class MexcCore extends MexcApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object resultList = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
@@ -5568,7 +5568,7 @@ public class MexcCore extends MexcApi
         String riskIncrMmr = this.safeString(info, "riskIncrMmr");
         String riskIncrImr = this.safeString(info, "riskIncrImr");
         Object floor = "0";
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         String quoteId = this.safeString(info, "quoteCoin");
         if (Helpers.isTrue(Helpers.isEqual(riskIncrVol, "0")))
         {
@@ -5585,7 +5585,7 @@ public class MexcCore extends MexcApi
         }
         while (Precise.stringLt(floor, maxVol))
         {
-            Object cap = Precise.stringAdd(floor, riskIncrVol);
+            String cap = Precise.stringAdd(floor, riskIncrVol);
             Object minNotional = this.parseNumber(floor);
             Object mainMarginRate = this.parseNumber(maintenanceMarginRate);
             Object maxLev = this.parseNumber(Precise.stringDiv("1", initialMarginRate));
@@ -6004,7 +6004,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transaction, "id", "tranId");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? "deposit" : "withdrawal";
+        String type = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? "deposit" : "withdrawal";
         Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
         Object updated = this.safeInteger(transaction, "updateTime");
         Object currencyId = null;
@@ -6285,9 +6285,9 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object entryPrice = this.safeNumber(position, "openAvgPrice");
         String initialMargin = this.safeString(position, "im");
         String rawSide = this.safeString(position, "positionType");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "1"))))) ? "long" : "short";
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "1"))))) ? "long" : "short";
         String openType = this.safeString(position, "margin_mode");
-        Object marginType = ((Helpers.isTrue((Helpers.isEqual(openType, "1"))))) ? "isolated" : "cross";
+        String marginType = ((Helpers.isTrue((Helpers.isEqual(openType, "1"))))) ? "isolated" : "cross";
         Object leverage = this.safeNumber(position, "leverage");
         Object liquidationPrice = this.safeNumber(position, "liquidatePrice");
         Object timestamp = this.safeInteger(position, "updateTime");
@@ -6616,7 +6616,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         String currencyId = this.safeString2(transfer, "currency", "asset");
         String id = this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("transact_id", "txid", "tranId")));
         Long timestamp = (Long) this.safeInteger2(transfer, "createTime", "timestamp");
-        Object datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
+        String datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
         String direction = this.safeString(transfer, "type");
         Object accountFrom = null;
         Object accountTo = null;
@@ -7110,7 +7110,7 @@ final Object finalRiskIncrVol = riskIncrVol;
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marginMode = null;
+        String marginMode = null;
         Object longLeverage = null;
         Object shortLeverage = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverage)); i++)

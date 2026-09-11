@@ -433,7 +433,7 @@ public class TestSharedMethods extends BaseTest {
                 Object nextTs = Helpers.GetValue(Helpers.GetValue(items, i), "timestamp");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currentTs, null)) && Helpers.isTrue(!Helpers.isEqual(nextTs, null))))
                 {
-                    Object ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
+                    String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
                     Object comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
                     Assert(comparison, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), String.valueOf(currentTs)), " is opposite with its next "), String.valueOf(nextTs)), " "), exchange.json(items)));
                 }
@@ -498,7 +498,7 @@ public class TestSharedMethods extends BaseTest {
         // find out best bid/ask price
         Object bestBid = null;
         Object bestAsk = null;
-        Object usedMethod = null;
+        String usedMethod = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))))
         {
             usedMethod = "fetchOrderBook";
@@ -598,7 +598,7 @@ public class TestSharedMethods extends BaseTest {
     {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         Object logText = logTemplate(exchange, method, order);
-        Object msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
+        String msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
         Object filled = exchange.safeString(order, "filled");
         Object amount = exchange.safeString(order, "amount");
         // shorthand variables
@@ -734,7 +734,7 @@ public class TestSharedMethods extends BaseTest {
             Object responseLength = Helpers.getArrayLength(response);
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
         }
-        Object hintText = "";
+        String hintText = "";
         if (Helpers.isTrue(!Helpers.isEqual(hint, null)))
         {
             hintText = Helpers.add(" ", hint);

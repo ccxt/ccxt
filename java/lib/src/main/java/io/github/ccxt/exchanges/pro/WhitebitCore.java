@@ -615,7 +615,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             }};
         }
         Object rawSide = this.safeInteger(trade, 8);
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
         {
             side = "sell";
@@ -624,7 +624,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             side = "buy";
         }
         Object role = this.safeInteger(trade, 9);
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(role, 1)))
         {
             takerOrMaker = "maker";
@@ -794,7 +794,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawSide = this.safeInteger(order, "side");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
         Object dealFee = this.safeString(order, "deal_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(dealFee, null)))
@@ -806,7 +806,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
-        Object unifiedStatus = null;
+        String unifiedStatus = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, 1))) || Helpers.isTrue((Helpers.isEqual(status, 2)))))
         {
             unifiedStatus = "open";

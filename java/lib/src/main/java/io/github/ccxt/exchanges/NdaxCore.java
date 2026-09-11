@@ -757,7 +757,7 @@ public class NdaxCore extends NdaxApi
         String id = this.safeString(rawCurrency, "ProductId");
         String code = (String) this.safeCurrencyCode(this.safeString(rawCurrency, "Product"));
         String ProductType = this.safeString(rawCurrency, "ProductType");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
+        String type = ((Helpers.isTrue((Helpers.isEqual(ProductType, "NationalCurrency"))))) ? "fiat" : "crypto";
         if (Helpers.isTrue(Helpers.isEqual(ProductType, "Unknown")))
         {
             // such currency is just a blanket entry
@@ -1576,7 +1576,7 @@ public class NdaxCore extends NdaxApi
             //
             //     [ 449 ] // comma-separated list of account ids
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 String accountId = this.safeString(response, i);
@@ -1731,7 +1731,7 @@ public class NdaxCore extends NdaxApi
         String credit = this.safeString(item, "CR");
         String debit = this.safeString(item, "DR");
         Object amount = null;
-        Object direction = null;
+        String direction = null;
         if (Helpers.isTrue(Precise.stringLt(credit, "0")))
         {
             amount = credit;
@@ -1741,7 +1741,7 @@ public class NdaxCore extends NdaxApi
             amount = debit;
             direction = "out";
         }
-        Object before = null;
+        String before = null;
         String after = this.safeString(item, "Balance");
         if (Helpers.isTrue(Helpers.isEqual(direction, "out")))
         {
@@ -3070,7 +3070,7 @@ public class NdaxCore extends NdaxApi
         Object id = null;
         String currencyId = this.safeString(transaction, "ProductId");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "DepositId")))
         {
             id = this.safeString(transaction, "DepositId");

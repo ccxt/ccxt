@@ -910,7 +910,7 @@ public class Bit2cCore extends Bit2cApi
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(isNewOrder))
         {
             Object tempStatus = this.safeInteger(orderUnified, "status_type");
@@ -1137,7 +1137,7 @@ public class Bit2cCore extends Bit2cApi
         Object orderId = null;
         Object fee = null;
         Object side = null;
-        Object makerOrTaker = null;
+        String makerOrTaker = null;
         String reference = this.safeString(trade, "reference");
         if (Helpers.isTrue(!Helpers.isEqual(reference, null)))
         {

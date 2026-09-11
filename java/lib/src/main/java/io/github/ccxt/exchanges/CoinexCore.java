@@ -1586,7 +1586,7 @@ public class CoinexCore extends CoinexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "mark_price"))))) ? "swap" : "spot";
+        String marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "mark_price"))))) ? "swap" : "spot";
         String marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -2699,7 +2699,7 @@ public class CoinexCore extends CoinexApi
         {
             orderType = "swap";
         }
-        Object marketType = ((Helpers.isTrue((Helpers.isEqual(orderType, "swap"))))) ? "swap" : "spot";
+        String marketType = ((Helpers.isTrue((Helpers.isEqual(orderType, "swap"))))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         String feeCurrencyId = this.safeString(order, "fee_ccy");
         Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
@@ -3117,7 +3117,7 @@ public class CoinexCore extends CoinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
-                Object status = null;
+                String status = null;
                 Object code = this.safeInteger(entry, "code");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -3216,7 +3216,7 @@ public class CoinexCore extends CoinexApi
                 }
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -4459,7 +4459,7 @@ public class CoinexCore extends CoinexApi
     public Object parseMarketLeverageTiers(Object info, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object brackets = this.safeList(info, "level", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minNotional = 0;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
@@ -4551,7 +4551,7 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String status = (String)this.safeStringLower(response, "message");
-            Object type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
+            String type = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "reduce"))))) ? "reduce" : "add";
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
                 put( "type", type );
                 put( "amount", CoinexCore.this.parseNumber(amount) );
@@ -4743,7 +4743,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -4860,7 +4860,7 @@ final Object finalI = i;
         Object futureFundingTimestamp = this.safeInteger(contract, "next_funding_time");
         String fundingTimeString = this.safeString(contract, "latest_funding_time");
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
-        Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         String marketId = this.safeString(contract, "market");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -5219,7 +5219,7 @@ final Object finalI = i;
         String currencyId = this.safeString(transaction, "ccy");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transaction, "created_at");
-        Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdraw_id"))))) ? "withdrawal" : "deposit";
+        String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdraw_id"))))) ? "withdrawal" : "deposit";
         String networkId = this.safeString(transaction, "chain");
         String feeCost = this.safeString(transaction, "tx_fee");
         String transferMethod = (String)this.safeStringLower2(transaction, "withdraw_method", "deposit_method");

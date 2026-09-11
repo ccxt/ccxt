@@ -130,14 +130,14 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 ((java.util.List<Object>)rawSubscriptions).add(name);
                 ((java.util.List<Object>)messageHashes).add("alltickers");
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", rawSubscriptions );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), rawSubscriptions, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+                Object result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -375,7 +375,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
+        Object tickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object update = Helpers.GetValue(data, i);
@@ -461,7 +461,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 }
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", subscriptionHashes );
             }};
@@ -549,7 +549,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String messageHash = "margin";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
@@ -793,7 +793,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Object timestamp = this.milliseconds();
                 Object payload = Helpers.add(Helpers.add("GET", "/realtime"), String.valueOf(timestamp));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "op", "authKeyExpires" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BitmexCore.this.apiKey, timestamp, signature)) );
                 }};
@@ -808,7 +808,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
     public void handleAuthenticationMessage(Client client, Object message)
     {
         Object authenticated = this.safeBool(message, "success", false);
-        String messageHash = "authenticated";
+        Object messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -851,14 +851,14 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             }
             (this.authenticate()).join();
             String subscriptionHash = "position";
-            Object messageHash = "positions";
+            String messageHash = "positions";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
                 messageHash = Helpers.add("positions::", String.join((String)",", (java.util.List<String>)(java.util.List<String>)(symbols)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(subscriptionHash)) );
             }};
@@ -1099,7 +1099,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             }
             (this.authenticate()).join();
             String name = "order";
-            Object subscriptionHash = name;
+            String subscriptionHash = name;
             Object messageHash = name;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1107,7 +1107,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(subscriptionHash)) );
             }};
@@ -1284,7 +1284,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.orders;
-            java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+            Object symbols = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object currentOrder = Helpers.GetValue(data, i);
@@ -1336,7 +1336,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             }
             (this.authenticate()).join();
             String name = "execution";
-            Object subscriptionHash = name;
+            String subscriptionHash = name;
             Object messageHash = name;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1344,7 +1344,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(subscriptionHash)) );
             }};
@@ -1428,7 +1428,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
+        Object symbols = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
         {
             Object trade = Helpers.GetValue(trades, j);
@@ -1518,7 +1518,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
@@ -1565,7 +1565,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", topics );
             }};
@@ -1611,7 +1611,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object table = Helpers.add("tradeBin", this.safeString(this.timeframes, timeframe, timeframe));
             Object messageHash = Helpers.add(Helpers.add(table, ":"), Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
@@ -1697,7 +1697,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
         Object candles = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> results = new java.util.HashMap<String, Object>() {{}};
+        Object results = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(candles)); i++)
         {
             Object candle = Helpers.GetValue(candles, i);
@@ -1840,7 +1840,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             client.resolve(orderbook, messageHash);
         } else
         {
-            java.util.Map<String, Object> numUpdatesByMarketId = new java.util.HashMap<String, Object>() {{}};
+            Object numUpdatesByMarketId = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object marketId = this.safeValue(Helpers.GetValue(data, i), "symbol");
@@ -1993,7 +1993,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         if (Helpers.isTrue(Helpers.isEqual(this.handleErrorMessage(client, message), true)))
         {
             Object table = this.safeString(message, "table");
-            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+            Object methods = new java.util.HashMap<String, Object>() {{
                 put( "orderBookL2", "handleOrderBook");
                 put( "orderBookL2_25", "handleOrderBook");
                 put( "orderBook10", "handleOrderBook");

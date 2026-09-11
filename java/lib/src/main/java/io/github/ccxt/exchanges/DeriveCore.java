@@ -950,7 +950,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "erc20" );
             }};
@@ -968,7 +968,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "perp" );
             }};
@@ -986,7 +986,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "option" );
             }};
@@ -1001,11 +1001,11 @@ public class DeriveCore extends DeriveApi
     public Object parseMarket(Object market)
     {
         String type = this.safeString(market, "instrument_type");
-        Object marketType = null;
-        Boolean spot = false;
-        Boolean margin = true;
-        Boolean swap = false;
-        Boolean option = false;
+        String marketType = null;
+        Object spot = false;
+        Object margin = true;
+        Object swap = false;
+        Object option = false;
         Object linear = null;
         Object inverse = null;
         String baseId = this.safeString(market, "base_currency");
@@ -1014,11 +1014,11 @@ public class DeriveCore extends DeriveApi
         String quote = (String) this.safeCurrencyCode(quoteId);
         String marketId = this.safeString(market, "instrument_name");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object settleId = null;
+        String settleId = null;
         Object settle = null;
         Object expiry = null;
         Object strike = null;
-        Object optionType = null;
+        String optionType = null;
         Object optionLetter = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "erc20")))
         {
@@ -1057,7 +1057,7 @@ public class DeriveCore extends DeriveApi
             inverse = false;
         }
         Object contractSize = ((Helpers.isTrue((spot)))) ? null : 1;
-        Boolean isContract = (Helpers.isTrue(swap) || Helpers.isTrue(option));
+        Object isContract = (Helpers.isTrue(swap) || Helpers.isTrue(option));
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalSettle = settle;
@@ -1145,7 +1145,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
@@ -1328,7 +1328,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1404,7 +1404,7 @@ public class DeriveCore extends DeriveApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
             Object rawTrade = Helpers.GetValue(tradesArray, i);
-            Boolean isFetchTrades = !Helpers.isTrue((Helpers.inOp(rawTrade, "order_id")));
+            Object isFetchTrades = !Helpers.isTrue((Helpers.inOp(rawTrade, "order_id")));
             String liquidityRole = this.safeString(rawTrade, "liquidity_role");
             if (Helpers.isTrue(Helpers.isTrue(isFetchTrades) && Helpers.isTrue((Helpers.isEqual(liquidityRole, "maker")))))
             {
@@ -1455,7 +1455,7 @@ public class DeriveCore extends DeriveApi
         String marketId = this.safeString(trade, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger(trade, "timestamp");
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+        Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
             put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
         }};
@@ -1501,7 +1501,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1616,7 +1616,7 @@ public class DeriveCore extends DeriveApi
     {
         Object accountHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
         Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-        Object DOMAIN_SEPARATOR = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
+        String DOMAIN_SEPARATOR = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         Object prefix = this.base16ToBinary("1901");
         return this.hash(this.binaryConcat(prefix, binaryDomainSeparator, accountHash), keccak(), "hex");
@@ -1705,13 +1705,13 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
-            Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            String TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = this.numberToString(price);
             Object maxFee = null;
             var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
@@ -1731,7 +1731,7 @@ public class DeriveCore extends DeriveApi
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             final Object finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "direction", finalOrderSide );
                 put( "order_type", orderType );
@@ -1907,13 +1907,13 @@ public class DeriveCore extends DeriveApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
-            Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
+            Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Object nonce = this.milliseconds();
             Object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
-            Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
+            String TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = ((String)this.numberToString(price));
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
             Object amountString = this.numberToString(amount);
@@ -1925,7 +1925,7 @@ public class DeriveCore extends DeriveApi
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             final Object finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "order_id_to_cancel", id );
                 put( "direction", finalOrderSide );
@@ -2078,13 +2078,13 @@ public class DeriveCore extends DeriveApi
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "subaccount_id", finalSubaccountId );
             }};
             String clientOrderIdUnified = this.safeString(parameters, "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "label", clientOrderIdUnified);
-            Boolean isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
+            Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
             if (Helpers.isTrue(isByClientOrder))
             {
@@ -2146,7 +2146,7 @@ public class DeriveCore extends DeriveApi
             // }
             //
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> extendParams = new java.util.HashMap<String, Object>() {{
+            Object extendParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
@@ -2191,7 +2191,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object response = null;
@@ -2266,7 +2266,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -2450,7 +2450,7 @@ public class DeriveCore extends DeriveApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
+        Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
             put( "gtc", "GTC" );
@@ -2463,7 +2463,7 @@ public class DeriveCore extends DeriveApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+            Object statuses = new java.util.HashMap<String, Object>() {{
                 put( "open", "open" );
                 put( "untriggered", "open" );
                 put( "filled", "closed" );
@@ -2646,7 +2646,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "subaccount_id", finalSubaccountId );
             }};
@@ -2747,7 +2747,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -2844,7 +2844,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccount_id")));
@@ -2930,7 +2930,7 @@ public class DeriveCore extends DeriveApi
         String contract = this.safeString(position, "instrument_name");
         market = this.safeMarket(contract, market);
         String size = this.safeString(position, "amount");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -2943,7 +2943,7 @@ public class DeriveCore extends DeriveApi
         Object timestamp = this.safeInteger(position, "creation_timestamp");
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
         size = Precise.stringAbs(size);
-        Object notional = Precise.stringMul(size, markPrice);
+        String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
@@ -3016,7 +3016,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -3133,7 +3133,7 @@ public class DeriveCore extends DeriveApi
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
             final Object finalDeriveWalletAddress = deriveWalletAddress;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalDeriveWalletAddress );
             }};
             Object response = (this.privatePostGetAllPortfolios(this.extend(request, parameters))).join();
@@ -3193,7 +3193,7 @@ public class DeriveCore extends DeriveApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -3253,7 +3253,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3317,7 +3317,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3399,7 +3399,7 @@ public class DeriveCore extends DeriveApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "settled", "ok" );
             put( "reverted", "failed" );
         }};

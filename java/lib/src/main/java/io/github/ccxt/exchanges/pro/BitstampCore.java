@@ -276,7 +276,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Object sideRaw = this.safeInteger(trade, "type");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(sideRaw, 0))))) ? "buy" : "sell";
+        String side = ((Helpers.isTrue((Helpers.isEqual(sideRaw, 0))))) ? "buy" : "sell";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "timestamp", timestamp );
@@ -448,10 +448,10 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "id_str");
         String orderTypeRaw = (String)this.safeStringLower(order, "order_type");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(orderTypeRaw, "1"))))) ? "sell" : "buy";
+        String side = ((Helpers.isTrue((Helpers.isEqual(orderTypeRaw, "1"))))) ? "sell" : "buy";
         String orderSubTypeRaw = (String)this.safeStringLower(order, "order_subtype"); // https://www.bitstamp.net/websocket/v2/#:~:text=order_subtype
-        Object orderType = null;
-        Object timeInForce = null;
+        String orderType = null;
+        String timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(orderSubTypeRaw, "0")))
         {
             orderType = "limit";
@@ -475,7 +475,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object amount = this.safeString(order, "amount_str");
         Object filled = this.safeString(order, "amount_traded");
         Object eventVar = this.safeString(order, "event");
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Precise.stringEq(filled, amount)))
         {
             status = "closed";

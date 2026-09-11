@@ -98,7 +98,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
@@ -116,7 +116,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
             Object unsubHash = Helpers.add("unsubscribe::", subHash);
@@ -173,7 +173,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object market = this.market(symbol);
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1066,11 +1066,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object symbol = Helpers.GetValue(market, "symbol");
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
         Object timestamp = this.safeInteger(trade, "timestamp");
         Object maker = this.safeBool(trade, "maker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
@@ -1218,7 +1218,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1269,7 +1269,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

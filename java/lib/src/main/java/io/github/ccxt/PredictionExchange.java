@@ -158,8 +158,8 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object eventVar = Helpers.GetValue(result, i);
-                Boolean idMatch = Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "id"), eventId)));
-                Boolean slugMatch = Helpers.isTrue((!Helpers.isEqual(slug, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "slug"), slug)));
+                Object idMatch = Helpers.isTrue((!Helpers.isEqual(eventId, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "id"), eventId)));
+                Object slugMatch = Helpers.isTrue((!Helpers.isEqual(slug, null))) && Helpers.isTrue((Helpers.isEqual(this.safeString(eventVar, "slug"), slug)));
                 if (Helpers.isTrue(Helpers.isTrue(idMatch) || Helpers.isTrue(slugMatch)))
                 {
                     ((java.util.List<Object>)filtered).add(eventVar);
@@ -183,7 +183,7 @@ public Object describe()
         String sort = this.safeString(parameters, "sort");
         if (Helpers.isTrue(!Helpers.isEqual(sort, null)))
         {
-            Object sortKey = null;
+            String sortKey = null;
             if (Helpers.isTrue(Helpers.isEqual(sort, "volume")))
             {
                 sortKey = "volume";
@@ -230,7 +230,7 @@ public Object describe()
         {
             return events;
         }
-        Boolean wantActive = (Helpers.isEqual(status, "active"));
+        Object wantActive = (Helpers.isEqual(status, "active"));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
@@ -259,15 +259,15 @@ public Object describe()
         {
             return events;
         }
-        Boolean checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
-        Boolean checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        Object checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
+        Object checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
             String title = (String)this.safeStringLower(eventVar, "title", "");
             String description = (String)this.safeStringLower(eventVar, "description", "");
-            Boolean matched = false;
+            Object matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
                 Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
@@ -309,7 +309,7 @@ public Object describe()
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
-        Boolean pendingSep = false;
+        Object pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -353,7 +353,7 @@ public Object describe()
         {
             Object eventVar = Helpers.GetValue(events, i);
             Object eventTags = this.safeList(eventVar, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Boolean matched = false;
+            Object matched = false;
             for (var ti = 0; Helpers.isLessThan(ti, Helpers.getArrayLength(eventTags)); ti++)
             {
                 Object tag = Helpers.GetValue(eventTags, ti);
@@ -456,7 +456,7 @@ public Object describe()
             return new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
+        Object seen = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -600,7 +600,7 @@ public Object describe()
 
     public String shortenSlug(Object slug)
     {
-        java.util.Map<String, Object> replacements = new java.util.HashMap<String, Object>() {{
+        Object replacements = new java.util.HashMap<String, Object>() {{
             put( "federal-reserve", "fed" );
             put( "interest-rates", "rates" );
             put( "interest-rate", "rate" );
@@ -632,7 +632,7 @@ public Object describe()
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
-        Boolean lastDash = true; // start true to drop leading separators
+        Object lastDash = true; // start true to drop leading separators
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -706,7 +706,7 @@ public Object describe()
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
         Object label = "";
-        Boolean pendingSep = false;
+        Object pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
             Object ch = Helpers.GetValue(chars, i);
@@ -886,7 +886,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
-                Object missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
                     if (Helpers.isTrue(Helpers.isTrue(reload) || !Helpers.isTrue(this.hasOutcome(Helpers.GetValue(outcomes, i)))))
@@ -895,7 +895,7 @@ public Object describe()
                     }
                 }
                 Object missingLength = Helpers.getArrayLength(missing);
-                Boolean wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
@@ -973,7 +973,7 @@ public Object describe()
                 {
                     return this.safeOutcome(outcomeSymbol);
                 }
-                Boolean wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
+                Object wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
                 // if markets are already loaded (offline-injected, or loaded by loadMarkets/fetchEvents)
                 // but the outcome cache is cold, index them for free before hitting the network — this
                 // makes cold-cache resolution consistent across languages regardless of loadAllOutcomes
@@ -1024,7 +1024,7 @@ public Object describe()
         Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
         Object rawWords = Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Boolean hasLetters = false;
+        Object hasLetters = false;
         String letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawWords)); i++)
         {
@@ -1035,7 +1035,7 @@ public Object describe()
             {
                 continue;
             }
-            Boolean wordHasLetters = false;
+            Object wordHasLetters = false;
             Object chars = this.stringToCharsArray(word);
             for (var ci = 0; Helpers.isLessThan(ci, Helpers.getArrayLength(chars)); ci++)
             {
@@ -1865,7 +1865,7 @@ public Object describe()
         final Object finalCost = cost;
         final Object finalFee = fee;
         final Object finalPostOnly = postOnly;
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(outcomeOrder, "id") );
             put( "clientOrderId", PredictionExchange.this.safeString(outcomeOrder, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -1917,7 +1917,7 @@ public Object describe()
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(trade, "id") );
             put( "order", PredictionExchange.this.safeString(trade, "order") );
             put( "timestamp", timestamp );
@@ -1975,7 +1975,7 @@ public Object describe()
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalAverage = average;
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
             put( "high", PredictionExchange.this.safeNumber(ticker, "high") );
@@ -2014,7 +2014,7 @@ public Object describe()
             datetime = this.iso8601(timestamp);
         }
         final Object finalDatetime = datetime;
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(position, "id") );
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
@@ -2171,7 +2171,7 @@ public Object describe()
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object rows = this.toArray(positions);
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
         {
             Object parsed = this.parsePredictionPosition(Helpers.GetValue(rows, i));
@@ -2349,13 +2349,13 @@ public Object describe()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
+            Object payload = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "id", 1 );
                 put( "method", method );
                 put( "params", rpcParams );
             }};
-            java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
+            Object headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
             Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
@@ -2378,7 +2378,7 @@ public Object describe()
 
             Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new java.util.ArrayList<Object>(java.util.Arrays.asList(fromAddress, "pending")))).join();
             Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
-            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
+            Object tx = new java.util.HashMap<String, Object>() {{
                 put( "chainId", chainId );
                 put( "nonce", nonce );
                 put( "maxPriorityFeePerGas", gasPrice );

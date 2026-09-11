@@ -659,10 +659,10 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object symbol = Helpers.GetValue(market, "symbol");
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object maker = this.safeBool(trade, "maker");
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
@@ -828,7 +828,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -879,7 +879,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, "stop");
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1369,7 +1369,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
         Object size = this.safeString(position, "positionQty");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -1383,7 +1383,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object entryPrice = this.safeString(position, "averageOpenPrice");
         Object unrealisedPnl = this.safeString(position, "unsettledPnl");
         size = Precise.stringAbs(size);
-        Object notional = Precise.stringMul(size, markPrice);
+        String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;

@@ -314,7 +314,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object snapshot = this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
-        Object type = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(snapshot, null)) && Helpers.isTrue(!Helpers.isEqual(snapshot, null)))))) ? "snapshot" : "update";
+        String type = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(snapshot, null)) && Helpers.isTrue(!Helpers.isEqual(snapshot, null)))))) ? "snapshot" : "update";
         Object marketIds = Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
@@ -1201,7 +1201,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object tradeId = this.safeString(order, "trade_id");
-        Object trades = null;
+        java.util.List<Object> trades = null;
         if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
         {
             Object trade = this.parseWsOrderTrade(order, market);
@@ -1209,7 +1209,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         }
         Object rawStatus = this.safeString(order, "status");
         Object report_type = this.safeString(order, "report_type");
-        Object parsedStatus = null;
+        String parsedStatus = null;
         if (Helpers.isTrue(Helpers.isEqual(report_type, "canceled")))
         {
             parsedStatus = this.parseOrderStatus(report_type);

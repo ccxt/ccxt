@@ -4533,7 +4533,7 @@ public Object describe()
     public Object urlEncoderForProxyUrl(Object targetUrl)
     {
         // to be overriden
-        Boolean includesQuery = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(targetUrl, "?"), 0);
+        Object includesQuery = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(targetUrl, "?"), 0);
         Object finalUrl = ((Helpers.isTrue(includesQuery))) ? this.encodeURIComponent(targetUrl) : targetUrl;
         return finalUrl;
     }
@@ -4645,8 +4645,8 @@ public Object describe()
 
     public void checkConflictingProxies(Object proxyAgentSet, Object proxyUrlSet)
     {
-        Boolean proxyAgentIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, "")));
-        Boolean proxyUrlIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, "")));
+        Object proxyAgentIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyAgentSet, "")));
+        Object proxyUrlIsSet = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, null)))) && Helpers.isTrue((!Helpers.isEqual(proxyUrlSet, "")));
         if (Helpers.isTrue(Helpers.isTrue(proxyAgentIsSet) && Helpers.isTrue(proxyUrlIsSet)))
         {
             throw new InvalidProxySettings((String)Helpers.add(this.id, " you have multiple conflicting proxy settings, please use only one from : proxyUrl, httpProxy, httpsProxy, socksProxy")) ;
@@ -4697,7 +4697,7 @@ public Object describe()
             Object arrayLength = Helpers.getArrayLength(array);
             if (Helpers.isTrue(Helpers.isGreaterThan(arrayLength, 0)))
             {
-                Boolean ascending = true;
+                Object ascending = true;
                 if (Helpers.isTrue((Helpers.inOp(Helpers.GetValue(array, 0), key))))
                 {
                     Object first = Helpers.GetValue(Helpers.GetValue(array, 0), key);
@@ -4767,7 +4767,7 @@ public Object describe()
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
-        Boolean shouldFilterFromStart = !Helpers.isTrue(tail) && Helpers.isTrue(sinceIsDefined);
+        Object shouldFilterFromStart = !Helpers.isTrue(tail) && Helpers.isTrue(sinceIsDefined);
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
@@ -5161,7 +5161,7 @@ public Object describe()
 
     public Object parseCurrencies(Object rawCurrencies)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         Object arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
@@ -5723,10 +5723,10 @@ public Object describe()
         {
             refillRate = Helpers.divide(1, this.rateLimit);
         }
-        Boolean useLeaky = Helpers.isTrue((Helpers.isEqual(this.rollingWindowSize, 0))) || Helpers.isTrue((Helpers.isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
-        Object algorithm = ((Helpers.isTrue(useLeaky))) ? "leakyBucket" : "rollingWindow";
+        Object useLeaky = Helpers.isTrue((Helpers.isEqual(this.rollingWindowSize, 0))) || Helpers.isTrue((Helpers.isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
+        String algorithm = ((Helpers.isTrue(useLeaky))) ? "leakyBucket" : "rollingWindow";
         final Object finalRefillRate = refillRate;
-        java.util.Map<String, Object> defaultBucket = new java.util.HashMap<String, Object>() {{
+        Object defaultBucket = new java.util.HashMap<String, Object>() {{
             put( "delay", 0.001 );
             put( "capacity", 1 );
             put( "cost", 1 );
@@ -5768,7 +5768,7 @@ public Object describe()
         // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(unifiedMarketTypes)); i++)
         {
-            String marketType = (String) Helpers.GetValue(unifiedMarketTypes, i);
+            Object marketType = Helpers.GetValue(unifiedMarketTypes, i);
             // if marketType is not filled for this exchange, don't add that in `features`
             if (!Helpers.isTrue((Helpers.inOp(initialFeatures, marketType))))
             {
@@ -5783,7 +5783,7 @@ public Object describe()
                     Helpers.addElementToObject(this.features, marketType, new java.util.HashMap<String, Object>() {{}});
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subTypes)); j++)
                     {
-                        String subType = (String) Helpers.GetValue(subTypes, j);
+                        Object subType = Helpers.GetValue(subTypes, j);
                         Helpers.addElementToObject(Helpers.GetValue(this.features, marketType), subType, this.featuresMapper(initialFeatures, marketType, subType));
                     }
                 }
@@ -5865,7 +5865,7 @@ public Object describe()
         Object methodName = Helpers.getArg(optionalArgs, 0, null);
         Object paramName = Helpers.getArg(optionalArgs, 1, null);
         Object defaultValue = Helpers.getArg(optionalArgs, 2, null);
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         return this.featureValueByType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "subType"), methodName, paramName, defaultValue);
     }
 
@@ -6199,7 +6199,7 @@ public Object describe()
     public Object safeMarketStructure(Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> cleanStructure = new java.util.HashMap<String, Object>() {{
+        Object cleanStructure = new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "lowercaseId", null );
             put( "symbol", null );
@@ -6315,7 +6315,7 @@ public Object describe()
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
-            java.util.Map<String, Object> valueDefined = new java.util.HashMap<String, Object>() {{}};
+            Object valueDefined = new java.util.HashMap<String, Object>() {{}};
             Object valueKeys = Helpers.objectKeys(value);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(valueKeys)); j++)
             {
@@ -6367,7 +6367,7 @@ public Object describe()
                 Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.inOp(market, "base")))
                 {
-                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                    Object currency = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "baseId", "base") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "baseNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "base") );
@@ -6377,7 +6377,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(Helpers.inOp(market, "quote")))
                 {
-                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                    Object currency = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "quoteId", "quote") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "quoteNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "quote") );
@@ -6474,7 +6474,7 @@ public Object describe()
         Helpers.addElementToObject(balance, "free", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "used", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "total", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> debtBalance = new java.util.HashMap<String, Object>() {{}};
+        Object debtBalance = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -6534,18 +6534,18 @@ public Object describe()
         String symbol = this.safeString(order, "symbol");
         String side = this.safeString(order, "side");
         String status = this.safeString(order, "status");
-        Boolean parseFilled = (Helpers.isEqual(filled, null));
-        Boolean parseCost = (Helpers.isEqual(cost, null));
-        Boolean parseLastTradeTimeTimestamp = (Helpers.isEqual(lastTradeTimeTimestamp, null));
+        Object parseFilled = (Helpers.isEqual(filled, null));
+        Object parseCost = (Helpers.isEqual(cost, null));
+        Object parseLastTradeTimeTimestamp = (Helpers.isEqual(lastTradeTimeTimestamp, null));
         Object fee = this.safeValue(order, "fee");
-        Boolean parseFee = (Helpers.isEqual(fee, null));
-        Boolean parseFees = Helpers.isEqual(this.safeValue(order, "fees"), null);
-        Boolean parseSymbol = Helpers.isEqual(symbol, null);
-        Boolean parseSide = Helpers.isEqual(side, null);
-        Boolean shouldParseFees = Helpers.isTrue(parseFee) || Helpers.isTrue(parseFees);
+        Object parseFee = (Helpers.isEqual(fee, null));
+        Object parseFees = Helpers.isEqual(this.safeValue(order, "fees"), null);
+        Object parseSymbol = Helpers.isEqual(symbol, null);
+        Object parseSide = Helpers.isEqual(side, null);
+        Object shouldParseFees = Helpers.isTrue(parseFee) || Helpers.isTrue(parseFees);
         Object fees = this.safeList(order, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Boolean isTriggerOrSLTpOrder = (Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.safeString(order, "triggerPrice"), null)) || Helpers.isTrue((!Helpers.isEqual(this.safeString(order, "stopLossPrice"), null))))) || Helpers.isTrue((!Helpers.isEqual(this.safeString(order, "takeProfitPrice"), null))));
+        Object isTriggerOrSLTpOrder = (Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(this.safeString(order, "triggerPrice"), null)) || Helpers.isTrue((!Helpers.isEqual(this.safeString(order, "stopLossPrice"), null))))) || Helpers.isTrue((!Helpers.isEqual(this.safeString(order, "takeProfitPrice"), null))));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(parseFilled) || Helpers.isTrue(parseCost)) || Helpers.isTrue(shouldParseFees)))
         {
             Object rawTrades = this.safeValue(order, "trades", trades);
@@ -6555,7 +6555,7 @@ public Object describe()
             // (this as any).number = String;
             Object firstTrade = this.safeValue(rawTrades, 0);
             // parse trades if they haven't already been parsed
-            Boolean tradesAreParsed = (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstTrade, null))) && Helpers.isTrue((Helpers.inOp(firstTrade, "info")))) && Helpers.isTrue((Helpers.inOp(firstTrade, "id"))));
+            Object tradesAreParsed = (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(firstTrade, null))) && Helpers.isTrue((Helpers.inOp(firstTrade, "info")))) && Helpers.isTrue((Helpers.inOp(firstTrade, "id"))));
             if (!Helpers.isTrue(tradesAreParsed))
             {
                 trades = this.parseTrades(rawTrades, market);
@@ -6747,7 +6747,7 @@ public Object describe()
         //
         // linear
         // cost = filled * contract size * price
-        Boolean costPriceExists = Helpers.isTrue((!Helpers.isEqual(average, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)));
+        Object costPriceExists = Helpers.isTrue((!Helpers.isEqual(average, null))) || Helpers.isTrue((!Helpers.isEqual(price, null)));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(parseCost) && Helpers.isTrue((!Helpers.isEqual(filled, null)))) && Helpers.isTrue(costPriceExists)))
         {
             Object multiplyPrice = null;
@@ -6770,7 +6770,7 @@ public Object describe()
         }
         // support for market orders
         Object orderType = this.safeValue(order, "type");
-        Boolean emptyPrice = Helpers.isTrue((Helpers.isEqual(price, null))) || Helpers.isTrue(Precise.stringEquals(price, "0"));
+        Object emptyPrice = Helpers.isTrue((Helpers.isEqual(price, null))) || Helpers.isTrue(Precise.stringEquals(price, "0"));
         if (Helpers.isTrue(Helpers.isTrue(emptyPrice) && Helpers.isTrue((Helpers.isEqual(orderType, "market")))))
         {
             price = average;
@@ -6959,7 +6959,7 @@ public Object describe()
             useQuote = Helpers.isEqual(feeSide, "quote");
         }
         Object cost = this.numberToString(amount);
-        Object key = null;
+        String key = null;
         if (Helpers.isTrue(useQuote))
         {
             Object priceString = this.numberToString(price);
@@ -7104,10 +7104,10 @@ public Object describe()
     {
         Object fee = this.safeDict(container, "fee");
         Object fees = this.safeList(container, "fees");
-        Boolean feeDefined = !Helpers.isEqual(fee, null);
-        Boolean feesDefined = !Helpers.isEqual(fees, null);
+        Object feeDefined = !Helpers.isEqual(fee, null);
+        Object feesDefined = !Helpers.isEqual(fees, null);
         // parsing only if at least one of them is defined
-        Boolean shouldParseFees = (Helpers.isTrue(feeDefined) || Helpers.isTrue(feesDefined));
+        Object shouldParseFees = (Helpers.isTrue(feeDefined) || Helpers.isTrue(feesDefined));
         if (Helpers.isTrue(shouldParseFees))
         {
             if (Helpers.isTrue(feeDefined))
@@ -7204,7 +7204,7 @@ public Object describe()
 
     public Object invertFlatStringDictionary(Object dict)
     {
-        java.util.Map<String, Object> reversed = new java.util.HashMap<String, Object>() {{}};
+        Object reversed = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -7270,7 +7270,7 @@ public Object describe()
         //         { 'currency': 'USDT', 'cost': 12.3456 },
         //     ]
         //
-        java.util.Map<String, Object> reduced = new java.util.HashMap<String, Object>() {{}};
+        Object reduced = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
         {
             Object fee = Helpers.GetValue(fees, i);
@@ -7347,9 +7347,9 @@ public Object describe()
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(close, null)) && Helpers.isTrue(!Helpers.isEqual(average, null))))
             {
-                Object openAddClose = Precise.stringMul(average, "2");
+                String openAddClose = Precise.stringMul(average, "2");
                 // openAddClose = open * (1 + (100 + percentage)/100)
-                Object denominator = Precise.stringAdd("2", Precise.stringDiv(percentage, "100"));
+                String denominator = Precise.stringAdd("2", Precise.stringDiv(percentage, "100"));
                 Object calcOpen = ((Helpers.isTrue((!Helpers.isEqual(open, null))))) ? open : Precise.stringDiv(openAddClose, denominator);
                 close = Precise.stringMul(calcOpen, Precise.stringAdd("1", Precise.stringDiv(percentage, "100")));
             }
@@ -7627,7 +7627,7 @@ public Object describe()
         Object close = Helpers.getArg(optionalArgs, 4, "c");
         Object volume = Helpers.getArg(optionalArgs, 5, "v");
         Object ms = Helpers.getArg(optionalArgs, 6, false);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(result, timestamp, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(result, open, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(result, high, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -7673,7 +7673,7 @@ public Object describe()
                 Object maxRetries = this.safeValue(options, "webApiRetries", 10);
                 Object response = null;
                 Object retry = 0;
-                Boolean shouldBreak = false;
+                Object shouldBreak = false;
                 while (Helpers.isLessThan(retry, maxRetries))
                 {
                     try
@@ -7839,7 +7839,7 @@ public Object describe()
         Object isLinearSubType = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+            Object market = this.market(Helpers.GetValue(symbols, i));
             if (Helpers.isTrue(Helpers.isTrue(sameTypeOnly) && Helpers.isTrue((!Helpers.isEqual(marketType, null)))))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), marketType)))
@@ -8011,7 +8011,7 @@ public Object describe()
                 continue;
             }
             // pick which form goes first in the returned pair
-            Boolean preferPrimary = false;
+            Object preferPrimary = false;
             if (Helpers.isTrue(Helpers.isEqual(currencyCode, baseCoin)))
             {
                 preferPrimary = true; // mainnet currency uses primary chain
@@ -8267,20 +8267,20 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object marketIdKey = Helpers.getArg(optionalArgs, 1, null);
         symbols = this.marketSymbols(symbols);
-        java.util.Map<String, Object> tiers = new java.util.HashMap<String, Object>() {{}};
+        Object tiers = new java.util.HashMap<String, Object>() {{}};
         Object symbolsLength = 0;
         if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
         {
             symbolsLength = Helpers.getArrayLength(symbols);
         }
-        Boolean noSymbols = Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)));
+        Object noSymbols = Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue((Helpers.isEqual(symbolsLength, 0)));
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object item = Helpers.GetValue(response, i);
                 Object id = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? null : this.safeString(item, marketIdKey);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(id, null, null, "swap");
+                Object market = this.safeMarket(id, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
@@ -8295,7 +8295,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(keys, i);
                 Object item = Helpers.GetValue(response, marketId);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "swap");
+                Object market = this.safeMarket(marketId, null, null, "swap");
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object contract = this.safeBool(market, "contract", false);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(noSymbols) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(this.inArray(symbol, symbols))))))))
@@ -8351,7 +8351,7 @@ public Object describe()
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(percentage, null))) && Helpers.isTrue((!Helpers.isEqual(unrealizedPnlString, null)))) && Helpers.isTrue((!Helpers.isEqual(initialMarginString, null)))))
         {
             // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
-            Object percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
+            String percentageString = Precise.stringMul(Precise.stringDiv(unrealizedPnlString, initialMarginString, 4), "100");
             Helpers.addElementToObject(position, "percentage", this.parseNumber(percentageString));
         }
         // if contractSize is undefined get from market
@@ -8560,7 +8560,7 @@ public Object describe()
 
     public Object marketId(Object symbol)
     {
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
             return Helpers.GetValue(market, "id");
@@ -8574,7 +8574,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " symbol() requires a symbol argument")) ;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         return this.safeString(market, "symbol", symbol);
     }
 
@@ -8814,7 +8814,7 @@ public Object describe()
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
             Object fetchData = null;
-            Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
+            Object fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
                 if (Helpers.isTrue(fetchDataCacheEnabled))
@@ -8929,13 +8929,13 @@ public Object describe()
         Object limit = Helpers.getArg(optionalArgs, 2, 2147483647);
         Object ms = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
         java.util.List<Object> ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Integer i_timestamp = 0;
+        Object i_timestamp = 0;
         // const open = 1;
-        Integer i_high = 2;
-        Integer i_low = 3;
-        Integer i_close = 4;
-        Integer i_volume = 5;
-        Integer i_count = 6;
+        Object i_high = 2;
+        Object i_low = 3;
+        Object i_close = 4;
+        Object i_volume = 5;
+        Object i_count = 6;
         Object tradesLength = Helpers.getArrayLength(trades);
         Object oldest = Helpers.mathMin(tradesLength, limit);
         Object options = this.safeDict(this.options, "buildOHLCVC", new java.util.HashMap<String, Object>() {{}});
@@ -8972,7 +8972,7 @@ public Object describe()
             {
                 continue;
             }
-            Boolean isFirstCandle = Helpers.isEqual(candle, Helpers.opNeg(1));
+            Object isFirstCandle = Helpers.isEqual(candle, Helpers.opNeg(1));
             if (Helpers.isTrue(Helpers.isTrue(isFirstCandle) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(openingTime, this.sum(Helpers.GetValue(Helpers.GetValue(ohlcvs, candle), i_timestamp), ms)))))
             {
                 // moved to a new timeframe -> create a new candle from opening trade
@@ -9127,7 +9127,7 @@ public Object describe()
                 Object parts = Helpers.split(marketId, delimiter);
                 Object partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
-                java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
                     put( "marketId", finalMarketId );
                 }});
@@ -9164,7 +9164,7 @@ public Object describe()
             return market;
         }
         final Object finalMarketId_2 = marketId;
-        java.util.Map<String, Object> emptyMarket = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        Object emptyMarket = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalMarketId_2 );
             put( "marketId", finalMarketId_2 );
         }});
@@ -9199,7 +9199,7 @@ public Object describe()
         {
             Object key = Helpers.GetValue(keys, i);
             Object credentialValue = Helpers.GetValue(this, key);
-            Boolean credentialMissing = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(credentialValue, null))) || Helpers.isTrue((Helpers.isEqual(credentialValue, null)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, false)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, "")));
+            Object credentialMissing = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(credentialValue, null))) || Helpers.isTrue((Helpers.isEqual(credentialValue, null)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, false)))) || Helpers.isTrue((Helpers.isEqual(credentialValue, "")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(this.requiredCredentials, key), true))) && Helpers.isTrue(credentialMissing)))
             {
                 if (Helpers.isTrue(error))
@@ -9449,7 +9449,7 @@ public Object describe()
     {
         // This method can be used to obtain method specific properties, i.e: this.handleOptionAndParams (params, 'fetchPosition', 'marginMode', 'isolated')
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object defaultOptionName = Helpers.add("default", this.capitalize(optionName)); // we also need to check the 'defaultXyzWhatever'
+        String defaultOptionName = Helpers.add("default", this.capitalize(optionName)); // we also need to check the 'defaultXyzWhatever'
         // check if params contain the key
         Object value = this.safeValue2(parameters, optionName, defaultOptionName);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
@@ -9819,7 +9819,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsADLRank"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPositionsADLRank"), false))))
             {
                 (this.loadMarkets()).join();
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Object ranks = (this.fetchPositionsADLRank(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
                 Object rank = this.safeDict(ranks, 0);
@@ -10264,7 +10264,7 @@ public Object describe()
         java.util.List<Object> fields = new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total", "debt"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fields)); i++)
         {
-            String field = (String) Helpers.GetValue(fields, i);
+            Object field = Helpers.GetValue(fields, i);
             String current = this.safeString(Helpers.GetValue(result, code), field);
             String incoming = this.safeString(account, field);
             if (Helpers.isTrue(Helpers.isEqual(current, null)))
@@ -10325,7 +10325,7 @@ public Object describe()
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
         }
-        java.util.Map<String, Object> marketsById = this.markets_by_id;
+        Object marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.inOp(markets, symbol)))
         {
             return Helpers.GetValue(markets, symbol);
@@ -10361,7 +10361,7 @@ public Object describe()
         java.util.List<Object> leverageSuffixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
-            String leverageSuffix = (String) Helpers.GetValue(leverageSuffixes, i);
+            Object leverageSuffix = Helpers.GetValue(leverageSuffixes, i);
             Object endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
             if (Helpers.isTrue(endsWithSuffix))
             {
@@ -10406,7 +10406,7 @@ public Object describe()
         {
             return null;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         return this.decimalToPrecision(cost, TRUNCATE, this.safeString2(Helpers.GetValue(market, "precision"), "cost", "price"), this.precisionMode, this.paddingMode);
     }
 
@@ -10416,7 +10416,7 @@ public Object describe()
         {
             return null;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         Object result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
@@ -10431,7 +10431,7 @@ public Object describe()
         {
             return null;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
@@ -10446,7 +10446,7 @@ public Object describe()
         {
             return null;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         return this.decimalToPrecision(fee, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
     }
 
@@ -10567,7 +10567,7 @@ public Object describe()
             return this.parsePrecision(precision);
         } else
         {
-            Object positivePrecisionString = Precise.stringAbs(precision);
+            String positivePrecisionString = Precise.stringAbs(precision);
             if (Helpers.isTrue(Helpers.isEqual(positivePrecisionString, null)))
             {
                 return null;
@@ -10615,7 +10615,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverageTiers"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchLeverageTiers"), false))))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchMarketLeverageTiers() supports contract markets only")) ;
@@ -10713,7 +10713,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                Object market = this.safeMarket(marketId);
                 Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
@@ -10763,7 +10763,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                Object market = this.safeMarket(marketId);
                 Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
                 Object ticker = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(ticker);
@@ -10798,7 +10798,7 @@ public Object describe()
     public Object parseBorrowInterests(Object response, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object row = Helpers.GetValue(response, i);
@@ -10828,7 +10828,7 @@ public Object describe()
 
     public Object parseIsolatedBorrowRates(Object info)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object item = Helpers.GetValue(info, i);
@@ -10873,7 +10873,7 @@ public Object describe()
     public Object parseFundingRates(Object response, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> fundingRates = new java.util.HashMap<String, Object>() {{}};
+        Object fundingRates = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object entry = Helpers.GetValue(response, i);
@@ -10956,7 +10956,7 @@ public Object describe()
         Object exchangeSpecificKey = Helpers.getArg(optionalArgs, 0, null);
         Object allowEmpty = Helpers.getArg(optionalArgs, 1, false);
         String triggerDirection = this.safeString(parameters, "triggerDirection");
-        Boolean exchangeSpecificDefined = Helpers.isTrue((!Helpers.isEqual(exchangeSpecificKey, null))) && Helpers.isTrue((Helpers.inOp(parameters, exchangeSpecificKey)));
+        Object exchangeSpecificDefined = Helpers.isTrue((!Helpers.isEqual(exchangeSpecificKey, null))) && Helpers.isTrue((Helpers.inOp(parameters, exchangeSpecificKey)));
         if (Helpers.isTrue(!Helpers.isEqual(triggerDirection, null)))
         {
             parameters = this.omit(parameters, "triggerDirection");
@@ -11009,9 +11009,9 @@ public Object describe()
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.safeBool2(parameters, "postOnly", "post_only", false);
         // we assume timeInForce is uppercase from safeStringUpper (params, 'timeInForce')
-        Boolean ioc = Helpers.isEqual(timeInForce, "IOC");
-        Boolean fok = Helpers.isEqual(timeInForce, "FOK");
-        Boolean timeInForcePostOnly = Helpers.isEqual(timeInForce, "PO");
+        Object ioc = Helpers.isEqual(timeInForce, "IOC");
+        Object fok = Helpers.isEqual(timeInForce, "FOK");
+        Object timeInForcePostOnly = Helpers.isEqual(timeInForce, "PO");
         if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
         {
             postOnly = timeInForcePostOnly;
@@ -11051,9 +11051,9 @@ public Object describe()
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
         Object postOnly = this.safeBool(parameters, "postOnly", false);
-        Boolean ioc = Helpers.isEqual(timeInForce, "IOC");
-        Boolean fok = Helpers.isEqual(timeInForce, "FOK");
-        Boolean po = Helpers.isEqual(timeInForce, "PO");
+        Object ioc = Helpers.isEqual(timeInForce, "IOC");
+        Object fok = Helpers.isEqual(timeInForce, "FOK");
+        Object po = Helpers.isEqual(timeInForce, "PO");
         if (Helpers.isTrue(!Helpers.isEqual(postOnly, true)))
         {
             postOnly = po;
@@ -11137,7 +11137,7 @@ public Object describe()
     public Object parseOpenInterests(Object response, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        Object result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object entry = Helpers.GetValue(response, i);
@@ -11176,7 +11176,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingRates"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingRates"), false))))
             {
                 (this.loadMarkets()).join();
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
@@ -11208,7 +11208,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingIntervals"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchFundingIntervals"), false))))
             {
                 (this.loadMarkets()).join();
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                 {
@@ -11253,7 +11253,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), false))))
             {
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "mark" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11287,7 +11287,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), false))))
             {
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "index" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11321,7 +11321,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), false))))
             {
-                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+                Object request = new java.util.HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11371,10 +11371,10 @@ public Object describe()
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
         Object markets = this.markets;
-        java.util.Map<String, Object> marketsById = this.markets_by_id;
+        Object marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(markets, null))) && Helpers.isTrue((Helpers.inOp(markets, account))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, account)))))))
         {
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(account);
+            Object market = this.market(account);
             return Helpers.GetValue(market, "id");
         } else
         {
@@ -11437,7 +11437,7 @@ public Object describe()
         */
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
-        java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
+        Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
         Object isArray = Helpers.isArray(response);
         Object responseKeys = response;
         if (!Helpers.isTrue(isArray))
@@ -11453,7 +11453,7 @@ public Object describe()
             {
                 currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyIdKey, null))))) ? null : this.safeString(dictionary, currencyIdKey);
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(currencyId);
+            Object currency = this.safeCurrency(currencyId);
             String code = this.safeString(currency, "code");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))
             {
@@ -11569,7 +11569,7 @@ public Object describe()
             // this.market (undefined) would throw an unreadable error
             return null;
         }
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(firstMarket);
+        Object market = this.market(firstMarket);
         return market;
     }
 
@@ -11656,7 +11656,7 @@ public Object describe()
 
     public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
     {
-        java.util.Map<String, Object> res = new java.util.HashMap<String, Object>() {{}};
+        Object res = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(res, symbol, new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(Helpers.GetValue(res, symbol), timeframe, data);
         return res;
@@ -12022,7 +12022,7 @@ public Object describe()
                     {
                         Object cursorString = ((Helpers.isTrue((Helpers.isEqual(cursorValue, null))))) ? "" : cursorValue;
                         Object iteration = (Helpers.add(i, 1));
-                        Object cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
+                        String cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
                         this.log(cursorMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12114,7 +12114,7 @@ public Object describe()
                     if (Helpers.isTrue(this.verbose))
                     {
                         Object iteration = String.valueOf((Helpers.add(i, 1)));
-                        Object incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
+                        String incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12159,8 +12159,8 @@ public Object describe()
     public Object removeRepeatedElementsFromArray(Object input, Object... optionalArgs)
     {
         Object fallbackToTimestamp = Helpers.getArg(optionalArgs, 0, true);
-        java.util.Map<String, Object> uniqueDic = new java.util.HashMap<String, Object>() {{}};
-        Object uniqueResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object uniqueDic = new java.util.HashMap<String, Object>() {{}};
+        java.util.List<Object> uniqueResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
             Object entry = Helpers.GetValue(input, i);
@@ -12181,7 +12181,7 @@ public Object describe()
 
     public Object removeRepeatedTradesFromArray(Object input)
     {
-        java.util.Map<String, Object> uniqueResult = new java.util.HashMap<String, Object>() {{}};
+        Object uniqueResult = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
             Object entry = Helpers.GetValue(input, i);
@@ -12211,7 +12211,7 @@ public Object describe()
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
         Object keys = Helpers.objectKeys(dict);
-        java.util.Map<String, Object> newDict = new java.util.HashMap<String, Object>() {{}};
+        Object newDict = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -12317,7 +12317,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                Object market = this.safeMarket(marketId);
                 Object parsed = this.parseGreeks(Helpers.GetValue(greeks, marketId), market);
                 Object greek = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(greek);
@@ -12338,14 +12338,14 @@ public Object describe()
     {
         Object currencyKey = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
-        java.util.Map<String, Object> optionStructures = new java.util.HashMap<String, Object>() {{}};
+        Object optionStructures = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
             Object currencyId = ((Helpers.isTrue((Helpers.isEqual(currencyKey, null))))) ? null : this.safeString(info, currencyKey);
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(currencyId);
+            Object currency = this.safeCurrency(currencyId);
             Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "option");
+            Object market = this.safeMarket(marketId, null, null, "option");
             Helpers.addElementToObject(optionStructures, Helpers.GetValue(market, "symbol"), this.parseOption(info, currency, market));
         }
         return optionStructures;
@@ -12356,7 +12356,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
         Object marketType = Helpers.getArg(optionalArgs, 2, null);
-        java.util.Map<String, Object> marginModeStructures = new java.util.HashMap<String, Object>() {{}};
+        Object marginModeStructures = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
         {
             marketType = "swap"; // default to swap
@@ -12365,7 +12365,7 @@ public Object describe()
         {
             Object info = Helpers.GetValue(response, i);
             Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
+            Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
                 Helpers.addElementToObject(marginModeStructures, Helpers.GetValue(market, "symbol"), this.parseMarginMode(info, market));
@@ -12385,7 +12385,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
         Object marketType = Helpers.getArg(optionalArgs, 2, null);
-        java.util.Map<String, Object> leverageStructures = new java.util.HashMap<String, Object>() {{}};
+        Object leverageStructures = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
         {
             marketType = "swap"; // default to swap
@@ -12394,7 +12394,7 @@ public Object describe()
         {
             Object info = Helpers.GetValue(response, i);
             Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
+            Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
                 Helpers.addElementToObject(leverageStructures, Helpers.GetValue(market, "symbol"), this.parseLeverage(info, market));
@@ -12481,7 +12481,7 @@ public Object describe()
         Object day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        Object reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
+        String reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
         return reconstructedDate;
     }
 
@@ -12494,7 +12494,7 @@ public Object describe()
         // parse 240119 to 19JAN24
         Object year = Helpers.slice(date, 0, 2);
         Object monthRaw = Helpers.slice(date, 2, 4);
-        Object month = null;
+        String month = null;
         Object day = Helpers.slice(date, 4, 6);
         if (Helpers.isTrue(Helpers.isEqual(monthRaw, "01")))
         {
@@ -12544,7 +12544,7 @@ public Object describe()
             return null;
         }
         // parse 03JAN24 to 240103.
-        java.util.Map<String, Object> monthMappping = new java.util.HashMap<String, Object>() {{
+        Object monthMappping = new java.util.HashMap<String, Object>() {{
             put( "JAN", "01" );
             put( "FEB", "02" );
             put( "MAR", "03" );
@@ -12606,7 +12606,7 @@ public Object describe()
         {
             Object info = Helpers.GetValue(response, i);
             Object marketId = ((Helpers.isTrue((Helpers.isEqual(symbolKey, null))))) ? null : this.safeString(info, symbolKey);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
+            Object market = this.safeMarket(marketId, null, null, marketType);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(symbols, null))) || Helpers.isTrue(this.inArray(Helpers.GetValue(market, "symbol"), symbols))))
             {
                 ((java.util.List<Object>)marginModifications).add(this.parseMarginModification(info, market));
@@ -12859,7 +12859,7 @@ public Object describe()
         {
             return "";
         }
-        Integer second = 1000;
+        Object second = 1000;
         Object minute = Helpers.multiply(60, second);
         Object hour = Helpers.multiply(60, minute);
         Object day = Helpers.multiply(24, hour);

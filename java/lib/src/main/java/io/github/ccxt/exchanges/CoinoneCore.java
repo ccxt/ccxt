@@ -478,9 +478,9 @@ public class CoinoneCore extends CoinoneApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = (String) this.safeCurrencyCode(id);
-        Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
-        Boolean isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
-        Object type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
+        Object isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
+        Object isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
+        String type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
         final Object finalCode = code;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -521,7 +521,7 @@ public class CoinoneCore extends CoinoneApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", "KRW" );
             }};
             Object response = (this.v2PublicGetTickerNewQuoteCurrency(request)).join();
@@ -627,7 +627,7 @@ public class CoinoneCore extends CoinoneApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.omit(response, new java.util.ArrayList<Object>(java.util.Arrays.asList("errorCode", "result", "normalWallets")));
@@ -694,7 +694,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
             }};
@@ -754,7 +754,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", "KRW" );
             }};
             Object market = null;
@@ -829,7 +829,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
             }};
@@ -965,7 +965,7 @@ public class CoinoneCore extends CoinoneApi
         Object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
         Object isSellerMaker = this.safeBool(trade, "is_seller_maker");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isSellerMaker, null)))
         {
             side = ((Helpers.isTrue(isSellerMaker))) ? "sell" : "buy";
@@ -1033,7 +1033,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
             }};
@@ -1106,7 +1106,7 @@ public class CoinoneCore extends CoinoneApi
             // see https://github.com/ccxt/ccxt/issues/23174
             final Object finalOrderType = orderType;
             final Object finalPrice = price;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quoteId") );
                 put( "target_currency", Helpers.GetValue(market, "baseId") );
                 put( "type", finalOrderType );
@@ -1152,7 +1152,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
@@ -1185,7 +1185,7 @@ public class CoinoneCore extends CoinoneApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "live", "open" );
             put( "partially_filled", "open" );
             put( "partially_canceled", "open" );
@@ -1367,7 +1367,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quoteId") );
                 put( "target_currency", Helpers.GetValue(market, "baseId") );
             }};
@@ -1423,7 +1423,7 @@ public class CoinoneCore extends CoinoneApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.v2PrivatePostOrderCompleteOrders(this.extend(request, parameters))).join();
@@ -1488,7 +1488,7 @@ public class CoinoneCore extends CoinoneApi
             final Object finalQty = qty;
             final Object finalIsAsk = isAsk;
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "price", finalPrice );
                 put( "qty", finalQty );

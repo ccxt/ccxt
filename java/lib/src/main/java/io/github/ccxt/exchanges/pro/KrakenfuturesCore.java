@@ -513,7 +513,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object marketId = this.safeString(position, "instrument");
         String hedged = "both";
         Object balanceString = this.safeString(position, "balance");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Precise.stringGt(balanceString, "0")))
         {
             side = "long";
@@ -978,8 +978,8 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 }
                 ((java.util.List<Object>)Helpers.GetValue(previousOrder, "trades")).add(trade);
                 Helpers.addElementToObject(previousOrder, "lastTradeTimestamp", Helpers.GetValue(trade, "timestamp"));
-                Object totalCost = "0";
-                Object totalAmount = "0";
+                String totalCost = "0";
+                String totalAmount = "0";
                 Object trades = Helpers.GetValue(previousOrder, "trades");
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
                 {
@@ -994,10 +994,10 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 Helpers.addElementToObject(previousOrder, "cost", totalCost);
                 Object filledString = this.numberToString(Helpers.GetValue(trade, "amount"));
                 Object stringOrderFilled = this.safeString(previousOrder, "filled", "0");
-                Object totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
+                String totalFilled = Precise.stringAdd(stringOrderFilled, filledString);
                 Helpers.addElementToObject(previousOrder, "filled", totalFilled);
                 Object prevAmountString = this.safeString(previousOrder, "amount");
-                Object remaining = Precise.stringSub(prevAmountString, totalFilled);
+                String remaining = Precise.stringSub(prevAmountString, totalFilled);
                 Helpers.addElementToObject(previousOrder, "remaining", remaining);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(previousOrder, "fee"), null)))
                 {
@@ -1192,7 +1192,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isCancelled = this.safeValue(order, "is_cancel");
         Object unparsedOrder = order;
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(!Helpers.isEqual(isCancelled, null)))
         {
             unparsedOrder = this.safeValue(order, "order");

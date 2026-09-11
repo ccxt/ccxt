@@ -2965,7 +2965,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Boolean signed = Helpers.isEqual(Helpers.GetValue(api, 1), "private");
         Object fullPath = Helpers.add(Helpers.add(Helpers.add("/", version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object savedPath = Helpers.add("/api", fullPath);
+        String savedPath = Helpers.add("/api", fullPath);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
