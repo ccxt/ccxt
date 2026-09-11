@@ -98,7 +98,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            Object toAccountString = this.parseTransferType(toAccount);
+            String toAccountString = this.parseTransferType(toAccount);
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {

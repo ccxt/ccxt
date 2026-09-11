@@ -2712,7 +2712,16 @@ class NewTranspiler {
             'Client client = (Client)this.$1(');
 
         // ── Pattern 9: int/long from Object ──
-        content = content.replace(/int (\w+) = (?![\d(])/gm, 'Object $1 = ');
+        // REMOVED (JN-28): this pass rewrote `int x = <rhs>;` -> `Object x = <rhs>;`.
+        // The printer never emits an `int` local (VAR_TOKEN is Object, INFER_VAR_TYPE
+        // off in ast-transpiler), so the only declarations it could match were the
+        // local-types module's own audited retypes — e.g. the numeric slice's
+        // `int tf = this.parseTimeframe(...)`. Corpus-wide measurement (REST+WS+
+        // prediction, --force): with the pass disabled the generated tree changes by
+        // exactly 3 declarations (Object -> int, Bitmex/Hyperliquid/Kalshi parseTimeframe
+        // locals) and `./gradlew compileJava` remains BUILD SUCCESSFUL. Keeping it could
+        // only roll those wins back; a future `int x = <Object rhs>` now fails loudly at
+        // javac instead of being silently reverted.
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
             'new ArrayCache(((Number)this.$1).intValue())');
         content = content.replace(/new ArrayCache\(this\.(safeInteger\([^)]+\))\)/gm,
@@ -2739,7 +2748,20 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // REMOVED (JN-28): this pass rewrote `String x = this.<m>(...)` /
+        // `String x = Helpers.<h>(...)` -> `Object x = ...`. The printer emits `Object`
+        // for every initialised body local (VAR_TOKEN is Object, INFER_VAR_TYPE off in
+        // ast-transpiler), so the only producer of the matched shape is
+        // build/java-local-types.js — which retypes a local only when its value is
+        // provably the named type (audited per family). Corpus-wide measurement
+        // (REST+WS+prediction, --force): with the pass disabled the generated tree
+        // changes by exactly 2667 declarations, ALL Object -> String — safeString/
+        // safeString2/safeStringN 2579, then the parse*/symbol/url/hash-helper families
+        // — and `./gradlew compileJava` remains BUILD SUCCESSFUL with 0 errors. The
+        // pass dates from the initial Java port; with the local-types module in place
+        // it could only roll those declarations back. A future `String x = <call
+        // returning Object>` now fails loudly at javac instead of being silently
+        // reverted to Object.
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');
