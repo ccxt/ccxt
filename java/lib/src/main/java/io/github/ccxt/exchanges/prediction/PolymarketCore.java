@@ -608,7 +608,7 @@ public class PolymarketCore extends PolymarketApi
                 rawEvents = (this.fetchRawEventsList(rest)).join();
             }
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object eventsDict = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
             for (var rei = 0; Helpers.isLessThan(rei, Helpers.getArrayLength(rawEvents)); rei++)
             {
                 Object rawEvent = Helpers.GetValue(rawEvents, rei);
@@ -674,13 +674,13 @@ public class PolymarketCore extends PolymarketApi
                 eventsStatus = null;
             }
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit", "sort", "status", "searchIn", "eventId", "slug", "query", "queries", "searchPageSize", "maxSearchPages")));
-            Object seen = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
                 Object q = Helpers.GetValue(queries, qi);
                 final Object finalSortParam = sortParam;
-                Object baseRequest = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> baseRequest = new java.util.HashMap<String, Object>() {{
                     put( "q", q );
                     put( "limit_per_type", pageSize );
                     put( "sort", finalSortParam );
@@ -694,7 +694,7 @@ public class PolymarketCore extends PolymarketApi
                     put( "page", 1 );
                 }};
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
-                Object first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
+                java.util.Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
                 Object firstEvents = (java.util.List<Object>)(this.safeList(first, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
                 Object firstEventsLength = Helpers.getArrayLength(firstEvents);
                 Object pagination = this.safeDict(first, "pagination", new java.util.HashMap<String, Object>() {{}});
@@ -852,7 +852,7 @@ public class PolymarketCore extends PolymarketApi
             Object requestedTagsLength = Helpers.getArrayLength(requestedTags);
             if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 1)))
             {
-                Object seen = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
                 Object unioned = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var ti = 0; Helpers.isLessThan(ti, requestedTagsLength); ti++)
                 {
@@ -893,7 +893,7 @@ public class PolymarketCore extends PolymarketApi
                 put( "offset", 0 );
             }};
             firstPageRequest = this.extend(firstPageRequest, baseRequest);
-            Object firstPageResponse = (this.gammaPublicGetEvents(firstPageRequest)).join();
+            java.util.List<Object> firstPageResponse = (this.gammaPublicGetEvents(firstPageRequest)).join();
             Object firstPageIsArray = Helpers.isArray(firstPageResponse);
             Object firstPage = ((Helpers.isTrue((firstPageIsArray)))) ? firstPageResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstPageLength = Helpers.getArrayLength(firstPage);
@@ -1240,7 +1240,7 @@ final Object finalClobTokenId = clobTokenId;
             // `=== -1` passes through and never matches mb_strpos's false return
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(Helpers.getIndexOf(outcomeSymbol, ":"), 0))) && Helpers.isTrue((Helpers.isEqual(this.outcomeSearchQuery(outcomeSymbol), null)))))
             {
-                Object response = (this.gammaPublicGetMarkets(new java.util.HashMap<String, Object>() {{
+                java.util.List<Object> response = (this.gammaPublicGetMarkets(new java.util.HashMap<String, Object>() {{
                     put( "clob_token_ids", outcomeSymbol );
                 }})).join();
                 Object rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(response, null))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1328,7 +1328,7 @@ final Object finalClobTokenId = clobTokenId;
                     }
                     // gamma matches repeated clob_token_ids params — comma-joined ids are rejected
                     // with a validation error, so the list rides through urlencodeWithArrayRepeat
-                    Object response = (this.gammaPublicGetMarkets(new java.util.HashMap<String, Object>() {{
+                    java.util.List<Object> response = (this.gammaPublicGetMarkets(new java.util.HashMap<String, Object>() {{
                         put( "clob_token_ids", chunk );
                         put( "limit", chunkSize );
                     }})).join();
@@ -1391,7 +1391,7 @@ final Object finalClobTokenId = clobTokenId;
             var midpointResponse = ((java.util.List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(0);
             var bookResponse = ((java.util.List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(1);
             var lastTradeResponse = ((java.util.List<Object>) midpointResponsebookResponselastTradeResponseVariable).get(2);
-            Object response = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{
                 put( "midpoint", midpointResponse );
                 put( "book", bookResponse );
                 put( "lastTrade", lastTradeResponse );
@@ -1463,7 +1463,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 ((java.util.List<Object>)targets).add(Helpers.GetValue(outcomes, oi));
             }
-            Object outcomesByTokenId = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> outcomesByTokenId = new java.util.HashMap<String, Object>() {{}};
             Object tokenIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(targets)); i++)
             {
@@ -1476,7 +1476,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
             }
             Object chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tokenIdsLength))
@@ -1503,7 +1503,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object books = ((Helpers.isTrue((booksIsArray)))) ? booksResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object lastTradesIsArray = Helpers.isArray(lastTradesResponse);
                 Object lastTrades = ((Helpers.isTrue((lastTradesIsArray)))) ? lastTradesResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object lastTradesByTokenId = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> lastTradesByTokenId = new java.util.HashMap<String, Object>() {{}};
                 Object lastTradesLength = Helpers.getArrayLength(lastTrades);
                 for (var li = 0; Helpers.isLessThan(li, lastTradesLength); li++)
                 {
@@ -1526,7 +1526,7 @@ final Object finalClobTokenId = clobTokenId;
                     Object outcomeObj = Helpers.GetValue(outcomesByTokenId, tokenId);
                     Object mid = this.safeString(midpoints, tokenId);
                     final Object finalTokenId = tokenId;
-                    Object tickerInput = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> tickerInput = new java.util.HashMap<String, Object>() {{
                         put( "midpoint", new java.util.HashMap<String, Object>() {{
                             put( "mid", mid );
                         }} );
@@ -1665,10 +1665,10 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
-            Object response = (this.clobPublicGetBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPublicGetBook(this.extend(request, parameters))).join();
             //
             //     {
             //         "market": "0x42d42b30124ed2d93800358dfd1d48253114e4d58cff15cb765cd0c69956555f",
@@ -1760,13 +1760,13 @@ final Object finalClobTokenId = clobTokenId;
             final Object finalFidelityMin = fidelityMin;
             final Object finalStartS = startS;
             final Object finalEndS = endS;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", tokenId );
                 put( "fidelity", finalFidelityMin );
                 put( "startTs", finalStartS );
                 put( "endTs", finalEndS );
             }};
-            Object response = (this.clobPublicGetPricesHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPublicGetPricesHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "history": [
@@ -1778,7 +1778,7 @@ final Object finalClobTokenId = clobTokenId;
             // Client-side bucket aggregation: snap each tick to its candle boundary and
             // build open/high/low/close/volume. Assumes history is sorted ascending by time.
             Object resolutionMs = Helpers.multiply(Helpers.multiply(fidelityMin, 60), 1000);
-            Object buckets = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> buckets = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
                 Object item = Helpers.GetValue(history, i);
@@ -1860,7 +1860,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.clobPublicGetTime(parameters)).join();
+            String response = (this.clobPublicGetTime(parameters)).join();
             //
             //     1781273248
             //
@@ -1883,7 +1883,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.gammaPublicGetStatus(parameters)).join();
+            String response = (this.gammaPublicGetStatus(parameters)).join();
             //
             //     OK
             //
@@ -1923,10 +1923,10 @@ final Object finalClobTokenId = clobTokenId;
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOpenInterest() requires outcome.info.conditionId for "), outcome)) ;
             }
             final Object finalConditionId = conditionId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
-            Object response = (this.dataPublicGetOi(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.dataPublicGetOi(this.extend(request, parameters))).join();
             //
             //     [ { "market": "0x7976b8...92", "value": 4925662.470476 } ]
             //
@@ -1977,10 +1977,10 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = this.safeString(outcomeObj, "outcomeId");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "token_id", tokenId );
             }};
-            Object response = (this.clobPublicGetFeeRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPublicGetFeeRate(this.extend(request, parameters))).join();
             //
             //     { "base_fee": 30 }   // base fee in basis points
             //
@@ -2033,11 +2033,11 @@ final Object finalClobTokenId = clobTokenId;
             // all the other token). over-fetch a large page here; the user's `limit` is applied AFTER the
             // token filter by parsePredictionTrades
             final Object finalConditionId = conditionId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", finalConditionId );
             }};
             Helpers.addElementToObject(request, "limit", this.safeInteger(this.options, "tradesPageSize", 500));
-            Object response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.dataPublicGetTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object filteredTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
@@ -2077,14 +2077,14 @@ final Object finalClobTokenId = clobTokenId;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
                 Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
-            Object response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPrivateGetDataTrades(this.extend(request, parameters))).join();
             Object rawTrades = ((Helpers.isTrue(Helpers.isArray(response)))) ? response : this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePredictionTrades(rawTrades, outcomeObj, since, limit);
         });
@@ -2219,11 +2219,11 @@ final Object finalClobTokenId = clobTokenId;
             // the collateral balance is tied to the signature type / funder that holds the USDC
             Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset_type", "COLLATERAL" );
                 put( "signature_type", signatureType );
             }};
-            Object response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
+            java.util.Map<String, Object> response = (this.clobPrivateGetBalanceAllowance(this.extend(request, rest))).join();
             return this.parseBalance(response);
         });
 
@@ -2239,7 +2239,7 @@ final Object finalClobTokenId = clobTokenId;
      */
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         // 'balance' is the raw USDC collateral in 6-decimal units (e.g. "8992211" = 8.992211 USDC)
@@ -2286,10 +2286,10 @@ final Object finalClobTokenId = clobTokenId;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " walletAddress is required to fetchPositions")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "user", PolymarketCore.this.walletAddress );
             }};
-            Object response = (this.dataPublicGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.dataPublicGetPositions(this.extend(request, parameters))).join();
             Object positions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // parse without the base outcome filter (it resolves standard markets, not outcome tokens),
             // then filter by the requested outcomes' token ids ourselves
@@ -2298,7 +2298,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 return parsed;
             }
-            Object wantedIds = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> wantedIds = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
@@ -2424,14 +2424,14 @@ final Object finalClobTokenId = clobTokenId;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 outcomeObj = (this.loadOutcome(outcome)).join();
                 Helpers.addElementToObject(request, "asset_id", Helpers.GetValue(outcomeObj, "outcomeId"));
             }
-            Object response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPrivateGetDataOrders(this.extend(request, parameters))).join();
             Object orders = (java.util.List<Object>)(this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         });
@@ -2458,10 +2458,10 @@ final Object finalClobTokenId = clobTokenId;
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPrivateGetDataOrderId(this.extend(request, parameters))).join();
             return this.parsePredictionOrder(response);
         });
 
@@ -2538,7 +2538,7 @@ final Object finalClobTokenId = clobTokenId;
      */
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "live", "open" );
             put( "matched", "closed" );
             put( "cancelled", "canceled" );
@@ -2587,7 +2587,7 @@ final Object finalClobTokenId = clobTokenId;
             (this.loadApiCredentials()).join();
             (this.loadOutcome(outcome)).join();
             Object built = this.buildClobOrderBody(outcome, type, side, amount, price, parameters);
-            Object response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
+            java.util.Map<String, Object> response = (this.clobPrivatePostOrder(this.safeDict(built, "body"))).join();
             // request echo first so the response's real orderID/status/success win on overlap
             Object enriched = this.extend(this.safeDict(built, "request"), response);
             Object order = this.parsePredictionOrder(enriched, ((Object)this.safeDict(built, "outcome")));
@@ -2647,7 +2647,7 @@ final Object finalClobTokenId = clobTokenId;
                 ((java.util.List<Object>)outcomes).add(this.safeDict(built, "outcome", new java.util.HashMap<String, Object>() {{}}));
                 ((java.util.List<Object>)requests).add(this.safeDict(built, "request", new java.util.HashMap<String, Object>() {{}}));
             }
-            Object response = (this.clobPrivatePostOrders(bodies)).join();
+            java.util.List<Object> response = (this.clobPrivatePostOrders(bodies)).join();
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -2785,7 +2785,7 @@ final Object finalClobTokenId = clobTokenId;
         Object signer = ((Helpers.isTrue((Helpers.isEqual(signatureType, 3))))) ? funder : eoa;
         final Object finalSignatureType = signatureType;
         final Object finalBuilderBytes32 = builderBytes32;
-        Object message = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
             put( "salt", salt );
             put( "maker", maker );
             put( "signer", signer );
@@ -2806,7 +2806,7 @@ final Object finalClobTokenId = clobTokenId;
         Object owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         final Object finalSideStr = sideStr;
         final Object finalOrderTypeStr = orderTypeStr;
-        Object orderBody = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderBody = new java.util.HashMap<String, Object>() {{
             put( "deferExec", false );
             put( "postOnly", postOnly );
             put( "order", new java.util.HashMap<String, Object>() {{
@@ -2832,7 +2832,7 @@ final Object finalClobTokenId = clobTokenId;
         // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of undefined side/price/amount
         final Object finalPrice = price;
-        Object requestEcho = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> requestEcho = new java.util.HashMap<String, Object>() {{
             put( "side", finalSideStr );
             put( "price", finalPrice );
             put( "asset_id", tokenId );
@@ -2878,7 +2878,7 @@ final Object finalClobTokenId = clobTokenId;
     public Object polymarketOrderRawAmounts(Object side, Object size, Object price, Object tickSize, Object... optionalArgs)
     {
         Object cost = Helpers.getArg(optionalArgs, 0, null);
-        Object configs = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> configs = new java.util.HashMap<String, Object>() {{
             put( "0.1", new java.util.HashMap<String, Object>() {{
                 put( "price", 1 );
                 put( "size", 2 );
@@ -2981,7 +2981,7 @@ final Object finalClobTokenId = clobTokenId;
     put( "name", "builder" );
     put( "type", "bytes32" );
 }}));
-        Object orderDomain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderDomain = new java.util.HashMap<String, Object>() {{
             put( "name", domainName );
             put( "version", domainVersion );
             put( "chainId", chainIdValue );
@@ -3032,7 +3032,7 @@ final Object finalClobTokenId = clobTokenId;
     put( "type", "bytes32" );
 }}));
         Object bytes32Zero = "0x0000000000000000000000000000000000000000000000000000000000000000";
-        Object innerValue = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> innerValue = new java.util.HashMap<String, Object>() {{
             put( "contents", message );
             put( "name", "DepositWallet" );
             put( "version", "1" );
@@ -3079,10 +3079,10 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // cancelling by id needs no market data, so events do not have to be loaded first
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderID", id );
             }};
-            Object response = (this.clobPrivateDeleteOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.clobPrivateDeleteOrder(this.extend(request, parameters))).join();
             // the DELETE endpoint returns { canceled: [id], not_canceled: { id: reason } } with no order
             // fields, so report the cancellation outcome explicitly rather than parsing an empty order
             Object notCanceled = this.safeDict(response, "not_canceled", new java.util.HashMap<String, Object>() {{}});
@@ -3116,7 +3116,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // the request body is the bare array of order ids (DELETE /orders), so params are not merged
-            Object response = (this.clobPrivateDeleteOrders(ids)).join();
+            java.util.Map<String, Object> response = (this.clobPrivateDeleteOrders(ids)).join();
             Object canceled = this.safeList(response, "canceled", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(canceled)); i++)
@@ -3156,7 +3156,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
                 Object outcomeObj = (this.loadOutcome(outcome)).join();
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "asset_id", Helpers.GetValue(outcomeObj, "outcomeId") );
                 }};
                 response = (this.clobPrivateDeleteCancelMarketOrders(this.extend(request, parameters))).join();
@@ -3222,7 +3222,7 @@ final Object finalClobTokenId = clobTokenId;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(requestedEventId, null))) || Helpers.isTrue((!Helpers.isEqual(requestedSlug, null)))))
             {
                 // direct lookup by event id or slug via the events endpoint (returns a list)
-                Object lookup = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> lookup = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(requestedEventId, null)))
                 {
                     Helpers.addElementToObject(lookup, "id", requestedEventId);
@@ -3230,7 +3230,7 @@ final Object finalClobTokenId = clobTokenId;
                 {
                     Helpers.addElementToObject(lookup, "slug", requestedSlug);
                 }
-                Object response = (this.gammaPublicGetEvents(lookup)).join();
+                java.util.List<Object> response = (this.gammaPublicGetEvents(lookup)).join();
                 Object responseIsArray = Helpers.isArray(response);
                 rawEvents = ((Helpers.isTrue((responseIsArray)))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             } else if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
@@ -3713,12 +3713,12 @@ final Object finalClobTokenId = clobTokenId;
     public Object signClobAuth(Object address, Object timestamp, Object nonce)
     {
         // EIP-712 ClobAuth signature used for L1 auth (creating/deriving L2 api credentials)
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "ClobAuthDomain" );
             put( "version", "1" );
             put( "chainId", 137 );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "ClobAuth", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "address" );
     put( "type", "address" );
@@ -3733,7 +3733,7 @@ final Object finalClobTokenId = clobTokenId;
     put( "type", "string" );
 }})) );
         }};
-        Object messageData = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageData = new java.util.HashMap<String, Object>() {{
             put( "address", address );
             put( "timestamp", timestamp );
             put( "nonce", nonce );
@@ -3759,7 +3759,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
+            java.util.Map<String, Object> response = (this.clobPrivateGetAuthDeriveApiKey(parameters)).join();
             return this.setApiCredentials(response);
         });
 
@@ -3780,7 +3780,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.clobPrivatePostAuthApiKey(parameters)).join();
+            java.util.Map<String, Object> response = (this.clobPrivatePostAuthApiKey(parameters)).join();
             return this.setApiCredentials(response);
         });
 
@@ -3822,7 +3822,7 @@ final Object finalClobTokenId = clobTokenId;
         //
         //     { "apiKey": "...", "secret": "...", "passphrase": "..." }
         //
-        Object creds = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> creds = new java.util.HashMap<String, Object>() {{
             put( "apiKey", PolymarketCore.this.safeString2(response, "apiKey", "key") );
             put( "secret", PolymarketCore.this.safeString(response, "secret") );
             put( "passphrase", PolymarketCore.this.safeString(response, "passphrase") );
@@ -3964,7 +3964,7 @@ final Object finalOutcome = outcome;
     {
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
         Object changes = (java.util.List<Object>)(this.safeList(eventVar, "price_changes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-        Object updated = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> updated = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(changes)); i++)
         {
             Object change = Helpers.GetValue(changes, i);
@@ -4063,7 +4063,7 @@ final Object finalOutcome = outcome;
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("orderbook::", outcome);
             Object subscribeHash = Helpers.add("subscribe::", tokenId);
-            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
@@ -4097,7 +4097,7 @@ final Object finalOutcome = outcome;
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("trades::", outcome);
             Object subscribeHash = Helpers.add("subscribe::", tokenId);
-            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
@@ -4127,7 +4127,7 @@ final Object finalOutcome = outcome;
             outcome = this.safeString(outcomeObj, "outcome");
             Object messageHash = Helpers.add("ticker::", outcome);
             Object subscribeHash = Helpers.add("subscribe::", tokenId);
-            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "assets_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(tokenId)) );
                 put( "type", "market" );
             }};
@@ -4305,13 +4305,13 @@ final Object finalOutcome = outcome;
             Object apiKey = ((Helpers.isTrue((!Helpers.isEqual(this.apiKey, null))))) ? this.apiKey : this.safeString(this.options, "l2ApiKey");
             Object secret = ((Helpers.isTrue((!Helpers.isEqual(this.secret, null))))) ? this.secret : this.safeString(this.options, "l2Secret");
             Object passphrase = ((Helpers.isTrue((!Helpers.isEqual(this.password, null))))) ? this.password : this.safeString(this.options, "l2Passphrase");
-            Object auth = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
                 put( "apiKey", apiKey );
                 put( "secret", secret );
                 put( "passphrase", passphrase );
             }};
             // an empty markets list subscribes to every market the user is active in
-            Object subscribeMsg = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribeMsg = new java.util.HashMap<String, Object>() {{
                 put( "auth", auth );
                 put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "type", "user" );
