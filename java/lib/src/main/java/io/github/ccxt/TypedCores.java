@@ -2794,38 +2794,10 @@ public final class TypedCores {
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key,
-        // so present-but-null and absent are indistinguishable on the way back,
-        // and a stable key set is what round-trip callers compare on.
-        Map<String, Object> out = new LinkedHashMap<>();
-        out.put("id", typed.id);
-        out.put("clientOrderId", typed.clientOrderId);
-        out.put("timestamp", typed.timestamp);
-        out.put("datetime", typed.datetime);
-        out.put("lastTradeTimestamp", typed.lastTradeTimestamp);
-        out.put("lastUpdateTimestamp", typed.lastUpdateTimestamp);
-        out.put("symbol", typed.symbol);
-        out.put("type", typed.type);
-        out.put("timeInForce", typed.timeInForce);
-        out.put("side", typed.side);
-        out.put("price", typed.price);
-        out.put("cost", typed.cost);
-        out.put("average", typed.average);
-        out.put("amount", typed.amount);
-        out.put("filled", typed.filled);
-        out.put("remaining", typed.remaining);
-        out.put("stopPrice", typed.stopPrice);
-        out.put("triggerPrice", typed.triggerPrice);
-        out.put("stopLossPrice", typed.stopLossPrice);
-        out.put("takeProfitPrice", typed.takeProfitPrice);
-        out.put("status", typed.status);
-        out.put("reduceOnly", typed.reduceOnly);
-        out.put("postOnly", typed.postOnly);
-        out.put("fee", fromFee(typed.fee));
-        out.put("fees", fromFeeList(typed.fees));
-        out.put("trades", fromTradeList(typed.trades));
-        out.put("info", typed.info);
-        return out;
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
     }
 
     public static Object fromOrderList(Object value) {
@@ -2972,10 +2944,17 @@ public final class TypedCores {
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // Opaque (hand-written) constructor: __raw is final and therefore assigned
-        // on every construction path, so it is only null when the payload itself was
-        // null. There is no field set to rebuild from; hand the value back as-is.
-        return value;
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("symbol", typed.symbol);
+        out.put("type", typed.type);
+        out.put("side", typed.side);
+        out.put("amount", typed.amount);
+        out.put("price", typed.price);
+        out.put("params", typed.params);
+        return out;
     }
 
     public static Object fromOrderRequestList(Object value) {
@@ -3522,10 +3501,17 @@ public final class TypedCores {
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // Opaque (hand-written) constructor: __raw is final and therefore assigned
-        // on every construction path, so it is only null when the payload itself was
-        // null. There is no field set to rebuild from; hand the value back as-is.
-        return value;
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("outcome", typed.outcome);
+        out.put("type", typed.type);
+        out.put("side", typed.side);
+        out.put("amount", typed.amount);
+        out.put("price", typed.price);
+        out.put("params", typed.params);
+        return out;
     }
 
     public static Object fromPredictionOrderRequestList(Object value) {
@@ -4175,26 +4161,10 @@ public final class TypedCores {
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key,
-        // so present-but-null and absent are indistinguishable on the way back,
-        // and a stable key set is what round-trip callers compare on.
-        Map<String, Object> out = new LinkedHashMap<>();
-        out.put("amount", typed.amount);
-        out.put("price", typed.price);
-        out.put("cost", typed.cost);
-        out.put("id", typed.id);
-        out.put("order", typed.order);
-        out.put("orderId", typed.orderId);
-        out.put("timestamp", typed.timestamp);
-        out.put("datetime", typed.datetime);
-        out.put("symbol", typed.symbol);
-        out.put("type", typed.type);
-        out.put("side", typed.side);
-        out.put("takerOrMaker", typed.takerOrMaker);
-        out.put("fee", fromFee(typed.fee));
-        out.put("fees", fromFeeList(typed.fees));
-        out.put("info", typed.info);
-        return out;
+        // Opaque (hand-written) constructor: __raw is final and therefore assigned
+        // on every construction path, so it is only null when the payload itself was
+        // null. There is no field set to rebuild from; hand the value back as-is.
+        return value;
     }
 
     public static Object fromTradeList(Object value) {
