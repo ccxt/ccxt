@@ -1963,7 +1963,7 @@ public class WooCore extends WooApi
                 Helpers.addElementToObject(request, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList(outterOrder)));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "postOnly", "timeInForce", "stopPrice", "triggerPrice", "stopLoss", "takeProfit", "trailingPercent", "trailingAmount", "trailingTriggerPrice")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isConditional))
             {
                 response = (this.v3PrivatePostTradeAlgoOrder(this.extend(request, parameters))).join();
@@ -2065,7 +2065,7 @@ public class WooCore extends WooApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id", "stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent", "trigger", "stop")));
             Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) || Helpers.isTrue(isTrailing)) || Helpers.isTrue((!Helpers.isEqual(triggerPrice, null)))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isConditional))
             {
                 if (Helpers.isTrue(isByClientOrder))
@@ -2149,7 +2149,7 @@ public class WooCore extends WooApi
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             Boolean isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 if (Helpers.isTrue(isByClientOrder))
@@ -2225,7 +2225,7 @@ public class WooCore extends WooApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v3PrivateDeleteTradeAlgoOrders(parameters)).join();
@@ -2320,7 +2320,7 @@ public class WooCore extends WooApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -2408,7 +2408,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 500));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.v3PrivateGetTradeAlgoOrders(this.extend(request, parameters))).join();
@@ -4544,7 +4544,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.v3PrivateGetAccountInfo(parameters)).join();

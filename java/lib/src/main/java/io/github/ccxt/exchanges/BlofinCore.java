@@ -1204,7 +1204,7 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100

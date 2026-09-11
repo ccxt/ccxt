@@ -1305,7 +1305,7 @@ public class LatokenCore extends LatokenApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);

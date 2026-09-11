@@ -5163,7 +5163,7 @@ public class BingxCore extends BingxApi
             }
             Object isTwapOrder = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object market = null;
             if (Helpers.isTrue(Helpers.isEqual(isTwapOrder, true)))
             {
@@ -7408,7 +7408,7 @@ public class BingxCore extends BingxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object commission = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {

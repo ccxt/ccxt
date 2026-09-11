@@ -1570,7 +1570,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.List<Object> accountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((java.util.List<Object>) accountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -3301,7 +3301,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privatePostApiV1SpotBatchOrders(this.extend(request, parameters))).join();
@@ -3368,7 +3368,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotOrder(this.extend(request, parameters))).join();
@@ -3555,7 +3555,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3680,7 +3680,7 @@ public class HashkeyCore extends HashkeyApi
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             Object market = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.List<Object> response = null;
             Object accountId = null;
             java.util.List<Object> accountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((java.util.List<Object>) accountIdparametersVariable).get(0);
@@ -3760,7 +3760,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object accountId = null;
             java.util.List<Object> accountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "accountId");
             accountId = ((java.util.List<Object>) accountIdparametersVariable).get(0);
@@ -3844,7 +3844,7 @@ public class HashkeyCore extends HashkeyApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(market, null)))

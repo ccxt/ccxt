@@ -8396,7 +8396,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object type = null;
             var typeparametersVariable = this.getBybitType("fetchPosition", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);

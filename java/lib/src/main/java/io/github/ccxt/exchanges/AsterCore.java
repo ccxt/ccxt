@@ -2173,7 +2173,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.fapiPublicGetV3TickerPrice(parameters)).join();
@@ -2263,7 +2263,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.fapiPublicGetV3TickerBookTicker(parameters)).join();
@@ -2578,7 +2578,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -3195,7 +3195,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();

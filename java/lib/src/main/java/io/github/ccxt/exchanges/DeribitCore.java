@@ -1493,7 +1493,7 @@ public class DeribitCore extends DeribitApi
             {
                 Helpers.addElementToObject(request, "currency", this.currencyId(code));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
                 response = (this.privateGetGetAccountSummaries(parameters)).join();
@@ -2144,7 +2144,7 @@ public class DeribitCore extends DeribitApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "end_timestamp", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(since, null))) && !Helpers.isTrue((Helpers.inOp(request, "end_timestamp")))))
             {
                 response = (this.publicGetGetLastTradesByInstrument(this.extend(request, parameters))).join();
@@ -2736,7 +2736,7 @@ public class DeribitCore extends DeribitApi
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "stopLossPrice", "takeProfitPrice", "postOnly", "reduceOnly", "trailingAmount")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(this.capitalize(side), "Buy")))
             {
                 response = (this.privateGetBuy(this.extend(request, parameters))).join();
@@ -2915,7 +2915,7 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 response = (this.privateGetCancelAll(this.extend(request, parameters))).join();
@@ -2970,7 +2970,7 @@ public class DeribitCore extends DeribitApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 Object code = this.codeFromOptions("fetchOpenOrders", parameters);
@@ -3016,7 +3016,7 @@ public class DeribitCore extends DeribitApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
@@ -3145,7 +3145,7 @@ public class DeribitCore extends DeribitApi
             {
                 Helpers.addElementToObject(request, "count", limit); // default 10
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 Object code = this.codeFromOptions("fetchMyTrades", parameters);
@@ -3812,7 +3812,7 @@ public class DeribitCore extends DeribitApi
                 Object transferOptions = this.safeValue(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
                 method = this.safeString(transferOptions, "method", "privateGetSubmitTransferToSubaccount");
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetSubmitTransferToUser")))
             {
                 response = (this.privateGetSubmitTransferToUser(this.extend(request, parameters))).join();

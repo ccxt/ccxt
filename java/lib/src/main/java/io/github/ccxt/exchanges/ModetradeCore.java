@@ -2145,7 +2145,7 @@ public class ModetradeCore extends ModetradeApi
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
             Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isConditional))
             {
                 response = (this.v1PrivatePostAlgoOrder(request)).join();
@@ -2285,7 +2285,7 @@ public class ModetradeCore extends ModetradeApi
                 Helpers.addElementToObject(request, orderQtyKey, this.amountToPrecision(symbol, amount));
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "takeProfitPrice", "stopLossPrice", "trailingTriggerPrice", "trailingAmount", "trailingPercent")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isConditional))
             {
                 response = (this.v1PrivatePutAlgoOrder(this.extend(request, parameters))).join();
@@ -2471,7 +2471,7 @@ public class ModetradeCore extends ModetradeApi
             Object clientOrderIds = this.safeListN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdIDs", "clientOrderIds", "client_order_ids")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "client_order_ids", String.join((String)",", (java.util.List<String>)clientOrderIds));
@@ -2594,7 +2594,7 @@ public class ModetradeCore extends ModetradeApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdID", "clientOrderId", "client_order_id")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clOrdID", "clientOrderId", "client_order_id")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)) && Helpers.isTrue(!Helpers.isEqual(clientOrderId, ""))))
@@ -2717,7 +2717,7 @@ public class ModetradeCore extends ModetradeApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 response = (this.v1PrivateGetAlgoOrders(this.extend(request, parameters))).join();

@@ -1736,7 +1736,7 @@ public class CoinexCore extends CoinexApi
             java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.v2PublicGetFuturesTicker(query)).join();
@@ -2976,7 +2976,7 @@ public class CoinexCore extends CoinexApi
             Boolean isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
             Boolean isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(isTriggerOrder))
@@ -3083,7 +3083,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(isTriggerOrder))
@@ -3182,7 +3182,7 @@ public class CoinexCore extends CoinexApi
             }};
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> requestIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -3275,7 +3275,7 @@ public class CoinexCore extends CoinexApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "trigger_price")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice")));
             Boolean isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
@@ -3393,7 +3393,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true)))
             {
                 response = (this.v2PrivatePostSpotBatchModifyOrder(this.extend(request, parameters))).join();
@@ -3483,7 +3483,7 @@ public class CoinexCore extends CoinexApi
             }
             String clientOrderId = this.safeString2(parameters, "client_id", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "clientOrderId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_id", clientOrderId);
@@ -3574,7 +3574,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");
@@ -3633,7 +3633,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "order_id", CoinexCore.this.parseToNumeric(id) );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.v2PrivateGetFuturesOrderStatus(this.extend(request, parameters))).join();
@@ -3694,7 +3694,7 @@ public class CoinexCore extends CoinexApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Boolean isClosed = Helpers.isTrue((Helpers.isEqual(status, "finished"))) || Helpers.isTrue((Helpers.isEqual(status, "closed")));
             Boolean isOpen = Helpers.isTrue((Helpers.isEqual(status, "pending"))) || Helpers.isTrue((Helpers.isEqual(status, "open")));
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
@@ -4001,7 +4001,7 @@ public class CoinexCore extends CoinexApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "market_type", "FUTURES");

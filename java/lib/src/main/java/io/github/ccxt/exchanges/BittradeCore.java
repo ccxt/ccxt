@@ -769,7 +769,7 @@ public class BittradeCore extends BittradeApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object method = this.handleOption("fetchMarkets", "method", "publicGetCommonSymbols");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetCommonSymbols")))
             {
                 response = (this.publicGetCommonSymbols(parameters)).join();
@@ -1662,7 +1662,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountAccountsIdBalance")))
             {
                 response = (this.privateGetAccountAccountsIdBalance(this.extend(request, parameters))).join();
@@ -1698,7 +1698,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object method = this.handleOption("fetchOrdersByStates", "method", "private_get_order_orders");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_get_order_history"))) || Helpers.isTrue((Helpers.isEqual(method, "privateGetOrderHistory")))))
             {
                 response = (this.privateGetOrderHistory(this.extend(request, parameters))).join();
@@ -2149,7 +2149,7 @@ public class BittradeCore extends BittradeApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
             Object method = this.handleOption("createOrder", "method", "privatePostOrderOrdersPlace");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostOrderOrdersPlace")))
             {
                 response = (this.privatePostOrderOrdersPlace(this.extend(request, parameters))).join();

@@ -56,7 +56,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -67,7 +67,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             return (this.fetchTickers((Object)(symbols), (Object)(this.extend(request, parameters)))).join();
-        }).thenApply(io.github.ccxt.TypedCores::toTickers);
+        });
 
     }
 
@@ -98,8 +98,8 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            String toAccountString = this.parseTransferType(toAccount);
-            Object response = null;
+            Object toAccountString = this.parseTransferType(toAccount);
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
                 Helpers.addElementToObject(request, "recAccountType", toAccountString);

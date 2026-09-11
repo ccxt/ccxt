@@ -3689,7 +3689,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 market = this.market(symbol);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3888,7 +3888,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 market = this.market(symbol);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object order = null;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));

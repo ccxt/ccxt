@@ -2580,7 +2580,7 @@ public class DeltaCore extends DeltaApi
             String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_oid", "clientOid")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_oid", clientOrderId);
@@ -2695,7 +2695,7 @@ public class DeltaCore extends DeltaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetOrders")))
             {
                 response = (this.privateGetOrders(this.extend(request, parameters))).join();

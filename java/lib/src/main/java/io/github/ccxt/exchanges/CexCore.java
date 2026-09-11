@@ -2031,7 +2031,7 @@ public class CexCore extends CexApi
                 put( "accountId", targetAccount );
                 put( "clientTxId", guid );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(fromMain))
             {
                 response = (this.privatePostDoDepositFundsFromWallet(this.extend(request, parameters))).join();

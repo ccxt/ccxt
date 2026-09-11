@@ -3716,7 +3716,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object response = null;
+                    java.util.Map<String, Object> response = null;
                     if (Helpers.isTrue(isStock))
                     {
                         Object requestParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stock", "name", "callerMethodName", "type", "subType", "symbol", "timeframe")));

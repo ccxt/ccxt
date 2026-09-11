@@ -396,7 +396,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 currency = this.currency(code);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTransfers")))
             {
                 response = (this.privateGetTransfers(this.extend(request, parameters))).join();

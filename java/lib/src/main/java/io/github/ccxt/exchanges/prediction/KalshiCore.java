@@ -513,7 +513,7 @@ public class KalshiCore extends KalshiApi
                 Object suffix = Helpers.slice(outcomeSymbol, Helpers.subtract(symbolLength, 3), null);
                 Boolean isNo = (Helpers.isEqual(suffix, "-NO"));
                 Object baseTicker = ((Helpers.isTrue(isNo))) ? Helpers.slice(outcomeSymbol, 0, Helpers.subtract(symbolLength, 3)) : outcomeSymbol;
-                Object response = null;
+                java.util.Map<String, Object> response = null;
                 try
                 {
                     response = (this.kalshiPublicGetMarketsTicker(new java.util.HashMap<String, Object>() {{

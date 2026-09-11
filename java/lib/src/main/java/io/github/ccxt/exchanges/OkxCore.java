@@ -3213,7 +3213,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "sz", limit); // max 400
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(rpi))
             {
                 response = (this.publicGetMarketBooksRpi(this.extend(request, parameters))).join();
@@ -3698,7 +3698,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.publicGetPublicOptionTrades(this.extend(request, parameters))).join();
@@ -3880,7 +3880,7 @@ public class OkxCore extends OkxApi
             String type = this.safeString(parameters, "type", defaultType);
             parameters = this.omit(parameters, "type");
             Boolean isHistoryCandles = (Helpers.isEqual(type, "HistoryCandles"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
             {
                 if (Helpers.isTrue(isHistoryCandles))
@@ -4205,7 +4205,7 @@ public class OkxCore extends OkxApi
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "funding")))
             {
                 response = (this.privateGetAssetBalances(this.extend(request, query))).join();
@@ -4822,7 +4822,7 @@ public class OkxCore extends OkxApi
                 // because it has a lower ratelimit
                 request = new java.util.ArrayList<Object>(java.util.Arrays.asList(request));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeOrder")))
             {
                 response = (this.privatePostTradeOrder(request)).join();
@@ -5078,7 +5078,7 @@ public class OkxCore extends OkxApi
             {
                 isAlgoOrder = true;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isAlgoOrder))
             {
                 response = (this.privatePostTradeAmendAlgos(this.extend(request, parameters))).join();
@@ -5288,7 +5288,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeCancelAlgos")))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5392,7 +5392,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(requestItem, idKey, ((Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))))) ? clientOrderId : id);
                 ((java.util.List<Object>)request).add(requestItem);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeCancelAlgos")))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5866,7 +5866,7 @@ public class OkxCore extends OkxApi
                 }
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrderAlgo")))
             {
                 response = (this.privateGetTradeOrderAlgo(this.extend(request, query))).join();
@@ -6047,7 +6047,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ordType", "trigger");
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoPending")))
             {
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -6246,7 +6246,7 @@ public class OkxCore extends OkxApi
                 }
             }
             Object send = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoHistory")))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -6454,7 +6454,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "state", "filled");
             }
             Object send = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoHistory")))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -6760,7 +6760,7 @@ public class OkxCore extends OkxApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountBillsArchive")))
             {
                 response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
@@ -7884,7 +7884,7 @@ public class OkxCore extends OkxApi
             }
             Object fetchPositionsOptions = this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountPositionsHistory")))
             {
                 response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -10113,7 +10113,7 @@ public class OkxCore extends OkxApi
                 put( "period", finalTimeframe );
             }};
             Object type = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -11561,7 +11561,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Long now = this.milliseconds();
             Object oneWeekAgo = Helpers.subtract(now, 604800000);
             Object threeMonthsAgo = Helpers.subtract(now, 7776000000L);

@@ -2086,7 +2086,7 @@ public class BithumbCore extends BithumbApi
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -2277,7 +2277,7 @@ public class BithumbCore extends BithumbApi
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
@@ -2711,7 +2711,7 @@ public class BithumbCore extends BithumbApi
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
             {
                 Object twap = this.safeBool(parameters, "twap", false);
@@ -2970,7 +2970,7 @@ public class BithumbCore extends BithumbApi
                 market = this.market(symbol);
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object twap = this.safeBool(parameters, "twap", false);
             parameters = this.omit(parameters, "twap");
             if (Helpers.isTrue(twap))
@@ -3164,7 +3164,7 @@ public class BithumbCore extends BithumbApi
             parameters = this.omit(parameters, "network");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object destinationRequest = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, "XRP")) || Helpers.isTrue(Helpers.isEqual(code, "XMR"))) || Helpers.isTrue(Helpers.isEqual(code, "EOS"))) || Helpers.isTrue(Helpers.isEqual(code, "STEEM"))) || Helpers.isTrue(Helpers.isEqual(code, "TON"))))
             {
@@ -3503,7 +3503,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object currency = null;
             if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
             {
@@ -3648,7 +3648,7 @@ public class BithumbCore extends BithumbApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object currency = null;
             if (Helpers.isTrue(Helpers.isEqual(code, "KRW")))
             {

@@ -1129,7 +1129,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -1218,7 +1218,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 Helpers.addElementToObject(request, "instrument_id", Helpers.GetValue(market, "id"));
@@ -1315,7 +1315,7 @@ public class DigifinexCore extends DigifinexApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 response = (this.publicSwapGetPublicTickers(this.extend(request, parameters))).join();
@@ -1413,7 +1413,7 @@ public class DigifinexCore extends DigifinexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "instrument_id", Helpers.GetValue(market, "id"));
@@ -1826,7 +1826,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? Helpers.mathMin(limit, 100) : limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "instrument_id", Helpers.GetValue(market, "id"));
@@ -1934,7 +1934,7 @@ public class DigifinexCore extends DigifinexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "instrument_id", Helpers.GetValue(market, "id"));
@@ -2065,7 +2065,7 @@ public class DigifinexCore extends DigifinexApi
             Object marginResult = this.handleMarginModeAndParams("createOrder", parameters);
             Object marginMode = Helpers.GetValue(marginResult, 0);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateSwapPostTradeOrderPlace(request)).join();
@@ -2171,7 +2171,7 @@ public class DigifinexCore extends DigifinexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateSwapPostTradeBatchOrder(ordersRequests)).join();
@@ -2454,7 +2454,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -2817,7 +2817,7 @@ public class DigifinexCore extends DigifinexApi
                 String marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -2950,7 +2950,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -3069,7 +3069,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "market", marketType);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
                 marketType = "margin";
@@ -3204,7 +3204,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -3389,7 +3389,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginMode, null)) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 marketType = "margin";
@@ -3548,7 +3548,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(500, limit));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "deposit")))
             {
                 response = (this.privateSpotGetDepositHistory(this.extend(request, parameters))).join();
@@ -3822,7 +3822,7 @@ public class DigifinexCore extends DigifinexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Boolean fromSwap = (Helpers.isEqual(fromAccount, "swap"));
             Boolean toSwap = (Helpers.isEqual(toAccount, "swap"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object amountString = this.currencyToPrecision(code, amount);
             if (Helpers.isTrue(Helpers.isTrue(fromSwap) || Helpers.isTrue(toSwap)))
             {
@@ -4468,7 +4468,7 @@ public class DigifinexCore extends DigifinexApi
                 String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "spot")) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 response = (this.privateSpotGetMarginPositions(this.extend(request, query))).join();
@@ -4579,7 +4579,7 @@ public class DigifinexCore extends DigifinexApi
             }
             String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
             Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "spot")) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
             {
                 response = (this.privateSpotGetMarginPositions(this.extend(request, query))).join();

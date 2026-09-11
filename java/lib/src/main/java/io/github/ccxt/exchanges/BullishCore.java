@@ -1869,7 +1869,7 @@ public class BullishCore extends BullishApi
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetV2Orders")))
             {
                 //

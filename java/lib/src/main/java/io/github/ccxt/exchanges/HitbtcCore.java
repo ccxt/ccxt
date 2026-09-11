@@ -1542,7 +1542,7 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
@@ -2202,7 +2202,7 @@ public class HitbtcCore extends HitbtcApi
             }
             String price = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(price, "mark")))
             {
                 response = (this.publicGetPublicFuturesCandlesMarkPriceSymbol(this.extend(request, parameters))).join();
@@ -2489,7 +2489,7 @@ public class HitbtcCore extends HitbtcApi
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 response = (this.privateGetMarginHistoryTrade(this.extend(request, parameters))).join();

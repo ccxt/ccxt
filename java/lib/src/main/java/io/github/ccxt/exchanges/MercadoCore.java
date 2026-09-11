@@ -621,7 +621,7 @@ public class MercadoCore extends MercadoApi
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Long to = this.safeInteger(parameters, "to");
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(to, null)))))
             {
                 response = (this.publicGetCoinTradesFromTo(this.extend(request, parameters))).join();
@@ -716,7 +716,7 @@ public class MercadoCore extends MercadoApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));

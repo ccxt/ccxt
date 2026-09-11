@@ -1172,7 +1172,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "v2PrivateGetAccountsAccountIdTransactions")))
             {
                 response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
@@ -2565,7 +2565,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "product_type", ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "FUTURE" : "SPOT");
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object usePrivate = false;
             java.util.List<Object> usePrivateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "usePrivate", false);
             usePrivate = ((java.util.List<Object>) usePrivateparametersVariable).get(0);
@@ -2715,7 +2715,7 @@ public class CoinbaseCore extends CoinbaseApi
             java.util.List<Object> usePrivateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "usePrivate", false);
             usePrivate = ((java.util.List<Object>) usePrivateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) usePrivateparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(usePrivate))
             {
                 response = (this.v3PrivateGetBrokerageProductsProductIdTicker(this.extend(request, parameters))).join();
@@ -2988,7 +2988,7 @@ public class CoinbaseCore extends CoinbaseApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object isV3 = this.safeBool(parameters, "v3", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("v3")));
             Object marketType = null;
@@ -3855,7 +3855,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
             Object preview = this.safeBool2(parameters, "preview", "test", false);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("preview", "test")));
@@ -4235,7 +4235,7 @@ public class CoinbaseCore extends CoinbaseApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
             Object preview = this.safeBool2(parameters, "preview", "test", false);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("preview", "test")));
@@ -4712,7 +4712,7 @@ public class CoinbaseCore extends CoinbaseApi
                 // 300 candles max
                 Helpers.addElementToObject(request, "end", Precise.stringAdd(sinceString, String.valueOf(requestedDuration)));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object usePrivate = false;
             java.util.List<Object> usePrivateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "usePrivate", false);
             usePrivate = ((java.util.List<Object>) usePrivateparametersVariable).get(0);
@@ -4810,7 +4810,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades() requires a `until` parameter when you use `since` argument")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object usePrivate = false;
             java.util.List<Object> usePrivateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "usePrivate", false);
             usePrivate = ((java.util.List<Object>) usePrivateparametersVariable).get(0);
@@ -4970,7 +4970,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object usePrivate = false;
             java.util.List<Object> usePrivateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "usePrivate", false);
             usePrivate = ((java.util.List<Object>) usePrivateparametersVariable).get(0);
@@ -5922,7 +5922,7 @@ public class CoinbaseCore extends CoinbaseApi
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "future")))
             {
                 response = (this.v3PrivateGetBrokerageCfmPositions(parameters)).join();
@@ -5971,7 +5971,7 @@ public class CoinbaseCore extends CoinbaseApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "future"), true)))
             {
                 String productId = this.safeString(market, "product_id");

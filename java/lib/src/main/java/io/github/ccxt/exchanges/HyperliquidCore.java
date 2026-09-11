@@ -2105,7 +2105,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "nonce", nonce );
                 put( "signature", signature );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             try
             {
                 response = (this.privatePostExchange(request)).join();
