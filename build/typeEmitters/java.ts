@@ -706,24 +706,40 @@ function renderDictionary (ir: TypesIR, className: string, valueType: string, ex
     }
     if (current === elementClass) {
         // One-time in-place upgrade: wrappers written before the null-safe guards (`data == null`
-        // early return, `instanceof Map` value gate) get their constructor body refreshed. Only the
-        // constructor is spliced in — the banner, the class-level comment block and the `get()`
-        // accessor (with its port-local local-variable name) stay byte-for-byte as they are. Once a
-        // file carries both guards it is returned verbatim, so regeneration stays churn-free.
+        // early return, `instanceof Map` element gate) get their constructor patched. Doing this
+        // textually rather than re-rendering the body keeps every port-local detail intact (the map
+        // field's name where it is not in DICT_FIELD — DepositAddresses, AllGreeks —, whether
+        // `info` is populated, the get() local name, the class-level comment block).
         if (existing.text.indexOf ('if (data == null)') >= 0 && existing.text.indexOf ('instanceof Map<?, ?>') >= 0) {
             return existing.text;
         }
-        const anchor = INDENT + '@SuppressWarnings("unchecked")\n' + INDENT + 'public ' + className + '(Object raw) {';
-        const at = existing.text.indexOf (anchor);
-        const end = at < 0 ? -1 : existing.text.indexOf ('\n' + INDENT + '}', at);
-        if (at < 0 || end < 0) {
-            return renderNewDictionary (className, elementClass, elementIsList);
-        }
-        const ctor = dictionaryCtorLines (className, elementClass, elementIsList).join ('\n');
-        // skip the existing `\n    }` that closes the constructor (its text is in `ctor`)
-        return existing.text.slice (0, at) + ctor + existing.text.slice (end + 1 + INDENT.length + 1);
+        const upgraded = guardDictionaryCtor (className, existing);
+        return upgraded === undefined ? existing.text : upgraded;
     }
     return existing.text.replace (new RegExp ('\\b' + current + '\\b', 'g'), elementClass);
+}
+
+/**
+ * Inserts `if (data == null) { return; }` immediately before the fill loop and gates every element
+ * construction behind `instanceof Map<?, ?>` (a wrong-shaped value keeps its key with a null
+ * element instead of throwing ClassCastException). Returns undefined when the body does not match
+ * the expected wrapper shape, in which case the file is left untouched.
+ */
+function guardDictionaryCtor (className: string, existing: ExistingFile): string | undefined {
+    const startAnchor = INDENT + 'public ' + className + '(Object raw) {\n';
+    const at = existing.text.indexOf (startAnchor);
+    const bodyStart = at < 0 ? -1 : at + startAnchor.length;
+    const end = bodyStart < 0 ? -1 : existing.text.indexOf ('\n' + INDENT + '}', bodyStart);
+    const loopAnchor = BODY + 'for (Map.Entry<String, Object> entry : data.entrySet()) {';
+    const loopAt = end < 0 ? -1 : existing.text.indexOf (loopAnchor, bodyStart);
+    if (at < 0 || end < 0 || loopAt < 0) {
+        return undefined;
+    }
+    const guard = BODY + 'if (data == null) {\n' + BODY + INDENT + 'return;\n' + BODY + '}\n';
+    const patched = existing.text.slice (loopAt, end)
+        .replace (/new ([A-Z][A-Za-z0-9_]*)\(entry\.getValue\(\)\)/g, 'entry.getValue() instanceof Map<?, ?> ? new $1(entry.getValue()) : null')
+        .replace (/\.map\(([A-Z][A-Za-z0-9_]*)::new\)/g, '.map(e -> e instanceof Map<?, ?> ? new $1(e) : null)');
+    return existing.text.slice (0, loopAt) + guard + patched + existing.text.slice (end);
 }
 
 /**

@@ -48,12 +48,12 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public Currencies fetchCurrencies(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchCurrencies(params));
-        return new Currencies(res);
+        return res == null ? null : new Currencies(res);
     }
     public Currencies fetchCurrencies() { return fetchCurrencies((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Currencies> fetchCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchCurrencies(params).thenApply(Currencies::new);
+        return super.fetchCurrencies(params).thenApply(res -> res == null ? null : new Currencies(res));
     }
     public CompletableFuture<Currencies> fetchCurrenciesAsync() { return fetchCurrenciesAsync((Map<String, Object>) null); }
 
@@ -96,23 +96,23 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public MarginMode fetchMarginMode(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchMarginMode(symbol, params));
-        return new MarginMode(res);
+        return res == null ? null : new MarginMode(res);
     }
     public MarginMode fetchMarginMode(String symbol) { return fetchMarginMode(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchMarginMode(symbol, params).thenApply(MarginMode::new);
+        return super.fetchMarginMode(symbol, params).thenApply(res -> res == null ? null : new MarginMode(res));
     }
     public CompletableFuture<MarginMode> fetchMarginModeAsync(String symbol) { return fetchMarginModeAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginModes fetchMarginModes(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchMarginModes(symbols, params));
-        return new MarginModes(res);
+        return res == null ? null : new MarginModes(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModes> fetchMarginModesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchMarginModes(symbols, params).thenApply(MarginModes::new);
+        return super.fetchMarginModes(symbols, params).thenApply(res -> res == null ? null : new MarginModes(res));
     }
     public MarginModes fetchMarginModes(String[] symbols, Map<String, Object> params) { return fetchMarginModes(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<MarginModes> fetchMarginModesAsync(String[] symbols, Map<String, Object> params) { return fetchMarginModesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -132,31 +132,31 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRates(params));
-        return new CrossBorrowRates(res);
+        return res == null ? null : new CrossBorrowRates(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<CrossBorrowRates> fetchCrossBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchCrossBorrowRates(params).thenApply(CrossBorrowRates::new);
+        return super.fetchCrossBorrowRates(params).thenApply(res -> res == null ? null : new CrossBorrowRates(res));
     }
 
     @SuppressWarnings("unchecked")
     public IsolatedBorrowRates fetchIsolatedBorrowRates(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRates(params));
-        return new IsolatedBorrowRates(res);
+        return res == null ? null : new IsolatedBorrowRates(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<IsolatedBorrowRates> fetchIsolatedBorrowRatesAsync(Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRates(params).thenApply(IsolatedBorrowRates::new);
+        return super.fetchIsolatedBorrowRates(params).thenApply(res -> res == null ? null : new IsolatedBorrowRates(res));
     }
 
     @SuppressWarnings("unchecked")
     public LeverageTiers fetchLeverageTiers(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLeverageTiers(symbols, params));
-        return new LeverageTiers(res);
+        return res == null ? null : new LeverageTiers(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverageTiers(symbols, params).thenApply(LeverageTiers::new);
+        return super.fetchLeverageTiers(symbols, params).thenApply(res -> res == null ? null : new LeverageTiers(res));
     }
     public LeverageTiers fetchLeverageTiers(String[] symbols, Map<String, Object> params) { return fetchLeverageTiers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LeverageTiers> fetchLeverageTiersAsync(String[] symbols, Map<String, Object> params) { return fetchLeverageTiersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -164,11 +164,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingRates(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchFundingRates(symbols, params));
-        return new FundingRates(res);
+        return res == null ? null : new FundingRates(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingRates(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingRates(symbols, params).thenApply(res -> res == null ? null : new FundingRates(res));
     }
     public FundingRates fetchFundingRates(String[] symbols, Map<String, Object> params) { return fetchFundingRates(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingRatesAsync(String[] symbols, Map<String, Object> params) { return fetchFundingRatesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -176,11 +176,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public FundingRates fetchFundingIntervals(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchFundingIntervals(symbols, params));
-        return new FundingRates(res);
+        return res == null ? null : new FundingRates(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchFundingIntervals(symbols, params).thenApply(FundingRates::new);
+        return super.fetchFundingIntervals(symbols, params).thenApply(res -> res == null ? null : new FundingRates(res));
     }
     public FundingRates fetchFundingIntervals(String[] symbols, Map<String, Object> params) { return fetchFundingIntervals(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<FundingRates> fetchFundingIntervalsAsync(String[] symbols, Map<String, Object> params) { return fetchFundingIntervalsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -188,25 +188,25 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.transfer(code, amount, fromAccount, toAccount, params));
-        return new TransferEntry(res);
+        return res == null ? null : new TransferEntry(res);
     }
     public TransferEntry transfer(String code, Double amount, String fromAccount, String toAccount) { return transfer(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount, Map<String, Object> params) {
-        return super.transfer(code, amount, fromAccount, toAccount, params).thenApply(TransferEntry::new);
+        return super.transfer(code, amount, fromAccount, toAccount, params).thenApply(res -> res == null ? null : new TransferEntry(res));
     }
     public CompletableFuture<TransferEntry> transferAsync(String code, Double amount, String fromAccount, String toAccount) { return transferAsync(code, amount, fromAccount, toAccount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Transaction withdraw(String code, Double amount, String address, String tag, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.withdraw(code, amount, address, tag, params));
-        return new Transaction(res);
+        return res == null ? null : new Transaction(res);
     }
     public Transaction withdraw(String code, Double amount, String address) { return withdraw(code, amount, address, (String) null, (Map<String, Object>) null); }
     public Transaction withdraw(String code, Double amount, String address, String tag) { return withdraw(code, amount, address, tag, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag, Map<String, Object> params) {
-        return super.withdraw(code, amount, address, tag, params).thenApply(Transaction::new);
+        return super.withdraw(code, amount, address, tag, params).thenApply(res -> res == null ? null : new Transaction(res));
     }
     public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address) { return withdrawAsync(code, amount, address, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<Transaction> withdrawAsync(String code, Double amount, String address, String tag) { return withdrawAsync(code, amount, address, tag, (Map<String, Object>) null); }
@@ -214,35 +214,35 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public DepositAddress createDepositAddress(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createDepositAddress(code, params));
-        return new DepositAddress(res);
+        return res == null ? null : new DepositAddress(res);
     }
     public DepositAddress createDepositAddress(String code) { return createDepositAddress(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositAddress> createDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.createDepositAddress(code, params).thenApply(DepositAddress::new);
+        return super.createDepositAddress(code, params).thenApply(res -> res == null ? null : new DepositAddress(res));
     }
     public CompletableFuture<DepositAddress> createDepositAddressAsync(String code) { return createDepositAddressAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Leverage fetchLeverage(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLeverage(symbol, params));
-        return new Leverage(res);
+        return res == null ? null : new Leverage(res);
     }
     public Leverage fetchLeverage(String symbol) { return fetchLeverage(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Leverage> fetchLeverageAsync(String symbol, Map<String, Object> params) {
-        return super.fetchLeverage(symbol, params).thenApply(Leverage::new);
+        return super.fetchLeverage(symbol, params).thenApply(res -> res == null ? null : new Leverage(res));
     }
     public CompletableFuture<Leverage> fetchLeverageAsync(String symbol) { return fetchLeverageAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Leverages fetchLeverages(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLeverages(symbols, params));
-        return new Leverages(res);
+        return res == null ? null : new Leverages(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Leverages> fetchLeveragesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLeverages(symbols, params).thenApply(Leverages::new);
+        return super.fetchLeverages(symbols, params).thenApply(res -> res == null ? null : new Leverages(res));
     }
     public Leverages fetchLeverages(String[] symbols, Map<String, Object> params) { return fetchLeverages(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -250,49 +250,49 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public MarginModification addMargin(String symbol, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.addMargin(symbol, amount, params));
-        return new MarginModification(res);
+        return res == null ? null : new MarginModification(res);
     }
     public MarginModification addMargin(String symbol, Double amount) { return addMargin(symbol, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.addMargin(symbol, amount, params).thenApply(MarginModification::new);
+        return super.addMargin(symbol, amount, params).thenApply(res -> res == null ? null : new MarginModification(res));
     }
     public CompletableFuture<MarginModification> addMarginAsync(String symbol, Double amount) { return addMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginModification reduceMargin(String symbol, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.reduceMargin(symbol, amount, params));
-        return new MarginModification(res);
+        return res == null ? null : new MarginModification(res);
     }
     public MarginModification reduceMargin(String symbol, Double amount) { return reduceMargin(symbol, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.reduceMargin(symbol, amount, params).thenApply(MarginModification::new);
+        return super.reduceMargin(symbol, amount, params).thenApply(res -> res == null ? null : new MarginModification(res));
     }
     public CompletableFuture<MarginModification> reduceMarginAsync(String symbol, Double amount) { return reduceMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginModification setMargin(String symbol, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.setMargin(symbol, amount, params));
-        return new MarginModification(res);
+        return res == null ? null : new MarginModification(res);
     }
     public MarginModification setMargin(String symbol, Double amount) { return setMargin(symbol, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount, Map<String, Object> params) {
-        return super.setMargin(symbol, amount, params).thenApply(MarginModification::new);
+        return super.setMargin(symbol, amount, params).thenApply(res -> res == null ? null : new MarginModification(res));
     }
     public CompletableFuture<MarginModification> setMarginAsync(String symbol, Double amount) { return setMarginAsync(symbol, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public LongShortRatio fetchLongShortRatio(String symbol, String timeframe, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLongShortRatio(symbol, timeframe, params));
-        return new LongShortRatio(res);
+        return res == null ? null : new LongShortRatio(res);
     }
     public LongShortRatio fetchLongShortRatio(String symbol) { return fetchLongShortRatio(symbol, (String) null, (Map<String, Object>) null); }
     public LongShortRatio fetchLongShortRatio(String symbol, String timeframe) { return fetchLongShortRatio(symbol, timeframe, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe, Map<String, Object> params) {
-        return super.fetchLongShortRatio(symbol, timeframe, params).thenApply(LongShortRatio::new);
+        return super.fetchLongShortRatio(symbol, timeframe, params).thenApply(res -> res == null ? null : new LongShortRatio(res));
     }
     public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol) { return fetchLongShortRatioAsync(symbol, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<LongShortRatio> fetchLongShortRatioAsync(String symbol, String timeframe) { return fetchLongShortRatioAsync(symbol, timeframe, (Map<String, Object>) null); }
@@ -338,11 +338,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public OpenInterests fetchOpenInterests(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOpenInterests(symbols, params));
-        return new OpenInterests(res);
+        return res == null ? null : new OpenInterests(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchOpenInterests(symbols, params).thenApply(OpenInterests::new);
+        return super.fetchOpenInterests(symbols, params).thenApply(res -> res == null ? null : new OpenInterests(res));
     }
     public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -350,61 +350,61 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public MarginLoan repayCrossMargin(String code, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.repayCrossMargin(code, amount, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan repayCrossMargin(String code, Double amount) { return repayCrossMargin(code, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
-        return super.repayCrossMargin(code, amount, params).thenApply(MarginLoan::new);
+        return super.repayCrossMargin(code, amount, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> repayCrossMarginAsync(String code, Double amount) { return repayCrossMarginAsync(code, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.repayIsolatedMargin(symbol, code, amount, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan repayIsolatedMargin(String symbol, String code, Double amount) { return repayIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
-        return super.repayIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
+        return super.repayIsolatedMargin(symbol, code, amount, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> repayIsolatedMarginAsync(String symbol, String code, Double amount) { return repayIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginLoan borrowCrossMargin(String code, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.borrowCrossMargin(code, amount, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan borrowCrossMargin(String code, Double amount) { return borrowCrossMargin(code, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount, Map<String, Object> params) {
-        return super.borrowCrossMargin(code, amount, params).thenApply(MarginLoan::new);
+        return super.borrowCrossMargin(code, amount, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> borrowCrossMarginAsync(String code, Double amount) { return borrowCrossMarginAsync(code, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.borrowIsolatedMargin(symbol, code, amount, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan borrowIsolatedMargin(String symbol, String code, Double amount) { return borrowIsolatedMargin(symbol, code, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount, Map<String, Object> params) {
-        return super.borrowIsolatedMargin(symbol, code, amount, params).thenApply(MarginLoan::new);
+        return super.borrowIsolatedMargin(symbol, code, amount, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> borrowIsolatedMarginAsync(String symbol, String code, Double amount) { return borrowIsolatedMarginAsync(symbol, code, amount, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public MarginLoan borrowMargin(String code, Double amount, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.borrowMargin(code, amount, symbol, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan borrowMargin(String code, Double amount) { return borrowMargin(code, amount, (String) null, (Map<String, Object>) null); }
     public MarginLoan borrowMargin(String code, Double amount, String symbol) { return borrowMargin(code, amount, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
-        return super.borrowMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
+        return super.borrowMargin(code, amount, symbol, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount) { return borrowMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<MarginLoan> borrowMarginAsync(String code, Double amount, String symbol) { return borrowMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
@@ -412,13 +412,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public MarginLoan repayMargin(String code, Double amount, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.repayMargin(code, amount, symbol, params));
-        return new MarginLoan(res);
+        return res == null ? null : new MarginLoan(res);
     }
     public MarginLoan repayMargin(String code, Double amount) { return repayMargin(code, amount, (String) null, (Map<String, Object>) null); }
     public MarginLoan repayMargin(String code, Double amount, String symbol) { return repayMargin(code, amount, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol, Map<String, Object> params) {
-        return super.repayMargin(code, amount, symbol, params).thenApply(MarginLoan::new);
+        return super.repayMargin(code, amount, symbol, params).thenApply(res -> res == null ? null : new MarginLoan(res));
     }
     public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount) { return repayMarginAsync(code, amount, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<MarginLoan> repayMarginAsync(String code, Double amount, String symbol) { return repayMarginAsync(code, amount, symbol, (Map<String, Object>) null); }
@@ -510,13 +510,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public LedgerEntry fetchLedgerEntry(String id, String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLedgerEntry(id, code, params));
-        return new LedgerEntry(res);
+        return res == null ? null : new LedgerEntry(res);
     }
     public LedgerEntry fetchLedgerEntry(String id) { return fetchLedgerEntry(id, (String) null, (Map<String, Object>) null); }
     public LedgerEntry fetchLedgerEntry(String id, String code) { return fetchLedgerEntry(id, code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchLedgerEntry(id, code, params).thenApply(LedgerEntry::new);
+        return super.fetchLedgerEntry(id, code, params).thenApply(res -> res == null ? null : new LedgerEntry(res));
     }
     public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id) { return fetchLedgerEntryAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<LedgerEntry> fetchLedgerEntryAsync(String id, String code) { return fetchLedgerEntryAsync(id, code, (Map<String, Object>) null); }
@@ -524,77 +524,77 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public Balances fetchBalance(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchBalance(params));
-        return new Balances(res);
+        return res == null ? null : new Balances(res);
     }
     public Balances fetchBalance() { return fetchBalance((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balances> fetchBalanceAsync(Map<String, Object> params) {
-        return super.fetchBalance(params).thenApply(Balances::new);
+        return super.fetchBalance(params).thenApply(res -> res == null ? null : new Balances(res));
     }
     public CompletableFuture<Balances> fetchBalanceAsync() { return fetchBalanceAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchPartialBalance(Object part, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchPartialBalance(part, params));
-        return new Balance(res);
+        return res == null ? null : new Balance(res);
     }
     public Balance fetchPartialBalance(Object part) { return fetchPartialBalance(part, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part, Map<String, Object> params) {
-        return super.fetchPartialBalance(part, params).thenApply(Balance::new);
+        return super.fetchPartialBalance(part, params).thenApply(res -> res == null ? null : new Balance(res));
     }
     public CompletableFuture<Balance> fetchPartialBalanceAsync(Object part) { return fetchPartialBalanceAsync(part, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Balance fetchFreeBalance(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchFreeBalance(params));
-        return new Balance(res);
+        return res == null ? null : new Balance(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchFreeBalanceAsync(Map<String, Object> params) {
-        return super.fetchFreeBalance(params).thenApply(Balance::new);
+        return super.fetchFreeBalance(params).thenApply(res -> res == null ? null : new Balance(res));
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchUsedBalance(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchUsedBalance(params));
-        return new Balance(res);
+        return res == null ? null : new Balance(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchUsedBalanceAsync(Map<String, Object> params) {
-        return super.fetchUsedBalance(params).thenApply(Balance::new);
+        return super.fetchUsedBalance(params).thenApply(res -> res == null ? null : new Balance(res));
     }
 
     @SuppressWarnings("unchecked")
     public Balance fetchTotalBalance(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTotalBalance(params));
-        return new Balance(res);
+        return res == null ? null : new Balance(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Balance> fetchTotalBalanceAsync(Map<String, Object> params) {
-        return super.fetchTotalBalance(params).thenApply(Balance::new);
+        return super.fetchTotalBalance(params).thenApply(res -> res == null ? null : new Balance(res));
     }
 
     @SuppressWarnings("unchecked")
     public Status fetchStatus(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchStatus(params));
-        return new Status(res);
+        return res == null ? null : new Status(res);
     }
     public Status fetchStatus() { return fetchStatus((Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Status> fetchStatusAsync(Map<String, Object> params) {
-        return super.fetchStatus(params).thenApply(Status::new);
+        return super.fetchStatus(params).thenApply(res -> res == null ? null : new Status(res));
     }
     public CompletableFuture<Status> fetchStatusAsync() { return fetchStatusAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public DepositWithdrawFees fetchDepositWithdrawFees(List<String> codes, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFees(codes, params));
-        return new DepositWithdrawFees(res);
+        return res == null ? null : new DepositWithdrawFees(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(List<String> codes, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFees(codes, params).thenApply(DepositWithdrawFees::new);
+        return super.fetchDepositWithdrawFees(codes, params).thenApply(res -> res == null ? null : new DepositWithdrawFees(res));
     }
     public DepositWithdrawFees fetchDepositWithdrawFees(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFees(codes == null ? null : java.util.Arrays.asList(codes), params); }
     public CompletableFuture<DepositWithdrawFees> fetchDepositWithdrawFeesAsync(String[] codes, Map<String, Object> params) { return fetchDepositWithdrawFeesAsync(codes == null ? null : java.util.Arrays.asList(codes), params); }
@@ -602,47 +602,47 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public DepositWithdrawFee fetchDepositWithdrawFee(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositWithdrawFee(code, params));
-        return new DepositWithdrawFee(res);
+        return res == null ? null : new DepositWithdrawFee(res);
     }
     public DepositWithdrawFee fetchDepositWithdrawFee(String code) { return fetchDepositWithdrawFee(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositWithdrawFee(code, params).thenApply(DepositWithdrawFee::new);
+        return super.fetchDepositWithdrawFee(code, params).thenApply(res -> res == null ? null : new DepositWithdrawFee(res));
     }
     public CompletableFuture<DepositWithdrawFee> fetchDepositWithdrawFeeAsync(String code) { return fetchDepositWithdrawFeeAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRate fetchCrossBorrowRate(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRate(code, params));
-        return new CrossBorrowRate(res);
+        return res == null ? null : new CrossBorrowRate(res);
     }
     public CrossBorrowRate fetchCrossBorrowRate(String code) { return fetchCrossBorrowRate(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code, Map<String, Object> params) {
-        return super.fetchCrossBorrowRate(code, params).thenApply(CrossBorrowRate::new);
+        return super.fetchCrossBorrowRate(code, params).thenApply(res -> res == null ? null : new CrossBorrowRate(res));
     }
     public CompletableFuture<CrossBorrowRate> fetchCrossBorrowRateAsync(String code) { return fetchCrossBorrowRateAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchIsolatedBorrowRate(symbol, params));
-        return new IsolatedBorrowRate(res);
+        return res == null ? null : new IsolatedBorrowRate(res);
     }
     public IsolatedBorrowRate fetchIsolatedBorrowRate(String symbol) { return fetchIsolatedBorrowRate(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol, Map<String, Object> params) {
-        return super.fetchIsolatedBorrowRate(symbol, params).thenApply(IsolatedBorrowRate::new);
+        return super.fetchIsolatedBorrowRate(symbol, params).thenApply(res -> res == null ? null : new IsolatedBorrowRate(res));
     }
     public CompletableFuture<IsolatedBorrowRate> fetchIsolatedBorrowRateAsync(String symbol) { return fetchIsolatedBorrowRateAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionTickers fetchSpotTickers(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchSpotTickers(symbols, params));
-        return new PredictionTickers(res);
+        return res == null ? null : new PredictionTickers(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTickers> fetchSpotTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchSpotTickers(symbols, params).thenApply(PredictionTickers::new);
+        return super.fetchSpotTickers(symbols, params).thenApply(res -> res == null ? null : new PredictionTickers(res));
     }
     public PredictionTickers fetchSpotTickers(String[] symbols, Map<String, Object> params) { return fetchSpotTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<PredictionTickers> fetchSpotTickersAsync(String[] symbols, Map<String, Object> params) { return fetchSpotTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -650,11 +650,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionTickers fetchContractTickers(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchContractTickers(symbols, params));
-        return new PredictionTickers(res);
+        return res == null ? null : new PredictionTickers(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTickers> fetchContractTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchContractTickers(symbols, params).thenApply(PredictionTickers::new);
+        return super.fetchContractTickers(symbols, params).thenApply(res -> res == null ? null : new PredictionTickers(res));
     }
     public PredictionTickers fetchContractTickers(String[] symbols, Map<String, Object> params) { return fetchContractTickers(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<PredictionTickers> fetchContractTickersAsync(String[] symbols, Map<String, Object> params) { return fetchContractTickersAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -662,11 +662,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public OrderBooks fetchOrderBooks(List<String> symbols, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOrderBooks(symbols, limit, params));
-        return new OrderBooks(res);
+        return res == null ? null : new OrderBooks(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(List<String> symbols, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBooks(symbols, limit, params).thenApply(OrderBooks::new);
+        return super.fetchOrderBooks(symbols, limit, params).thenApply(res -> res == null ? null : new OrderBooks(res));
     }
     public OrderBooks fetchOrderBooks(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooks(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
     public CompletableFuture<OrderBooks> fetchOrderBooksAsync(String[] symbols, Long limit, Map<String, Object> params) { return fetchOrderBooksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), limit, params); }
@@ -674,25 +674,25 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder createTwapOrder(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createTwapOrder(symbol, side, amount, duration, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder createTwapOrder(String symbol, String side, Double amount, Double duration) { return createTwapOrder(symbol, side, amount, duration, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createTwapOrderAsync(String symbol, String side, Double amount, Double duration, Map<String, Object> params) {
-        return super.createTwapOrder(symbol, side, amount, duration, params).thenApply(PredictionOrder::new);
+        return super.createTwapOrder(symbol, side, amount, duration, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> createTwapOrderAsync(String symbol, String side, Double amount, Double duration) { return createTwapOrderAsync(symbol, side, amount, duration, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createConvertTrade(id, fromCode, toCode, amount, params));
-        return new Conversion(res);
+        return res == null ? null : new Conversion(res);
     }
     public Conversion createConvertTrade(String id, String fromCode, String toCode) { return createConvertTrade(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     public Conversion createConvertTrade(String id, String fromCode, String toCode, Double amount) { return createConvertTrade(id, fromCode, toCode, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        return super.createConvertTrade(id, fromCode, toCode, amount, params).thenApply(Conversion::new);
+        return super.createConvertTrade(id, fromCode, toCode, amount, params).thenApply(res -> res == null ? null : new Conversion(res));
     }
     public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode) { return createConvertTradeAsync(id, fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<Conversion> createConvertTradeAsync(String id, String fromCode, String toCode, Double amount) { return createConvertTradeAsync(id, fromCode, toCode, amount, (Map<String, Object>) null); }
@@ -700,13 +700,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public Conversion fetchConvertTrade(String id, String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchConvertTrade(id, code, params));
-        return new Conversion(res);
+        return res == null ? null : new Conversion(res);
     }
     public Conversion fetchConvertTrade(String id) { return fetchConvertTrade(id, (String) null, (Map<String, Object>) null); }
     public Conversion fetchConvertTrade(String id, String code) { return fetchConvertTrade(id, code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchConvertTrade(id, code, params).thenApply(Conversion::new);
+        return super.fetchConvertTrade(id, code, params).thenApply(res -> res == null ? null : new Conversion(res));
     }
     public CompletableFuture<Conversion> fetchConvertTradeAsync(String id) { return fetchConvertTradeAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<Conversion> fetchConvertTradeAsync(String id, String code) { return fetchConvertTradeAsync(id, code, (Map<String, Object>) null); }
@@ -724,22 +724,22 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PositionModeInfo fetchPositionMode(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchPositionMode(symbol, params));
-        return new PositionModeInfo(res);
+        return res == null ? null : new PositionModeInfo(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PositionModeInfo> fetchPositionModeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPositionMode(symbol, params).thenApply(PositionModeInfo::new);
+        return super.fetchPositionMode(symbol, params).thenApply(res -> res == null ? null : new PositionModeInfo(res));
     }
 
     @SuppressWarnings("unchecked")
     public ADL fetchADLRank(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchADLRank(symbol, params));
-        return new ADL(res);
+        return res == null ? null : new ADL(res);
     }
     public ADL fetchADLRank(String symbol) { return fetchADLRank(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<ADL> fetchADLRankAsync(String symbol, Map<String, Object> params) {
-        return super.fetchADLRank(symbol, params).thenApply(ADL::new);
+        return super.fetchADLRank(symbol, params).thenApply(res -> res == null ? null : new ADL(res));
     }
     public CompletableFuture<ADL> fetchADLRankAsync(String symbol) { return fetchADLRankAsync(symbol, (Map<String, Object>) null); }
 
@@ -758,12 +758,12 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public ADL fetchPositionADLRank(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchPositionADLRank(symbol, params));
-        return new ADL(res);
+        return res == null ? null : new ADL(res);
     }
     public ADL fetchPositionADLRank(String symbol) { return fetchPositionADLRank(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPositionADLRank(symbol, params).thenApply(ADL::new);
+        return super.fetchPositionADLRank(symbol, params).thenApply(res -> res == null ? null : new ADL(res));
     }
     public CompletableFuture<ADL> fetchPositionADLRankAsync(String symbol) { return fetchPositionADLRankAsync(symbol, (Map<String, Object>) null); }
 
@@ -794,13 +794,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder cancelSpotOrder(String id, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.cancelSpotOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder cancelSpotOrder(String id) { return cancelSpotOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder cancelSpotOrder(String id, String symbol) { return cancelSpotOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> cancelSpotOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelSpotOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.cancelSpotOrder(id, symbol, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> cancelSpotOrderAsync(String id) { return cancelSpotOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> cancelSpotOrderAsync(String id, String symbol) { return cancelSpotOrderAsync(id, symbol, (Map<String, Object>) null); }
@@ -808,13 +808,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder cancelContractOrder(String id, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.cancelContractOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder cancelContractOrder(String id) { return cancelContractOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder cancelContractOrder(String id, String symbol) { return cancelContractOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> cancelContractOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelContractOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.cancelContractOrder(id, symbol, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> cancelContractOrderAsync(String id) { return cancelContractOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> cancelContractOrderAsync(String id, String symbol) { return cancelContractOrderAsync(id, symbol, (Map<String, Object>) null); }
@@ -880,49 +880,49 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public Greeks fetchGreeks(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchGreeks(symbol, params));
-        return new Greeks(res);
+        return res == null ? null : new Greeks(res);
     }
     public Greeks fetchGreeks(String symbol) { return fetchGreeks(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Greeks> fetchGreeksAsync(String symbol, Map<String, Object> params) {
-        return super.fetchGreeks(symbol, params).thenApply(Greeks::new);
+        return super.fetchGreeks(symbol, params).thenApply(res -> res == null ? null : new Greeks(res));
     }
     public CompletableFuture<Greeks> fetchGreeksAsync(String symbol) { return fetchGreeksAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOptionChain(code, params));
-        return new OptionChain(res);
+        return res == null ? null : new OptionChain(res);
     }
     public OptionChain fetchOptionChain(String code) { return fetchOptionChain(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code, Map<String, Object> params) {
-        return super.fetchOptionChain(code, params).thenApply(OptionChain::new);
+        return super.fetchOptionChain(code, params).thenApply(res -> res == null ? null : new OptionChain(res));
     }
     public CompletableFuture<OptionChain> fetchOptionChainAsync(String code) { return fetchOptionChainAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Option fetchOption(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOption(symbol, params));
-        return new Option(res);
+        return res == null ? null : new Option(res);
     }
     public Option fetchOption(String symbol) { return fetchOption(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Option> fetchOptionAsync(String symbol, Map<String, Object> params) {
-        return super.fetchOption(symbol, params).thenApply(Option::new);
+        return super.fetchOption(symbol, params).thenApply(res -> res == null ? null : new Option(res));
     }
     public CompletableFuture<Option> fetchOptionAsync(String symbol) { return fetchOptionAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public Conversion fetchConvertQuote(String fromCode, String toCode, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchConvertQuote(fromCode, toCode, amount, params));
-        return new Conversion(res);
+        return res == null ? null : new Conversion(res);
     }
     public Conversion fetchConvertQuote(String fromCode, String toCode) { return fetchConvertQuote(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     public Conversion fetchConvertQuote(String fromCode, String toCode, Double amount) { return fetchConvertQuote(fromCode, toCode, amount, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount, Map<String, Object> params) {
-        return super.fetchConvertQuote(fromCode, toCode, amount, params).thenApply(Conversion::new);
+        return super.fetchConvertQuote(fromCode, toCode, amount, params).thenApply(res -> res == null ? null : new Conversion(res));
     }
     public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode) { return fetchConvertQuoteAsync(fromCode, toCode, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<Conversion> fetchConvertQuoteAsync(String fromCode, String toCode, Double amount) { return fetchConvertQuoteAsync(fromCode, toCode, amount, (Map<String, Object>) null); }
@@ -980,24 +980,24 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public DepositAddress fetchDepositAddress(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositAddress(code, params));
-        return new DepositAddress(res);
+        return res == null ? null : new DepositAddress(res);
     }
     public DepositAddress fetchDepositAddress(String code) { return fetchDepositAddress(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.fetchDepositAddress(code, params).thenApply(DepositAddress::new);
+        return super.fetchDepositAddress(code, params).thenApply(res -> res == null ? null : new DepositAddress(res));
     }
     public CompletableFuture<DepositAddress> fetchDepositAddressAsync(String code) { return fetchDepositAddressAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public DepositAddress fetchContractDepositAddress(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchContractDepositAddress(code, params));
-        return new DepositAddress(res);
+        return res == null ? null : new DepositAddress(res);
     }
     public DepositAddress fetchContractDepositAddress(String code) { return fetchContractDepositAddress(code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code, Map<String, Object> params) {
-        return super.fetchContractDepositAddress(code, params).thenApply(DepositAddress::new);
+        return super.fetchContractDepositAddress(code, params).thenApply(res -> res == null ? null : new DepositAddress(res));
     }
     public CompletableFuture<DepositAddress> fetchContractDepositAddressAsync(String code) { return fetchContractDepositAddressAsync(code, (Map<String, Object>) null); }
 
@@ -1016,11 +1016,11 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLastPrices(symbols, params));
-        return new LastPrices(res);
+        return res == null ? null : new LastPrices(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<LastPrices> fetchLastPricesAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchLastPrices(symbols, params).thenApply(LastPrices::new);
+        return super.fetchLastPrices(symbols, params).thenApply(res -> res == null ? null : new LastPrices(res));
     }
     public LastPrices fetchLastPrices(String[] symbols, Map<String, Object> params) { return fetchLastPrices(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<LastPrices> fetchLastPricesAsync(String[] symbols, Map<String, Object> params) { return fetchLastPricesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
@@ -1028,44 +1028,44 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public TradingFees fetchTradingFees(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTradingFees(params));
-        return new TradingFees(res);
+        return res == null ? null : new TradingFees(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<TradingFees> fetchTradingFeesAsync(Map<String, Object> params) {
-        return super.fetchTradingFees(params).thenApply(TradingFees::new);
+        return super.fetchTradingFees(params).thenApply(res -> res == null ? null : new TradingFees(res));
     }
 
     @SuppressWarnings("unchecked")
     public Currencies fetchConvertCurrencies(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchConvertCurrencies(params));
-        return new Currencies(res);
+        return res == null ? null : new Currencies(res);
     }
     @SuppressWarnings("unchecked")
     public CompletableFuture<Currencies> fetchConvertCurrenciesAsync(Map<String, Object> params) {
-        return super.fetchConvertCurrencies(params).thenApply(Currencies::new);
+        return super.fetchConvertCurrencies(params).thenApply(res -> res == null ? null : new Currencies(res));
     }
 
     @SuppressWarnings("unchecked")
     public FundingRate fetchFundingRate(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchFundingRate(symbol, params));
-        return new FundingRate(res);
+        return res == null ? null : new FundingRate(res);
     }
     public FundingRate fetchFundingRate(String symbol) { return fetchFundingRate(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol, Map<String, Object> params) {
-        return super.fetchFundingRate(symbol, params).thenApply(FundingRate::new);
+        return super.fetchFundingRate(symbol, params).thenApply(res -> res == null ? null : new FundingRate(res));
     }
     public CompletableFuture<FundingRate> fetchFundingRateAsync(String symbol) { return fetchFundingRateAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public FundingRate fetchFundingInterval(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchFundingInterval(symbol, params));
-        return new FundingRate(res);
+        return res == null ? null : new FundingRate(res);
     }
     public FundingRate fetchFundingInterval(String symbol) { return fetchFundingInterval(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol, Map<String, Object> params) {
-        return super.fetchFundingInterval(symbol, params).thenApply(FundingRate::new);
+        return super.fetchFundingInterval(symbol, params).thenApply(res -> res == null ? null : new FundingRate(res));
     }
     public CompletableFuture<FundingRate> fetchFundingIntervalAsync(String symbol) { return fetchFundingIntervalAsync(symbol, (Map<String, Object>) null); }
 
@@ -1136,13 +1136,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public TransferEntry fetchTransfer(String id, String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTransfer(id, code, params));
-        return new TransferEntry(res);
+        return res == null ? null : new TransferEntry(res);
     }
     public TransferEntry fetchTransfer(String id) { return fetchTransfer(id, (String) null, (Map<String, Object>) null); }
     public TransferEntry fetchTransfer(String id, String code) { return fetchTransfer(id, code, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code, Map<String, Object> params) {
-        return super.fetchTransfer(id, code, params).thenApply(TransferEntry::new);
+        return super.fetchTransfer(id, code, params).thenApply(res -> res == null ? null : new TransferEntry(res));
     }
     public CompletableFuture<TransferEntry> fetchTransferAsync(String id) { return fetchTransferAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<TransferEntry> fetchTransferAsync(String id, String code) { return fetchTransferAsync(id, code, (Map<String, Object>) null); }
@@ -1176,13 +1176,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrderBook fetchOrderBook(String symbol, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOrderBook(symbol, limit, params));
-        return new PredictionOrderBook(res);
+        return res == null ? null : new PredictionOrderBook(res);
     }
     public PredictionOrderBook fetchOrderBook(String symbol) { return fetchOrderBook(symbol, (Long) null, (Map<String, Object>) null); }
     public PredictionOrderBook fetchOrderBook(String symbol, Long limit) { return fetchOrderBook(symbol, limit, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit, Map<String, Object> params) {
-        return super.fetchOrderBook(symbol, limit, params).thenApply(PredictionOrderBook::new);
+        return super.fetchOrderBook(symbol, limit, params).thenApply(res -> res == null ? null : new PredictionOrderBook(res));
     }
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol) { return fetchOrderBookAsync(symbol, (Long) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrderBook> fetchOrderBookAsync(String symbol, Long limit) { return fetchOrderBookAsync(symbol, limit, (Map<String, Object>) null); }
@@ -1190,26 +1190,26 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOpenInterest fetchOpenInterest(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOpenInterest(symbol, params));
-        return new PredictionOpenInterest(res);
+        return res == null ? null : new PredictionOpenInterest(res);
     }
     public PredictionOpenInterest fetchOpenInterest(String symbol) { return fetchOpenInterest(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol, Map<String, Object> params) {
-        return super.fetchOpenInterest(symbol, params).thenApply(PredictionOpenInterest::new);
+        return super.fetchOpenInterest(symbol, params).thenApply(res -> res == null ? null : new PredictionOpenInterest(res));
     }
     public CompletableFuture<PredictionOpenInterest> fetchOpenInterestAsync(String symbol) { return fetchOpenInterestAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.editOrder(id, symbol, type, side, amount, price, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder editOrder(String id, String symbol, String type, String side) { return editOrder(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount) { return editOrder(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder editOrder(String id, String symbol, String type, String side, Double amount, Double price) { return editOrder(id, symbol, type, side, amount, price, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.editOrder(id, symbol, type, side, amount, price, params).thenApply(PredictionOrder::new);
+        return super.editOrder(id, symbol, type, side, amount, price, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side) { return editOrderAsync(id, symbol, type, side, (Double) null, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> editOrderAsync(String id, String symbol, String type, String side, Double amount) { return editOrderAsync(id, symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
@@ -1218,12 +1218,12 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionPosition fetchPosition(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchPosition(symbol, params));
-        return new PredictionPosition(res);
+        return res == null ? null : new PredictionPosition(res);
     }
     public PredictionPosition fetchPosition(String symbol) { return fetchPosition(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionPosition> fetchPositionAsync(String symbol, Map<String, Object> params) {
-        return super.fetchPosition(symbol, params).thenApply(PredictionPosition::new);
+        return super.fetchPosition(symbol, params).thenApply(res -> res == null ? null : new PredictionPosition(res));
     }
     public CompletableFuture<PredictionPosition> fetchPositionAsync(String symbol) { return fetchPositionAsync(symbol, (Map<String, Object>) null); }
 
@@ -1246,25 +1246,25 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionTicker fetchTicker(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTicker(symbol, params));
-        return new PredictionTicker(res);
+        return res == null ? null : new PredictionTicker(res);
     }
     public PredictionTicker fetchTicker(String symbol) { return fetchTicker(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTicker> fetchTickerAsync(String symbol, Map<String, Object> params) {
-        return super.fetchTicker(symbol, params).thenApply(PredictionTicker::new);
+        return super.fetchTicker(symbol, params).thenApply(res -> res == null ? null : new PredictionTicker(res));
     }
     public CompletableFuture<PredictionTicker> fetchTickerAsync(String symbol) { return fetchTickerAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionTickers fetchTickers(List<String> symbols, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTickers(symbols, params));
-        return new PredictionTickers(res);
+        return res == null ? null : new PredictionTickers(res);
     }
     public PredictionTickers fetchTickers() { return fetchTickers((List<String>) null, (Map<String, Object>) null); }
     public PredictionTickers fetchTickers(List<String> symbols) { return fetchTickers(symbols, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchTickers(symbols, params).thenApply(PredictionTickers::new);
+        return super.fetchTickers(symbols, params).thenApply(res -> res == null ? null : new PredictionTickers(res));
     }
     public CompletableFuture<PredictionTickers> fetchTickersAsync() { return fetchTickersAsync((List<String>) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionTickers> fetchTickersAsync(List<String> symbols) { return fetchTickersAsync(symbols, (Map<String, Object>) null); }
@@ -1274,13 +1274,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder fetchOrder(String id, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder fetchOrder(String id) { return fetchOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder fetchOrder(String id, String symbol) { return fetchOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.fetchOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.fetchOrder(id, symbol, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id) { return fetchOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> fetchOrderAsync(String id, String symbol) { return fetchOrderAsync(id, symbol, (Map<String, Object>) null); }
@@ -1288,13 +1288,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createOrder(symbol, type, side, amount, price, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount) { return createOrder(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public PredictionOrder createOrder(String symbol, String type, String side, Double amount, Double price) { return createOrder(symbol, type, side, amount, price, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price, Map<String, Object> params) {
-        return super.createOrder(symbol, type, side, amount, price, params).thenApply(PredictionOrder::new);
+        return super.createOrder(symbol, type, side, amount, price, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount) { return createOrderAsync(symbol, type, side, amount, (Double) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> createOrderAsync(String symbol, String type, String side, Double amount, Double price) { return createOrderAsync(symbol, type, side, amount, price, (Map<String, Object>) null); }
@@ -1302,36 +1302,36 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createMarketOrderWithCost(symbol, side, cost, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder createMarketOrderWithCost(String symbol, String side, Double cost) { return createMarketOrderWithCost(symbol, side, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost, Map<String, Object> params) {
-        return super.createMarketOrderWithCost(symbol, side, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketOrderWithCost(symbol, side, cost, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> createMarketOrderWithCostAsync(String symbol, String side, Double cost) { return createMarketOrderWithCostAsync(symbol, side, cost, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createMarketBuyOrderWithCost(symbol, cost, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder createMarketBuyOrderWithCost(String symbol, Double cost) { return createMarketBuyOrderWithCost(symbol, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketBuyOrderWithCost(symbol, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketBuyOrderWithCost(symbol, cost, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> createMarketBuyOrderWithCostAsync(String symbol, Double cost) { return createMarketBuyOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.createMarketSellOrderWithCost(symbol, cost, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder createMarketSellOrderWithCost(String symbol, Double cost) { return createMarketSellOrderWithCost(symbol, cost, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost, Map<String, Object> params) {
-        return super.createMarketSellOrderWithCost(symbol, cost, params).thenApply(PredictionOrder::new);
+        return super.createMarketSellOrderWithCost(symbol, cost, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> createMarketSellOrderWithCostAsync(String symbol, Double cost) { return createMarketSellOrderWithCostAsync(symbol, cost, (Map<String, Object>) null); }
 
@@ -1350,13 +1350,13 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionOrder cancelOrder(String id, String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.cancelOrder(id, symbol, params));
-        return new PredictionOrder(res);
+        return res == null ? null : new PredictionOrder(res);
     }
     public PredictionOrder cancelOrder(String id) { return cancelOrder(id, (String) null, (Map<String, Object>) null); }
     public PredictionOrder cancelOrder(String id, String symbol) { return cancelOrder(id, symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol, Map<String, Object> params) {
-        return super.cancelOrder(id, symbol, params).thenApply(PredictionOrder::new);
+        return super.cancelOrder(id, symbol, params).thenApply(res -> res == null ? null : new PredictionOrder(res));
     }
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id) { return cancelOrderAsync(id, (String) null, (Map<String, Object>) null); }
     public CompletableFuture<PredictionOrder> cancelOrderAsync(String id, String symbol) { return cancelOrderAsync(id, symbol, (Map<String, Object>) null); }
@@ -1498,12 +1498,12 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionTradingFee fetchTradingFee(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchTradingFee(symbol, params));
-        return new PredictionTradingFee(res);
+        return res == null ? null : new PredictionTradingFee(res);
     }
     public PredictionTradingFee fetchTradingFee(String symbol) { return fetchTradingFee(symbol, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionTradingFee> fetchTradingFeeAsync(String symbol, Map<String, Object> params) {
-        return super.fetchTradingFee(symbol, params).thenApply(PredictionTradingFee::new);
+        return super.fetchTradingFee(symbol, params).thenApply(res -> res == null ? null : new PredictionTradingFee(res));
     }
     public CompletableFuture<PredictionTradingFee> fetchTradingFeeAsync(String symbol) { return fetchTradingFeeAsync(symbol, (Map<String, Object>) null); }
 
@@ -1520,12 +1520,12 @@ public class Kalshi extends KalshiCore {
     @SuppressWarnings("unchecked")
     public PredictionEvent fetchEvent(String id, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchEvent(id, params));
-        return new PredictionEvent(res);
+        return res == null ? null : new PredictionEvent(res);
     }
     public PredictionEvent fetchEvent(String id) { return fetchEvent(id, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<PredictionEvent> fetchEventAsync(String id, Map<String, Object> params) {
-        return super.fetchEvent(id, params).thenApply(PredictionEvent::new);
+        return super.fetchEvent(id, params).thenApply(res -> res == null ? null : new PredictionEvent(res));
     }
     public CompletableFuture<PredictionEvent> fetchEventAsync(String id) { return fetchEventAsync(id, (Map<String, Object>) null); }
 
