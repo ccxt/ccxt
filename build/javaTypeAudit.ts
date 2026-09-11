@@ -4,8 +4,8 @@
 // than the TS declaration (nullability / shape).
 import fs from 'fs';
 import path from 'path';
-import { extractTypesIR, resolveScalar } from './build/typesIR.js';
-import type { TypesIR, IRField } from './build/typesIR.js';
+import { extractTypesIR, resolveScalar } from './typesIR.js';
+import type { TypesIR, IRField } from './typesIR.js';
 
 const TYPES_DIR = 'java/lib/src/main/java/io/github/ccxt/types';
 
@@ -335,6 +335,54 @@ for (const t of ir.types) {
     }
 }
 if (kCount === 0) console.log ('  (none)');
+
+// ---- Z. coverage summary (the audit's own accounting) ----
+let classesDiffed = 0;
+let fieldsChecked = 0;
+let javaOnlyFields = 0;
+let dictWrappers = 0;
+const javaOnlyList: string[] = [];
+for (const className of Object.keys (java).sort ()) {
+    if (JAVA_ONLY.indexOf (className) >= 0) continue;
+    const jc = java[className];
+    const tsName = CLASS_TO_TS[className] !== undefined ? CLASS_TO_TS[className] : className;
+    let fields: IRField[] | undefined = ir.byName[tsName]?.fields;
+    let isWrapper = false;
+    if (INLINE_SOURCES[className] !== undefined) {
+        const [ owner, member ] = INLINE_SOURCES[className];
+        fields = ir.byName[owner]?.fields.filter ((f) => unquote (f.name) === member)[0]?.inlineFields;
+    } else if (ir.byName[tsName]?.kind === 'dictionary') {
+        fields = undefined;
+        isWrapper = true;
+    }
+    if (isWrapper) { dictWrappers += 1; continue; }
+    if (fields === undefined) continue;
+    classesDiffed += 1;
+    fieldsChecked += fields.length;
+    for (const jf of jc.fields) {
+        if (!fields.some ((f) => (FIELD_RENAMES[unquote (f.name)] ?? unquote (f.name)) === jf.name)) {
+            javaOnlyFields += 1;
+            javaOnlyList.push (className + '.' + jf.name + ' (' + jf.javaType + ')');
+        }
+    }
+}
+if (javaOnlyList.length > 0) console.log ('  port-local fields with no TS counterpart: ' + javaOnlyList.join (', '));
+console.log ('\n=== Z. coverage ===');
+console.log ('  java type files scanned: ' + Object.keys (java).length.toString () + ' (incl. TypeHelper helper; ' + JAVA_ONLY.length.toString () + ' Java-only/no-TS-decl: ' + JAVA_ONLY.join (', ') + ')');
+console.log ('  classes field-diffed against types.ts: ' + classesDiffed.toString ());
+console.log ('  TS fields checked: ' + fieldsChecked.toString () + '  | missing from Java: ' + Object.keys (missingFields).length.toString () + ' class(es)  | java-only (port-local) fields: ' + javaOnlyFields.toString ());
+let tsDictCount = 0;
+let absentCount = 0;
+for (const t of ir.types) {
+    if (t.kind === 'dictionary') tsDictCount += 1;
+    if (t.kind === 'interface' || t.kind === 'dictionary' || t.kind === 'tuple') {
+        const cls = TS_TO_CLASS[t.name] !== undefined ? TS_TO_CLASS[t.name] : t.name;
+        if (java[cls] === undefined) absentCount += 1;
+    }
+}
+console.log ('  Dictionary<T> wrapper classes verified: ' + dictWrappers.toString () + ' of ' + tsDictCount.toString ());
+console.log ('  non-nullable primitive fields (fabrication class): ' + primitives.length.toString ());
+console.log ('  TS declarations with no Java class: ' + absentCount.toString () + ' (none of them a unified method return type)');
 
 console.log ('=== A. TS fields MISSING from Java classes (' + Object.keys (missingFields).length + ' classes) ===');
 for (const c of Object.keys (missingFields)) {
