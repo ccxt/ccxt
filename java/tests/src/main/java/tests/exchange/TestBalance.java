@@ -31,9 +31,9 @@ public class TestBalance extends BaseTest {
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
         Object allCodes = exchange.arrayConcat(codesTotal, codesFree);
         allCodes = exchange.arrayConcat(allCodes, codesUsed);
-        Integer codesLength = Helpers.getArrayLength(codesTotal);
-        Integer freeLength = Helpers.getArrayLength(codesFree);
-        Integer usedLength = Helpers.getArrayLength(codesUsed);
+        Object codesLength = Helpers.getArrayLength(codesTotal);
+        Object freeLength = Helpers.getArrayLength(codesFree);
+        Object usedLength = Helpers.getArrayLength(codesUsed);
         Assert(Helpers.isTrue((Helpers.isEqual(codesLength, freeLength))) || Helpers.isTrue((Helpers.isEqual(codesLength, usedLength))), Helpers.add("free and total and used codes have different lengths", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allCodes)); i++)
         {

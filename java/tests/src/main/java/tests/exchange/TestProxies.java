@@ -39,7 +39,7 @@ public class TestProxies extends BaseTest {
         exchange.proxyUrl = Helpers.add(Helpers.add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
         String encodedColon = "%3A";
         String encodedSlash = "%2F";
-        String ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        Object ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
@@ -90,10 +90,10 @@ public class TestProxies extends BaseTest {
                 if (Helpers.isTrue(!Helpers.isEqual(j, i)))
                 {
                     Object proxyFirst = Helpers.GetValue(possibleOptionsArray, i);
-                    Object proxySecond = Helpers.GetValue(possibleOptionsArray, j);
+                    String proxySecond = (String) Helpers.GetValue(possibleOptionsArray, j);
                     exchange.setProperty(exchange, proxyFirst, "0.0.0.0"); // actual value does not matter
                     exchange.setProperty(exchange, proxySecond, "0.0.0.0"); // actual value does not matter
-                    Object exceptionCaught = false;
+                    Boolean exceptionCaught = false;
                     try
                     {
                         ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{"http://example.com"})).join(); // url does not matter, it will not be called

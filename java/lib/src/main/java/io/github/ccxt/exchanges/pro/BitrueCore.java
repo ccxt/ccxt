@@ -100,8 +100,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = (this.authenticate()).join();
-            String messageHash = "balance";
-            Object message = new java.util.HashMap<String, Object>() {{
+            String messageHash = (String) "balance";
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channel", "user_balance_update" );
@@ -162,7 +162,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //
         Object balances = this.safeValue(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.parseWSBalances(balances);
-        String messageHash = "balance";
+        String messageHash = (String) "balance";
         client.resolve(this.balance, messageHash);
     }
 
@@ -195,8 +195,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object used = this.safeString(balance, "L");
             Long balanceUpdateTime = this.safeInteger(balance, "T", 0);
             Long lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
-            Object updateFree = !Helpers.isEqual(balanceUpdateTime, 0);
-            Object updateUsed = !Helpers.isEqual(lockBalanceUpdateTime, 0);
+            Boolean updateFree = !Helpers.isEqual(balanceUpdateTime, 0);
+            Boolean updateUsed = !Helpers.isEqual(lockBalanceUpdateTime, 0);
             if (Helpers.isTrue(Helpers.isTrue(updateFree) || Helpers.isTrue(updateUsed)))
             {
                 if (Helpers.isTrue(updateFree))
@@ -242,12 +242,12 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object url = (this.authenticate()).join();
-            String messageHash = "orders";
-            Object message = new java.util.HashMap<String, Object>() {{
+            String messageHash = (String) "orders";
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channel", "user_order_update" );
@@ -297,7 +297,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
-        String messageHash = "orders";
+        String messageHash = (String) "orders";
         client.resolve(this.orders, messageHash);
     }
 
@@ -374,11 +374,11 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orderbook:", symbol);
+            String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object url = null;
-            String channel = null;
+            Object channel = null;
             Object cbId = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -397,7 +397,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             final Object finalCbId = cbId;
             final Object finalChannel = channel;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "cb_id", finalCbId );
@@ -445,9 +445,9 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         Object channelKind = this.safeString(parts, 1);
-        Object isFutures = (Helpers.isEqual(channelKind, "e"));
+        Boolean isFutures = (Helpers.isEqual(channelKind, "e"));
         Object market = null;
         if (Helpers.isTrue(isFutures))
         {
@@ -476,10 +476,10 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = this.parseOrderBook(parseable, symbol, timestamp, "buys", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -528,7 +528,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             return rawQuantity;
@@ -560,7 +560,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -570,9 +570,9 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add("market_", wsId), "_trade_ticker");
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = (String) Helpers.add("trades:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "cb_id", wsId );
@@ -613,7 +613,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -623,7 +623,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object appended = false;
+        Boolean appended = false;
         Object stored = this.safeValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -639,7 +639,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         if (Helpers.isTrue(appended))
         {
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = (String) Helpers.add("trades:", symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -695,7 +695,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -711,9 +711,9 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add(Helpers.add("market_", wsId), "_kline_"), interval);
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "cb_id", wsId );
@@ -752,7 +752,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -780,7 +780,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe);
         client.resolve(stored, messageHash);
     }
 
@@ -818,7 +818,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -828,9 +828,9 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             String quoteIdLower = (String)this.safeStringLower(market, "quoteId");
             Object wsId = Helpers.add(Helpers.add("e_", baseIdLower), quoteIdLower);
             Object channel = Helpers.add(Helpers.add("market_", wsId), "_ticker");
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "futurePublic");
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "event", "sub" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "cb_id", wsId );
@@ -862,7 +862,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -878,7 +878,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Long timestamp = this.safeInteger(message, "ts");
         Object parsed = this.parseWsTicker(tick, market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
-        Object messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = (String) Helpers.add("ticker:", symbol);
         client.resolve(parsed, messageHash);
     }
 
@@ -919,7 +919,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
     public String parseWsOrderType(Object typeId)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
             put( "2", "market" );
             put( "3", "limit" );
@@ -929,7 +929,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "open" );
             put( "1", "open" );
             put( "2", "closed" );
@@ -956,7 +956,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             //     }
             //
             Long time = this.safeInteger(message, "ping");
-            Object pong = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> pong = new java.util.HashMap<String, Object>() {{
                 put( "pong", time );
             }};
             (client.send(pong)).join();
@@ -989,7 +989,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         } else
         {
             Object eventVar = this.safeString(message, "e");
-            Object handlers = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
                 put( "BALANCE", "handleBalance");
                 put( "ORDER", "handleOrder");
             }};
@@ -1018,7 +1018,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 // client.futures and settled through client.resolve/client.reject,
                 // so every mutation of that map happens under the ws client's own
                 // lock rather than through an unsynchronized map write
-                String messageHash = "authenticateFlight";
+                String messageHash = (String) "authenticateFlight";
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -1032,7 +1032,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object response = (this.openV1PrivatePostPoseidonApiV1ListenKey(parameters)).join();
+                    java.util.Map<String, Object> response = (this.openV1PrivatePostPoseidonApiV1ListenKey(parameters)).join();
                     //
                     //     {
                     //         "msg": "succ",
@@ -1083,7 +1083,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object listenKey = this.safeString(this.options, "listenKey");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "listenKey", listenKey );
             }};
             try

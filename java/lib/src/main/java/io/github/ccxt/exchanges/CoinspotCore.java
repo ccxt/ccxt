@@ -595,7 +595,7 @@ public class CoinspotCore extends CoinspotApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeValue2(response, "balance", "balances");
@@ -705,11 +705,11 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
-            Object orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
         });
 
@@ -772,8 +772,8 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object response = (this.publicGetLatest(parameters)).join();
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
@@ -815,7 +815,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetLatest(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             //
             //    {
             //        "status": "ok",
@@ -833,13 +833,13 @@ public class CoinspotCore extends CoinspotApi
             //        }
             //    }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                Object market = this.safeMarket(id);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(id);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     Object symbol = Helpers.GetValue(market, "symbol");
@@ -875,11 +875,11 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "status":"ok",
@@ -918,7 +918,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -928,7 +928,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 Helpers.addElementToObject(request, "startdate", this.yyyymmdd(since));
             }
-            Object response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostRoMyTransactions(this.extend(request, parameters))).join();
             //  {
             //      "status": "ok",
             //      "buyorders": [
@@ -1078,13 +1078,13 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            String sideUpper = ((String)side).toUpperCase();
+            Object sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
                 put( "amount", amount );
                 put( "rate", price );
@@ -1135,7 +1135,7 @@ public class CoinspotCore extends CoinspotApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
             parameters = this.omit(parameters, "side");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object response = null;
@@ -1183,7 +1183,7 @@ public class CoinspotCore extends CoinspotApi
         Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        String fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
+        Object fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), accessType), fullPath);
         if (Helpers.isTrue(Helpers.isEqual(accessType, "private")))
         {

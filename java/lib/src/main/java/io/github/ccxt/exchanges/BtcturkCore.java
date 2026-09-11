@@ -316,7 +316,7 @@ public class BtcturkCore extends BtcturkApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetServerExchangeinfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetServerExchangeinfo(parameters)).join();
             //
             //    {
             //        "data": {
@@ -495,7 +495,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetUsersBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetUsersBalances(parameters)).join();
             //
             //     {
             //       "data": [
@@ -538,11 +538,11 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //     {
             //       "data": {
             //         "timestamp": 1618827901241,
@@ -633,7 +633,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTicker(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(parameters)).join();
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
         });
@@ -756,7 +756,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // let maxCount = 50;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
@@ -765,7 +765,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "last", limit);
             }
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //       "data": [
@@ -836,7 +836,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalTimeframe = timeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -869,7 +869,7 @@ public class BtcturkCore extends BtcturkApi
                     Helpers.addElementToObject(request, "from", Helpers.subtract(this.parseToInt(Helpers.divide(0, 1000)), limitSeconds));
                 }
             }
-            Object response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "s": "ok",
@@ -965,7 +965,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderType", side );
@@ -984,7 +984,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "newClientOrderId", this.uuid());
             }
-            Object response = (this.privatePostOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
@@ -1011,7 +1011,7 @@ public class BtcturkCore extends BtcturkApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1057,7 +1057,7 @@ public class BtcturkCore extends BtcturkApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pairSymbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1090,7 +1090,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
@@ -1103,7 +1103,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "startTime", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
-            Object response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
             // {
             //   "data": [
             //     {
@@ -1239,7 +1239,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetUsersTransactionsTrade()).join();
+            java.util.Map<String, Object> response = (this.privateGetUsersTransactionsTrade()).join();
             //
             //     {
             //       "data": [
@@ -1302,7 +1302,7 @@ public class BtcturkCore extends BtcturkApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(this.apiKey, nonce);
             headers = new java.util.HashMap<String, Object>() {{

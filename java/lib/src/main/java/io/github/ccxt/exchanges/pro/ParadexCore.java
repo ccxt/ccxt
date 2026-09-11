@@ -67,7 +67,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -135,7 +135,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object messageHash = "trades.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.GetValue(market, "id"));
             } else
             {
@@ -217,8 +217,8 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object messageHash = Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -267,7 +267,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "market");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(data, "last_updated_at");
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -293,7 +293,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 ((java.util.List<Object>)Helpers.GetValue(orderbookData, "asks")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size)));
             }
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -417,11 +417,11 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object messageHash = "orders";
+            String messageHash = (String) "orders";
             Object channel = "orders.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 channel = Helpers.add(channel, Helpers.GetValue(market, "id"));
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -525,7 +525,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
@@ -606,7 +606,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -786,7 +786,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
             Object channel = this.safeString(data, "channel");
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), ".");
+            Object parts = Helpers.split(((String)channel), ".");
             Object name = this.safeString(parts, 0);
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");

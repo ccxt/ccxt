@@ -240,7 +240,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "usertrade";
+            String messageHash = (String) "usertrade";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -287,7 +287,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object rawTrades = this.safeValue(message, "data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        Integer dataLength = Helpers.getArrayLength(rawTrades);
+        Object dataLength = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -347,7 +347,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "order";
+            String messageHash = (String) "order";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -428,7 +428,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object channel = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         // usually the first message is an empty array
-        Integer dataLength = Helpers.getArrayLength(data);
+        Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -520,7 +520,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "_");
+            Object parts = Helpers.split(key, "_");
             Object currencyId = this.safeString(parts, 0);
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -580,7 +580,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object auth = Helpers.add(Helpers.add("CONNECT", "/stream"), expires);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
             java.util.Map<String, Object> authParams = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );

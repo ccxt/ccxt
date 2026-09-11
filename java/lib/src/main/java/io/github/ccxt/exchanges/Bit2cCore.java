@@ -361,8 +361,8 @@ public class Bit2cCore extends Bit2cApi
         {
             Object code = Helpers.GetValue(codes, i);
             Object account = this.account();
-            Object currency = this.currency(code);
-            String uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
             if (Helpers.isTrue(Helpers.inOp(response, uppercase)))
             {
                 Helpers.addElementToObject(account, "free", this.safeString(response, Helpers.add("AVAILABLE_", uppercase)));
@@ -391,7 +391,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountBalanceV2(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBalanceV2(parameters)).join();
             //
             //     {
             //         "AVAILABLE_NIS": 0.0,
@@ -460,11 +460,11 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> orderbook = (this.publicGetExchangesPairOrderbook(this.extend(request, parameters))).join();
             // the full orderbook.json snapshot can contain dead orders - rows
             // published with a zero amount at their limit price, hours-stable and
             // sometimes crossing the real market. per the api docs the endpoint
@@ -553,11 +553,11 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -587,7 +587,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String optionValue = this.safeString(this.options, "fetchTradesMethod"); // kept here for backward compatibility #29154
             Object method = this.handleOption("fetchTrades", "method", optionValue); // public_get_exchanges_pair_trades or public_get_exchanges_pair_lasttrades
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -649,7 +649,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountBalance(parameters)).join();
             //
             //     {
             //         "AVAILABLE_NIS": 0.0,
@@ -718,7 +718,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
@@ -736,8 +736,8 @@ public class Bit2cCore extends Bit2cApi
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
-                String amountString = this.numberToString(amount);
-                String priceString = this.numberToString(price);
+                Object amountString = this.numberToString(amount);
+                Object priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
@@ -767,7 +767,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -801,11 +801,11 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
             Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
             Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -835,11 +835,11 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privateGetOrderGetById(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrderGetById(this.extend(request, parameters))).join();
             //
             //         {
             //             "pair": "BtcNis",
@@ -1035,7 +1035,7 @@ public class Bit2cCore extends Bit2cApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOrderOrderHistory(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1087,7 +1087,7 @@ public class Bit2cCore extends Bit2cApi
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        java.util.List<Object> strParts = (java.util.List<Object>) Helpers.split(str, ",");
+        Object strParts = Helpers.split(str, ",");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(strParts)); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
@@ -1146,7 +1146,7 @@ public class Bit2cCore extends Bit2cApi
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            java.util.List<Object> reference_parts = (java.util.List<Object>) Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            Object reference_parts = Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);
@@ -1239,7 +1239,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(this.isFiat(code)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchDepositAddress() does not support fiat currencies")) ;
@@ -1247,7 +1247,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "Coin", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFundsAddCoinFundsRequest(this.extend(request, parameters))).join();
             //
             //     {
             //         "address": "0xf14b94518d74aff2b1a6d3429471bcfcd3881d42",
@@ -1303,7 +1303,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
-            String auth = this.urlencode(query);
+            Object auth = this.urlencode(query);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
@@ -1314,7 +1314,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 body = auth;
             }
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
+            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2cCore.this.apiKey );

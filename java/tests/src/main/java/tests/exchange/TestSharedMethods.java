@@ -57,7 +57,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean formatIsEmptyArray = false;
         if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
         {
-            Integer formatLen = Helpers.getArrayLength(formatKeyVal);
+            Object formatLen = Helpers.getArrayLength(formatKeyVal);
             formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
         }
         Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue((Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray)));
@@ -79,8 +79,8 @@ public class TestSharedMethods extends BaseTest {
         if (Helpers.isTrue(Helpers.isArray(format)))
         {
             Assert(Helpers.isArray(entry), Helpers.add("entry is not an array", logText));
-            Integer realLength = Helpers.getArrayLength(entry);
-            Integer expectedLength = Helpers.getArrayLength(format);
+            Object realLength = Helpers.getArrayLength(entry);
+            Object expectedLength = Helpers.getArrayLength(format);
             Assert(Helpers.isEqual(realLength, expectedLength), Helpers.add(Helpers.add("entry length is not equal to expected length of ", String.valueOf(expectedLength)), logText));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(format)); i++)
             {
@@ -206,7 +206,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Assert(false, Helpers.add(Helpers.add("datetime is not parseable: ", dt), logText));
                 }
-                Double diff = (Double) Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
+                Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(diff, 500)))
                 {
                     Object dtParsedString = exchange.iso8601(dtParsed);
@@ -478,7 +478,7 @@ public class TestSharedMethods extends BaseTest {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(decimalNumbers)); i++)
             {
                 String num = (String) Helpers.GetValue(decimalNumbers, i);
-                Object numStr = num;
+                String numStr = num;
                 AssertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
             }
         } else
@@ -598,7 +598,7 @@ public class TestSharedMethods extends BaseTest {
     {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         Object logText = logTemplate(exchange, method, order);
-        String msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
+        Object msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
         Object filled = exchange.safeString(order, "filled");
         Object amount = exchange.safeString(order, "amount");
         // shorthand variables
@@ -731,7 +731,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean isEmptyArrayResponse = false;
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
-            Integer responseLength = Helpers.getArrayLength(response);
+            Object responseLength = Helpers.getArrayLength(response);
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
         }
         String hintText = "";
@@ -828,7 +828,7 @@ public class TestSharedMethods extends BaseTest {
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(ohlcv, null)))
                 {
-                    Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
                     if (Helpers.isTrue(Helpers.isLessThanOrEqual(ohlcvLength, 1)))
                     {
                         // if only 1 day of listing, then allow it

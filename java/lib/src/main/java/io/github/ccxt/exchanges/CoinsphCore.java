@@ -704,7 +704,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object response = (this.privateGetOpenapiWalletV1ConfigGetall(parameters)).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1ConfigGetall(parameters)).join();
             //
             //    [
             //        {
@@ -777,7 +777,7 @@ public class CoinsphCore extends CoinsphApi
         String code = (String) this.safeCurrencyCode(id);
         Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
         Object networkList = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
             Object networkItem = Helpers.GetValue(networkList, j);
@@ -878,7 +878,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1Ping(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1Ping(parameters)).join();
             return new java.util.HashMap<String, Object>() {{
                 put( "status", "ok" );
                 put( "updated", null );
@@ -904,7 +904,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1Time(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1Time(parameters)).join();
             //
             //     {"serverTime":1677705408268}
             //
@@ -927,7 +927,7 @@ public class CoinsphCore extends CoinsphApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetOpenapiV1ExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiV1ExchangeInfo(parameters)).join();
             //
             //     {
             //         "timezone": "UTC",
@@ -988,7 +988,7 @@ public class CoinsphCore extends CoinsphApi
             //     }
             //
             Object markets = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1082,19 +1082,19 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object ids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> ids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     Object id = Helpers.GetValue(market, "id");
                     ((java.util.List<Object>)ids).add(id);
                 }
                 Helpers.addElementToObject(request, "symbols", ids);
             }
-            Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+            String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1134,11 +1134,11 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
+            String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
             Object options = this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object ticker = new java.util.HashMap<String, Object>() {{}};
@@ -1261,15 +1261,15 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetOpenapiQuoteV1Depth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOpenapiQuoteV1Depth(this.extend(request, parameters))).join();
             //
             //     {
             //         "lastUpdateId": "1667022157000699400",
@@ -1316,10 +1316,10 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe);
             Long until = this.safeInteger(parameters, "until");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
             }};
@@ -1350,7 +1350,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Helpers.addElementToObject(request, "limit", limit);
             parameters = this.omit(parameters, "until");
-            Object response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOpenapiQuoteV1Klines(this.extend(request, parameters))).join();
             //
             //     [
             //         [
@@ -1403,8 +1403,8 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1418,7 +1418,7 @@ public class CoinsphCore extends CoinsphApi
                     Helpers.addElementToObject(request, "limit", limit);
                 }
             }
-            Object response = (this.publicGetOpenapiQuoteV1Trades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOpenapiQuoteV1Trades(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1465,8 +1465,8 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1478,7 +1478,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -1509,7 +1509,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrderTrades() requires a symbol argument")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1566,7 +1566,7 @@ public class CoinsphCore extends CoinsphApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         Object type = null;
-        Object fee = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         String feeCost = this.safeString(trade, "commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1578,13 +1578,13 @@ public class CoinsphCore extends CoinsphApi
             }};
         }
         Object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(isBuyer, true))))) ? "buy" : "sell";
         }
         String isMaker = this.safeString(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, "true"))))) ? "maker" : "taker";
@@ -1634,7 +1634,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetOpenapiV1Account(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiV1Account(parameters)).join();
             //
             //     {
             //         "accountType": "SPOT",
@@ -1664,7 +1664,7 @@ public class CoinsphCore extends CoinsphApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1712,7 +1712,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object testOrder = this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object orderType = this.safeString(parameters, "type", type);
@@ -1721,7 +1721,7 @@ public class CoinsphCore extends CoinsphApi
             String orderSide = this.encodeOrderSide(side);
             final Object finalOrderType = orderType;
             final Object finalOrderSide = orderSide;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", finalOrderType );
                 put( "side", finalOrderSide );
@@ -1750,7 +1750,7 @@ public class CoinsphCore extends CoinsphApi
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 } else if (Helpers.isTrue(Helpers.isEqual(orderSide, "BUY")))
                 {
-                    Object quoteAmount = null;
+                    String quoteAmount = null;
                     Object createMarketBuyOrderRequiresPrice = true;
                     java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
@@ -1767,9 +1767,9 @@ public class CoinsphCore extends CoinsphApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            String amountString = this.numberToString(amount);
-                            String priceString = this.numberToString(price);
-                            Object costRequest = Precise.stringMul(amountString, priceString);
+                            Object amountString = this.numberToString(amount);
+                            Object priceString = this.numberToString(price);
+                            String costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
                     } else
@@ -1790,7 +1790,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Helpers.addElementToObject(request, "newOrderRespType", newOrderRespType);
             parameters = this.omit(parameters, "price", "stopPrice", "triggerPrice", "quantity", "quoteOrderQty");
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(testOrder, true)))
             {
                 response = (this.privatePostOpenapiV1OrderTest(this.extend(request, parameters))).join();
@@ -1851,7 +1851,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -1861,7 +1861,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
-            Object response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -1892,13 +1892,13 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -1932,8 +1932,8 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1945,7 +1945,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
         });
 
@@ -1972,7 +1972,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object clientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -1982,7 +1982,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
-            Object response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
         });
 
@@ -2013,13 +2013,13 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
         });
 
@@ -2135,7 +2135,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String parseOrderSide(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "BUY", "buy" );
             put( "SELL", "sell" );
         }};
@@ -2148,7 +2148,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String encodeOrderSide(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "buy", "BUY" );
             put( "sell", "SELL" );
         }};
@@ -2161,7 +2161,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String parseOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "MARKET", "market" );
             put( "LIMIT", "limit" );
             put( "LIMIT_MAKER", "limit" );
@@ -2179,7 +2179,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String encodeOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "market", "MARKET" );
             put( "limit", "LIMIT" );
             put( "limit_maker", "LIMIT_MAKER" );
@@ -2197,7 +2197,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
             put( "FILLED", "closed" );
             put( "CANCELED", "canceled" );
@@ -2214,7 +2214,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String parseOrderTimeInForce(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
             put( "FOK", "FOK" );
             put( "IOC", "IOC" );
@@ -2245,11 +2245,11 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetOpenapiV1AssetTradeFee(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1AssetTradeFee(this.extend(request, parameters))).join();
             //
             //     [
             //       {
@@ -2283,7 +2283,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetOpenapiV1AssetTradeFee(parameters)).join();
+            java.util.List<Object> response = (this.privateGetOpenapiV1AssetTradeFee(parameters)).join();
             //
             //     [
             //         {
@@ -2298,7 +2298,7 @@ public class CoinsphCore extends CoinsphApi
             //         },
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> fees = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
@@ -2372,9 +2372,9 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkId = networkId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", CoinsphCore.this.numberToString(amount) );
                 put( "network", finalNetworkId );
@@ -2385,7 +2385,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "withdrawOrderId", tag);
             }
             parameters = this.omit(parameters, "network");
-            Object response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOpenapiWalletV1WithdrawApply(this.extend(request, parameters))).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -2417,7 +2417,7 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -2431,7 +2431,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1DepositHistory(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -2491,7 +2491,7 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -2505,7 +2505,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetOpenapiWalletV1WithdrawHistory(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -2600,7 +2600,7 @@ public class CoinsphCore extends CoinsphApi
         Object timestamp = null;
         timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
         Object updated = null;
-        Object type = null;
+        String type = null;
         String withdrawOrderId = this.safeString(transaction, "withdrawOrderId");
         String depositOrderId = this.safeString(transaction, "depositOrderId");
         if (Helpers.isTrue(!Helpers.isEqual(withdrawOrderId, null)))
@@ -2623,7 +2623,7 @@ public class CoinsphCore extends CoinsphApi
             }};
         }
         String network = this.safeString(transaction, "network");
-        Object intern = Helpers.isEqual(network, "Internal");
+        Boolean intern = Helpers.isEqual(network, "Internal");
         final Object finalTimestamp = timestamp;
         final Object finalNetwork = network;
         final Object finalTag = tag;
@@ -2655,7 +2655,7 @@ public class CoinsphCore extends CoinsphApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "pending" );
             put( "1", "ok" );
             put( "2", "failed" );
@@ -2694,14 +2694,14 @@ public class CoinsphCore extends CoinsphApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalNetworkId = networkId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "network", finalNetworkId );
             }};
             parameters = this.omit(parameters, "network");
-            Object response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOpenapiWalletV1DepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "coin": "ETH",
@@ -2755,7 +2755,7 @@ public class CoinsphCore extends CoinsphApi
                 encodedArrayParams = Helpers.add(encodedArrayParams, encodedArrayParam);
             }
         }
-        String encodedQuery = this.urlencode(query);
+        Object encodedQuery = this.urlencode(query);
         if (Helpers.isTrue(!Helpers.isEqual(((String)encodedQuery).length(), 0)))
         {
             return Helpers.add(Helpers.add(encodedQuery, "&"), encodedArrayParams);
@@ -2783,7 +2783,7 @@ public class CoinsphCore extends CoinsphApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api);
         Object query = this.omit(parameters, this.extractParams(path));
-        String endpoint = (String) this.implodeParams(path, parameters);
+        Object endpoint = this.implodeParams(path, parameters);
         url = Helpers.add(Helpers.add(url, "/"), endpoint);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
@@ -2799,7 +2799,7 @@ public class CoinsphCore extends CoinsphApi
                 }
             }
             query = this.urlEncodeQuery(query);
-            String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
+            Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
             url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(url, "?"), query), "&signature="), signature);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-COINS-APIKEY", CoinsphCore.this.apiKey );

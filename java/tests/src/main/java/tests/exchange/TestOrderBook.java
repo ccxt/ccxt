@@ -36,7 +36,7 @@ public class TestOrderBook extends BaseTest {
         Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         Object bids = Helpers.GetValue(orderbook, "bids");
-        Integer bidsLength = Helpers.getArrayLength(bids);
+        Object bidsLength = Helpers.getArrayLength(bids);
         for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
             Object currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
@@ -57,7 +57,7 @@ public class TestOrderBook extends BaseTest {
             }
         }
         Object asks = Helpers.GetValue(orderbook, "asks");
-        Integer asksLength = Helpers.getArrayLength(asks);
+        Object asksLength = Helpers.getArrayLength(asks);
         for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
             Object currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);

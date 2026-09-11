@@ -365,7 +365,7 @@ public class CoincheckCore extends CoincheckApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object currencyId = Helpers.GetValue(currency, "id");
             if (Helpers.isTrue(Helpers.inOp(response, currencyId)))
             {
@@ -393,7 +393,7 @@ public class CoincheckCore extends CoincheckApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetExchangeStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetExchangeStatus(parameters)).join();
             //
             //     {
             //         "exchange_status": [
@@ -457,7 +457,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccountsBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountsBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -493,7 +493,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetExchangeOrdersOpens(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             Object rawOrders = this.safeValue(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -580,11 +580,11 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderBooks(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBooks(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         });
 
@@ -654,11 +654,11 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object ticker = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> ticker = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
             // {
             //     "last":4192632.0,
@@ -792,13 +792,13 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetExchangeOrdersTransactionsPagination(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetExchangeOrdersTransactionsPagination(this.extend(request, parameters))).join();
             //
             //      {
             //          "success": true,
@@ -850,7 +850,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -858,7 +858,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //      {
             //          "id": "206849494",
@@ -893,7 +893,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetAccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetAccounts(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -915,7 +915,7 @@ public class CoincheckCore extends CoincheckApi
             //
             Object fees = this.safeValue(response, "exchange_fees", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            java.util.List<Object> symbols = this.symbols;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 return result;
@@ -923,7 +923,7 @@ public class CoincheckCore extends CoincheckApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = this.safeValue(fees, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
@@ -965,7 +965,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -991,7 +991,7 @@ public class CoincheckCore extends CoincheckApi
                 Helpers.addElementToObject(request, "rate", price);
                 Helpers.addElementToObject(request, "amount", amount);
             }
-            Object response = (this.privatePostExchangeOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostExchangeOrders(this.extend(request, parameters))).join();
             String id = this.safeString(response, "id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
@@ -1021,7 +1021,7 @@ public class CoincheckCore extends CoincheckApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privateDeleteExchangeOrdersId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteExchangeOrdersId(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1068,7 +1068,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetDepositMoney(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetDepositMoney(this.extend(request, parameters))).join();
             // {
             //   "success": true,
             //   "deposits": [
@@ -1134,7 +1134,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetWithdraws(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdraws(this.extend(request, parameters))).join();
             //  {
             //   "success": true,
             //   "pagination": {
@@ -1272,7 +1272,7 @@ public class CoincheckCore extends CoincheckApi
         } else
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {

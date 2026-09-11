@@ -1198,7 +1198,7 @@ public class BitstampCore extends BitstampApi
             //             "isin": "EZHKD4DNKHY3"
             //         }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object market = Helpers.GetValue(response, i);
@@ -1210,8 +1210,8 @@ public class BitstampCore extends BitstampApi
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object type = null;
-                Object subType = null;
+                String type = null;
+                String subType = null;
                 if (Helpers.isTrue(Helpers.isEqual(marketTypeRaw, "SPOT")))
                 {
                     type = "spot";
@@ -1229,7 +1229,7 @@ public class BitstampCore extends BitstampApi
                         subType = "inverse";
                     }
                 }
-                Object isSpot = (Helpers.isEqual(type, "spot"));
+                Boolean isSpot = (Helpers.isEqual(type, "spot"));
                 Object settle = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(settleId, null)) && Helpers.isTrue(!Helpers.isEqual(settleId, "")))))) ? this.safeCurrencyCode(settleId) : null;
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
@@ -1294,7 +1294,7 @@ public class BitstampCore extends BitstampApi
 
     public Object constructCurrencyObject(Object id, Object code, Object name, Object precision, Object minCost, Object originalPayload)
     {
-        Object currencyType = "crypto";
+        String currencyType = "crypto";
         Object description = this.describe();
         if (Helpers.isTrue(this.isFiat(code)))
         {
@@ -1349,7 +1349,7 @@ public class BitstampCore extends BitstampApi
             Long now = this.milliseconds();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isGreaterThan((Helpers.subtract(now, timestamp)), expires)))))
             {
-                Object response = (this.publicGetMarkets(parameters)).join();
+                java.util.List<Object> response = (this.publicGetMarkets(parameters)).join();
                 //
                 //    [
                 //        {
@@ -1418,8 +1418,8 @@ public class BitstampCore extends BitstampApi
         // in a local dictionary here instead of a temp key inside this.options
         // because the shared scratch key raced between concurrent
         // fetchCurrencies invocations in the multi threaded runtimes
-        Object result = new java.util.HashMap<String, Object>() {{}};
-        Object arr = this.toArray(rawCurrencies);
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        java.util.List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object market = Helpers.GetValue(arr, i);
@@ -1442,7 +1442,7 @@ public class BitstampCore extends BitstampApi
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
             Object parts = Helpers.split(minimumOrder, " ");
-            Object cost = Helpers.GetValue(parts, 0);
+            String cost = (String) Helpers.GetValue(parts, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
             {
                 Long baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1478,11 +1478,11 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderBookPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderBookPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "timestamp": "1583652948",
@@ -1536,7 +1536,7 @@ public class BitstampCore extends BitstampApi
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
-        Object quoteVolume = Precise.stringMul(baseVolume, vwap);
+        String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1581,11 +1581,11 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> ticker = (this.publicGetTickerPair(this.extend(request, parameters))).join();
             //
             // {
             //     "timestamp": "1686068944",
@@ -1626,7 +1626,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTicker(parameters)).join();
+            java.util.List<Object> response = (this.publicGetTicker(parameters)).join();
             //
             // {
             //     "timestamp": "1686068944",
@@ -1907,12 +1907,12 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "time", "hour" );
             }};
-            Object response = (this.publicGetTransactionsPair(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetTransactionsPair(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1977,8 +1977,8 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "step", BitstampCore.this.safeString(BitstampCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -2006,7 +2006,7 @@ public class BitstampCore extends BitstampApi
                 }
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // min 1, max 1000
             }
-            Object response = (this.publicGetOhlcPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOhlcPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -2029,7 +2029,7 @@ public class BitstampCore extends BitstampApi
     public Object parseBalance(Object response)
     {
         Object finalResponse = response; // java req
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", finalResponse );
             put( "timestamp", null );
             put( "datetime", null );
@@ -2073,7 +2073,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostAccountBalances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostAccountBalances(parameters)).join();
             //
             //     [
             //         {
@@ -2109,11 +2109,11 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privatePostFeesTrading(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostFeesTrading(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2128,7 +2128,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            Object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+            java.util.Map<String, Object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
             Object tradingFee = this.safeDict(tradingFeesByMarketId, Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isEqual(tradingFee, null)))
             {
@@ -2156,7 +2156,7 @@ public class BitstampCore extends BitstampApi
 
     public Object parseTradingFees(Object fees)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fees );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
@@ -2189,7 +2189,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostFeesTrading(parameters)).join();
+            java.util.List<Object> response = (this.privatePostFeesTrading(parameters)).join();
             //
             //     [
             //         {
@@ -2231,7 +2231,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostFeesWithdrawal(parameters)).join();
+            java.util.List<Object> response = (this.privatePostFeesWithdrawal(parameters)).join();
             //
             //     [
             //         {
@@ -2250,8 +2250,8 @@ public class BitstampCore extends BitstampApi
     public Object parseTransactionFees(Object response, Object... optionalArgs)
     {
         Object codes = Helpers.getArg(optionalArgs, 0, null);
-        Object result = new java.util.HashMap<String, Object>() {{}};
-        Object currencies = this.indexBy(response, "currency");
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> currencies = this.indexBy(response, "currency");
         Object ids = Helpers.objectKeys(currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
@@ -2294,7 +2294,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostFeesWithdrawal(parameters)).join();
+            java.util.List<Object> response = (this.privatePostFeesWithdrawal(parameters)).join();
             //
             //     [
             //         {
@@ -2305,7 +2305,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            Object responseByCurrencyId = this.groupBy(response, "currency");
+            java.util.Map<String, Object> responseByCurrencyId = this.groupBy(response, "currency");
             return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
         });
 
@@ -2372,8 +2372,8 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
             }};
@@ -2384,7 +2384,7 @@ public class BitstampCore extends BitstampApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             }
             Object response = null;
-            String capitalizedSide = this.capitalize(side);
+            Object capitalizedSide = this.capitalize(side);
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(capitalizedSide, "Buy")))
@@ -2451,8 +2451,8 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
                 put( "price", BitstampCore.this.priceToPrecision(symbol, price) );
             }};
@@ -2465,7 +2465,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "id", id);
             }
-            Object response = (this.privatePostReplaceOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, parameters))).join();
             Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
@@ -2494,10 +2494,10 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "id": 1453282316578816,
@@ -2534,7 +2534,7 @@ public class BitstampCore extends BitstampApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2568,7 +2568,7 @@ public class BitstampCore extends BitstampApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "In Queue", "open" );
             put( "Open", "open" );
             put( "Finished", "closed" );
@@ -2590,7 +2590,7 @@ public class BitstampCore extends BitstampApi
                 (this.loadMarkets()).join();
             }
             Object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2599,7 +2599,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "id", id);
             }
-            Object response = (this.privatePostOrderStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, parameters))).join();
             return this.parseOrderStatus(this.safeString(response, "status"));
         });
 
@@ -2632,7 +2632,7 @@ public class BitstampCore extends BitstampApi
                 market = this.market(symbol);
             }
             Object clientOrderId = this.safeValue2(parameters, "client_order_id", "clientOrderId");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
@@ -2641,7 +2641,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "id", id);
             }
-            Object response = (this.privatePostOrderStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrderStatus(this.extend(request, parameters))).join();
             //
             //      {
             //          "status": "Finished",
@@ -2690,7 +2690,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2709,7 +2709,7 @@ public class BitstampCore extends BitstampApi
             {
                 response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             }
-            Object result = this.filterBy(response, "type", "2");
+            java.util.List<Object> result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
         });
 
@@ -2768,7 +2768,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetFundingRateHistoryPair(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingRateHistoryPair(this.extend(request, parameters))).join();
             //
             //     {
             //         "market": "BTC/USD-PERP",
@@ -2829,12 +2829,12 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2896,7 +2896,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "timedelta", Helpers.subtract(this.milliseconds(), since));
@@ -2904,7 +2904,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "timedelta", 50000000); // use max bitstamp approved value
             }
-            Object response = (this.privatePostWithdrawalRequests(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostWithdrawalRequests(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -2999,12 +2999,12 @@ public class BitstampCore extends BitstampApi
             // withdrawals have a negative amount
             amount = Precise.stringAbs(amount);
         }
-        Object status = "ok";
+        String status = "ok";
         if (Helpers.isTrue(Helpers.inOp(transaction, "status")))
         {
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         }
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "type")))
         {
             // from fetchDepositsWithdrawals
@@ -3034,7 +3034,7 @@ public class BitstampCore extends BitstampApi
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
             put( "rate", null );
@@ -3086,7 +3086,7 @@ public class BitstampCore extends BitstampApi
         //   withdrawals:
         //   0 (open), 1 (in process), 2 (finished), 3 (canceled) or 4 (failed).
         //
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "pending" );
             put( "1", "pending" );
             put( "2", "ok" );
@@ -3205,7 +3205,7 @@ public class BitstampCore extends BitstampApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "0", "transaction" );
             put( "1", "transaction" );
             put( "2", "trade" );
@@ -3344,12 +3344,12 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3379,11 +3379,11 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetFundingRateMarketSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetFundingRateMarketSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "funding_rate": "0.0024",
@@ -3463,7 +3463,7 @@ public class BitstampCore extends BitstampApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privatePostOpenOrdersAll(parameters)).join();
+            java.util.List<Object> response = (this.privatePostOpenOrdersAll(parameters)).join();
             //
             //     [
             //         {
@@ -3568,7 +3568,7 @@ public class BitstampCore extends BitstampApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
             }};
             Object currency = null;
@@ -3630,8 +3630,8 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", BitstampCore.this.parseToNumeric(BitstampCore.this.currencyToPrecision(code, amount)) );
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
             }};
@@ -3672,7 +3672,7 @@ public class BitstampCore extends BitstampApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseTransfer() could not resolve currency")) ;
         }
         final Object finalCurrency = currency;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", null );
             put( "timestamp", null );
@@ -3688,7 +3688,7 @@ public class BitstampCore extends BitstampApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ok", "ok" );
             put( "error", "failed" );
         }};
@@ -3721,10 +3721,10 @@ public class BitstampCore extends BitstampApi
         {
             this.checkRequiredCredentials();
             Object xAuth = Helpers.add("BITSTAMP ", this.apiKey);
-            String xAuthNonce = this.uuid();
+            Object xAuthNonce = this.uuid();
             Object xAuthTimestamp = String.valueOf(this.milliseconds());
-            Object xAuthVersion = "v2";
-            Object contentType = "";
+            String xAuthVersion = "v2";
+            String contentType = "";
             final Object finalXAuth = xAuth;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Auth", finalXAuth );
@@ -3754,7 +3754,7 @@ public class BitstampCore extends BitstampApi
             }
             Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
-            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);
         }
         final Object finalUrl = url;

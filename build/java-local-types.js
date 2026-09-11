@@ -3015,8 +3015,12 @@ export function installJavaLocalTypes (transpiler) {
             }
         }
         narrowed.set (declaration, info.type);
+        // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the
+        // cast to the condition, not to the conditional expression (javac then rejects it)
+        const needsParens = info.cast !== undefined && /^\(.*\)\s*\?/.test (value);
+        const castValue = needsParens ? '(' + value + ')' : value;
         const cast = info.cast === undefined ? '' : info.cast + ' ';
-        return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${cast}${value}`;
+        return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${cast}${castValue}`;
     };
     // `x = this.safeSymbol(...)` etc. on a narrowed local: an Object-declared accessor
     // needs the same cast the declaration got; a call to a retyped signature needs none.

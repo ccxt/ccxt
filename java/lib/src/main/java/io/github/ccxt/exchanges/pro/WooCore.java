@@ -98,13 +98,13 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -116,16 +116,16 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
             Object unsubHash = Helpers.add("unsubscribe::", subHash);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "event", "unsubscribe" );
                 put( "topic", subHash );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "unsubscribe", true );
                 put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
@@ -171,19 +171,19 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
-            Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
+            String urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
                 put( "id", requestId );
             }};
             final Object finalMethod = method;
             final Object finalParameters = parameters;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "name", finalMethod );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -224,7 +224,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "method", "orderbook");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
             Object topic = "orderbook";
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
@@ -258,7 +258,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeDict(message, "data");
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object topic = this.safeString(message, "topic");
         if (Helpers.isTrue(Helpers.isEqual(topic, null)))
@@ -272,7 +272,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 return;
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(orderbook, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
@@ -310,7 +310,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 Long limit = this.safeInteger(subscription, "limit", defaultLimit);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Long timestamp = this.safeInteger(message, "ts");
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -353,7 +353,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                     // if the orderbook is dropped before the snapshot is received
                     return null;
                 }
-                Object orderbook = this.safeValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 Object messages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
@@ -434,11 +434,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
-            Object market = this.market(symbol);
+            String name = "ticker";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -470,7 +470,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "method", "ticker");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
             Object topic = "ticker";
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
@@ -538,7 +538,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object data = this.safeValue(message, "data");
         Object topic = this.safeValue(message, "topic");
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
         Object ticker = this.parseWsTicker(data, market);
@@ -569,9 +569,9 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "tickers";
+            String name = "tickers";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -647,11 +647,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object topic = this.safeValue(message, "topic");
         Object data = this.safeValue(message, "data");
         Long timestamp = this.safeInteger(message, "ts");
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new java.util.HashMap<String, Object>() {{
                 put( "date", timestamp );
             }}), market);
@@ -682,9 +682,9 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "bbos";
+            String name = "bbos";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -750,7 +750,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = this.safeDict(data, i);
@@ -821,11 +821,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object name = "kline";
+            String name = "kline";
             Object topic = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -862,10 +862,10 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object topic = "ohlcv";
-            Object name = "kline";
+            String name = "kline";
             Object subHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe)))));
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
@@ -896,11 +896,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object data = this.safeValue(message, "data");
         Object topic = this.safeValue(message, "topic");
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(data, "type");
         Object timeframe = this.findTimeframe(interval);
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeFloat(data, "open"), this.safeFloat(data, "high"), this.safeFloat(data, "low"), this.safeFloat(data, "close"), this.safeFloat(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -939,10 +939,10 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -976,7 +976,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object topic = "trades";
             Object subHash = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
@@ -1003,7 +1003,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Long timestamp = this.safeInteger(message, "ts");
         Object data = this.safeValue(message, "data");
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = this.parseWsTrade(this.extend(data, new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
@@ -1066,11 +1066,11 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object symbol = Helpers.GetValue(market, "symbol");
         Object price = this.safeString2(trade, "executedPrice", "price");
         Object amount = this.safeString2(trade, "executedQuantity", "size");
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         Object maker = this.safeBool(trade, "maker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
@@ -1130,16 +1130,16 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Client client = this.client(url);
-            Object messageHash = "authenticated";
-            Object eventVar = "auth";
+            String messageHash = (String) "authenticated";
+            String eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Object ts = String.valueOf(this.nonce());
                 Object auth = Helpers.add("|", ts);
-                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Object request = new java.util.HashMap<String, Object>() {{
+                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "apikey", WooCore.this.apiKey );
@@ -1147,7 +1147,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                         put( "timestamp", ts );
                     }} );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -1164,10 +1164,10 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -1182,10 +1182,10 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 
@@ -1218,16 +1218,16 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1269,16 +1269,16 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
-            Object topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
+            String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object messageHash = "myTrades";
+            String messageHash = (String) "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1368,7 +1368,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", WooCore.this.safeString(order, "totalFee") );
             put( "currency", WooCore.this.safeString(order, "feeAsset") );
         }};
@@ -1553,7 +1553,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         }
         Object trade = this.parseWsTrade(message);
         Helpers.callDynamically(myTrades, "append", new Object[]{trade});
-        Object messageHash = Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
+        String messageHash = (String) Helpers.add("myTrades:", Helpers.GetValue(trade, "symbol"));
         client.resolve(myTrades, messageHash);
         messageHash = "myTrades";
         client.resolve(myTrades, messageHash);
@@ -1634,7 +1634,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -1710,16 +1710,16 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(postitionsIds)); i++)
         {
             Object marketId = Helpers.GetValue(postitionsIds, i);
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object rawPosition = Helpers.GetValue(rawPositions, marketId);
             Object position = this.parsePosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            Object messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1743,9 +1743,9 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object topic = "balance";
+            String topic = "balance";
             Object messageHash = topic;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1835,10 +1835,10 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@estfundingrate");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1899,7 +1899,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                Object messageHash = "authenticated";
+                String messageHash = (String) "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -1944,7 +1944,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ping", "handlePing");
             put( "pong", "handlePong");
             put( "subscribe", "handleSubscribe");
@@ -2053,7 +2053,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeValue(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object method = this.safeValue(subscription, "method");
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
@@ -2072,7 +2072,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //         "ts": 1657463158812
         //     }
         //
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         Object success = this.safeValue(message, "success");
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {

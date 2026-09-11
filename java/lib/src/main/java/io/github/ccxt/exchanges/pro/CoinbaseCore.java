@@ -965,7 +965,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            Integer tradesLength = Helpers.getArrayLength(currentTrades);
+            Object tradesLength = Helpers.getArrayLength(currentTrades);
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
             {
                 Object item = Helpers.GetValue(currentTrades, Helpers.subtract(Helpers.subtract(tradesLength, j), 1));
@@ -1221,7 +1221,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object firstEvent = this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
         Boolean isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
         Object subKeys = Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
-        Integer subKeysLength = Helpers.getArrayLength(subKeys);
+        Object subKeysLength = Helpers.getArrayLength(subKeys);
         if (Helpers.isTrue(Helpers.isTrue(isUnsub) && Helpers.isTrue(Helpers.isEqual(subKeysLength, 0))))
         {
             Object unSubObject = this.safeDict(this.options, "unSubscription", new java.util.HashMap<String, Object>() {{}});
