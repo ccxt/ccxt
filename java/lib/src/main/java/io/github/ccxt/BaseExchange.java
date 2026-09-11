@@ -6936,7 +6936,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -8320,7 +8320,7 @@ public Object describe()
                 {
                     Object response = (this.fetchTradingLimits(symbols)).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Object markets = this.markets;
+                    java.util.Map<String, Object> markets = this.markets;
                     if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                     {
                         throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -10300,8 +10300,8 @@ public Object describe()
         }
         if (Helpers.isTrue((code instanceof String)))
         {
-            Object currencies = this.currencies;
-            Object currenciesById = this.currencies_by_id;
+            java.util.Map<String, Object> currencies = this.currencies;
+            java.util.Map<String, Object> currenciesById = this.currencies_by_id;
             if (Helpers.isTrue(Helpers.inOp(currencies, code)))
             {
                 return Helpers.GetValue(currencies, code);
@@ -10319,7 +10319,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " market() requires a symbol argument")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -11369,7 +11369,7 @@ public Object describe()
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         java.util.Map<String, Object> marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(markets, null))) && Helpers.isTrue((Helpers.inOp(markets, account))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, account)))))))
         {

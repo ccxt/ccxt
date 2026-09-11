@@ -2271,7 +2271,7 @@ public class BybitCore extends BybitApi
         } else if (Helpers.isTrue(Helpers.inOp(this.urls, "apiBackupDemoTrading")))
         {
             Helpers.addElementToObject(this.urls, "api", Helpers.GetValue(this.urls, "apiBackupDemoTrading"));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);

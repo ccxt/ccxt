@@ -2655,7 +2655,7 @@ public class TestMain extends BaseTest
         BaseExchange exchange = initExchange(exchangeName, options, isWs);
         if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
         {
-            exchange.currencies = currencies;
+            exchange.currencies = (java.util.Map<String, Object>) currencies;
         }
         // rebuild this.markets from the events' nested markets (event -> markets -> outcomes) so
         // outcome-addressed methods (fetchOrderBook/fetchTrades/createOrder/...) resolve offline

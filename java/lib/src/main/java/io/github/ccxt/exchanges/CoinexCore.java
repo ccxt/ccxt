@@ -1475,7 +1475,7 @@ public class CoinexCore extends CoinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object entry = Helpers.GetValue(markets, i);
-                Object fees = this.fees;
+                java.util.Map<String, Object> fees = this.fees;
                 Object leverages = this.safeList(entry, "leverage", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String subType = this.safeString(entry, "contract_type");
                 Boolean linear = (Helpers.isEqual(subType, "linear"));

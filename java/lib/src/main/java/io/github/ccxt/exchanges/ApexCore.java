@@ -1495,7 +1495,7 @@ public class ApexCore extends ApexApi
         Object marketType = Helpers.getArg(optionalArgs, 3, null);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(marketId, null))))
         {
-            Object marketsMap = this.markets;
+            java.util.Map<String, Object> marketsMap = this.markets;
             java.util.Map<String, Object> marketsById = this.markets_by_id;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsMap, null))) && Helpers.isTrue((Helpers.inOp(marketsMap, marketId)))))
             {

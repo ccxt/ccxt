@@ -1565,7 +1565,7 @@ public class BitbnsCore extends BitbnsApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object urls = this.urls;
+        java.util.Map<String, Object> urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;

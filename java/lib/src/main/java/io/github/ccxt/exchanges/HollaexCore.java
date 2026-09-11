@@ -1169,7 +1169,7 @@ public class HollaexCore extends HollaexApi
             put( "timestamp", timestamp );
             put( "datetime", HollaexCore.this.iso8601(timestamp) );
         }};
-        Object currenciesById = this.currencies_by_id;
+        java.util.Map<String, Object> currenciesById = this.currencies_by_id;
         if (Helpers.isTrue(Helpers.isEqual(currenciesById, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;

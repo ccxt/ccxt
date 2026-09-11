@@ -1811,7 +1811,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         String quoteId = this.safeString(market, "quote_asset_name");
         String typeId = this.safeString(market, "type"); // 'SPOT', 'PERP'
         Boolean isSpot = (Helpers.isEqual(typeId, "SPOT"));
-        Object fees = this.fees;
+        java.util.Map<String, Object> fees = this.fees;
         Object symbol = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         Object settleId = null;
         if (!Helpers.isTrue(isSpot))
