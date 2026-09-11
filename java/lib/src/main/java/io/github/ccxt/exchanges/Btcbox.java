@@ -383,6 +383,18 @@ public class Btcbox extends BtcboxCore {
     }
 
     @SuppressWarnings("unchecked")
+    public DepositAddresses fetchDepositAddressesByNetwork(String code, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchDepositAddressesByNetwork(code, params));
+        return new DepositAddresses(res);
+    }
+    public DepositAddresses fetchDepositAddressesByNetwork(String code) { return fetchDepositAddressesByNetwork(code, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<DepositAddresses> fetchDepositAddressesByNetworkAsync(String code, Map<String, Object> params) {
+        return super.fetchDepositAddressesByNetwork(code, params).thenApply(DepositAddresses::new);
+    }
+    public CompletableFuture<DepositAddresses> fetchDepositAddressesByNetworkAsync(String code) { return fetchDepositAddressesByNetworkAsync(code, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOpenInterestHistory(symbol, timeframe, since, limit, params));
         return toTypedList(res, OpenInterest::new);
@@ -953,6 +965,18 @@ public class Btcbox extends BtcboxCore {
         return super.fetchGreeks(symbol, params).thenApply(Greeks::new);
     }
     public CompletableFuture<Greeks> fetchGreeksAsync(String symbol) { return fetchGreeksAsync(symbol, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
+    public AllGreeks fetchAllGreeks(List<String> symbols, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchAllGreeks(symbols, params));
+        return new AllGreeks(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync(List<String> symbols, Map<String, Object> params) {
+        return super.fetchAllGreeks(symbols, params).thenApply(AllGreeks::new);
+    }
+    public AllGreeks fetchAllGreeks(String[] symbols, Map<String, Object> params) { return fetchAllGreeks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync(String[] symbols, Map<String, Object> params) { return fetchAllGreeksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
