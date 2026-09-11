@@ -53,6 +53,10 @@ MARKER = 'METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT'
 
 HEADER_STD = re.compile(r'^(\s*)public java\.util\.concurrent\.CompletableFuture<Object> (\w+)\((.*)\)\s*$')
 HEADER_TYPED = re.compile(r'^\s*public java\.util\.concurrent\.CompletableFuture<([^>]+(?:<[^>]*>)?)> (\w+)\((.*)\)\s*$')
+# Candidate universe read: any `CompletableFuture<...> name(` declaration in
+# Exchange.java. This must work on BOTH the untyped and the retyped tree (the
+# derivation is a fixed point), so it accepts the concrete shapes too.
+HEADER_CANDIDATE = re.compile(r'^\s*public java\.util\.concurrent\.CompletableFuture<[^>]+(?:<[^>]*>)?> (\w+)\(')
 TAIL = re.compile(r'^\s*\}\)(?:\.thenApply\(io\.github\.ccxt\.TypedCores::to\w+\))?;\s*$')
 
 FQ = r'(?:io\.github\.ccxt\.types\.)?'
@@ -83,12 +87,17 @@ def wrapper_files():
 
 
 def candidates():
-    """(ordered) names of the CompletableFuture<Object> declarations in Exchange.java."""
+    """(ordered) names of the CompletableFuture<...> method declarations in Exchange.java.
+
+    Accepts both the pre-retype (`<Object>`) and post-retype (`<concrete>`) spellings so
+    the derivation is stable across pipeline runs. The one-line `*Async` aliases are
+    retyped in lockstep with their target and are not candidates themselves.
+    """
     out = []
     for line in open(os.path.join(ROOT, 'Exchange.java')):
-        m = HEADER_STD.match(line)
-        if m and not m.group(2).endswith('Async'):
-            out.append(m.group(2))
+        m = HEADER_CANDIDATE.match(line)
+        if m and not m.group(1).endswith('Async'):
+            out.append(m.group(1))
     return out
 
 
@@ -161,8 +170,10 @@ def hand_written_consumers(names):
         for n in names:
             for m in re.finditer(r'(?<![\w.])' + re.escape(n) + r'\s*\(', hand):
                 ls = hand.rfind('\n', 0, m.start()) + 1
-                line = hand[ls:hand.find('\n', m.start())]
-                if line.strip().startswith('public java.util.concurrent.CompletableFuture<Object> ' + n + 'Async'):
+                line = hand[ls:hand.find('\n', m.start())].strip()
+                # the one-line `*Async` forwarders are retyped in lockstep with their
+                # target (both spellings, pre- and post-retype)
+                if line.startswith('public java.util.concurrent.CompletableFuture<') and (' ' + n + 'Async(') in line:
                     continue
                 hits.add(n)
     return hits

@@ -607,10 +607,41 @@ public class BaseTest {
             // future whose executor is not the common pool, so joining it
             // never steals anything.
             CompletableFuture<Object> inner = (CompletableFuture<Object>) result;
-            return CompletableFuture.supplyAsync(() -> inner.join(), isolatedJoinPool);
+            return CompletableFuture.supplyAsync(() -> detypeForComparison(inner.join()), isolatedJoinPool);
         }
 
-        return CompletableFuture.completedFuture(result);
+        return CompletableFuture.completedFuture(detypeForComparison(result));
+    }
+
+    /**
+     * Exact inverse of the typed-core projection, for the reflective test path.
+     *
+     * <p>Typed cores hand back unified type objects (Ticker, Order, ...). The static
+     * request/response harness compares against JSON fixtures recorded from the raw
+     * representation and reaches into results with string keys, so detype here — via
+     * the payload the type retains in its public {@code __raw} field — and the
+     * comparator sees the same map the exchange actually produced. A field-set rebuild
+     * would drop venue extras and invent nulls; this is a field read. Types without the
+     * field (ws caches, order books) pass through untouched.
+     */
+    public static Object detypeForComparison(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object element : list) {
+                out.add(detypeForComparison(element));
+            }
+            return out;
+        }
+        try {
+            Field raw = value.getClass().getField("__raw");
+            Object unwrapped = raw.get(value);
+            return (unwrapped != null) ? unwrapped : value;
+        } catch (NoSuchFieldException | IllegalAccessException notTyped) {
+            return value;
+        }
     }
 
     // plain (non-ForkJoin) threads used to await exchange futures — see
