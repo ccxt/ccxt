@@ -355,7 +355,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object limit = this.safeInteger(message, "depth");
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object channel = this.safeString(message, "channel");
         Long nonce = (Long) this.safeInteger2(data, "u", "s");
         Object books = data;
@@ -692,7 +692,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", messageHashes );
@@ -702,7 +702,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -874,7 +874,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", topics );
@@ -884,7 +884,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object newTickers = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
                 return tickers;
             }
@@ -1164,7 +1164,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList("user.position_balance")) );
@@ -1586,7 +1586,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
@@ -1607,7 +1607,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", topics );
@@ -1629,7 +1629,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object subExtend = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", topics );
@@ -1637,7 +1637,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 put( "nonce", id );
                 put( "id", String.valueOf(id) );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(id) );
                 put( "topic", topic );
                 put( "symbols", symbols );
@@ -1658,7 +1658,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", nonce );
                 put( "nonce", nonce );
             }};
@@ -1677,7 +1677,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
@@ -1736,7 +1736,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleSubscribe(Client client, Object message)
     {
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "candlestick", "handleOHLCV");
             put( "ticker", "handleTicker");
             put( "trade", "handleTrades");
@@ -1806,7 +1806,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             return;
         }
         Object method = this.safeString(message, "method");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "", "handlePing");
             put( "public/heartbeat", "handlePing");
             put( "public/auth", "handleAuthenticate");
@@ -1844,7 +1844,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "id", nonce );
                     put( "nonce", nonce );
                     put( "method", finalMethod );

@@ -1251,7 +1251,7 @@ public class CoinexCore extends CoinexApi
         String currencyId = this.safeString(asset, "ccy");
         Object chains = this.safeList(coin, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -1263,7 +1263,7 @@ public class CoinexCore extends CoinexApi
             }
             final Object finalNetworkId = networkId;
             final Object finalNetworkCode = networkCode;
-            Object network = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> network = new java.util.HashMap<String, Object>() {{
                 put( "id", finalNetworkId );
                 put( "network", finalNetworkCode );
                 put( "name", null );
@@ -1640,7 +1640,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -1855,7 +1855,7 @@ public class CoinexCore extends CoinexApi
                 limit = 20; // default
             }
             final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "limit", finalLimit );
                 put( "interval", "0" );
@@ -1982,7 +1982,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2040,7 +2040,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -2090,7 +2090,7 @@ public class CoinexCore extends CoinexApi
                 response = (this.v2PublicGetSpotMarket(parameters)).join();
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2164,7 +2164,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "period", CoinexCore.this.safeString(CoinexCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -2248,7 +2248,7 @@ public class CoinexCore extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2301,7 +2301,7 @@ public class CoinexCore extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2350,7 +2350,7 @@ public class CoinexCore extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2396,7 +2396,7 @@ public class CoinexCore extends CoinexApi
             //         "message": "OK"
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2464,7 +2464,7 @@ public class CoinexCore extends CoinexApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "rejected", "rejected" );
             put( "open", "open" );
             put( "not_deal", "open" );
@@ -2818,7 +2818,7 @@ public class CoinexCore extends CoinexApi
                 throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap markets only")) ;
             }
         }
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
@@ -3079,7 +3079,7 @@ public class CoinexCore extends CoinexApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orders", ordersRequests );
             }};
@@ -3177,7 +3177,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -3264,7 +3264,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -3372,7 +3372,7 @@ public class CoinexCore extends CoinexApi
                     market_type = "MARGIN";
                 }
                 final Object finalMarket_type = market_type;
-                Object orderRequest = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> orderRequest = new java.util.HashMap<String, Object>() {{
                     put( "order_id", CoinexCore.this.parseToNumeric(id) );
                     put( "market", Helpers.GetValue(market, "id") );
                     put( "market_type", finalMarket_type );
@@ -3390,7 +3390,7 @@ public class CoinexCore extends CoinexApi
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             String firstSymbol = this.safeString(orderSymbols, 0);
             java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(firstSymbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
             Object response = null;
@@ -3461,7 +3461,7 @@ public class CoinexCore extends CoinexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTriggerOrder = this.safeBool2(parameters, "stop", "trigger");
             Object swap = Helpers.GetValue(market, "swap");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object marginMode = null;
@@ -3571,7 +3571,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -3629,7 +3629,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "order_id", CoinexCore.this.parseToNumeric(id) );
             }};
@@ -3677,7 +3677,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -3851,7 +3851,7 @@ public class CoinexCore extends CoinexApi
             }
             parameters = this.omit(parameters, "network");
             final Object finalNetwork = network;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "chain", CoinexCore.this.networkCodeToId(finalNetwork, Helpers.GetValue(currency, "code")) );
             }};
@@ -3893,7 +3893,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
             Object networkCode = null;
@@ -4054,7 +4054,7 @@ public class CoinexCore extends CoinexApi
             defaultMethod = ((java.util.List<Object>) defaultMethodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) defaultMethodparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
             }};
             Object market = null;
@@ -4158,7 +4158,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market_type", "FUTURES" );
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -4333,7 +4333,7 @@ public class CoinexCore extends CoinexApi
             }
             final Object finalMarginMode = marginMode;
             final Object finalLeverage = leverage;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "market_type", "FUTURES" );
                 put( "margin_mode", finalMarginMode );
@@ -4387,7 +4387,7 @@ public class CoinexCore extends CoinexApi
             }
             final Object finalMarginMode = marginMode;
             final Object finalLeverage = leverage;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "market_type", "FUTURES" );
                 put( "margin_mode", finalMarginMode );
@@ -4418,7 +4418,7 @@ public class CoinexCore extends CoinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIds = this.marketIds(symbols);
@@ -4505,7 +4505,7 @@ final Object finalI = i;
                 requestAmount = Precise.stringNeg(rawAmount);
             }
             final Object finalRequestAmount = requestAmount;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "market_type", "FUTURES" );
                 put( "amount", finalRequestAmount );
@@ -4790,7 +4790,7 @@ final Object finalI = i;
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.v2PublicGetFuturesFundingRate(this.extend(request, parameters))).join();
@@ -4886,7 +4886,7 @@ final Object finalI = i;
 
     public String parseFundingInterval(Object interval)
     {
-        Object intervals = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> intervals = new java.util.HashMap<String, Object>() {{
             put( "3600000", "1h" );
             put( "14400000", "4h" );
             put( "28800000", "8h" );
@@ -4917,7 +4917,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -4984,7 +4984,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "to_address", address );
                 put( "amount", CoinexCore.this.currencyToPrecision(code, amount) );
@@ -5036,7 +5036,7 @@ final Object finalI = i;
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "audit", "pending" );
             put( "pass", "pending" );
             put( "audit_required", "pending" );
@@ -5235,7 +5235,7 @@ final Object finalI = i;
         }
         String feeCurrencyId = this.safeString2(transaction, "fee_asset", "fee_ccy"); // https://github.com/ccxt/ccxt/issues/25153
         final Object finalFeeCost = feeCost;
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", CoinexCore.this.parseNumber(finalFeeCost) );
             put( "currency", CoinexCore.this.safeCurrencyCode(feeCurrencyId) );
         }};
@@ -5298,7 +5298,7 @@ final Object finalI = i;
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "amount", amountToPrecision );
                 put( "from_account_type", fromId );
@@ -5339,7 +5339,7 @@ final Object finalI = i;
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "ok" );
             put( "SUCCESS", "ok" );
             put( "OK", "ok" );
@@ -5475,7 +5475,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -5549,7 +5549,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -5666,7 +5666,7 @@ final Object finalI = i;
             parameters = this.omit(parameters, "code");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
@@ -5717,7 +5717,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -5820,7 +5820,7 @@ final Object finalI = i;
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object isAutoRenew = this.safeBool2(parameters, "isAutoRenew", "is_auto_renew", false);
             parameters = this.omit(parameters, "isAutoRenew");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "borrow_amount", CoinexCore.this.currencyToPrecision(code, amount) );
@@ -5877,7 +5877,7 @@ final Object finalI = i;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
                 put( "amount", CoinexCore.this.currencyToPrecision(code, amount) );
@@ -5949,7 +5949,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.v2PublicGetAssetsDepositWithdrawConfig(this.extend(request, parameters))).join();
@@ -6049,7 +6049,7 @@ final Object finalI = i;
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object item = Helpers.GetValue(data, i);
@@ -6105,7 +6105,7 @@ final Object finalI = i;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "fee", null );
@@ -6180,7 +6180,7 @@ final Object finalI = i;
             parameters = this.omit(parameters, "code");
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
@@ -6347,7 +6347,7 @@ final Object finalI = i;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String type = this.safeString(parameters, "type", "market");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "market_type", "FUTURES" );
                 put( "type", type );

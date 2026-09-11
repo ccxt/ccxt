@@ -880,7 +880,7 @@ public class BitrueCore extends BitrueApi
         String name = this.safeString(rawCurrency, "coinFulName");
         String code = (String) this.safeCurrencyCode(id);
         Object networkDetails = this.safeList(rawCurrency, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkDetails)); j++)
         {
             Object entry = Helpers.GetValue(networkDetails, j);
@@ -1230,7 +1230,7 @@ public class BitrueCore extends BitrueApi
         //         ]
         //     }
         //
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object timestamp = this.safeInteger(response, "updateTime");
@@ -1330,10 +1330,10 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1353,7 +1353,7 @@ public class BitrueCore extends BitrueApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1502,7 +1502,7 @@ public class BitrueCore extends BitrueApi
             Object data = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
@@ -1515,7 +1515,7 @@ public class BitrueCore extends BitrueApi
                 data = response;
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 response = (this.spotV1PublicGetTicker24hr(this.extend(request, parameters))).join();
@@ -1601,7 +1601,7 @@ public class BitrueCore extends BitrueApi
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object timeframesFuture = this.safeDict(timeframes, "future", new java.util.HashMap<String, Object>() {{}});
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
                     put( "interval", BitrueCore.this.safeString(timeframesFuture, timeframe, "1min") );
                 }};
@@ -1620,7 +1620,7 @@ public class BitrueCore extends BitrueApi
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object timeframesSpot = this.safeDict(timeframes, "spot", new java.util.HashMap<String, Object>() {{}});
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                     put( "scale", BitrueCore.this.safeString(timeframesSpot, timeframe, "1m") );
                 }};
@@ -1740,7 +1740,7 @@ public class BitrueCore extends BitrueApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
@@ -1752,7 +1752,7 @@ public class BitrueCore extends BitrueApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 response = (this.spotV1PublicGetTickerBookTicker(this.extend(request, parameters))).join();
@@ -1784,7 +1784,7 @@ public class BitrueCore extends BitrueApi
             //         "time": 1699348013000
             //     }
             //
-            Object data = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> data = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(data, ((String)Helpers.GetValue(market, "id")), response);
             return this.parseTickers(data, symbols);
         });
@@ -1816,7 +1816,7 @@ public class BitrueCore extends BitrueApi
             symbols = this.marketSymbols(symbols);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -1886,7 +1886,7 @@ public class BitrueCore extends BitrueApi
             // the exchange returns market ids with an underscore from the tickers endpoint
             // the market ids do not have an underscore, so it has to be removed
             // https://github.com/ccxt/ccxt/issues/13856
-            Object tickers = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object ticker = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -2035,7 +2035,7 @@ public class BitrueCore extends BitrueApi
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2068,7 +2068,7 @@ public class BitrueCore extends BitrueApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "INIT", "open" );
             put( "PENDING_CREATE", "open" );
             put( "NEW", "open" );
@@ -2286,7 +2286,7 @@ public class BitrueCore extends BitrueApi
             Object uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "side", ((String)((String)finalSide)).toUpperCase() );
                 put( "type", finalUppercaseType );
             }};
@@ -2437,7 +2437,7 @@ public class BitrueCore extends BitrueApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(origClientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -2553,7 +2553,7 @@ public class BitrueCore extends BitrueApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders only support spot markets")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2624,7 +2624,7 @@ public class BitrueCore extends BitrueApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Helpers.addElementToObject(request, "contractName", Helpers.GetValue(market, "id"));
@@ -2728,7 +2728,7 @@ public class BitrueCore extends BitrueApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
             Object response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(origClientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "orderId", id);
@@ -2814,7 +2814,7 @@ public class BitrueCore extends BitrueApi
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "contractName", Helpers.GetValue(market, "id") );
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
@@ -2875,7 +2875,7 @@ public class BitrueCore extends BitrueApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "startTime", since);
@@ -2987,7 +2987,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "status", 1 );
             }};
@@ -3071,7 +3071,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "status", 5 );
             }};
@@ -3116,7 +3116,7 @@ public class BitrueCore extends BitrueApi
     public Object parseTransactionStatusByType(Object status, Object... optionalArgs)
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
-        Object statusesByType = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statusesByType = new java.util.HashMap<String, Object>() {{
             put( "deposit", new java.util.HashMap<String, Object>() {{
                 put( "0", "pending" );
                 put( "1", "ok" );
@@ -3304,7 +3304,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "addressTo", address );
@@ -3356,7 +3356,7 @@ public class BitrueCore extends BitrueApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chainDetails = this.safeList(fee, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainDetailLength = Helpers.getArrayLength(chainDetails);
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "fee", null );
@@ -3497,7 +3497,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             String type = this.safeString2(parameters, "type", "transferType");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transferType", type );
             }};
             Object currency = null;
@@ -3572,7 +3572,7 @@ public class BitrueCore extends BitrueApi
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             final Object finalFromId = fromId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coinSymbol", Helpers.GetValue(currency, "id") );
                 put( "amount", BitrueCore.this.currencyToPrecision(code, amount) );
                 put( "transferType", Helpers.add(Helpers.add(finalFromId, "_to_"), toId) );
@@ -3622,9 +3622,9 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             final Object finalLeverage = leverage;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractName", Helpers.GetValue(market, "id") );
                 put( "leverage", finalLeverage );
             }};
@@ -3697,7 +3697,7 @@ public class BitrueCore extends BitrueApi
                 throw new NotSupported((String)Helpers.add(this.id, " setMargin only support swap markets")) ;
             }
             Object response = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractName", Helpers.GetValue(market, "id") );
                 put( "amount", BitrueCore.this.parseToNumeric(amount) );
             }};

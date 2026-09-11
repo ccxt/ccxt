@@ -498,7 +498,7 @@ public class IndodaxCore extends IndodaxApi
         Object free = this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(balances, "server_time");
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", IndodaxCore.this.iso8601(timestamp) );
@@ -595,7 +595,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
@@ -668,7 +668,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetApiTickerPair(this.extend(request, parameters))).join();
@@ -731,7 +731,7 @@ public class IndodaxCore extends IndodaxApi
             java.util.Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Object tickers = this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(tickers);
-            Object parsedTickers = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> parsedTickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -791,7 +791,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
@@ -846,7 +846,7 @@ public class IndodaxCore extends IndodaxApi
             Object now = this.seconds();
             Object until = this.safeInteger(parameters, "until", now);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "to", until );
                 put( "tf", selectedTimeframe );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -883,7 +883,7 @@ public class IndodaxCore extends IndodaxApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
             put( "filled", "closed" );
             put( "cancelled", "canceled" );
@@ -1029,7 +1029,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
             }};
@@ -1069,7 +1069,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1133,7 +1133,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
@@ -1174,7 +1174,7 @@ public class IndodaxCore extends IndodaxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             final Object finalPrice = price;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "type", finalSide );
                 put( "price", finalPrice );
@@ -1271,7 +1271,7 @@ public class IndodaxCore extends IndodaxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "type", finalSide );
@@ -1322,7 +1322,7 @@ public class IndodaxCore extends IndodaxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
@@ -1364,7 +1364,7 @@ public class IndodaxCore extends IndodaxApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostWithdrawFee(this.extend(request, parameters))).join();
@@ -1413,7 +1413,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Object startTime = this.yyyymmdd(since);
@@ -1544,7 +1544,7 @@ public class IndodaxCore extends IndodaxApi
             Object requestId = this.milliseconds();
             // Alternatively:
             // let requestId = this.uuid ();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "withdraw_amount", amount );
                 put( "withdraw_address", address );
@@ -1661,7 +1661,7 @@ public class IndodaxCore extends IndodaxApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
         }};
         return this.safeString(statuses, ((String)status), status);
@@ -1727,7 +1727,7 @@ public class IndodaxCore extends IndodaxApi
             Object addresses = this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
             Object networks = this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
             Object addressKeys = Helpers.objectKeys(addresses);
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", data );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addressKeys)); i++)

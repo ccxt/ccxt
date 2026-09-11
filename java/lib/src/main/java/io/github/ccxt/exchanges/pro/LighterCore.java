@@ -96,10 +96,10 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
                 put( "params", parameters );
             }};
@@ -115,10 +115,10 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHashes", messageHashes );
                 put( "params", parameters );
             }};
@@ -134,10 +134,10 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
                 put( "params", parameters );
             }};
@@ -261,7 +261,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("orderbook", symbol);
@@ -291,7 +291,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
@@ -399,7 +399,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("ticker", symbol);
@@ -428,7 +428,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
@@ -459,7 +459,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );
             }};
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -482,7 +482,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object newTicker = (this.subscribePublicMultiple(messageHashes, this.extend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -511,7 +511,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );
             }};
             Object messageHash = this.getMessageHash("unsubscribe");
@@ -748,7 +748,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("trade", Helpers.GetValue(market, "symbol"));
@@ -778,7 +778,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("unsubscribe", symbol);
@@ -997,7 +997,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 messageHash = this.getMessageHash("myTrades", symbol);
             }
             final Object finalAccountIndex = accountIndex;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("account_all_trades/", LighterCore.this.numberToString(finalAccountIndex)) );
             }};
             Object trades = (this.subscribePublic(messageHash, this.extend(request, parameters))).join();
@@ -1039,7 +1039,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 messageHash = this.getMessageHash("unsubscribe", symbol);
             }
             final Object finalAccountIndex = accountIndex;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("account_all_trades/", finalAccountIndex) );
             }};
             return (this.unsubscribe(messageHash, this.extend(request, parameters))).join();
@@ -1191,7 +1191,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
             Object messageHash = this.getMessageHash("liquidations", symbol);
@@ -1229,7 +1229,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("balances", null, type);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Helpers.addElementToObject(request, "channel", Helpers.add("account_all_assets/", this.numberToString(accountIndex)));
@@ -1370,7 +1370,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1416,7 +1416,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1478,7 +1478,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             var order = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(2);
             var market = ((java.util.List<Object>) txTypetxInfoordermarketVariable).get(3);
             Object parsedTx = this.parseJson(txInfo);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "type", "jsonapi/sendtx" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "id", requestId );
@@ -1486,7 +1486,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                     put( "tx_info", parsedTx );
                 }} );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
@@ -1522,7 +1522,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             var txInfo = ((java.util.List<Object>) txTypetxInfomarketVariable).get(1);
             var market = ((java.util.List<Object>) txTypetxInfomarketVariable).get(2);
             Object parsedTx = this.parseJson(txInfo);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "type", "jsonapi/sendtx" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "id", requestId );
@@ -1530,7 +1530,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                     put( "tx_info", parsedTx );
                 }} );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
@@ -1564,7 +1564,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             var txType = ((java.util.List<Object>) txTypetxInfoVariable).get(0);
             var txInfo = ((java.util.List<Object>) txTypetxInfoVariable).get(1);
             Object parsedTx = this.parseJson(txInfo);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "type", "jsonapi/sendtx" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "id", requestId );
@@ -1572,7 +1572,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                     put( "tx_info", parsedTx );
                 }} );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object rawMessage = (this.watch(url, messageHash, message, messageHash, subscription)).join();
@@ -1813,7 +1813,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "pong" );
             }};
             (client.send(request)).join();

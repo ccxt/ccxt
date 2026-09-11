@@ -114,7 +114,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 Object timestampString = this.numberToString(timestamp);
                 Object timestampEncoded = ((Helpers.isTrue((Helpers.isEqual(timestampString, null))))) ? "" : timestampString;
                 Object signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "method", "login" );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "type", "HS256" );
@@ -163,7 +163,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 ((java.util.List<Object>)messageHashes).add(messageHashPrefix);
             }
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "id", HitbtcCore.this.nonce() );
                 put( "ch", name );
@@ -200,7 +200,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 messageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
             }
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
                 put( "id", HitbtcCore.this.nonce() );
@@ -229,7 +229,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object messageHash = String.valueOf(this.nonce());
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
                 put( "id", messageHash );
@@ -276,7 +276,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 name = Helpers.add(Helpers.add(Helpers.add(Helpers.add("orderbook/D", depth), "/"), speed), "ms/batch");
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
                 }} );
@@ -329,7 +329,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 Object limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Object timestamp = this.safeInteger(item, "t");
             Object nonce = this.safeInteger(item, "s");
             if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
@@ -438,7 +438,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                     }
                 }
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "symbols", marketIds );
                 }} );
@@ -448,7 +448,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 if (!Helpers.isTrue(Helpers.isArray(newTickers)))
                 {
-                    Object tickers = new java.util.HashMap<String, Object>() {{}};
+                    java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                     Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
                     return tickers;
                 }
@@ -606,7 +606,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }});
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "speed")));
             Object marketIds = this.marketIds(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "symbols", marketIds );
                 }} );
@@ -616,7 +616,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 if (!Helpers.isTrue(Helpers.isArray(newTickers)))
                 {
-                    Object tickers = new java.util.HashMap<String, Object>() {{}};
+                    java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                     Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
                     return tickers;
                 }
@@ -701,7 +701,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
                 }} );
@@ -859,7 +859,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object period = this.safeString(this.timeframes, timeframe, timeframe);
             Object name = Helpers.add("candles/", period);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
                 }} );
@@ -1279,7 +1279,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }});
             Object mode = this.safeString(parameters, "mode", "batches");
             parameters = this.omit(parameters, "mode");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "mode", mode );
             }};
             return (this.subscribePrivate(name, null, this.extend(request, parameters))).join();
@@ -1607,7 +1607,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                     channel = "orderbook/top";
                 }
             }
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "candles", "handleOHLCV");
                 put( "ticker", "handleTicker");
                 put( "trades", "handleTrades");

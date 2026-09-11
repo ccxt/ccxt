@@ -2104,7 +2104,7 @@ public class KucoinCore extends KucoinApi
                 String defaultType = this.safeString(this.options, "defaultType", "spot");
                 Object defaultTradeType = ((Helpers.isTrue((Helpers.isEqual(defaultType, "spot"))))) ? "SPOT" : "FUTURES";
                 Object tradeType = this.safeStringUpper(parameters, "tradeType", defaultTradeType);
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tradeType", tradeType );
                 }};
                 response = (this.utaGetServerStatus(this.extend(request, parameters))).join();
@@ -2878,7 +2878,7 @@ public class KucoinCore extends KucoinApi
         Object entry = currency;
         String id = this.safeString(entry, "currency");
         String code = (String) this.safeCurrencyCode(id);
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList2(entry, "chains", "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
@@ -3044,7 +3044,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object networkCode = null;
@@ -3061,7 +3061,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> response = (this.privateGetWithdrawalsQuotas(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object withdrawFees = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(withdrawFees, code, this.safeNumber(data, "withdrawMinFee"));
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -3093,7 +3093,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object networkCode = null;
@@ -3154,7 +3154,7 @@ public class KucoinCore extends KucoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.inOp(fee, "chains")))
         {
-            Object resultNew = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> resultNew = new java.util.HashMap<String, Object>() {{
                 put( "info", fee );
                 put( "withdraw", new java.util.HashMap<String, Object>() {{
                     put( "fee", null );
@@ -3189,7 +3189,7 @@ public class KucoinCore extends KucoinApi
             return resultNew;
         }
         Object minWithdrawFee = this.safeNumber(fee, "withdrawMinFee");
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "fee", minWithdrawFee );
@@ -3511,7 +3511,7 @@ public class KucoinCore extends KucoinApi
 
     public String typeToTradeType(Object type)
     {
-        Object tradeTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> tradeTypes = new java.util.HashMap<String, Object>() {{
             put( "spot", "SPOT" );
             put( "margin", "MARGIN" );
             put( "swap", "FUTURES" );
@@ -3548,7 +3548,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             symbols = this.marketSymbols(symbols, null, true, true);
             Object uta = false;
             var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "uta", uta);
@@ -3586,7 +3586,7 @@ public class KucoinCore extends KucoinApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object tickers = this.safeList2(data, "ticker", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Long time = (Long) this.safeInteger2(data, "time", "ts");
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(tickers, i), "time", time);
@@ -3741,7 +3741,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object uta = false;
@@ -3867,7 +3867,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -4001,7 +4001,7 @@ public class KucoinCore extends KucoinApi
                 return (this.fetchPaginatedCallDeterministic("fetchUTAOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -4041,7 +4041,7 @@ public class KucoinCore extends KucoinApi
             parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(priceType, null)))
             {
-                Object priceTypes = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> priceTypes = new java.util.HashMap<String, Object>() {{
                     put( "mark", "mark-price" );
                     put( "index", "index-price" );
                     put( "premiumIndex", "premium-index" );
@@ -4111,7 +4111,7 @@ public class KucoinCore extends KucoinApi
                 return (this.fetchPaginatedCallDeterministic("fetchSpotOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -4187,7 +4187,7 @@ public class KucoinCore extends KucoinApi
                 return (this.fetchPaginatedCallDeterministic("fetchContractOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object timeframeOptions = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -4256,7 +4256,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object networkCode = null;
@@ -4332,7 +4332,7 @@ public class KucoinCore extends KucoinApi
                 }}))).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object networkCode = null;
@@ -4385,7 +4385,7 @@ public class KucoinCore extends KucoinApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object currencyId = Helpers.GetValue(currency, "id");
             final Object finalCurrencyId = currencyId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", finalCurrencyId );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivateGetDepositAddress(this.extend(request, parameters))).join();
@@ -4469,7 +4469,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object uta = (this.isUTAEnabled()).join();
@@ -4568,7 +4568,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object level = this.safeInteger(parameters, "level", 2);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object isAuthenticated = this.checkRequiredCredentials(false);
@@ -4939,7 +4939,7 @@ public class KucoinCore extends KucoinApi
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOid", "clientOrderId")));
         final Object finalSide = side;
         final Object finalType = type;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "clientOid", clientOrderId );
             put( "side", finalSide );
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -5131,7 +5131,7 @@ public class KucoinCore extends KucoinApi
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOid", "clientOrderId")));
         final Object finalSide = side;
         final Object finalType = type;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "clientOid", clientOrderId );
             put( "side", finalSide );
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -5174,7 +5174,7 @@ public class KucoinCore extends KucoinApi
         Object hasStopLoss = !Helpers.isEqual(stopLoss, null);
         Object hasTakeProfit = !Helpers.isEqual(takeProfit, null);
         // const isTpAndSl = stopLossPrice && takeProfitPrice;
-        Object triggerPriceTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> triggerPriceTypes = new java.util.HashMap<String, Object>() {{
             put( "mark", "MP" );
             put( "last", "TP" );
             put( "index", "IP" );
@@ -5380,7 +5380,7 @@ public class KucoinCore extends KucoinApi
         final Object finalTradeType = tradeType;
         final Object finalSide = side;
         final Object finalType = type;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "accountMode", finalAccountMode );
             put( "tradeType", finalTradeType );
             put( "clientOid", clientOrderId );
@@ -5477,7 +5477,7 @@ public class KucoinCore extends KucoinApi
         Object takeProfit = this.safeDict(parameters, "takeProfit");
         Object hasStopLoss = !Helpers.isEqual(stopLoss, null);
         Object hasTakeProfit = !Helpers.isEqual(takeProfit, null);
-        Object triggerPriceTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> triggerPriceTypes = new java.util.HashMap<String, Object>() {{
             put( "mark", "MP" );
             put( "last", "TP" );
             put( "index", "IP" );
@@ -5559,7 +5559,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object req = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder(symbol, "market", side, cost, null, this.extend(req, parameters))).join();
@@ -5736,7 +5736,7 @@ public class KucoinCore extends KucoinApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrders() requires at least one order with a symbol")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderList", ordersRequests );
             }};
@@ -5888,7 +5888,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
@@ -6021,7 +6021,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object hf = null;
@@ -6175,7 +6175,7 @@ public class KucoinCore extends KucoinApi
             }
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -6238,7 +6238,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -6375,7 +6375,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object trigger = this.safeBool2(parameters, "trigger", "stop", false);
             Object hf = null;
             var hfparametersVariable = this.handleHfAndParams(parameters);
@@ -6457,7 +6457,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, "symbol", this.marketId(symbol));
@@ -6524,7 +6524,7 @@ public class KucoinCore extends KucoinApi
             trigger = ((java.util.List<Object>) triggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) triggerparametersVariable).get(1);
             Object orderFilter = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "ADVANCED" : "NORMAL";
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "accountMode", "unified" );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "tradeType", tradeType );
@@ -6701,7 +6701,7 @@ public class KucoinCore extends KucoinApi
             {
                 lowercaseStatus = "done";
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -6819,7 +6819,7 @@ public class KucoinCore extends KucoinApi
             {
                 status = "active";
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(trigger, true)))
             {
                 Helpers.addElementToObject(request, "status", status);
@@ -7265,7 +7265,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object hf = null;
@@ -7383,7 +7383,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -7474,7 +7474,7 @@ public class KucoinCore extends KucoinApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument for uta orders")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -8020,7 +8020,7 @@ public class KucoinCore extends KucoinApi
             filled = Precise.stringDiv(filled, average);
             filled = this.amountToPrecision(symbol, filled);
         }
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", KucoinCore.this.safeCurrencyCode(KucoinCore.this.safeString(order, "feeCurrency")) );
             put( "cost", KucoinCore.this.safeString(order, "fee") );
         }};
@@ -8058,7 +8058,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseOrderTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
             put( "IOC", "IOC" );
             put( "FOK", "FOK" );
@@ -8073,7 +8073,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "open" );
             put( "1", "open" );
             put( "2", "open" );
@@ -8115,7 +8115,7 @@ public class KucoinCore extends KucoinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
@@ -8597,7 +8597,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             // pagination is not supported on the exchange side anymore
@@ -9048,7 +9048,7 @@ public class KucoinCore extends KucoinApi
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeIntegerProduct(trade, "executionTime", 0.000001);
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", KucoinCore.this.safeString(trade, "fee") );
             put( "currency", KucoinCore.this.safeCurrencyCode(KucoinCore.this.safeString(trade, "feeCurrency")) );
         }};
@@ -9097,7 +9097,7 @@ public class KucoinCore extends KucoinApi
             var utaparametersVariable = this.handleOptionAndParams(parameters, "fetchTradingFee", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object entry = null;
             if (Helpers.isTrue(uta))
@@ -9207,7 +9207,7 @@ public class KucoinCore extends KucoinApi
             }
             this.checkAddress(address);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "toAddress", address );
                 put( "withdrawType", "ADDRESS" );
@@ -9260,7 +9260,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "PROCESSING", "pending" );
             put( "WALLET_PROCESSING", "pending" );
@@ -9552,7 +9552,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -9750,7 +9750,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -9850,7 +9850,7 @@ public class KucoinCore extends KucoinApi
                 return (this.fetchUtaBalance(parameters)).join();
             }
             Object response = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String code = this.safeString(parameters, "code");
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -10074,7 +10074,7 @@ public class KucoinCore extends KucoinApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchContractBalance() requires a code parameter")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivateGetAccountOverview(this.extend(request, parameters))).join();
@@ -10093,7 +10093,7 @@ public class KucoinCore extends KucoinApi
             //         }
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "timestamp", null );
                 put( "datetime", null );
@@ -10151,7 +10151,7 @@ public class KucoinCore extends KucoinApi
             Object type = null;
             type = this.safeString(utaAccountsByType, requestedType, requestedType);
             Object isIsolated = (Helpers.isEqual(type, "ISOLATED"));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "unified")))
             {
@@ -10336,7 +10336,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object requestedAmount = this.currencyToPrecision(code, amount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", requestedAmount );
             }};
@@ -10396,7 +10396,7 @@ public class KucoinCore extends KucoinApi
             toId = this.safeString(utaAccountsByType, toId, toId);
             Helpers.addElementToObject(request, "fromAccountType", ((String)fromId).toUpperCase());
             Helpers.addElementToObject(request, "toAccountType", ((String)toId).toUpperCase());
-            Object types = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
                 put( "INTERNAL", "0" );
                 put( "PARENT_TO_SUB", "1" );
                 put( "SUB_TO_PARENT", "2" );
@@ -10449,7 +10449,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object requestedAmount = this.currencyToPrecision(code, amount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", requestedAmount );
             }};
@@ -10641,7 +10641,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "PROCESSING", "pending" );
         }};
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
@@ -10653,7 +10653,7 @@ public class KucoinCore extends KucoinApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "Assets Transferred in After Upgrading", "transfer" );
             put( "Deposit", "transaction" );
             put( "Withdrawal", "transaction" );
@@ -10701,7 +10701,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseLedgerDirection(Object direction)
     {
-        Object directions = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> directions = new java.util.HashMap<String, Object>() {{
             put( "in", "in" );
             put( "out", "out" );
             put( "TransferIn", "in" );
@@ -10714,7 +10714,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseLedgerStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Completed", "ok" );
             put( "Pending", "pending" );
         }};
@@ -11173,7 +11173,7 @@ public class KucoinCore extends KucoinApi
             var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -11514,7 +11514,7 @@ public class KucoinCore extends KucoinApi
         //         }
         //     ]
         //
-        Object borrowRateHistories = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> borrowRateHistories = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object item = Helpers.GetValue(response, i);
@@ -11559,7 +11559,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.utaPrivateGetAccountInterestLimits(this.extend(request, parameters))).join();
@@ -11604,7 +11604,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
                 put( "timeInForce", "FOK" );
@@ -11652,7 +11652,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -11699,7 +11699,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
             }};
@@ -11745,7 +11745,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "size", KucoinCore.this.currencyToPrecision(code, amount) );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -11869,7 +11869,7 @@ public class KucoinCore extends KucoinApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchLeverage() supports contract markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivateGetGetCrossUserLeverage(this.extend(request, parameters))).join();
@@ -11936,7 +11936,7 @@ public class KucoinCore extends KucoinApi
                     return (this.setContractLeverage(leverage, symbol, parameters)).join();
                 }
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "leverage", KucoinCore.this.numberToString(leverage) );
             }};
             Object marginMode = null;
@@ -11947,7 +11947,7 @@ public class KucoinCore extends KucoinApi
             var utaparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(uta))
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
@@ -12023,7 +12023,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", String.valueOf(leverage) );
             }};
@@ -12103,7 +12103,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object uta = false;
@@ -12212,7 +12212,7 @@ public class KucoinCore extends KucoinApi
 
     public String parseFundingInterval(Object interval)
     {
-        Object intervals = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> intervals = new java.util.HashMap<String, Object>() {{
             put( "3600000", "1h" );
             put( "14400000", "4h" );
             put( "28800000", "8h" );
@@ -12254,7 +12254,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object until = this.safeInteger(parameters, "until");
@@ -12507,7 +12507,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object uta = (this.isUTAEnabled()).join();
@@ -13073,7 +13073,7 @@ public class KucoinCore extends KucoinApi
                     ((java.util.List<Object>)ordersRequests).add(Helpers.GetValue(ids, i));
                 }
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(uta))
@@ -13149,7 +13149,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object uuid = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "margin", KucoinCore.this.amountToPrecision(symbol, amount) );
                 put( "bizNo", uuid );
@@ -13236,7 +13236,7 @@ public class KucoinCore extends KucoinApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object amountString = this.amountToPrecision(symbol, amount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "withdrawAmount", amountString );
             }};
@@ -13356,7 +13356,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivateGetPositionGetMarginMode(this.extend(request, parameters))).join();
@@ -13419,7 +13419,7 @@ public class KucoinCore extends KucoinApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginMode", ((String)marginMode).toUpperCase() );
             }};
@@ -13461,7 +13461,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Object posMode = ((Helpers.isTrue(hedged))) ? "1" : "0";
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "positionMode", posMode );
             }};
             java.util.Map<String, Object> response = (this.futuresPrivatePostPositionSwitchPositionMode(this.extend(request, parameters))).join();
@@ -13538,7 +13538,7 @@ public class KucoinCore extends KucoinApi
                 clientOrderId = this.numberToString(this.nonce());
             }
             final Object finalClientOrderId = clientOrderId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "closeOrder", true );
                 put( "clientOid", finalClientOrderId );
@@ -13591,7 +13591,7 @@ public class KucoinCore extends KucoinApi
                 Object result = (this.fetchLeverageTiers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
                 return this.safeList(result, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.futuresPublicGetContractsRiskLimitSymbol(this.extend(request, parameters))).join();
@@ -13708,7 +13708,7 @@ final Object finalMarket = market;
             }
             Object marketIds = this.marketIds(symbols);
             final Object finalMarginMode = marginMode;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradeType", "FUTURES" );
                 put( "marginMode", finalMarginMode );
                 put( "data", "RISK_LIMIT" );
@@ -13742,7 +13742,7 @@ final Object finalMarket = market;
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseMarketLeverageTiers(data);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tiers)); i++)
             {
@@ -13783,7 +13783,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object length = Helpers.getArrayLength(symbols);
@@ -13860,7 +13860,7 @@ final Object finalMarket = market;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object timeframes = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> timeframes = new java.util.HashMap<String, Object>() {{
                 put( "5m", "5min" );
                 put( "15m", "15min" );
                 put( "30m", "30min" );

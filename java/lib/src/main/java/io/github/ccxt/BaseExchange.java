@@ -5161,7 +5161,7 @@ public Object describe()
 
     public Object parseCurrencies(Object rawCurrencies)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
@@ -5726,7 +5726,7 @@ public Object describe()
         Object useLeaky = Helpers.isTrue((Helpers.isEqual(this.rollingWindowSize, 0))) || Helpers.isTrue((Helpers.isEqual(this.rateLimiterAlgorithm, "leakyBucket")));
         Object algorithm = ((Helpers.isTrue(useLeaky))) ? "leakyBucket" : "rollingWindow";
         final Object finalRefillRate = refillRate;
-        Object defaultBucket = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> defaultBucket = new java.util.HashMap<String, Object>() {{
             put( "delay", 0.001 );
             put( "capacity", 1 );
             put( "cost", 1 );
@@ -6199,7 +6199,7 @@ public Object describe()
     public Object safeMarketStructure(Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object cleanStructure = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> cleanStructure = new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "lowercaseId", null );
             put( "symbol", null );
@@ -6315,7 +6315,7 @@ public Object describe()
             // strip undefined-valued keys from the parsed market before deepExtend,
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
-            Object valueDefined = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> valueDefined = new java.util.HashMap<String, Object>() {{}};
             Object valueKeys = Helpers.objectKeys(value);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(valueKeys)); j++)
             {
@@ -6474,7 +6474,7 @@ public Object describe()
         Helpers.addElementToObject(balance, "free", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "used", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "total", new java.util.HashMap<String, Object>() {{}});
-        Object debtBalance = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> debtBalance = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -7204,7 +7204,7 @@ public Object describe()
 
     public Object invertFlatStringDictionary(Object dict)
     {
-        Object reversed = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> reversed = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -7270,7 +7270,7 @@ public Object describe()
         //         { 'currency': 'USDT', 'cost': 12.3456 },
         //     ]
         //
-        Object reduced = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> reduced = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
         {
             Object fee = Helpers.GetValue(fees, i);
@@ -7627,7 +7627,7 @@ public Object describe()
         Object close = Helpers.getArg(optionalArgs, 4, "c");
         Object volume = Helpers.getArg(optionalArgs, 5, "v");
         Object ms = Helpers.getArg(optionalArgs, 6, false);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(result, timestamp, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(result, open, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(result, high, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -8267,7 +8267,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object marketIdKey = Helpers.getArg(optionalArgs, 1, null);
         symbols = this.marketSymbols(symbols);
-        Object tiers = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> tiers = new java.util.HashMap<String, Object>() {{}};
         Object symbolsLength = 0;
         if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
         {
@@ -9127,7 +9127,7 @@ public Object describe()
                 Object parts = Helpers.split(marketId, delimiter);
                 Object partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
-                Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
                     put( "marketId", finalMarketId );
                 }});
@@ -10325,7 +10325,7 @@ public Object describe()
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
         }
-        Object marketsById = this.markets_by_id;
+        java.util.Map<String, Object> marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.inOp(markets, symbol)))
         {
             return Helpers.GetValue(markets, symbol);
@@ -10828,7 +10828,7 @@ public Object describe()
 
     public Object parseIsolatedBorrowRates(Object info)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object item = Helpers.GetValue(info, i);
@@ -10873,7 +10873,7 @@ public Object describe()
     public Object parseFundingRates(Object response, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        Object fundingRates = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fundingRates = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object entry = Helpers.GetValue(response, i);
@@ -11137,7 +11137,7 @@ public Object describe()
     public Object parseOpenInterests(Object response, Object... optionalArgs)
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object entry = Helpers.GetValue(response, i);
@@ -11253,7 +11253,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchMarkOHLCV"), false))))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "price", "mark" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11287,7 +11287,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchIndexOHLCV"), false))))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "price", "index" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11321,7 +11321,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(this.has, "fetchPremiumIndexOHLCV"), false))))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "price", "premiumIndex" );
                 }};
                 return (this.fetchOHLCV(symbol, timeframe, since, limit, this.extend(request, parameters))).join();
@@ -11371,7 +11371,7 @@ public Object describe()
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
         Object markets = this.markets;
-        Object marketsById = this.markets_by_id;
+        java.util.Map<String, Object> marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(markets, null))) && Helpers.isTrue((Helpers.inOp(markets, account))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, account)))))))
         {
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(account);
@@ -11437,7 +11437,7 @@ public Object describe()
         */
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
-        Object depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
         Object isArray = Helpers.isArray(response);
         Object responseKeys = response;
         if (!Helpers.isTrue(isArray))
@@ -11656,7 +11656,7 @@ public Object describe()
 
     public Object createOHLCVObject(Object symbol, Object timeframe, Object data)
     {
-        Object res = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> res = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(res, symbol, new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(Helpers.GetValue(res, symbol), timeframe, data);
         return res;
@@ -12159,7 +12159,7 @@ public Object describe()
     public Object removeRepeatedElementsFromArray(Object input, Object... optionalArgs)
     {
         Object fallbackToTimestamp = Helpers.getArg(optionalArgs, 0, true);
-        Object uniqueDic = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> uniqueDic = new java.util.HashMap<String, Object>() {{}};
         Object uniqueResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
@@ -12181,7 +12181,7 @@ public Object describe()
 
     public Object removeRepeatedTradesFromArray(Object input)
     {
-        Object uniqueResult = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> uniqueResult = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
             Object entry = Helpers.GetValue(input, i);
@@ -12211,7 +12211,7 @@ public Object describe()
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
         Object keys = Helpers.objectKeys(dict);
-        Object newDict = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> newDict = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -12338,7 +12338,7 @@ public Object describe()
     {
         Object currencyKey = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
-        Object optionStructures = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> optionStructures = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object info = Helpers.GetValue(response, i);
@@ -12356,7 +12356,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
         Object marketType = Helpers.getArg(optionalArgs, 2, null);
-        Object marginModeStructures = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marginModeStructures = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
         {
             marketType = "swap"; // default to swap
@@ -12385,7 +12385,7 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object symbolKey = Helpers.getArg(optionalArgs, 1, null);
         Object marketType = Helpers.getArg(optionalArgs, 2, null);
-        Object leverageStructures = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> leverageStructures = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(marketType, null)))
         {
             marketType = "swap"; // default to swap
@@ -12544,7 +12544,7 @@ public Object describe()
             return null;
         }
         // parse 03JAN24 to 240103.
-        Object monthMappping = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> monthMappping = new java.util.HashMap<String, Object>() {{
             put( "JAN", "01" );
             put( "FEB", "02" );
             put( "MAR", "03" );

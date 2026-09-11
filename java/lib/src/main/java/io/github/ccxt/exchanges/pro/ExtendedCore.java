@@ -128,7 +128,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object limit = this.safeInteger(subscription, "limit", defaultLimit);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(type, "SNAPSHOT")))
         {
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a", "p", "q");
@@ -179,7 +179,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/account");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(this.clients, null))) || !Helpers.isTrue((Helpers.inOp(this.clients, url)))))
             {
-                Object defaultOptions = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>() {{
                     put( "ws", new java.util.HashMap<String, Object>() {{
                         put( "options", new java.util.HashMap<String, Object>() {{
                             put( "headers", new java.util.HashMap<String, Object>() {{}} );
@@ -301,7 +301,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
         }};
         Object balance = this.safeDict(data, "balance");
@@ -420,7 +420,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object stored = this.myTrades;
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         Object first = this.safeDict(rawTrades, 0);
         if (Helpers.isTrue(Helpers.isEqual(first, null)))
         {
@@ -601,7 +601,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object orders = this.orders;
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object rawOrders = this.safeList(data, "orders");
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         Object first = this.safeDict(rawOrders, 0);
         if (Helpers.isTrue(Helpers.isEqual(first, null)))
         {

@@ -240,7 +240,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
             Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isContract))) ? "SUBSCRIBE" : "subscribe" );
                 put( "id", id );
             }};
@@ -272,7 +272,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 tail = ((Helpers.isTrue(privateAccess))) ? "user" : "market";
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType), "/"), tail);
@@ -316,7 +316,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
             Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
-            Object unsubscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> unsubscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isContract))) ? "UNSUBSCRIBE" : "unsubscribe" );
                 put( "id", id );
             }};
@@ -345,7 +345,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 tail = ((Helpers.isTrue(privateAccess))) ? "user" : "market";
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType), "/"), tail);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
@@ -950,7 +950,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             final Object finalMarketId = marketId;
-            Object raw = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> raw = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalMarketId );
                 put( "fundingRate", XtCore.this.safeString(data, "r") );
             }};
@@ -1461,7 +1461,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 Object limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Object nonce = this.safeInteger(orderbook, "nonce");
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
@@ -1827,7 +1827,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         } else if (Helpers.isTrue(!Helpers.isEqual(eventVar, null)))
         {
             Object topic = this.safeString(message, "topic");
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "kline", "handleOHLCV");
                 put( "depth", "handleOrderBook");
                 put( "depth_update", "handleOrderBook");

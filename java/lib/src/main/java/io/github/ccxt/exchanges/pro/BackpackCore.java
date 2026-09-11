@@ -79,7 +79,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", topics );
             }};
@@ -111,7 +111,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
             Object signature = eddsa(this.encode(payload), seed, ed25519());
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", topics );
                 put( "signature", new java.util.ArrayList<Object>(java.util.Arrays.asList(BackpackCore.this.apiKey, signature, ts, recvWindow)) );
@@ -1445,7 +1445,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
     public String parseWsOrderStatus(Object status, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "New", "open" );
             put( "Filled", "closed" );
             put( "Cancelled", "canceled" );
@@ -1459,7 +1459,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
 
     public String parseWsOrderSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "Bid", "buy" );
             put( "Ask", "sell" );
         }};

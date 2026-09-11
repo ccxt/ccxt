@@ -115,7 +115,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 method = "UNSUBSCRIBE";
             }
             final Object finalMethod = method;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );
                 put( "params", channels );
@@ -149,7 +149,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
             Object id = this.requestId();
             final Object finalMethod = method;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", finalMethod );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
@@ -174,7 +174,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
         Object originalHeaders = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers");
         Object userAgent = this.safeString(originalHeaders, "User-Agent", "ccxt");
-        Object extendedOptions = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> extendedOptions = new java.util.HashMap<String, Object>() {{
             put( "ws", new java.util.HashMap<String, Object>() {{
                 put( "options", new java.util.HashMap<String, Object>() {{
                     put( "headers", new java.util.HashMap<String, Object>() {{
@@ -191,7 +191,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         // instantiate client
         this.client(url);
         // return headers to original state
-        Object defaultOptions = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>() {{
             put( "ws", new java.util.HashMap<String, Object>() {{
                 put( "options", new java.util.HashMap<String, Object>() {{
                     put( "headers", new java.util.HashMap<String, Object>() {{
@@ -270,7 +270,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object newTicker = (this.subscribePublic(messageHashes, channels, isContract, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -1142,7 +1142,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
             }
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object timestamp = this.safeInteger(message, "E");
         Object eventVar = this.safeString(message, "e");
         Object nonce = this.safeInteger(message, "u");
@@ -1210,7 +1210,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object newTicker = (this.subscribePublic(messageHashes, channels, false, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -1469,7 +1469,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         Object trades = this.myTrades;
         Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1715,7 +1715,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2329,7 +2329,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             //
             //     { "type": "ping", "time": "1776172740000" } - private
             //
-            Object response = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{
                 put( "id", WeexCore.this.requestId() );
                 put( "method", "PONG" );
             }};

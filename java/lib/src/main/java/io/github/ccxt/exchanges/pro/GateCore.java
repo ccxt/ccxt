@@ -1061,7 +1061,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object tickerOrBidAsk = (this.subscribePublicMultiple(url, messageHashes, marketIds, channel, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object items = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> items = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(items, Helpers.GetValue(tickerOrBidAsk, "symbol"), tickerOrBidAsk);
                 return items;
             }
@@ -1364,7 +1364,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             result = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
         }
-        Object marketIds = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
         {
             Object ohlcv = Helpers.GetValue(result, i);
@@ -1508,7 +1508,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             this.myTrades = cachedTrades;
         }
         java.util.List<Object> parsed = this.parseTrades(result);
-        Object marketIds = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
             Object trade = Helpers.GetValue(parsed, i);
@@ -2054,7 +2054,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = ((Helpers.isTrue(isTrigger))) ? this.triggerOrders : this.orders;
-        Object marketIds = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         java.util.List<Object> parsedOrders = this.parseOrders(orders);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
         {
@@ -2418,7 +2418,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
     public void handleSubscriptionStatus(Client client, Object message)
     {
         Object channel = ((String)this.safeString(message, "channel"));
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "balance", "handleBalanceSubscription");
             put( "spot.order_book_update", "handleOrderBookSubscription");
             put( "futures.order_book_update", "handleOrderBookSubscription");
@@ -2610,7 +2610,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object channelParts = Helpers.split(channel, ".");
         Object channelType = this.safeValue(channelParts, 1);
-        Object v4Methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> v4Methods = new java.util.HashMap<String, Object>() {{
             put( "usertrades", "handleMyTrades");
             put( "candlesticks", "handleOHLCV");
             put( "orders", "handleOrder");
@@ -2694,7 +2694,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public Object getMarketTypeByUrl(Object url)
     {
-        Object findBy = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> findBy = new java.util.HashMap<String, Object>() {{
             put( "op-", "option" );
             put( "delivery", "future" );
             put( "fx", "swap" );
@@ -2732,7 +2732,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
             Object requestId = this.requestId();
             Object time = this.seconds();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
                 put( "channel", channel );
@@ -2762,7 +2762,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
             Object time = this.seconds();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
                 put( "channel", channel );
@@ -2783,14 +2783,14 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
             Object time = this.seconds();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
                 put( "channel", channel );
                 put( "event", "unsubscribe" );
                 put( "payload", payload );
             }};
-            Object sub = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> sub = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "topic", topic );
                 put( "unsubscribe", true );
@@ -2850,7 +2850,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object signatureString = String.join((String)"\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
             Object signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
             final Object finalRequestId = requestId;
-            Object payload = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "req_id", finalRequestId );
                 put( "timestamp", String.valueOf(time) );
                 put( "api_key", GateCore.this.apiKey );
@@ -2864,7 +2864,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
     }});
             }
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", finalRequestId );
                 put( "time", time );
                 put( "channel", finalChannel );
@@ -2905,13 +2905,13 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object eventVar = "subscribe";
             Object signaturePayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("channel=", channel), "&"), "event="), eventVar), "&"), "time="), String.valueOf(time));
             Object signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
-            Object auth = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
                 put( "method", "api_key" );
                 put( "KEY", GateCore.this.apiKey );
                 put( "SIGN", signature );
             }};
             Object requestId = this.requestId();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
                 put( "channel", channel );

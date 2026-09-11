@@ -101,7 +101,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -120,12 +120,12 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
             Object unsubHash = Helpers.add("unsubscribe::", subHash);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "event", "unsubscribe" );
                 put( "topic", subHash );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "unsubscribe", true );
                 put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)) );
@@ -176,14 +176,14 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object urlUid = ((Helpers.isTrue((!Helpers.isEqual(this.uid, ""))))) ? Helpers.add("/", this.uid) : "";
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), urlUid);
             Object requestId = this.requestId(url);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
                 put( "id", requestId );
             }};
             final Object finalMethod = method;
             final Object finalParameters = parameters;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", String.valueOf(requestId) );
                 put( "name", finalMethod );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -438,7 +438,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -571,7 +571,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             symbols = this.marketSymbols(symbols);
             Object name = "tickers";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -684,7 +684,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             symbols = this.marketSymbols(symbols);
             Object name = "bbos";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -750,7 +750,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timestamp = this.safeInteger(message, "ts");
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = this.safeDict(data, i);
@@ -825,7 +825,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object name = "kline";
             Object topic = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -942,7 +942,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1139,7 +1139,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 Object ts = String.valueOf(this.nonce());
                 Object auth = Helpers.add("|", ts);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "apikey", WooCore.this.apiKey );
@@ -1164,7 +1164,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -1182,7 +1182,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -1227,7 +1227,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1278,7 +1278,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1368,7 +1368,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(order, "timestamp");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", WooCore.this.safeString(order, "totalFee") );
             put( "currency", WooCore.this.safeString(order, "feeAsset") );
         }};
@@ -1745,7 +1745,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             Object topic = "balance";
             Object messageHash = topic;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1838,7 +1838,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@estfundingrate");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1944,7 +1944,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ping", "handlePing");
             put( "pong", "handlePong");
             put( "subscribe", "handleSubscribe");

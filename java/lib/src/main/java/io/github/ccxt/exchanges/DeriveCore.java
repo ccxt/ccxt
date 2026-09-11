@@ -950,7 +950,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "erc20" );
             }};
@@ -968,7 +968,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "perp" );
             }};
@@ -986,7 +986,7 @@ public class DeriveCore extends DeriveApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "expired", false );
                 put( "instrument_type", "option" );
             }};
@@ -1145,7 +1145,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
@@ -1328,7 +1328,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1455,7 +1455,7 @@ public class DeriveCore extends DeriveApi
         String marketId = this.safeString(trade, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
             put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
         }};
@@ -1501,7 +1501,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1731,7 +1731,7 @@ public class DeriveCore extends DeriveApi
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             final Object finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "direction", finalOrderSide );
                 put( "order_type", orderType );
@@ -1925,7 +1925,7 @@ public class DeriveCore extends DeriveApi
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
             final Object finalOrderSide = orderSide;
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "order_id_to_cancel", id );
                 put( "direction", finalOrderSide );
@@ -2078,7 +2078,7 @@ public class DeriveCore extends DeriveApi
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "subaccount_id", finalSubaccountId );
             }};
@@ -2146,7 +2146,7 @@ public class DeriveCore extends DeriveApi
             // }
             //
             final Object finalSymbol = symbol;
-            Object extendParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
@@ -2191,7 +2191,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object response = null;
@@ -2266,7 +2266,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -2450,7 +2450,7 @@ public class DeriveCore extends DeriveApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
             put( "gtc", "GTC" );
@@ -2463,7 +2463,7 @@ public class DeriveCore extends DeriveApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            Object statuses = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
                 put( "open", "open" );
                 put( "untriggered", "open" );
                 put( "filled", "closed" );
@@ -2646,7 +2646,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "subaccount_id", finalSubaccountId );
             }};
@@ -2747,7 +2747,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -2844,7 +2844,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccount_id")));
@@ -3016,7 +3016,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             Object market = null;
@@ -3133,7 +3133,7 @@ public class DeriveCore extends DeriveApi
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
             final Object finalDeriveWalletAddress = deriveWalletAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalDeriveWalletAddress );
             }};
             java.util.Map<String, Object> response = (this.privatePostGetAllPortfolios(this.extend(request, parameters))).join();
@@ -3193,7 +3193,7 @@ public class DeriveCore extends DeriveApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -3253,7 +3253,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3317,7 +3317,7 @@ public class DeriveCore extends DeriveApi
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "subaccount_id", finalSubaccountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3399,7 +3399,7 @@ public class DeriveCore extends DeriveApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "settled", "ok" );
             put( "reverted", "failed" );
         }};

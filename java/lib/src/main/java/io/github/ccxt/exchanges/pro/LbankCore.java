@@ -116,7 +116,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object timeframeId = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("fetchOHLCV:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "kbar" );
                 put( "kbar", timeframeId );
@@ -169,7 +169,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object timeframeId = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "kbar" );
                 put( "kbar", timeframeId );
@@ -305,7 +305,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket(market, "fetchTickerWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = (String) Helpers.add("fetchTicker:", Helpers.GetValue(market, "symbol"));
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "tick" );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -340,7 +340,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket(market, "watchTicker");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = (String) Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "tick" );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -469,7 +469,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 limit = 10;
             }
             final Object finalLimit = limit;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "trade" );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -509,7 +509,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             this.checkContractMarket(market, "watchTrades");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = (String) Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "trade" );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -664,7 +664,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 pair = ((String)Helpers.GetValue(market, "id"));
             }
             final Object finalPair = pair;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "orderUpdate" );
                 put( "subscribeKey", key );
@@ -810,7 +810,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "-1", "canceled" );
             put( "0", "open" );
             put( "1", "open" );
@@ -841,7 +841,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object key = (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             String messageHash = (String) "balance";
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "assetUpdate" );
                 put( "subscribeKey", key );
@@ -919,7 +919,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 limit = 100;
             }
             final Object finalLimit = limit;
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "action", "request" );
                 put( "request", "depth" );
                 put( "depth", finalLimit );
@@ -963,7 +963,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 limit = 100;
             }
             final Object finalLimit = limit;
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "depth" );
                 put( "depth", finalLimit );
@@ -1109,7 +1109,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             this.spawn(() -> { try { this.handlePing(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
             return;
         }
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "kbar", "handleOHLCV");
             put( "depth", "handleOrderBook");
             put( "trade", "handleTrades");
@@ -1172,7 +1172,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                     if (Helpers.isTrue(Helpers.isLessThan(expires, now)))
                     {
                         final Object finalAuthenticated = authenticated;
-                        Object request = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                             put( "subscribeKey", Helpers.GetValue(finalAuthenticated, "key") );
                         }};
                         java.util.Map<String, Object> response = (this.spotPrivatePostSubscribeRefreshKey(this.extend(request, parameters))).join();

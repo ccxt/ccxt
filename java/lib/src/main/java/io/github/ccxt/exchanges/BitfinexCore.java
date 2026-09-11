@@ -895,7 +895,7 @@ public class BitfinexCore extends BitfinexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
             Object config = String.join((String)",", (java.util.List<String>)labels);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
             java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
@@ -1033,7 +1033,7 @@ public class BitfinexCore extends BitfinexApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
             Object config = String.join((String)",", (java.util.List<String>)labels);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
             java.util.List<Object> response = (this.publicGetConfConfig(this.extend(request, parameters))).join();
@@ -1120,7 +1120,7 @@ public class BitfinexCore extends BitfinexApi
             //         ]
             //     ]
             //
-            Object indexed = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> indexed = new java.util.HashMap<String, Object>() {{
                 put( "sym", BitfinexCore.this.indexBy(BitfinexCore.this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
                 put( "label", BitfinexCore.this.indexBy(BitfinexCore.this.safeList(response, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
                 put( "unit", BitfinexCore.this.indexBy(BitfinexCore.this.safeList(response, 3, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
@@ -1132,7 +1132,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "statuses", BitfinexCore.this.indexBy(BitfinexCore.this.safeList(response, 9, new java.util.ArrayList<Object>(java.util.Arrays.asList())), 0) );
                 put( "marginables", BitfinexCore.this.safeList(response, 10, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             }};
-            Object indexedNetworks = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> indexedNetworks = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(indexed, "networks"))); i++)
             {
                 Object networkObj = Helpers.GetValue(Helpers.GetValue(indexed, "networks"), i);
@@ -1162,7 +1162,7 @@ public class BitfinexCore extends BitfinexApi
             }
             ((java.util.List<Object>)allowedIds).add(id);
         }
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object arr = this.toArray(allowedIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
@@ -1191,7 +1191,7 @@ public class BitfinexCore extends BitfinexApi
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
         Object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = this.safeList(indexedNetworks, id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
@@ -1285,7 +1285,7 @@ public class BitfinexCore extends BitfinexApi
             Object query = this.omit(parameters, "type");
             java.util.List<Object> response = (this.privatePostAuthRWallets(query)).join();
             Object balances = this.toArray(response);
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
@@ -1363,7 +1363,7 @@ public class BitfinexCore extends BitfinexApi
             // this request is slightly different from v1 fromAccount -> from
             final Object finalFromId = fromId;
             final Object finalToId = toId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", requestedAmount );
                 put( "currency", fromCurrencyId );
                 put( "currency_to", toCurrencyId );
@@ -1455,7 +1455,7 @@ public class BitfinexCore extends BitfinexApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "ERROR", "failed" );
             put( "FAILURE", "failed" );
@@ -1516,7 +1516,7 @@ public class BitfinexCore extends BitfinexApi
             }
             Object precision = this.handleOption("fetchOrderBook", "precision", "R0");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "precision", precision );
             }};
@@ -1527,7 +1527,7 @@ public class BitfinexCore extends BitfinexApi
             Object fullRequest = this.extend(request, parameters);
             java.util.List<Object> orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
             Object timestamp = this.milliseconds();
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
                 put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1697,7 +1697,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object ids = this.marketIds(symbols);
@@ -1771,7 +1771,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> ticker = (this.publicGetTickerSymbol(this.extend(request, parameters))).join();
@@ -2048,7 +2048,7 @@ public class BitfinexCore extends BitfinexApi
         }
         Object parts = Helpers.split(status, " ");
         String state = this.safeString(parts, 0);
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
             put( "PARTIALLY", "open" );
             put( "EXECUTED", "closed" );
@@ -2066,7 +2066,7 @@ public class BitfinexCore extends BitfinexApi
     public Object parseOrderFlags(Object flags)
     {
         // flags can be added to each other...
-        Object flagValues = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> flagValues = new java.util.HashMap<String, Object>() {{
             put( "1024", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly")) );
             put( "4096", new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly")) );
             put( "5120", new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")) );
@@ -2076,7 +2076,7 @@ public class BitfinexCore extends BitfinexApi
 
     public String parseTimeInForce(Object orderType)
     {
-        Object orderTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderTypes = new java.util.HashMap<String, Object>() {{
             put( "EXCHANGE IOC", "IOC" );
             put( "EXCHANGE FOK", "FOK" );
             put( "IOC", "IOC" );
@@ -2202,7 +2202,7 @@ public class BitfinexCore extends BitfinexApi
         Object amountString = this.amountToPrecision(symbol, amount);
         amountString = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? amountString : ((String)Precise.stringNeg(amountString));
         final Object finalAmountString = amountString;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "amount", finalAmountString );
         }};
@@ -2376,7 +2376,7 @@ public class BitfinexCore extends BitfinexApi
             }
             Object orders = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeList(orders, 0);
-            Object newOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -2416,7 +2416,7 @@ public class BitfinexCore extends BitfinexApi
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(new java.util.ArrayList<Object>(java.util.Arrays.asList("on", orderRequest)));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ops", ordersRequests );
             }};
             java.util.List<Object> response = (this.privatePostAuthWOrderMulti(request)).join();
@@ -2480,7 +2480,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "all", 1 );
             }};
             java.util.List<Object> response = (this.privatePostAuthWOrderCancelMulti(this.extend(request, parameters))).join();
@@ -2548,7 +2548,7 @@ public class BitfinexCore extends BitfinexApi
             }
             java.util.List<Object> response = (this.privatePostAuthWOrderCancel(this.extend(request, parameters))).join();
             Object order = this.safeValue(response, 4);
-            Object newOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -2583,7 +2583,7 @@ public class BitfinexCore extends BitfinexApi
                 // numericIds[i] = this.parseToNumeric (ids[i]);
                 ((java.util.List<Object>)numericIds).add(this.parseToNumeric(Helpers.GetValue(ids, i)));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", numericIds );
             }};
             Object market = null;
@@ -2674,7 +2674,7 @@ public class BitfinexCore extends BitfinexApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.parseInt(id))) );
             }};
             Object orders = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
@@ -2706,7 +2706,7 @@ public class BitfinexCore extends BitfinexApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.parseInt(id))) );
             }};
             Object orders = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
@@ -2745,7 +2745,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -2951,7 +2951,7 @@ public class BitfinexCore extends BitfinexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderId = Helpers.parseInt(id);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2997,7 +2997,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "end", BitfinexCore.this.milliseconds() );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3051,7 +3051,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op_renew", 1 );
             }};
             return (this.fetchDepositAddress(code, this.extend(request, parameters))).join();
@@ -3091,7 +3091,7 @@ public class BitfinexCore extends BitfinexApi
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
             final Object finalNetworkId = networkId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );
                 put( "op_renew", 0 );
@@ -3134,7 +3134,7 @@ public class BitfinexCore extends BitfinexApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "COMPLETED", "ok" );
             put( "ERROR", "failed" );
@@ -3401,7 +3401,7 @@ public class BitfinexCore extends BitfinexApi
             //         { leo_lev: "0", leo_amount_avg: "0" }
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object fiat = this.safeDict(this.options, "fiat", new java.util.HashMap<String, Object>() {{}});
             Object feeData = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object makerData = this.safeValue(feeData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3416,7 +3416,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object fee = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
                     put( "info", response );
                     put( "symbol", symbol );
                     put( "percentage", true );
@@ -3468,7 +3468,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start", since);
@@ -3560,7 +3560,7 @@ public class BitfinexCore extends BitfinexApi
             String wallet = this.safeString(parameters, "wallet", "exchange"); // 'exchange', 'margin', 'funding' and also old labels 'exchange', 'trading', 'deposit', respectively
             parameters = this.omit(parameters, "network", "wallet");
             final Object finalNetworkId = networkId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", finalNetworkId );
                 put( "wallet", wallet );
                 put( "amount", BitfinexCore.this.numberToString(amount) );
@@ -4052,7 +4052,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             Object marketIds = this.marketIds(symbols);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "keys", String.join((String)",", (java.util.List<String>)marketIds) );
             }};
             java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
@@ -4329,7 +4329,7 @@ public class BitfinexCore extends BitfinexApi
                 marketIds = this.marketIds(symbols);
             }
             final Object finalMarketIds = marketIds;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "keys", String.join((String)",", (java.util.List<String>)finalMarketIds) );
             }};
             java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
@@ -4388,7 +4388,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "keys", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> response = (this.publicGetStatusDeriv(this.extend(request, parameters))).join();
@@ -4729,7 +4729,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setMargin() only support swap markets")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "collateral", BitfinexCore.this.parseToNumeric(amount) );
             }};
@@ -4797,7 +4797,7 @@ public class BitfinexCore extends BitfinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", new java.util.ArrayList<Object>(java.util.Arrays.asList(BitfinexCore.this.parseToNumeric(id))) );
             }};
             Object market = null;
@@ -4850,7 +4850,7 @@ public class BitfinexCore extends BitfinexApi
             //     ]
             //
             Object order = this.safeList(response, 0);
-            Object newOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);
@@ -4894,7 +4894,7 @@ public class BitfinexCore extends BitfinexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", BitfinexCore.this.parseToNumeric(id) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
@@ -5004,7 +5004,7 @@ public class BitfinexCore extends BitfinexApi
                 throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), status), ": "), errorText), " (#"), errorCode), ")")) ;
             }
             Object order = this.safeList(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object newOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> newOrder = new java.util.HashMap<String, Object>() {{
                 put( "result", order );
             }};
             return this.parseOrder(newOrder, market);

@@ -139,7 +139,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             this.handleIncomingPong(client, pongTimestamp);
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "trade", "handleTrades");
             put( "kline", "handleOHLCV");
             put( "realtimes", "handleTickers");
@@ -238,7 +238,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             }
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
                 put( "topic", "trade" );
                 put( "event", "sub" );
@@ -384,7 +384,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolStr), "::"), unfiedTimeframe));
             }
             final Object finalSelectedTimeframe = selectedTimeframe;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
                 put( "topic", Helpers.add("kline_", finalSelectedTimeframe) );
                 put( "event", "sub" );
@@ -542,7 +542,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             }
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
                 put( "topic", "realtimes" );
                 put( "event", "sub" );
@@ -550,7 +550,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -601,7 +601,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             return;
         }
-        Object newTickers = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
@@ -694,7 +694,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "common"), "/quote/ws/v1");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", String.join((String)",", (java.util.List<String>)marketIds) );
                 put( "topic", finalChannel );
                 put( "event", "sub" );
@@ -747,7 +747,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 Object limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderBook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Object timestamp = this.safeInteger(entry, "t");
             Object bids = this.safeList(entry, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object asks = this.safeList(entry, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

@@ -131,7 +131,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), marketType);
             }
             Object id = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "dataType", dataType );
                 put( "reqType", "unsub" );
@@ -141,7 +141,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 ((java.util.List<Object>)symbols).add(Helpers.GetValue(market, "symbol"));
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
@@ -201,7 +201,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@ticker");
             Object messageHash = this.getMessageHash("ticker", Helpers.GetValue(market, "symbol"));
             Object uuid = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", dataType );
             }};
@@ -209,7 +209,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -460,7 +460,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object rawHash = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             String messageHash = (String) Helpers.add("trade::", symbol);
             Object uuid = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", rawHash );
             }};
@@ -468,7 +468,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -680,7 +680,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", Helpers.GetValue(market, "symbol"));
             Object uuid = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
             }};
@@ -688,7 +688,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
-            Object subscriptionArgs = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> subscriptionArgs = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 final Object finalParameters = parameters;
@@ -1071,7 +1071,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object messageHash = this.getMessageHash("ohlcv", Helpers.GetValue(market, "symbol"), timeframe);
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), rawTimeframe);
             Object uuid = this.uuid();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "dataType", subscriptionHash );
             }};
@@ -1080,7 +1080,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 Helpers.addElementToObject(request, "reqType", "sub");
             }
             final Object finalParameters = parameters;
-            Object subscriptionArgs = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscriptionArgs = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
                 put( "unsubscribe", false );
                 put( "interval", rawTimeframe );
@@ -1207,7 +1207,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), Helpers.GetValue(this.options, "listenKey"));
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1275,7 +1275,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object uuid = this.uuid();
             Object baseUrl = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -1293,7 +1293,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }};
             }
             Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), Helpers.GetValue(this.options, "listenKey"));
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1378,7 +1378,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};
@@ -1500,7 +1500,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             awaitPositionsSnapshot = ((java.util.List<Object>) awaitPositionsSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) awaitPositionsSnapshotparametersVariable).get(1);
             Object uuid = this.uuid();
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", false );
                 put( "id", uuid );
             }};

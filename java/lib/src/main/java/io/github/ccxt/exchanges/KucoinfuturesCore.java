@@ -63,7 +63,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
 
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             Object extendedRequest = this.extend(request, parameters);
@@ -95,7 +95,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object amountToPrecision = this.currencyToPrecision(code, amount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
@@ -126,7 +126,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
 
     public String parseTransferType(Object transferType)
     {
-        Object transferTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> transferTypes = new java.util.HashMap<String, Object>() {{
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};

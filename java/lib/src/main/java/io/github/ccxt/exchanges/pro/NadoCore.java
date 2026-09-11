@@ -380,7 +380,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "granularity", NadoCore.this.safeInteger(NadoCore.this.timeframes, timeframe, NadoCore.this.parseTimeframe(timeframe)) );
             }};
             Object result = (this.watchPublic("latest_candlestick", market, messageHash, this.extend(request, parameters))).join();
@@ -594,7 +594,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 {
                     return this.filterByArray(ticker, "symbol", symbols);
                 }
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -677,7 +677,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 {
                     return this.filterByArray(ticker, "symbol", symbols);
                 }
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -1342,21 +1342,21 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object market = market3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "subscriptions");
-            Object stream = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> stream = new java.util.HashMap<String, Object>() {{
                 put( "type", streamType );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 Helpers.addElementToObject(stream, "product_id", this.parseToInt(Helpers.GetValue(market, "id")));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "stream", NadoCore.this.deepExtend(stream, parameters) );
                 put( "id", NadoCore.this.requestId() );
             }};
             Object subscribeHash = Helpers.add("subscribe:", this.json(Helpers.GetValue(request, "stream")));
             final Object finalMarket = market;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "streamType", streamType );
                 put( "symbol", NadoCore.this.safeString(finalMarket, "symbol") );
             }};
@@ -1390,12 +1390,12 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             }
             Object id = this.requestId();
             Object subscribeHash = Helpers.add("subscribe:", messageHash);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "stream", NadoCore.this.deepExtend(stream, parameters) );
                 put( "id", id );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "streamType", streamType );
             }};
             Helpers.addElementToObject(client.subscriptions, Helpers.add("subscription:", this.numberToString(id)), new java.util.HashMap<String, Object>() {{
@@ -1416,12 +1416,12 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "subscriptions");
             Object id = this.requestId();
             Object unsubscribeHash = Helpers.add("unsubscribe:", messageHash);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "stream", NadoCore.this.deepExtend(stream, parameters) );
                 put( "id", id );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "messageHash", messageHash );
             }};
@@ -1466,7 +1466,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object id = this.requestId();
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             Object expiration = this.sum(this.milliseconds(), recvWindow);
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "expiration", NadoCore.this.numberToString(expiration) );
             }};
@@ -1478,7 +1478,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ExchangeError((String)Helpers.add(this.id, " authenticate() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signStreamAuthentication(tx, chainId, endpointAddress);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "authenticate" );
                 put( "id", id );
                 put( "tx", tx );
@@ -1492,13 +1492,13 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
 
     public Object signStreamAuthentication(Object tx, Object chainId, Object endpointAddress)
     {
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "Nado" );
             put( "version", "0.0.1" );
             put( "chainId", chainId );
             put( "verifyingContract", endpointAddress );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "StreamAuthentication", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "sender" );
     put( "type", "bytes32" );
@@ -1517,7 +1517,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Object stream = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> stream = new java.util.HashMap<String, Object>() {{
             put( "type", streamType );
         }};
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -1554,7 +1554,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                     Object streamSubscription = this.safeValue(client.subscriptions, subscribeHash);
                     if (Helpers.isTrue(Helpers.isEqual(streamSubscription, null)))
                     {
-                        Object subscription = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                             put( "streamType", streamType );
                             put( "symbol", NadoCore.this.safeString(market, "symbol") );
                         }};
@@ -1579,7 +1579,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "subscriptions");
             Object id = this.requestId();
             Object request = this.createPublicSubscriptionRequest("unsubscribe", streamType, market, id, parameters);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "messageHash", messageHash );
             }};
@@ -1611,7 +1611,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 Object unsubscribeHash = Helpers.add("unsubscribe:", messageHash);
                 Object requestParams = ((Helpers.isTrue((Helpers.isEqual(subscriptionParams, null))))) ? parameters : Helpers.GetValue(subscriptionParams, i);
                 Object request = this.createPublicSubscriptionRequest("unsubscribe", streamType, Helpers.GetValue(markets, i), id, requestParams);
-                Object subscription = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "messageHash", messageHash );
                 }};
@@ -2059,7 +2059,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         }
         Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
-        Object tickers = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
         Helpers.addElementToObject(tickers, symbol, ticker);
         client.resolve(ticker, Helpers.add("bidask:", symbol));
         client.resolve(ticker, Helpers.add("ticker:", symbol));
@@ -2081,7 +2081,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object timestamp = this.safeInteger(message, "time");
         Object bbos = this.safeDict(message, "bbos", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(bbos);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -2150,7 +2150,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         Object maxTimestamp = this.safeString(orderbook, "maxTimestamp");
         Object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
@@ -2462,7 +2462,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             return;
         }
         Object type = this.safeString(message, "type");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "trade", "handleTrade");
             put( "all_bbo", "handleAllBidsAsks");
             put( "best_bid_offer", "handleBidAsk");

@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestDepositWithdrawal extends BaseTest {
     public static void testDepositWithdrawal(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object now)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "1234" );
             put( "txid", "0x1345FEG45EAEF7" );

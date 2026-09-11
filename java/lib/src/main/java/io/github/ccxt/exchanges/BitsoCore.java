@@ -397,7 +397,7 @@ public class BitsoCore extends BitsoApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -435,7 +435,7 @@ public class BitsoCore extends BitsoApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "funding", "transaction" );
             put( "withdrawal", "transaction" );
             put( "trade", "trade" );
@@ -627,7 +627,7 @@ public class BitsoCore extends BitsoApi
                 Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
                 Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
                 Object feeTiers = this.safeList(fees, "structure", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object fee = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
                     put( "taker", taker );
                     put( "maker", maker );
                     put( "percentage", true );
@@ -649,7 +649,7 @@ public class BitsoCore extends BitsoApi
                         Helpers.addElementToObject(fee, "maker", makerFee);
                     }
                 }
-                Object tiers = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> tiers = new java.util.HashMap<String, Object>() {{
                     put( "taker", takerFees );
                     put( "maker", makerFees );
                 }};
@@ -797,7 +797,7 @@ public class BitsoCore extends BitsoApi
     {
         Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeList(payload, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -890,7 +890,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
@@ -968,7 +968,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
@@ -1020,7 +1020,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "time_bucket", BitsoCore.this.safeString(BitsoCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1231,7 +1231,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
@@ -1305,7 +1305,7 @@ public class BitsoCore extends BitsoApi
             //
             Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
             Object fees = this.safeList(payload, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
                 Object fee = Helpers.GetValue(fees, i);
@@ -1368,7 +1368,7 @@ public class BitsoCore extends BitsoApi
                     put( "marker", marker );
                 }});
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "limit", limit );
             }};
@@ -1405,7 +1405,7 @@ public class BitsoCore extends BitsoApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "side", side );
                 put( "type", finalType );
@@ -1447,7 +1447,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
             java.util.Map<String, Object> response = (this.privateDeleteOrdersOid(this.extend(request, parameters))).join();
@@ -1494,7 +1494,7 @@ public class BitsoCore extends BitsoApi
                 market = this.market(symbol);
             }
             Object oids = String.join((String)",", (java.util.List<String>)ids);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
             java.util.Map<String, Object> response = (this.privateDeleteOrders(this.extend(request, parameters))).join();
@@ -1557,7 +1557,7 @@ public class BitsoCore extends BitsoApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "partial-fill", "open" );
             put( "partially filled", "open" );
             put( "queued", "open" );
@@ -1661,7 +1661,7 @@ public class BitsoCore extends BitsoApi
                     put( "marker", marker );
                 }});
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "book", Helpers.GetValue(market, "id") );
                 put( "limit", limit );
             }};
@@ -1737,7 +1737,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
@@ -1768,7 +1768,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fid", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetFundingsFid(this.extend(request, parameters))).join();
@@ -1880,7 +1880,7 @@ public class BitsoCore extends BitsoApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fund_currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
@@ -1973,7 +1973,7 @@ public class BitsoCore extends BitsoApi
             //        }
             //    }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
             Object depositFees = this.safeList(payload, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositFees)); i++)
@@ -2139,7 +2139,7 @@ public class BitsoCore extends BitsoApi
         //
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object depositResponse = this.safeList(response, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositResponse)); i++)
@@ -2212,7 +2212,7 @@ public class BitsoCore extends BitsoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "BTC", "Bitcoin" );
                 put( "ETH", "Ether" );
                 put( "XRP", "Ripple" );
@@ -2226,7 +2226,7 @@ public class BitsoCore extends BitsoApi
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " not valid withdraw coin: "), code)) ;
             }
             final Object finalTag = tag;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "address", address );
                 put( "destination_tag", finalTag );
@@ -2338,7 +2338,7 @@ public class BitsoCore extends BitsoApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "pending" );
             put( "in_progress", "pending" );
             put( "complete", "ok" );

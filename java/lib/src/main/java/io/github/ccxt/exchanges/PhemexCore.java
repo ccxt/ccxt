@@ -1500,7 +1500,7 @@ public class PhemexCore extends PhemexApi
         Object priceKey = Helpers.getArg(optionalArgs, 3, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 4, 1);
         Object market = Helpers.getArg(optionalArgs, 5, null);
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
             put( "datetime", PhemexCore.this.iso8601(timestamp) );
@@ -1545,7 +1545,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -1730,7 +1730,7 @@ public class PhemexCore extends PhemexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object userLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", PhemexCore.this.safeString(PhemexCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1930,7 +1930,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -2075,7 +2075,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -2472,7 +2472,7 @@ public class PhemexCore extends PhemexApi
         //     }
         //
         Object timestamp = null;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2534,7 +2534,7 @@ public class PhemexCore extends PhemexApi
         //         }
         //     }
         //
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -2582,7 +2582,7 @@ public class PhemexCore extends PhemexApi
             String code = this.safeString(parameters, "code");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("code")));
             Object response = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, "spot"))) && Helpers.isTrue((!Helpers.isEqual(type, "swap")))))
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not support "), type), " markets, only spot and swap")) ;
@@ -2753,7 +2753,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Created", "open" );
             put( "Untriggered", "open" );
             put( "Deactivated", "closed" );
@@ -2778,7 +2778,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "1", "market" );
             put( "2", "limit" );
             put( "3", "stop" );
@@ -2797,7 +2797,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GoodTillCancel", "GTC" );
             put( "PostOnly", "PO" );
             put( "ImmediateOrCancel", "IOC" );
@@ -2927,7 +2927,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseOrderSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "1", "buy" );
             put( "2", "sell" );
         }};
@@ -3184,7 +3184,7 @@ public class PhemexCore extends PhemexApi
             Object requestSide = this.capitalize(side);
             type = this.capitalize(type);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", requestSide );
                 put( "ordType", finalType );
@@ -3540,7 +3540,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
@@ -3640,7 +3640,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
@@ -3701,7 +3701,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object trigger = this.safeValue2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -3753,7 +3753,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
@@ -3831,7 +3831,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3896,7 +3896,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -3966,7 +3966,7 @@ public class PhemexCore extends PhemexApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -4075,7 +4075,7 @@ public class PhemexCore extends PhemexApi
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 limit = Helpers.mathMin(200, limit);
@@ -4248,7 +4248,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
@@ -4407,7 +4407,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Success", "ok" );
             put( "Succeed", "ok" );
             put( "Rejected", "failed" );
@@ -4612,7 +4612,7 @@ public class PhemexCore extends PhemexApi
                 code = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USD" : "BTC";
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object response = null;
@@ -4748,7 +4748,7 @@ public class PhemexCore extends PhemexApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -5006,7 +5006,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -5115,10 +5115,10 @@ public class PhemexCore extends PhemexApi
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.v1GetMdTicker24hr(this.extend(request, parameters))).join();
@@ -5245,7 +5245,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "posBalanceEv", PhemexCore.this.toEv(amount, market) );
             }};
@@ -5266,7 +5266,7 @@ public class PhemexCore extends PhemexApi
 
     public String parseMarginStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "ok" );
         }};
         return this.safeString(statuses, ((String)status), status);
@@ -5335,7 +5335,7 @@ public class PhemexCore extends PhemexApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object isCross = Helpers.isEqual(marginMode, "cross");
@@ -5391,7 +5391,7 @@ public class PhemexCore extends PhemexApi
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setPositionMode() supports USDT settled markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(hedged))
@@ -5665,7 +5665,7 @@ final Object finalI = i;
             Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -5733,7 +5733,7 @@ final Object finalI = i;
             if (Helpers.isTrue(!Helpers.isEqual(direction, null)))
             {
                 final Object finalDirection = direction;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "currency", Helpers.GetValue(currency, "id") );
                     put( "moveOp", finalDirection );
                     put( "amountEv", scaledAmmount );
@@ -5759,7 +5759,7 @@ final Object finalI = i;
             {
                 final Object finalFromId = fromId;
                 final Object finalToId = toId;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "fromUserId", finalFromId );
                     put( "toUserId", finalToId );
                     put( "amountEv", scaledAmmount );
@@ -5831,7 +5831,7 @@ final Object finalI = i;
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -5934,7 +5934,7 @@ final Object finalI = i;
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "3", "rejected" );
             put( "6", "canceled" );
             put( "10", "ok" );
@@ -6106,7 +6106,7 @@ final Object finalI = i;
                 }
             }
             final Object finalNetworkId = networkId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "amount", amount );
@@ -6174,7 +6174,7 @@ final Object finalI = i;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.v2GetMdV2Ticker24hr(this.extend(request, parameters))).join();
@@ -6264,7 +6264,7 @@ final Object finalI = i;
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
             java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
                 put( "toCurrency", toCode );
                 put( "fromAmountEv", PhemexCore.this.toEn(amount, valueScale) );
@@ -6320,7 +6320,7 @@ final Object finalI = i;
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
             java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "code", id );
                 put( "fromCurrency", fromCode );
                 put( "toCurrency", toCode );
@@ -6567,7 +6567,7 @@ final Object finalI = i;
                 code = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USD" : "BTC";
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             Object response = null;

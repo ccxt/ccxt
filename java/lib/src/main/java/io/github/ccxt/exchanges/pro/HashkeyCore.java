@@ -67,7 +67,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "topic", topic );
                 put( "event", "sub" );
@@ -433,7 +433,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object dataEntry = this.safeDict(data, 0);
         Object timestamp = this.safeInteger(dataEntry, "t");
@@ -1071,7 +1071,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
                 return null;
             }
             final Object finalListenKey = listenKey;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "listenKey", finalListenKey );
             }};
             try

@@ -747,13 +747,13 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, true);
             Object requestId = this.requestId();
             final Object finalMessageHash = messageHash;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "req", finalMessageHash );
                 put( "id", requestId );
             }};
             // this is a temporary subscription by a specific requestId
             // it has a very short lifetime until the snapshot is received over ws
-            Object snapshotSubscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> snapshotSubscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", finalMessageHash );
                 put( "symbol", symbol );
@@ -868,7 +868,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object seqNum = this.safeInteger(tick, "seqNum");
         Object prevSeqNum = this.safeInteger(tick, "prevSeqNum");
@@ -1444,7 +1444,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object filled = this.safeString(data, "execAmt");
                 Object remaining = this.safeString(data, "remainAmt");
                 final Object finalData = data;
-                Object order = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
                     put( "id", orderId );
                     put( "trades", trades );
                     put( "status", status );
@@ -1471,14 +1471,14 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 final Object finalMessageHash = messageHash;
                 final Object finalMarketId = marketId;
-                Object tradesObject = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> tradesObject = new java.util.HashMap<String, Object>() {{
                     put( "trades", rawTrades );
                     put( "ch", finalMessageHash );
                     put( "symbol", finalMarketId );
                 }};
                 // inject order params in every trade
                 final Object finalParsedOrder = parsedOrder;
-                Object extendTradeParams = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> extendTradeParams = new java.util.HashMap<String, Object>() {{
                     put( "order", HtxCore.this.safeString(finalParsedOrder, "id") );
                     put( "type", HtxCore.this.safeString(finalParsedOrder, "type") );
                     put( "side", HtxCore.this.safeString(finalParsedOrder, "side") );
@@ -2016,7 +2016,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             return;
         }
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object positionsByMarginMode = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> positionsByMarginMode = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.safeInteger(message, "ts");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -2641,7 +2641,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {
             Object methodName = this.safeString(parts, 2);
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "depth", "handleOrderBook");
                 put( "mbp", "handleOrderBook");
                 put( "detail", "handleTicker");
@@ -3254,7 +3254,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object isFeed = Helpers.getArg(optionalArgs, 2, false);
         Object isV5 = Helpers.getArg(optionalArgs, 3, false);
         Object api = this.safeString(this.options, "api", "api");
-        Object hostname = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
             put( "hostname", HtxCore.this.hostname );
         }};
         Object hostnameURL = null;
@@ -3304,11 +3304,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object method = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub", messageHash );
                 put( "id", requestId );
             }};
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
                 put( "symbol", symbol );
@@ -3332,7 +3332,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object topic = topic3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "unsub", subMessageHash );
                 put( "id", requestId );
             }};
@@ -3345,7 +3345,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, isFeed);
             final Object finalMarket = market;
             final Object finalTopic = topic;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", requestId );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
@@ -3374,7 +3374,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object subscriptionParams = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "messageHash", messageHash );
                 put( "params", parameters );
@@ -3458,7 +3458,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object request = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
-                    Object newParams = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> newParams = new java.util.HashMap<String, Object>() {{
                         put( "authType", "api" );
                         put( "accessKey", HtxCore.this.apiKey );
                         put( "signatureMethod", "HmacSHA256" );
@@ -3484,7 +3484,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     }};
                 }
                 Object requestId = this.requestId();
-                Object subscription = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                     put( "id", requestId );
                     put( "messageHash", messageHash );
                     put( "params", parameters );

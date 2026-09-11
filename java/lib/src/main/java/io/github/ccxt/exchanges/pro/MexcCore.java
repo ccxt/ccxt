@@ -253,7 +253,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
             Object url = ((Helpers.isTrue((isSpot)))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTickers does not support spot markets")) ;
@@ -266,7 +266,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(Helpers.isTrue(isSpot) && Helpers.isTrue(this.newUpdates)))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -480,14 +480,14 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("bidask:", Helpers.GetValue(symbols, i)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIPTION" );
                 put( "params", topics );
             }};
             Object ticker = (this.watchMultiple(url, messageHashes, this.extend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -552,7 +552,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("unsubscribed")));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
             Object method = ((Helpers.isTrue((Helpers.isEqual(unsubscribed, true))))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
             }};
@@ -570,7 +570,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             this.checkRequiredCredentials();
             Object listenKey = (this.authenticate(channel)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot"), "?listenKey="), listenKey);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "SUBSCRIPTION" );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
             }};
@@ -586,7 +586,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", requestParams );
             }};
@@ -608,7 +608,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object timestamp = String.valueOf(this.milliseconds());
             Object payload = Helpers.add(this.apiKey, timestamp);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", new java.util.HashMap<String, Object>() {{
                     put( "apiKey", MexcCore.this.apiKey );
@@ -1007,7 +1007,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object storedOrderBook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object nonce = this.safeInteger(storedOrderBook, "nonce");
         Object shouldReturn = false;
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
@@ -1709,7 +1709,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
     public String parseWsOrderStatus(Object status, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "open" );
             put( "1", "open" );
             put( "2", "closed" );
@@ -1726,7 +1726,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
 
     public String parseWsOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
             put( "2", "limit" );
             put( "3", null );
@@ -1741,7 +1741,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
 
     public String parseWsTimeInForce(Object timeInForce)
     {
-        Object timeInForceIds = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForceIds = new java.util.HashMap<String, Object>() {{
             put( "1", "GTC" );
             put( "2", "PO" );
             put( "3", "IOC" );
@@ -1905,7 +1905,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             String messageHash = (String) Helpers.add("unsubscribe:fundingRate:", Helpers.GetValue(market, "symbol"));
             Object url = null;
             Object channel = "unsub.funding.rate";
-            Object requestParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -1974,7 +1974,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             } else
             {
                 channel = "unsub.ticker";
-                Object requestParams = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
@@ -2021,7 +2021,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
             Object url = ((Helpers.isTrue((isSpot)))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchTickers does not support spot markets")) ;
@@ -2085,7 +2085,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:bidask:", Helpers.GetValue(symbols, i)));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "UNSUBSCRIPTION" );
                 put( "params", topics );
             }};
@@ -2134,7 +2134,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
                 Object channel = "unsub.kline";
-                Object requestParams = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                     put( "interval", timeframeId );
                 }};
@@ -2185,7 +2185,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
                 Object channel = "unsub.depth";
-                Object requestParams = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 final Object _final_parameters = parameters;
@@ -2231,7 +2231,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
                 Object channel = "unsub.deal";
-                Object requestParams = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 this.spawn(() -> { try { this.watchSwapPublic(channel, messageHash, requestParams, parameters); } catch(Exception _e) { throw new RuntimeException(_e); } });
@@ -2373,7 +2373,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 return null;
             }
             final Object finalListenKey = listenKey;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "listenKey", finalListenKey );
             }};
             try
@@ -2417,7 +2417,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         {
             Object parts = Helpers.split(msg, "@");
             Object channel = this.safeString(parts, 1);
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
                 put( "public.aggre.depth.v3.api.pb", "handleOrderBookSubscription");
             }};
@@ -2509,7 +2509,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object parts = Helpers.split(c, "@");
             channel = this.safeString(parts, 1, "");
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "public.deals.v3.api", "handleTrades");
             put( "push.deal", "handleTrades");
             put( "public.kline.v3.api", "handleOHLCV");

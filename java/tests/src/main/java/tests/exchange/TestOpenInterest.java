@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestOpenInterest extends BaseTest {
     public static void testOpenInterest(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "BTC/USDT" );
             put( "openInterestAmount", exchange.parseNumber("3544581864.598") );
             put( "openInterestValue", exchange.parseNumber("3544581864.598") );

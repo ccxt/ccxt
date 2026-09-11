@@ -502,7 +502,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -527,7 +527,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -600,7 +600,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTickersSymbol(this.extend(request, parameters))).join();
@@ -637,7 +637,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     public String parseOrderState(Object state)
     {
-        Object states = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> states = new java.util.HashMap<String, Object>() {{
             put( "OPEN", "open" );
             put( "REJECTED", "rejected" );
             put( "FILLED", "closed" );
@@ -743,7 +743,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             final Object finalUppercaseOrderType = uppercaseOrderType;
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ordType", finalUppercaseOrderType );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)finalSide).toUpperCase() );
@@ -810,7 +810,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             java.util.Map<String, Object> response = (this.privateDeleteOrdersOrderId(this.extend(request, parameters))).join();
@@ -844,7 +844,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Object marketId = this.marketId(symbol);
@@ -889,8 +889,8 @@ public class BlockchaincomCore extends BlockchaincomApi
             //
             Object makerFee = this.safeNumber(response, "makerRate");
             Object takerFee = this.safeNumber(response, "takerRate");
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -997,7 +997,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", state );
                 put( "limit", 100 );
             }};
@@ -1092,7 +1092,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
@@ -1129,7 +1129,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostDepositsCurrency(this.extend(request, parameters))).join();
@@ -1158,7 +1158,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     public String parseTransactionState(Object state)
     {
-        Object states = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> states = new java.util.HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );
             put( "REJECTED", "failed" );
             put( "PENDING", "pending" );
@@ -1275,7 +1275,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "beneficiary", address );
@@ -1322,7 +1322,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "from", since);
@@ -1359,7 +1359,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "withdrawalId", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetWithdrawalsWithdrawalId(this.extend(request, parameters))).join();
@@ -1392,7 +1392,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "from", since);
@@ -1430,7 +1430,7 @@ public class BlockchaincomCore extends BlockchaincomApi
                 (this.loadMarkets()).join();
             }
             String depositId = this.safeString(parameters, "depositId", id);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "depositId", depositId );
             }};
             java.util.Map<String, Object> deposit = (this.privateGetDepositsDepositId(this.extend(request, parameters))).join();
@@ -1459,7 +1459,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             String accountName = this.safeString(parameters, "account", "primary");
             parameters = this.omit(parameters, "account");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "account", accountName );
             }};
             java.util.Map<String, Object> response = (this.privateGetAccounts(this.extend(request, parameters))).join();
@@ -1483,7 +1483,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchBalance() could not find the \""), accountName), "\" account")) ;
             }
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
@@ -1524,7 +1524,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrdersOrderId(this.extend(request, parameters))).join();

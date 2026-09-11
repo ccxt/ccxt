@@ -166,7 +166,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object defaultType = this.safeString(this.options, "defaultType");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object rawTickers = this.safeList(data, "state_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object newTickers = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
         {
             Object entry = Helpers.GetValue(rawTickers, i);
@@ -305,7 +305,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 messageHash = Helpers.add(messageHash, ":swap");
             }
             final Object finalCurrencies = currencies;
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "balance.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "ccy_list", finalCurrencies );
@@ -513,7 +513,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                     messageHash = Helpers.add(messageHash, ":swap");
                 }
             }
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "method", "user_deals.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
@@ -685,7 +685,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Object marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
-        Object fee = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object feeCost = this.omitZero(this.safeString(trade, "fee"));
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -787,7 +787,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             Object subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@ticker"));
             final Object finalMarketIds = marketIds;
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "state.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", finalMarketIds );
@@ -881,7 +881,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             // const subscriptionHashes = [ 'trades' ];
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", subscribedSymbols );
@@ -920,7 +920,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             {
                 (this.loadMarkets()).join();
             }
-            Object watchOrderBookSubscriptions = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> watchOrderBookSubscriptions = new java.util.HashMap<String, Object>() {{}};
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object market = null;
             Object type = null;
@@ -962,7 +962,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", marketList );
@@ -1058,7 +1058,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object name = "orderbook";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
         Object timestamp = this.safeInteger(depth, "updated_at");
-        Object currentOrderBook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook currentOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Object fullOrderBook = this.safeBool(data, "is_full", false);
         if (Helpers.isTrue(Helpers.isEqual(fullOrderBook, true)))
         {
@@ -1152,7 +1152,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             }
             final Object finalMethod = method;
             final Object finalMarketList = marketList;
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "method", finalMethod );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", finalMarketList );
@@ -1448,7 +1448,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "active_success", "open" );
             put( "active_fail", "canceled" );
             put( "cancel", "canceled" );
@@ -1503,7 +1503,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             Object subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@bidsasks"));
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "bbo.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "market_list", marketIds );
@@ -1582,7 +1582,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         {
             this.handleErrors(1, "", client.url, ((String)method), new java.util.HashMap<String, Object>() {{}}, this.json(error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
         }
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "state.update", "handleTicker");
             put( "balance.update", "handleBalance");
             put( "deals.update", "handleTrades");
@@ -1696,12 +1696,12 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 return ((io.github.ccxt.ws.Future)future).getFuture().join();
             }
             Object requestId = this.requestId();
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "future", messageHash );
             }};
             Object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "server.sign" );
                 put( "params", new java.util.HashMap<String, Object>() {{

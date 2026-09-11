@@ -592,11 +592,15 @@ function isProvablyStringExpression (printer, node, selfName, narrowed) {
     }
 }
 
-// this.<member> — hand-written BaseExchange fields declared String (see the error-path
-// family; declared here so the prover is self-contained)
+// this.<member> — hand-written BaseExchange fields whose Java declaration is concrete
+// (used by the ws String prover and the error-path member family; the fields are audited
+// tree-wide: no generated exchange class redeclares any of them)
 const THIS_MEMBER_TYPES = {
     'id': 'String', 'version': 'String', 'name': 'String', 'secret': 'String',
     'apiKey': 'String', 'password': 'String', 'uid': 'String', 'login': 'String',
+    'url': 'String', 'hostname': 'String',
+    'symbols': 'java.util.List<Object>',
+    'markets_by_id': 'java.util.Map<String, Object>',
 };
 
 // the Java declaration of this base method returns String (checked on the printer's own
@@ -898,6 +902,25 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: 'String', cast: '(String)', strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
         }
     }
+    // ===== error paths: request/params object literals and typed base members =====
+    //
+    // `const request = {}` prints `new java.util.HashMap<String, Object>() {{}}` —
+    // assignable to java.util.Map<String, Object> with no cast (the box already is one).
+    // `Object x = this.<member>` reads a hand-written BaseExchange field whose Java
+    // declaration is concrete (`public String id`, `public volatile List<Object> symbols`,
+    // `public volatile Map<String, Object> markets_by_id`); no generated exchange class
+    // redeclares these (tree census: 0), so the local can carry the declared type.
+    // handleErrors has no Java return value (it throws) and the catch variable already
+    // prints `Exception` — both are no-ops today (see the header notes).
+    if (ts.isObjectLiteralExpression (initializer)) {
+        return { type: JAVA_STRUCTURE_TYPE, anyValueShape: true };
+    }
+    if (ts.isPropertyAccessExpression (initializer) && thisPropName (initializer) !== undefined) {
+        const memberType = THIS_MEMBER_TYPES[String (initializer.name.escapedText)];
+        if (memberType !== undefined) {
+            return { type: memberType };
+        }
+    }
     if (!isThisCall (initializer)) {
         return undefined;
     }
@@ -1004,6 +1027,11 @@ function isProvablyOfType (printer, node, javaType, selfName) {
         }
         case ts.SyntaxKind.ArrayLiteralExpression:
             return javaType === JAVA_ARRAY_TYPE;
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return javaType === JAVA_STRUCTURE_TYPE;
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return thisPropName (node) !== undefined
+                && THIS_MEMBER_TYPES[String (node.name.escapedText)] === javaType;
         default:
             return false;
     }
@@ -1128,13 +1156,14 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         if (ts.isElementAccessExpression (parent) && parent.expression === n) {
             // `x[k]` reads print Helpers.GetValue(x, k) and stay valid for every
-            // family; a write / delete through the local prints a receiver cast the
-            // narrowed type cannot satisfy ("...".remove((String)k) / List cast)
+            // family; a write / delete through a STRING local prints a receiver cast
+            // the String cannot satisfy ("...".remove((String)k) / List cast), so it
+            // rejects. Map/List/ws locals take the Object-parameter helper unchanged.
             const grand = parent.parent;
             if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
                 return false;
             }
-            if (grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+            if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
                 && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
                 return false;
             }

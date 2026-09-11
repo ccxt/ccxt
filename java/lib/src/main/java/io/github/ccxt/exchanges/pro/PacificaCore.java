@@ -80,7 +80,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
     public void setupApiKeyHeaders(Object... optionalArgs)
     {
         Object key = Helpers.getArg(optionalArgs, 0, null);
-        Object headers = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(!Helpers.isEqual(key, null)))
         {
             Helpers.addElementToObject(headers, "PF-API-KEY", key);
@@ -542,7 +542,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final Object finalAggLevel = aggLevel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "book" );
@@ -588,7 +588,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final Object finalAggLevel = aggLevel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "book" );
@@ -642,7 +642,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object levels = this.safeList(entry, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
         }};
@@ -711,7 +711,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "prices" );
@@ -753,7 +753,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "prices" );
@@ -803,7 +803,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "account_trades" );
@@ -855,7 +855,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "account_trades" );
@@ -945,7 +945,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
@@ -1003,7 +1003,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "trades" );
@@ -1047,7 +1047,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "trades" );
@@ -1225,7 +1225,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "candle" );
@@ -1271,7 +1271,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "candle" );
@@ -1374,7 +1374,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "account_order_updates" );
@@ -1426,7 +1426,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", "unsubscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
                     put( "source", "account_order_updates" );
@@ -1481,7 +1481,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         }
         Object stored = this.orders;
         Object messageHash = "order";
-        Object marketSymbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketSymbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawOrder = Helpers.GetValue(data, i);
@@ -1596,7 +1596,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object subHash = "order";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
-        Object topicStructure = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "orders" );
         }};
         this.cleanCache(topicStructure);
@@ -1607,7 +1607,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object subHash = "myTrades";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
-        Object topicStructure = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> topicStructure = new java.util.HashMap<String, Object>() {{
             put( "topic", "myTrades" );
         }};
         this.cleanCache(topicStructure);
@@ -1683,7 +1683,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         }
         Object postType = this.safeString(message, "type");
         Object topic = this.safeString(message, "channel", "");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "pong", "handlePong");
             put( "trades", "handleTrades");
             put( "book", "handleOrderBook");
@@ -1748,7 +1748,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             throw new ArgumentsRequired((String)Helpers.add(this.id, "postAction() requires a \"operationType\" argument!")) ;
         }
         Object requestId = this.requestId();
-        Object payload = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
             put( "id", requestId );
             put( "params", new java.util.HashMap<String, Object>() {{}} );
         }};

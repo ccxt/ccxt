@@ -78,7 +78,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             (this.authenticate(parameters)).join();
             String messageHash = (String) "balance";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "balances" );
             }};
@@ -124,7 +124,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         {
             return;
         }
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", message );
         }};
         Object balances = this.safeList(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -519,7 +519,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", "trading" );
             }};
@@ -722,7 +722,7 @@ final Object finalTradeId = tradeId;
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "open" );
             put( "open", "open" );
             put( "rejected", "rejected" );
@@ -761,7 +761,7 @@ final Object finalTradeId = tradeId;
             Object type = this.safeString(parameters, "type", "l2");
             parameters = this.omit(parameters, "type");
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), type);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channel", type );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -824,7 +824,7 @@ final Object finalTradeId = tradeId;
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
             Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "px", "qty", "num");
@@ -861,7 +861,7 @@ final Object finalTradeId = tradeId;
     public void handleMessage(Client client, Object message)
     {
         Object channel = this.safeString(message, "channel");
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "ticker", "handleTicker");
             put( "trades", "handleTrades");
             put( "prices", "handleOHLCV");
@@ -916,7 +916,7 @@ final Object finalTradeId = tradeId;
             if (Helpers.isTrue(Helpers.isEqual(isAuthenticated, null)))
             {
                 this.checkRequiredCredentials();
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "action", "subscribe" );
                     put( "channel", "auth" );
                     put( "token", BlockchaincomCore.this.secret );

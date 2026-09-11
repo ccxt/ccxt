@@ -37,7 +37,7 @@ public class TestPosition extends BaseTest {
                 put( "percentage", true );
             }}, skippedProperties);
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "XYZ/USDT" );
             put( "timestamp", 1504224000000L );

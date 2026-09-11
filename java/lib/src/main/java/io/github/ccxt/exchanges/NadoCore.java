@@ -483,14 +483,14 @@ public class NadoCore extends NadoApi
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             final Object finalAmountX18 = amountX18;
             final Object finalExpiration = expiration;
-            Object order = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "priceX18", priceX18 );
                 put( "amount", finalAmountX18 );
                 put( "expiration", finalExpiration );
                 put( "nonce", nonce );
             }};
-            Object placeOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> placeOrder = new java.util.HashMap<String, Object>() {{
                 put( "product_id", productId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(requestId, null)))
@@ -517,9 +517,9 @@ public class NadoCore extends NadoApi
                 parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
                 Object directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
-                Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> priceRequirement = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
-                Object trigger = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> trigger = new java.util.HashMap<String, Object>() {{
                     put( "price_trigger", new java.util.HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
                     }} );
@@ -537,9 +537,9 @@ public class NadoCore extends NadoApi
                 }
                 triggerPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
-                Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> priceRequirement = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", triggerDirection), triggerPriceX18);
-                Object trigger = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> trigger = new java.util.HashMap<String, Object>() {{
                     put( "price_trigger", new java.util.HashMap<String, Object>() {{
                         put( "price_requirement", priceRequirement );
                     }} );
@@ -558,7 +558,7 @@ public class NadoCore extends NadoApi
             Helpers.addElementToObject(placeOrder, "order", order);
             Helpers.addElementToObject(placeOrder, "signature", signature);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "triggerPrice", "stopPrice", "triggerDirection", "stopLossPrice", "takeProfitPrice")));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "place_order", placeOrder );
             }};
             return this.extend(request, parameters);
@@ -698,7 +698,7 @@ public class NadoCore extends NadoApi
             Object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
-            Object cancelTx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cancelTx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", new java.util.ArrayList<Object>(java.util.Arrays.asList(productId)) );
                 put( "digests", new java.util.ArrayList<Object>(java.util.Arrays.asList(id)) );
@@ -707,7 +707,7 @@ public class NadoCore extends NadoApi
             final Object finalAmountX18 = amountX18;
             final Object finalExpiration = expiration;
             final Object finalAppendix = appendix;
-            Object order = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "priceX18", priceX18 );
                 put( "amount", finalAmountX18 );
@@ -724,7 +724,7 @@ public class NadoCore extends NadoApi
             }
             Object cancelSignature = this.signCancellation(cancelTx, chainId, endpointAddress);
             Object orderSignature = this.signOrder(order, productId, chainId);
-            Object placeOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> placeOrder = new java.util.HashMap<String, Object>() {{
                 put( "product_id", productId );
                 put( "order", order );
                 put( "signature", orderSignature );
@@ -737,13 +737,13 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(placeOrder, "spot_leverage", spotLeverage);
             }
-            Object cancelAndPlace = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cancelAndPlace = new java.util.HashMap<String, Object>() {{
                 put( "cancel_tx", cancelTx );
                 put( "cancel_signature", cancelSignature );
                 put( "place_order", placeOrder );
                 put( "place_requires_unfilled", placeRequiresUnfilled );
             }};
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_and_place", cancelAndPlace );
             }};
             return this.extend(request, parameters);
@@ -860,7 +860,7 @@ public class NadoCore extends NadoApi
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", productIds );
                 put( "nonce", nonce );
@@ -875,7 +875,7 @@ public class NadoCore extends NadoApi
             Object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
             Object requestId = this.safeInteger(parameters, "id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id")));
-            Object cancelProductOrders = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cancelProductOrders = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
             }};
@@ -883,7 +883,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(cancelProductOrders, "id", requestId);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_product_orders", cancelProductOrders );
             }};
             return this.extend(request, parameters);
@@ -978,7 +978,7 @@ public class NadoCore extends NadoApi
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", productIds );
                 put( "digests", ids );
@@ -996,7 +996,7 @@ public class NadoCore extends NadoApi
             String requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
-            Object cancelOrders = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cancelOrders = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "signature", signature );
             }};
@@ -1011,7 +1011,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(cancelOrders, "id", requestId);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cancel_orders", cancelOrders );
             }};
             return this.extend(request, parameters);
@@ -1042,7 +1042,7 @@ public class NadoCore extends NadoApi
             }
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "order" );
                 put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
                 put( "digest", id );
@@ -1119,11 +1119,11 @@ public class NadoCore extends NadoApi
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             final Object finalRecvWindow = recvWindow;
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "recvTime", NadoCore.this.numberToString(Helpers.add(NadoCore.this.milliseconds(), finalRecvWindow)) );
             }};
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
                 put( "type", "list_trigger_orders" );
                 put( "product_ids", productIds );
@@ -1219,7 +1219,7 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "type", "subaccount_orders" );
                 put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
@@ -1322,7 +1322,7 @@ public class NadoCore extends NadoApi
                 Helpers.addElementToObject(ordersRequest, "limit", Helpers.mathMin(limit, 500));
             }
             final Object finalOrdersRequest = ordersRequest;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", finalOrdersRequest );
             }};
             java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
@@ -1470,7 +1470,7 @@ public class NadoCore extends NadoApi
                 Helpers.addElementToObject(matchesRequest, "limit", Helpers.mathMin(limit, 500));
             }
             final Object finalMatchesRequest = matchesRequest;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "matches", finalMatchesRequest );
             }};
             java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
@@ -1543,7 +1543,7 @@ public class NadoCore extends NadoApi
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
                 put( "subaccount", NadoCore.this.createSubaccount(NadoCore.this.walletAddress, finalSubaccount) );
             }};
@@ -1667,7 +1667,7 @@ public class NadoCore extends NadoApi
             eventsRequest = ((java.util.List<Object>) eventsRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) eventsRequestparametersVariable).get(1);
             final Object finalEventsRequest = eventsRequest;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "events", finalEventsRequest );
             }};
             java.util.Map<String, Object> response = (this.archivePost(this.deepExtend(request, parameters))).join();
@@ -1759,7 +1759,7 @@ public class NadoCore extends NadoApi
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subaccount_info" );
                 put( "subaccount", NadoCore.this.createSubaccount(NadoCore.this.walletAddress, finalSubaccount) );
             }};
@@ -1840,7 +1840,7 @@ public class NadoCore extends NadoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "time" );
             }};
             java.util.Map<String, Object> response = (this.gatewayPublicGetEdgeQuery(this.extend(request, parameters))).join();
@@ -1871,7 +1871,7 @@ public class NadoCore extends NadoApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "status" );
             }};
             java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
@@ -1920,7 +1920,7 @@ public class NadoCore extends NadoApi
             Object assets = this.safeList(responses, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // product_id is a JSON number: JS object keys are always strings but a Python
             // dict keeps int keys, so indexBy would never match the safeString lookups below
-            Object pairsById = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> pairsById = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
                 Object rawPair = Helpers.GetValue(pairs, i);
@@ -1930,7 +1930,7 @@ public class NadoCore extends NadoApi
                     Helpers.addElementToObject(pairsById, pairProductId, rawPair);
                 }
             }
-            Object assetsById = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> assetsById = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
@@ -1940,7 +1940,7 @@ public class NadoCore extends NadoApi
                     Helpers.addElementToObject(assetsById, assetProductId, rawAsset);
                 }
             }
-            Object assetsByCode = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> assetsByCode = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
@@ -2083,7 +2083,7 @@ public class NadoCore extends NadoApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> response = (this.gatewayV2PublicGetAssets(parameters)).join();
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object assets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
@@ -2277,7 +2277,7 @@ public class NadoCore extends NadoApi
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
             final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "interest_and_funding", new java.util.HashMap<String, Object>() {{
                     put( "subaccount", NadoCore.this.createSubaccount(NadoCore.this.walletAddress, finalSubaccount) );
                     put( "product_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(NadoCore.this.parseToInt(Helpers.GetValue(market, "id")))) );
@@ -2498,7 +2498,7 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
             final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker_id", tickerId );
                 put( "depth", ((Helpers.isTrue((Helpers.isEqual(finalLimit, null))))) ? 100 : finalLimit );
             }};
@@ -2547,7 +2547,7 @@ public class NadoCore extends NadoApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker_id", tickerId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2600,7 +2600,7 @@ public class NadoCore extends NadoApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "candlesticks", new java.util.HashMap<String, Object>() {{
                     put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
                     put( "granularity", NadoCore.this.safeInteger(NadoCore.this.timeframes, timeframe, NadoCore.this.parseTimeframe(timeframe)) );
@@ -2991,7 +2991,7 @@ public class NadoCore extends NadoApi
         //         "perp_balances": []
         //     }
         //
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeList(response, "spot_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3425,7 +3425,7 @@ public class NadoCore extends NadoApi
 
     public String parseOrderTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "default", "GTC" );
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
@@ -3545,7 +3545,7 @@ public class NadoCore extends NadoApi
             {
                 return cachedContracts;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "contracts" );
             }};
             java.util.Map<String, Object> response = (this.gatewayPublicGetQuery(this.extend(request, parameters))).join();
@@ -3580,13 +3580,13 @@ public class NadoCore extends NadoApi
 
     public Object signOrder(Object order, Object productId, Object chainId)
     {
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "Nado" );
             put( "version", "0.0.1" );
             put( "chainId", chainId );
             put( "verifyingContract", NadoCore.this.orderVerifyingContract(productId) );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "Order", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "sender" );
     put( "type", "bytes32" );
@@ -3614,13 +3614,13 @@ public class NadoCore extends NadoApi
 
     public Object signCancellation(Object cancellation, Object chainId, Object endpointAddress)
     {
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "Nado" );
             put( "version", "0.0.1" );
             put( "chainId", chainId );
             put( "verifyingContract", endpointAddress );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "Cancellation", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "sender" );
     put( "type", "bytes32" );
@@ -3642,13 +3642,13 @@ public class NadoCore extends NadoApi
 
     public Object signCancellationProducts(Object cancellation, Object chainId, Object endpointAddress)
     {
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "Nado" );
             put( "version", "0.0.1" );
             put( "chainId", chainId );
             put( "verifyingContract", endpointAddress );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "CancellationProducts", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "sender" );
     put( "type", "bytes32" );
@@ -3667,13 +3667,13 @@ public class NadoCore extends NadoApi
 
     public Object signFetchTriggerOrders(Object tx, Object chainId, Object endpointAddress)
     {
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "name", "Nado" );
             put( "version", "0.0.1" );
             put( "chainId", chainId );
             put( "verifyingContract", endpointAddress );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "ListTriggerOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "sender" );
     put( "type", "bytes32" );

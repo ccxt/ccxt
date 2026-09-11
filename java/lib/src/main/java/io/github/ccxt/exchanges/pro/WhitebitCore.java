@@ -255,7 +255,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         if (Helpers.isTrue(Helpers.isEqual(isSnapshot, true)))
@@ -349,7 +349,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)args).add(Helpers.GetValue(market, "id"));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", args );
@@ -853,7 +853,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
 
     public String parseWsOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
             put( "2", "market" );
             put( "202", "market" );
@@ -1065,7 +1065,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", reqParams );
@@ -1094,7 +1094,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(client, null)))
             {
-                Object subscription = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{}};
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
@@ -1145,7 +1145,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                     }
                     final Object finalMethod_2 = method;
                     final Object finalMarketIdsNew = marketIdsNew;
-                    Object resubRequest = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> resubRequest = new java.util.HashMap<String, Object>() {{
                         put( "id", id );
                         put( "method", finalMethod_2 );
                         put( "params", finalMarketIdsNew );
@@ -1172,7 +1172,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", method );
                 put( "params", reqParams );
@@ -1239,12 +1239,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 }
                 Object id = this.nonce();
                 final Object finalToken = token;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "authorize" );
                     put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalToken, "public")) );
                 }};
-                Object subscription = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "handleAuthenticate");
                 }};
@@ -1349,7 +1349,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.handleSubscriptionStatus(client, message, id);
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "market_update", "handleTicker");
             put( "trades_update", "handleTrades");
             put( "depth_update", "handleOrderBook");

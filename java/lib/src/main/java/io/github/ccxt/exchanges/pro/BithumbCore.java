@@ -213,7 +213,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object newTicker = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -543,11 +543,11 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object legacyTimestamp = this.parseToInt(Helpers.slice(timestampStr, 0, 13));
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, legacySymbol))))
             {
-                Object ob = this.orderBook();
+                io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
                 Helpers.addElementToObject(ob, "symbol", legacySymbol);
                 Helpers.addElementToObject(this.orderbooks, legacySymbol, ob);
             }
-            Object legacyOrderbook = Helpers.GetValue(this.orderbooks, legacySymbol);
+            io.github.ccxt.ws.WsOrderBook legacyOrderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, legacySymbol);
             this.handleDeltas(legacyOrderbook, list);
             Helpers.addElementToObject(legacyOrderbook, "timestamp", legacyTimestamp);
             Helpers.addElementToObject(legacyOrderbook, "datetime", this.iso8601(legacyTimestamp));
@@ -568,7 +568,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, obLimit));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Helpers.callDynamically(orderbook, "reset", new Object[]{new java.util.HashMap<String, Object>() {{}}});
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
@@ -1014,7 +1014,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object payload = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                     put( "access_key", BithumbCore.this.apiKey );
                     put( "nonce", BithumbCore.this.uuid() );
                     put( "timestamp", BithumbCore.this.milliseconds() );
@@ -1286,7 +1286,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object topic = this.safeString(message, "type");
         if (Helpers.isTrue(!Helpers.isEqual(topic, null)))
         {
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "ticker", "handleTicker");
                 put( "orderbookdepth", "handleOrderBook");
                 put( "orderbook", "handleOrderBook");

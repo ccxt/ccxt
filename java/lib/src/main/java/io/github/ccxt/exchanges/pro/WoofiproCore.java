@@ -99,7 +99,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/"), id);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -132,7 +132,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object name = "orderbook";
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -205,7 +205,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -308,7 +308,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             symbols = this.marketSymbols(symbols);
             Object name = "tickers";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -380,7 +380,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             symbols = this.marketSymbols(symbols);
             Object name = "bbos";
             Object topic = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -478,7 +478,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object name = "kline";
             Object topic = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -562,7 +562,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object topic = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -746,7 +746,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{
                         put( "orderly_key", WoofiproCore.this.apiKey );
@@ -771,7 +771,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -789,7 +789,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             (this.authenticate(parameters)).join();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Object requestId = this.requestId(url);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
             Object request = this.extend(subscribe, message);
@@ -834,7 +834,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -885,7 +885,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -973,7 +973,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(order, "timestamp");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", WoofiproCore.this.safeString(order, "totalFee") );
             put( "currency", WoofiproCore.this.safeString(order, "feeAsset") );
         }};
@@ -1442,7 +1442,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             }
             Object topic = "balance";
             Object messageHash = topic;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
             }};
@@ -1559,7 +1559,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ping", "handlePing");
             put( "pong", "handlePong");
             put( "subscribe", "handleSubscribe");

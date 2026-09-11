@@ -1103,7 +1103,7 @@ public class BullishCore extends BullishApi
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
         Object defaultType = Helpers.getArg(optionalArgs, 1, null);
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "SPOT", "spot" );
             put( "PERPETUAL", "swap" );
             put( "DATED_FUTURE", "future" );
@@ -1134,7 +1134,7 @@ public class BullishCore extends BullishApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetV1MarketsSymbolOrderbookHybrid(this.extend(request, parameters))).join();
@@ -1200,7 +1200,7 @@ public class BullishCore extends BullishApi
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters, maxLimit)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             parameters = this.handleSinceAndUntil(since, parameters);
@@ -1255,7 +1255,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             Object market = null;
@@ -1470,7 +1470,7 @@ public class BullishCore extends BullishApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetV1MarketsSymbolTick(this.extend(request, parameters))).join();
@@ -1774,7 +1774,7 @@ public class BullishCore extends BullishApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1852,7 +1852,7 @@ public class BullishCore extends BullishApi
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters, 100)).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2008,7 +2008,7 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "OPEN" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -2037,7 +2037,7 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "CANCELLED" );
                 put( "method", "privateGetV2Orders" );
             }};
@@ -2067,7 +2067,7 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2Orders" );
             }};
@@ -2097,7 +2097,7 @@ public class BullishCore extends BullishApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "CLOSED" );
                 put( "method", "privateGetV2HistoryOrders" );
             }};
@@ -2131,7 +2131,7 @@ public class BullishCore extends BullishApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "tradingAccountId", tradingAccountId );
             }};
@@ -2197,7 +2197,7 @@ public class BullishCore extends BullishApi
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "commandType", "V3CreateOrder" );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)((String)side)).toUpperCase() );
@@ -2276,7 +2276,7 @@ public class BullishCore extends BullishApi
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "commandType", "V1AmendOrder" );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "tradingAccountId", tradingAccountId );
@@ -2336,7 +2336,7 @@ public class BullishCore extends BullishApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "tradingAccountId", tradingAccountId );
                 put( "commandType", BullishCore.this.safeString(parameters, "commandType", "V3CancelOrder") );
@@ -2375,7 +2375,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             Object market = null;
@@ -2478,7 +2478,7 @@ public class BullishCore extends BullishApi
         String timeInForce = this.safeString(order, "timeInForce");
         String stopPrice = this.safeString(order, "stopPrice");
         String cost = this.safeString(order, "quoteAmount");
-        Object fee = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object quoteFee = this.safeNumber(order, "quoteFee");
         if (Helpers.isTrue(!Helpers.isEqual(quoteFee, null)))
         {
@@ -2515,7 +2515,7 @@ public class BullishCore extends BullishApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "OPEN", "open" );
             put( "CLOSED", "closed" );
             put( "CANCELLED", "canceled" );
@@ -2526,7 +2526,7 @@ public class BullishCore extends BullishApi
 
     public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "LMT", "limit" );
             put( "MKT", "market" );
             put( "POST_ONLY", "limit" );
@@ -2640,7 +2640,7 @@ public class BullishCore extends BullishApi
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             // todo check this method properly
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "command", new java.util.HashMap<String, Object>() {{
                     put( "commandType", "V1Withdraw" );
                     put( "destinationId", address );
@@ -2718,7 +2718,7 @@ public class BullishCore extends BullishApi
         Object sources = this.safeList(transactionDetails, "sources", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object source = this.safeDict(sources, 0, new java.util.HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
             put( "rate", null );
@@ -2755,7 +2755,7 @@ public class BullishCore extends BullishApi
 
     public String parseTransactionType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
             put( "WITHDRAW", "withdrawal" );
         }};
@@ -2764,7 +2764,7 @@ public class BullishCore extends BullishApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
             put( "FAILED", "failed" );
             put( "PENDING", "pending" );
@@ -2936,7 +2936,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};
             java.util.List<Object> response = (this.privateGetV1WalletsDepositInstructionsCryptoSymbol(this.extend(request, parameters))).join();
@@ -3024,7 +3024,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             Object response = null;
@@ -3061,7 +3061,7 @@ public class BullishCore extends BullishApi
 
     public Object parseBalanceForSingleCurrency(Object response, Object code)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object account = this.account();
@@ -3073,7 +3073,7 @@ public class BullishCore extends BullishApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -3111,7 +3111,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             java.util.List<Object> response = (this.privateGetV1DerivativesPositions(this.extend(request, parameters))).join();
@@ -3203,7 +3203,7 @@ public class BullishCore extends BullishApi
 
     public Object parsePositionSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "BUY", "long" );
             put( "SELL", "short" );
         }};
@@ -3244,7 +3244,7 @@ public class BullishCore extends BullishApi
                 parameters = this.handlePaginationParams("fetchTransfers", since, parameters);
                 return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "tradingAccountId", tradingAccountId );
             }};
             Object currency = null;
@@ -3310,7 +3310,7 @@ public class BullishCore extends BullishApi
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             // todo check this method properly
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "commandType", "V2TransferAsset" );
                 put( "assetSymbol", Helpers.GetValue(currency, "id") );
                 put( "quantity", BullishCore.this.currencyToPrecision(code, amount) );
@@ -3386,7 +3386,7 @@ public class BullishCore extends BullishApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "CLOSED", "ok" );
             put( "OPEN", "pending" );
             put( "REJECTED", "failed" );
@@ -3508,7 +3508,7 @@ public class BullishCore extends BullishApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetV1MarketsSymbolTick(this.extend(request, parameters))).join();

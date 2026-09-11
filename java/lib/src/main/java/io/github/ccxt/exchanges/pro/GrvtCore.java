@@ -97,7 +97,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "v1.ticker.s", "handleTicker");
             put( "v1.ticker.d", "handleTicker");
             put( "v1.mini.d", "handleTicker");
@@ -130,7 +130,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object publicOrPrivate = Helpers.getArg(optionalArgs, 0, true);
-            Object payload = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", request );
@@ -225,14 +225,14 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker::", Helpers.GetValue(market, "symbol")));
             }
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );
             }};
             Object ticker = (this.subscribeMultiple(messageHashes, this.extend(parameters, request), rawHashes)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -397,7 +397,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(limitRaw)));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", Helpers.GetValue(market, "symbol")));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", "v1.trade" );
                 put( "selectors", rawHashes );
             }};
@@ -530,7 +530,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(Helpers.add(marketId, "@"), timeframeId), "-TRADE"));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), unfiedTimeframe));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", "v1.candle" );
                 put( "selectors", rawHashes );
             }};
@@ -683,7 +683,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook::", Helpers.GetValue(market, "symbol")));
             }
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", finalChannel );
                 put( "selectors", rawHashes );
             }};
@@ -732,7 +732,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         Object stream = this.safeString(message, "stream");
         Object isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
@@ -784,7 +784,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 }
                 final Object finalCookieValue = cookieValue;
                 final Object finalAccountId = accountId;
-                Object defaultOptions = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>() {{
                     put( "ws", new java.util.HashMap<String, Object>() {{
                         put( "options", new java.util.HashMap<String, Object>() {{
                             put( "headers", new java.util.HashMap<String, Object>() {{
@@ -841,7 +841,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)messageHashes).add("myTrades");
                 ((java.util.List<Object>)rawHashes).add(subAccountId);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", "v1.fill" );
                 put( "selectors", rawHashes );
             }};
@@ -953,7 +953,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)messageHashes).add("positions");
                 ((java.util.List<Object>)rawHashes).add(subAccountId);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", "v1.position" );
                 put( "selectors", rawHashes );
             }};
@@ -1056,7 +1056,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("order::", Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "stream", "v1.order" );
                 put( "selectors", rawHashes );
             }};

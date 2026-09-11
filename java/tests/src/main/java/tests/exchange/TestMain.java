@@ -114,7 +114,7 @@ public class TestMain extends BaseTest
                 put( "isWs", TestMain.this.wsTests );
                 put( "useProxy", getCliArgValue("--useProxy") );
             }}, newLine);
-            Object exchangeArgs = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> exchangeArgs = new java.util.HashMap<String, Object>() {{
                 put( "verbose", TestMain.this.verbose );
                 put( "debug", TestMain.this.debug );
                 put( "enableRateLimit", true );
@@ -392,7 +392,7 @@ public class TestMain extends BaseTest
             }
         }
         // get "object-specific" skips
-        Object objectSkips = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> objectSkips = new java.util.HashMap<String, Object>() {{
             put( "orderBook", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrderBook", "fetchOrderBooks", "fetchL2OrderBook", "watchOrderBook", "watchOrderBookForSymbols")) );
             put( "ticker", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchTicker", "fetchTickers", "watchTicker", "watchTickers")) );
             put( "trade", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchTrades", "watchTrades", "watchTradesForSymbols")) );
@@ -558,7 +558,7 @@ public class TestMain extends BaseTest
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object primarySymbol = Helpers.GetValue(symbols, 0);
-            Object tests = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tests = new java.util.HashMap<String, Object>() {{
                 put( "features", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "afterConstruct", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -720,7 +720,7 @@ public class TestMain extends BaseTest
     public Object getMarketsFromExchange(BaseExchange exchange, Object... optionalArgs)
     {
         Object spot = Helpers.getArg(optionalArgs, 0, true);
-        Object res = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> res = new java.util.HashMap<String, Object>() {{}};
         Object markets = exchange.markets;
         Object keys = Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -885,7 +885,7 @@ public class TestMain extends BaseTest
                         Object volume = this.getTickerVolume(exchange, ticker);
                         if (Helpers.isTrue(Helpers.isGreaterThan(volume, 0)))
                         {
-                            Object entry = new java.util.HashMap<String, Object>() {{}};
+                            java.util.Map<String, Object> entry = new java.util.HashMap<String, Object>() {{}};
                             Helpers.addElementToObject(entry, "symbol", tickerSymbol);
                             Helpers.addElementToObject(entry, "volume", volume);
                             ((java.util.List<Object>)candidates).add(entry);
@@ -1127,7 +1127,7 @@ public class TestMain extends BaseTest
                         Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
                         eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
                     }
-                    Object eventParams = new java.util.HashMap<String, Object>() {{}};
+                    java.util.Map<String, Object> eventParams = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(!Helpers.isEqual(eventQuery, null)))
                     {
                         Helpers.addElementToObject(eventParams, "query", eventQuery);
@@ -1224,7 +1224,7 @@ public class TestMain extends BaseTest
             }
             dump("[INFO:MAIN] Selected prediction OUTCOME:", outcomeSymbol, "| EVENT:", exchange.json(eventId));
             final Object finalOutcomeSymbol = outcomeSymbol;
-            Object publicTests = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> publicTests = new java.util.HashMap<String, Object>() {{
                 put( "fetchStatus", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTime", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchTradingFee", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol)) );
@@ -1250,7 +1250,7 @@ public class TestMain extends BaseTest
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(this.privateTest) || Helpers.isTrue(this.privateTestOnly))) && !Helpers.isTrue(this.wsTests)))
             {
                 final Object finalOutcomeSymbol_2 = outcomeSymbol;
-                Object privateTests = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> privateTests = new java.util.HashMap<String, Object>() {{
                     put( "fetchBalance", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                     put( "fetchPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol_2)) );
                     put( "fetchMyTrades", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalOutcomeSymbol_2)) );
@@ -1455,7 +1455,7 @@ public class TestMain extends BaseTest
             //     await test ('InvalidOrder', exchange, symbol);
             //     await test ('InsufficientFunds', exchange, symbol, balance); // danger zone - won't execute with non-empty balance
             // }
-            Object tests = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tests = new java.util.HashMap<String, Object>() {{
                 put( "signIn", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchBalance", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
                 put( "fetchAccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1730,7 +1730,7 @@ public class TestMain extends BaseTest
     public Object loadStaticData(Object folder, Object... optionalArgs)
     {
         Object targetExchange = Helpers.getArg(optionalArgs, 0, null);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(targetExchange, null)) && Helpers.isTrue(!Helpers.isEqual(targetExchange, ""))))
         {
             // read a single exchange
@@ -1792,7 +1792,7 @@ public class TestMain extends BaseTest
 
     public Object urlencodedToDict(Object url)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object parts = Helpers.split(url, "&");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parts)); i++)
         {
@@ -2597,7 +2597,7 @@ public class TestMain extends BaseTest
         final Object finalCurrencies = currencies;
         final Object finalLibraryPath = libraryPath;
         final Object finalWasmExecPath = wasmExecPath;
-        Object options = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> options = new java.util.HashMap<String, Object>() {{
             put( "markets", finalMarkets );
             put( "currencies", finalCurrencies );
             put( "enableRateLimit", false );
@@ -3906,7 +3906,7 @@ public class TestMain extends BaseTest
             Object request = new java.util.HashMap<String, Object>() {{}};
             try
             {
-                Object parameters = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>() {{
                     put( "subaccount_id", 1234 );
                     put( "max_fee", 10 );
                     put( "deriveWalletAddress", "0x0ad42b8e602c2d3d475ae52d678cf63d84ab2749" );

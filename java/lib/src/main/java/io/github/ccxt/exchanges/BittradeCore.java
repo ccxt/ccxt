@@ -678,7 +678,7 @@ public class BittradeCore extends BittradeApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
             }
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -695,7 +695,7 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", id );
             }};
             java.util.Map<String, Object> response = (this.publicGetCommonExchange(this.extend(request, parameters))).join();
@@ -1018,7 +1018,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", "step0" );
             }};
@@ -1080,7 +1080,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.marketGetDetailMerged(this.extend(request, parameters))).join();
@@ -1137,7 +1137,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> response = (this.marketGetTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object timestamp = this.safeInteger(response, "ts");
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
@@ -1271,7 +1271,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrderOrdersIdMatchresults(this.extend(request, parameters))).join();
@@ -1305,7 +1305,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1349,7 +1349,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1441,7 +1441,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "period", BittradeCore.this.safeString(BittradeCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1504,7 +1504,7 @@ public class BittradeCore extends BittradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "language", BittradeCore.this.handleOption("fetchCurrencies", "language", "en-US") );
             }};
             java.util.Map<String, Object> response = (this.publicGetSettingsCurrencys(this.extend(request, parameters))).join();
@@ -1600,7 +1600,7 @@ public class BittradeCore extends BittradeApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeList(Helpers.GetValue(response, "data"), "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
@@ -1659,7 +1659,7 @@ public class BittradeCore extends BittradeApi
             }
             (this.loadAccounts()).join();
             Object method = this.handleOption("fetchBalance", "method", "privateGetAccountAccountsIdBalance");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
             }};
             Object response = null;
@@ -1688,7 +1688,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "states", states );
             }};
             Object market = null;
@@ -1748,7 +1748,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrderOrdersId(this.extend(request, parameters))).join();
@@ -1866,7 +1866,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1927,7 +1927,7 @@ public class BittradeCore extends BittradeApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "partial-filled", "open" );
             put( "partial-canceled", "canceled" );
             put( "filled", "closed" );
@@ -2090,7 +2090,7 @@ public class BittradeCore extends BittradeApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "account-id", Helpers.GetValue(Helpers.GetValue(BittradeCore.this.accounts, 0), "id") );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", Helpers.add(Helpers.add(finalSide, "-"), finalType) );
@@ -2239,7 +2239,7 @@ public class BittradeCore extends BittradeApi
             }
             Object clientOrderIds = this.safeValue2(parameters, "clientOrderIds", "client-order-ids");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds", "client-order-ids")));
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
                 Helpers.addElementToObject(request, "order-ids", ids);
@@ -2367,7 +2367,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2456,7 +2456,7 @@ public class BittradeCore extends BittradeApi
             {
                 currency = this.currency(code);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "deposit" );
                 put( "from", 0 );
             }};
@@ -2508,7 +2508,7 @@ public class BittradeCore extends BittradeApi
             {
                 currency = this.currency(code);
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "withdraw" );
                 put( "from", 0 );
             }};
@@ -2617,7 +2617,7 @@ public class BittradeCore extends BittradeApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "unknown", "failed" );
             put( "confirming", "pending" );
             put( "confirmed", "ok" );
@@ -2664,7 +2664,7 @@ public class BittradeCore extends BittradeApi
             }
             this.checkAddress(address);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "address", address );
                 put( "amount", amount );
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toLowerCase() );

@@ -73,12 +73,12 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = (String) Helpers.add("trades:", symbol);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
             }};
@@ -195,12 +195,12 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
             String messageHash = (String) Helpers.add("orderbook:", symbol);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
             }};
@@ -259,12 +259,12 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(snapshot));
         } else
         {
-            Object ob = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook ob = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             this.handleDelta(ob, message);
             Helpers.addElementToObject(ob, "timestamp", timestamp);
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);

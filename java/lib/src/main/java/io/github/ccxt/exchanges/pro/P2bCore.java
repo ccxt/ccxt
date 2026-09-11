@@ -87,7 +87,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", request );
                 put( "id", P2bCore.this.milliseconds() );
@@ -217,7 +217,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalName = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", Helpers.add(finalName, ".subscribe") );
                 put( "params", args );
                 put( "id", P2bCore.this.milliseconds() );
@@ -286,7 +286,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", marketIds );
                 put( "id", P2bCore.this.milliseconds() );
@@ -525,11 +525,11 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         String messageHash = (String) Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object limit = this.safeInteger(subscription, "limit");
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
-            orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         }
         if (Helpers.isTrue(Helpers.isEqual(isFullUpdate, true)))
         {
@@ -578,7 +578,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             return;
         }
         Object method = this.safeString(message, "method");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "depth.update", "handleOrderBook");
             put( "price.update", "handleTicker");
             put( "kline.update", "handleOHLCV");

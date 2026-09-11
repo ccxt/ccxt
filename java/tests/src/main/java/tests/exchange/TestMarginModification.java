@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestMarginModification extends BaseTest {
     public static void testMarginModification(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "type", "add" );
             put( "amount", exchange.parseNumber("0.1") );

@@ -71,7 +71,7 @@ public class TestFetchCurrencies extends BaseTest {
     public Object detectCurrencyConflicts(BaseExchange exchange, Object currencyValues)
     {
         // detect if there are currencies with different ids for the same code
-        Object ids = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(currencyValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {

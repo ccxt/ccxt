@@ -33,7 +33,7 @@ public class TestFetchMarkets extends BaseTest {
     public Object detectMarketConflicts(BaseExchange exchange, Object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
-        Object ids = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             Object market = Helpers.GetValue(marketValues, i);

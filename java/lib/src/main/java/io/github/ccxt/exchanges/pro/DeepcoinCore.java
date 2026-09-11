@@ -136,7 +136,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         }
         final Object finalAction = action;
         final Object finalMarketId = marketId;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "sendTopicAction", new java.util.HashMap<String, Object>() {{
                 put( "Action", finalAction );
                 put( "FilterValue", Helpers.add(Helpers.add("DeepCoin_", finalMarketId), suffix) );
@@ -158,7 +158,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), Helpers.GetValue(market, "type"));
             Object requestId = this.requestId();
             Object request = this.createPublicRequest(market, requestId, topicID, suffix);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "id", requestId );
             }};
@@ -253,7 +253,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                     } else
                     {
                         final Object finalListenKey = listenKey;
-                        Object request = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                             put( "listenkey", finalListenKey );
                         }};
                         response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
@@ -630,7 +630,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String parseTradeSide(Object direction)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "0", "buy" );
             put( "1", "sell" );
         }};
@@ -639,7 +639,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String handleTakerOrMaker(Object matchRole)
     {
-        Object roles = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> roles = new java.util.HashMap<String, Object>() {{
             put( "0", "maker" );
             put( "1", "taker" );
         }};
@@ -913,7 +913,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object orderedEntries = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderedEntries = new java.util.HashMap<String, Object>() {{
             put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
@@ -1242,7 +1242,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "closed" );
             put( "4", "open" );
             put( "6", "canceled" );
@@ -1406,7 +1406,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             return direction;
         }
-        Object directions = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> directions = new java.util.HashMap<String, Object>() {{
             put( "0", "long" );
             put( "1", "short" );
         }};
@@ -1419,7 +1419,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             return marginMode;
         }
-        Object modes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> modes = new java.util.HashMap<String, Object>() {{
             put( "0", "isolated" );
             put( "1", "cross" );
         }};

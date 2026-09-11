@@ -324,7 +324,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object message = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(newTopicsCount, 0)))
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "op", "subscribe" );
                     put( "args", newTopics );
                 }};
@@ -409,7 +409,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(isSnapshot))
         {
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "b", "a");
@@ -508,7 +508,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(ticker, "symbol"), ticker);
                 return result;
             }
@@ -887,7 +887,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
             Object rawTrade = Helpers.GetValue(lists, i);
@@ -944,7 +944,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object symbols = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
             Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
@@ -1097,7 +1097,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 // auth sign
                 final Object finalTimestamp = timestamp;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "type", "login" );
                     put( "topics", new java.util.ArrayList<Object>(java.util.Arrays.asList("ws_zk_accounts_v3")) );
                     put( "httpMethod", http_method );
@@ -1107,7 +1107,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                     put( "timestamp", finalTimestamp );
                     put( "signature", signature );
                 }};
-                Object message = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                     put( "op", "login" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.json(request))) );
                 }};
@@ -1232,7 +1232,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             return;
         }
         Object topic = this.safeString2(message, "topic", "op", "");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ws_zk_accounts_v3", "handleAccount");
             put( "orderBook", "handleOrderBook");
             put( "depth", "handleOrderBook");

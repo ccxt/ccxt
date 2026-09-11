@@ -103,7 +103,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             String messageHash = (String) "balance";
             Object subscribeHash = "ACCOUNT_HISTORY";
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -334,7 +334,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribeHash = "ACCOUNT_HISTORY";
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -533,7 +533,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribeHash = this.safeString(parameters, "channel", "ACCOUNT_HISTORY");
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -732,7 +732,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
     public String parseTradingOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "CANCELLED", "canceled" );
             put( "SELF_TRADE", "rejected" );
             put( "FILLED_FULLY", "closed" );
@@ -1089,7 +1089,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             final Object finalSymbol = symbol;
             final Object finalStatus = status;
-            Object orderObject = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderObject = new java.util.HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "symbol", finalSymbol );
                 put( "status", finalStatus );
@@ -1130,7 +1130,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_REJECTED", "rejected" );
             put( "ORDER_CLOSED", "closed" );
             put( "STOP_ORDER_TRIGGERED", "triggered" );
@@ -1238,7 +1238,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 {
                     Object marketTimeframeId = this.safeValue(timeframes, timeframe);
                     final Object finalI = i;
-                    Object property = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> property = new java.util.HashMap<String, Object>() {{
                         put( "instrument_code", Helpers.GetValue(marketIds, finalI) );
                         put( "time_granularity", marketTimeframeId );
                     }};
@@ -1246,7 +1246,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 }
             }
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "CANDLESTICKS" );
@@ -1388,7 +1388,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             return;
         }
         Object type = this.safeValue(message, "type");
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "ORDER_BOOK_UPDATE", "handleOrderBook");
             put( "ORDER_BOOK_SNAPSHOT", "handleOrderBook");
             put( "ACTIVE_ORDERS_SNAPSHOT", "handleOrders");
@@ -1472,7 +1472,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object numSymbols = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(numSymbols, 0)))
             {
-                Object marketsById = this.markets_by_id;
+                java.util.Map<String, Object> marketsById = this.markets_by_id;
                 if (Helpers.isTrue(Helpers.isEqual(marketsById, null)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1532,7 +1532,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 this.checkRequiredCredentials();
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "type", "AUTHENTICATE" );
                     put( "api_token", OnetradingCore.this.apiKey );
                 }};

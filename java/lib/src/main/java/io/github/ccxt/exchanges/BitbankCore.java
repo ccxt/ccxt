@@ -490,7 +490,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPairTicker(this.extend(request, parameters))).join();
@@ -522,7 +522,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPairDepth(this.extend(request, parameters))).join();
@@ -610,7 +610,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPairTransactions(this.extend(request, parameters))).join();
@@ -670,7 +670,7 @@ public class BitbankCore extends BitbankApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object pairs = this.safeList(data, "pairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
                 Object pair = Helpers.GetValue(pairs, i);
@@ -743,7 +743,7 @@ public class BitbankCore extends BitbankApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSince = since;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "candletype", BitbankCore.this.safeString(BitbankCore.this.timeframes, timeframe, timeframe) );
                 put( "yyyymmdd", BitbankCore.this.yyyymmdd(finalSince, "") );
@@ -778,7 +778,7 @@ public class BitbankCore extends BitbankApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -861,7 +861,7 @@ public class BitbankCore extends BitbankApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "UNFILLED", "open" );
             put( "PARTIALLY_FILLED", "open" );
             put( "FULLY_FILLED", "closed" );
@@ -938,7 +938,7 @@ public class BitbankCore extends BitbankApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "amount", BitbankCore.this.amountToPrecision(symbol, amount) );
                 put( "side", side );
@@ -977,7 +977,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1033,7 +1033,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1091,7 +1091,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1134,7 +1134,7 @@ public class BitbankCore extends BitbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1177,7 +1177,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetUserWithdrawalAccount(this.extend(request, parameters))).join();
@@ -1228,7 +1228,7 @@ public class BitbankCore extends BitbankApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
@@ -1395,7 +1395,7 @@ public class BitbankCore extends BitbankApi
         Object data = this.safeValue(response, "data");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(success, null)) || Helpers.isTrue(Helpers.isEqual(success, null))) || Helpers.isTrue(Helpers.isEqual(success, 0)))) || Helpers.isTrue((Helpers.isEqual(data, null)))))
         {
-            Object errorMessages = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> errorMessages = new java.util.HashMap<String, Object>() {{
                 put( "10000", "URL does not exist" );
                 put( "10001", "A system error occurred. Please contact support" );
                 put( "10002", "Invalid JSON format. Please check the contents of transmission" );

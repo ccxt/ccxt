@@ -145,7 +145,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object newTickers = (this.watchPublicMultiple(symbols, "ticker")).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(newTickers, "symbol"), newTickers);
                 return tickers;
             }
@@ -342,7 +342,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         // upbit always returns a snapshot of 15 topmost entries
         // the "REALTIME" deltas are not incremental
         // therefore we reset the orderbook on each update
@@ -438,7 +438,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object auth = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> auth = new java.util.HashMap<String, Object>() {{
                     put( "access_key", UpbitCore.this.apiKey );
                     put( "nonce", UpbitCore.this.uuid() );
                 }};
@@ -470,7 +470,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate()).join();
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalChannel );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -599,7 +599,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "wait", "open" );
             put( "done", "closed" );
             put( "cancel", "canceled" );
@@ -872,7 +872,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
 
     public void handleMessage(Client client, Object message)
     {
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "ticker", "handleTicker");
             put( "orderbook", "handleOrderBook");
             put( "trade", "handleTrades");

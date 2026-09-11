@@ -285,7 +285,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object timestamp = this.safeInteger(data, "ts");
         Object action = this.safeString(message, "action");
         if (Helpers.isTrue(Helpers.isEqual(action, "snapshot")))
@@ -353,7 +353,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object ticker = (this.watchMultipleWrapper(true, "tickers", "watchTickers", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -441,7 +441,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object ticker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(tickers, Helpers.GetValue(ticker, "symbol"), ticker);
                 return tickers;
             }
@@ -621,7 +621,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 throw new NotSupported((String)Helpers.add(this.id, " watchBalance() is not supported for spot markets yet")) ;
             }
             Object messageHash = Helpers.add(marketType, ":balance");
-            Object sub = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> sub = new java.util.HashMap<String, Object>() {{
                 put( "channel", "account" );
             }};
             Object request = this.getSubscriptionRequest(new java.util.ArrayList<Object>(java.util.Arrays.asList(sub)));
@@ -858,7 +858,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             String messageHash = (String) Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
-            Object requestParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> requestParams = new java.util.HashMap<String, Object>() {{
                 put( "channel", "funding-rate" );
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -957,7 +957,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                     }
                     final Object finalChannel = channel;
                     final Object finalMarket = market;
-                    Object topic = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> topic = new java.util.HashMap<String, Object>() {{
                         put( "channel", finalChannel );
                         put( "instId", Helpers.GetValue(finalMarket, "id") );
                     }};
@@ -1010,7 +1010,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         //
         // incoming data updates' examples can be seen under each handler method
         //
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "pong", "handlePong");
             put( "trades", "handleTrades");
             put( "books", "handleOrderBook");
@@ -1068,7 +1068,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object nonce = Helpers.add("n_", timestamp);
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/users/self/verify", "GET"), timestamp), ""), nonce);
             Object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "login" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "apiKey", BlofinCore.this.apiKey );

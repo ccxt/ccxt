@@ -787,7 +787,7 @@ public class GrvtCore extends GrvtApi
             {
                 return new java.util.HashMap<String, Object>() {{}};
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "api_key", GrvtCore.this.apiKey );
             }};
             java.util.Map<String, Object> response = (this.privateEdgePostAuthApiKeyLogin(this.extend(request, parameters))).join();
@@ -1087,7 +1087,7 @@ public class GrvtCore extends GrvtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "", "" );
             }}; // workaround for php [] empty arr
             java.util.Map<String, Object> response = (this.publicMarketPostFullV1Currency(request)).join();
@@ -1170,7 +1170,7 @@ public class GrvtCore extends GrvtApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
             }};
             java.util.Map<String, Object> response = (this.publicMarketPostFullV1Ticker(this.extend(request, parameters))).join();
@@ -1294,7 +1294,7 @@ public class GrvtCore extends GrvtApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
             }};
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1533,7 +1533,7 @@ public class GrvtCore extends GrvtApi
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "interval", GrvtCore.this.safeString(GrvtCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object priceTypeMap = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> priceTypeMap = new java.util.HashMap<String, Object>() {{
                 put( "last", "TRADE" );
                 put( "mark", "MARK" );
                 put( "index", "INDEX" );
@@ -1728,7 +1728,7 @@ public class GrvtCore extends GrvtApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             java.util.Map<String, Object> response = (this.privateTradingPostFullV1AccountSummary(this.extend(request, parameters))).join();
@@ -1795,7 +1795,7 @@ public class GrvtCore extends GrvtApi
         //        }
         //
         Object timestamp = this.safeIntegerProduct(response, "event_time", 0.000001);
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", GrvtCore.this.iso8601(timestamp) );
@@ -2544,7 +2544,7 @@ public class GrvtCore extends GrvtApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object orderLeg = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderLeg = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "size", GrvtCore.this.amountToPrecision(symbol, amount) );
             }};
@@ -2575,7 +2575,7 @@ public class GrvtCore extends GrvtApi
             String subAccountId = this.getSubAccountId(parameters);
             Object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
             final Object finalClientOrderId = clientOrderId;
-            Object orderRequest = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderRequest = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
                 put( "time_in_force", null );
                 put( "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderLeg)) );
@@ -2598,7 +2598,7 @@ public class GrvtCore extends GrvtApi
                 timeInForce = "GOOD_TILL_TIME";
             } else
             {
-                Object tifMap = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> tifMap = new java.util.HashMap<String, Object>() {{
                     put( "GTC", "GOOD_TILL_TIME" );
                     put( "FOK", "FILL_OR_KILL" );
                     put( "IOC", "IMMEDIATE_OR_CANCEL" );
@@ -2692,7 +2692,7 @@ public class GrvtCore extends GrvtApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("builderFee")));
             Object signedOrderRequest = this.createSignedRequest(orderRequest, eipType);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order", signedOrderRequest );
             }};
             java.util.Map<String, Object> response = (this.privateTradingPostFullV1CreateOrder(this.extend(request, parameters))).join();
@@ -2786,7 +2786,7 @@ public class GrvtCore extends GrvtApi
             Object sizeDecLength = Helpers.add(((String)sizeDec).length(), 0); // php tr
             Object sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
-            Object legOrder = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> legOrder = new java.util.HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(Helpers.GetValue(market, "info"), "instrument_hash") );
                 put( "contractSize", GrvtCore.this.parseToInt(sizeInteger) );
                 put( "isBuyingContract", Helpers.GetValue(leg, "is_buying_asset") );
@@ -2808,7 +2808,7 @@ public class GrvtCore extends GrvtApi
             }
             ((java.util.List<Object>)legs).add(legOrder);
         }
-        Object returnValue = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> returnValue = new java.util.HashMap<String, Object>() {{
             put( "subAccountID", Helpers.GetValue(order, "sub_account_id") );
             put( "isMarket", Helpers.GetValue(order, "is_market") );
             put( "timeInForce", GrvtCore.this.timeInForceToInt(Helpers.GetValue(order, "time_in_force")) );
@@ -2936,7 +2936,7 @@ public class GrvtCore extends GrvtApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -3065,7 +3065,7 @@ public class GrvtCore extends GrvtApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             java.util.Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
@@ -3109,7 +3109,7 @@ public class GrvtCore extends GrvtApi
             }
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "leverage", GrvtCore.this.numberToString(leverage) );
@@ -3174,7 +3174,7 @@ public class GrvtCore extends GrvtApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             java.util.Map<String, Object> response = (this.privateTradingPostFullV1GetAllInitialLeverage(this.extend(request, parameters))).join();
@@ -3458,7 +3458,7 @@ public class GrvtCore extends GrvtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             java.util.Map<String, Object> response = (this.privateTradingPostFullV1OpenOrders(this.extend(request, parameters))).join();
@@ -3548,7 +3548,7 @@ public class GrvtCore extends GrvtApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             String subAccountId = this.getSubAccountId(parameters);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
@@ -3771,7 +3771,7 @@ public class GrvtCore extends GrvtApi
 
     public String parseTimeInForce(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "GOOD_TILL_TIME", "GTC" );
             put( "IMMEDIATE_OR_CANCEL", "IOC" );
             put( "FILL_OR_KILL", "FOK" );
@@ -3783,7 +3783,7 @@ public class GrvtCore extends GrvtApi
 
     public Object timeInForceToInt(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GOOD_TILL_TIME", 1 );
             put( "ALL_OR_NONE", 2 );
             put( "IMMEDIATE_OR_CANCEL", 3 );
@@ -3795,7 +3795,7 @@ public class GrvtCore extends GrvtApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "pending" );
             put( "OPEN", "open" );
             put( "FILLED", "closed" );
@@ -3822,7 +3822,7 @@ public class GrvtCore extends GrvtApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3867,7 +3867,7 @@ public class GrvtCore extends GrvtApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             String subAccoubntId = this.getSubAccountId(parameters);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccoubntId );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");

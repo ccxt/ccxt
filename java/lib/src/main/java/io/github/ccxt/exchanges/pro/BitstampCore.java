@@ -80,7 +80,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object channel = Helpers.add("diff_order_book_", Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -231,7 +231,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             String messageHash = (String) Helpers.add("trades:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object channel = Helpers.add("live_trades_", Helpers.GetValue(market, "id"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -597,7 +597,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "live_trades", "handleTrade");
             put( "diff_order_book", "handleOrderBook");
             put( "private-my_orders", "handleOrders");
@@ -759,7 +759,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             (this.authenticate()).join();
             messageHash = Helpers.add(messageHash, Helpers.add("-", Helpers.GetValue(this.options, "userId")));
             final Object finalMessageHash = messageHash;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", finalMessageHash );

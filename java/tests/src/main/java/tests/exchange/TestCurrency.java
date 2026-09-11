@@ -17,7 +17,7 @@ public class TestCurrency extends BaseTest {
         {
             return;
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "id", "btc" );
             put( "code", "BTC" );
         }};
