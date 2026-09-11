@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestLastPrice extends BaseTest {
     public static void testLastPrice(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );
             put( "timestamp", 1502962946216L );
@@ -21,7 +21,7 @@ public class TestLastPrice extends BaseTest {
             put( "price", exchange.parseNumber("1.234") );
             put( "side", "buy" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "side", "price")); // binance sometimes provides empty prices for old pairs
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "side", "price")); // binance sometimes provides empty prices for old pairs
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //

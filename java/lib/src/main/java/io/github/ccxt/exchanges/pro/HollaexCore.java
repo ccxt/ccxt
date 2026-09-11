@@ -298,7 +298,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object marketIds = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
@@ -447,7 +447,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         {
             rawOrders = data;
         }
-        Object marketIds = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object order = Helpers.GetValue(rawOrders, i);
@@ -547,7 +547,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
@@ -582,13 +582,13 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Object auth = Helpers.add(Helpers.add("CONNECT", "/stream"), expires);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
-            Object authParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> authParams = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );
                 put( "api-signature", signature );
                 put( "api-expires", finalExpires );
             }};
             Object signedUrl = Helpers.add(Helpers.add(url, "?"), this.urlencode(authParams));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
@@ -719,7 +719,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             this.handlePong(client, message);
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "trade", "handleTrades");
             put( "orderbook", "handleOrderBook");
             put( "order", "handleOrder");

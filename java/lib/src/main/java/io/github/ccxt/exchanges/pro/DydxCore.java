@@ -70,7 +70,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_trades" );
                 put( "id", Helpers.GetValue(market, "id") );
@@ -107,7 +107,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_trades" );
                 put( "id", Helpers.GetValue(market, "id") );
@@ -219,7 +219,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_orderbook" );
                 put( "id", Helpers.GetValue(market, "id") );
@@ -252,7 +252,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_orderbook" );
                 put( "id", Helpers.GetValue(market, "id") );
@@ -350,7 +350,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
             Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_candles" );
                 put( "id", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "/"), resolution) );
@@ -391,7 +391,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
             Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_candles" );
                 put( "id", Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "/"), resolution) );
@@ -502,7 +502,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             Object topic = this.safeString(message, "channel");
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "v4_trades", "handleTrades");
                 put( "v4_orderbook", "handleOrderBook");
                 put( "v4_candles", "handleOHLCV");

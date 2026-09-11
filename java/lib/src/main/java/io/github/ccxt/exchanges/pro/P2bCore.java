@@ -87,7 +87,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", request );
                 put( "id", P2bCore.this.milliseconds() );
@@ -207,8 +207,8 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object market = this.market(Helpers.GetValue((java.util.List<String>)(symbols), i));
@@ -217,7 +217,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalName = name;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "method", Helpers.add(finalName, ".subscribe") );
                 put( "params", args );
                 put( "id", P2bCore.this.milliseconds() );
@@ -276,7 +276,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -286,7 +286,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             Object marketIds = this.marketIds(symbols);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "deals.subscribe" );
                 put( "params", marketIds );
                 put( "id", P2bCore.this.milliseconds() );
@@ -578,7 +578,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             return;
         }
         Object method = this.safeString(message, "method");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "depth.update", "handleOrderBook");
             put( "price.update", "handleTicker");
             put( "kline.update", "handleOHLCV");

@@ -105,7 +105,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object request = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object id = String.valueOf(this.requestId());
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
                 put( "method", "subscribe" );
@@ -127,12 +127,12 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Object token = (this.handleToken()).join();
-            Object cookies = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cookies = new java.util.HashMap<String, Object>() {{
                 put( "JWT_COOKIE", token );
             }};
             Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "cookies", cookies);
             Object id = String.valueOf(this.requestId());
-            Object message = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
                 put( "method", "subscribe" );
@@ -395,7 +395,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object bids = this.separateBidsOrAsks(this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object asks = this.separateBidsOrAsks(this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-        Object snapshot = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> snapshot = new java.util.HashMap<String, Object>() {{
             put( "bids", bids );
             put( "asks", asks );
         }};
@@ -413,7 +413,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
 
     public Object separateBidsOrAsks(Object entry)
     {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
@@ -546,7 +546,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object orders = this.orders;
-            Object symbols = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
@@ -558,7 +558,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             client.resolve(orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -679,7 +679,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object trades = this.myTrades;
-            Object symbols = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
@@ -691,7 +691,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             client.resolve(trades, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -880,7 +880,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object positions = this.positions;
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);

@@ -83,7 +83,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "ORDERBOOK" );
                 put( "topic", new java.util.HashMap<String, Object>() {{
@@ -179,7 +179,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TICKER" );
                 put( "topic", new java.util.HashMap<String, Object>() {{
@@ -317,7 +317,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
                 put( "channel", "TRADE" );
                 put( "topic", new java.util.HashMap<String, Object>() {{
@@ -448,7 +448,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         if (Helpers.isTrue(Helpers.isEqual(type, "DATA")))
         {
             Object topic = ((String)this.safeString(message, "channel", ""));
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "ORDERBOOK", "handleOrderBook");
                 put( "TICKER", "handleTicker");
                 put( "TRADE", "handleTrades");

@@ -14,7 +14,7 @@ import io.github.ccxt.base.Precise;
 public class TestBalance extends BaseTest {
     public static void testBalance(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "free", new java.util.HashMap<String, Object>() {{}} );
             put( "used", new java.util.HashMap<String, Object>() {{}} );
             put( "total", new java.util.HashMap<String, Object>() {{}} );

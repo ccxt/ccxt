@@ -100,10 +100,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "balance";
-            Object subscribeHash = "ACCOUNT_HISTORY";
+            String messageHash = "balance";
+            String subscribeHash = "ACCOUNT_HISTORY";
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -147,7 +147,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         this.balance = this.parseBalance(message);
-        Object messageHash = "balance";
+        String messageHash = "balance";
         client.resolve(this.balance, messageHash);
     }
 
@@ -332,9 +332,9 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object subscribeHash = "ACCOUNT_HISTORY";
+            String subscribeHash = "ACCOUNT_HISTORY";
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -533,7 +533,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribeHash = this.safeString(parameters, "channel", "ACCOUNT_HISTORY");
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -732,7 +732,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
     public String parseTradingOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "CANCELLED", "canceled" );
             put( "SELF_TRADE", "rejected" );
             put( "FILLED_FULLY", "closed" );
@@ -1089,7 +1089,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             final Object finalSymbol = symbol;
             final Object finalStatus = status;
-            Object orderObject = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderObject = new java.util.HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "symbol", finalSymbol );
                 put( "status", finalStatus );
@@ -1106,7 +1106,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.orders, Helpers.add("orders:", symbol));
         client.resolve(this.orders, "orders");
         // update balance
-        Object balanceKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
+        java.util.List<Object> balanceKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object newBalance = this.safeValue(update, Helpers.GetValue(balanceKeys, i));
@@ -1130,7 +1130,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_REJECTED", "rejected" );
             put( "ORDER_CLOSED", "closed" );
             put( "STOP_ORDER_TRIGGERED", "triggered" );
@@ -1196,9 +1196,9 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 throw new NotSupported((String)Helpers.add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
             }
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv.", symbol), "."), timeframe);
-            Object subscriptionHash = "CANDLESTICKS";
+            String subscriptionHash = "CANDLESTICKS";
             Client client = (Client)this.safeValue(this.clients, url);
-            Object type = "SUBSCRIBE";
+            String type = "SUBSCRIBE";
             Object subscription = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(client, null)))
             {
@@ -1229,7 +1229,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), timeframe, true);
             }
-            Object properties = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> properties = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = Helpers.objectKeys(subscription);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -1238,7 +1238,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 {
                     Object marketTimeframeId = this.safeValue(timeframes, timeframe);
                     final Object finalI = i;
-                    Object property = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> property = new java.util.HashMap<String, Object>() {{
                         put( "instrument_code", Helpers.GetValue(marketIds, finalI) );
                         put( "time_granularity", marketTimeframeId );
                     }};
@@ -1246,7 +1246,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 }
             }
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "CANDLESTICKS" );
@@ -1306,7 +1306,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(timeframeId, timeframes);
         Object channel = Helpers.add(Helpers.add(Helpers.add("ohlcv.", symbol), "."), timeframe);
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parse8601(dateTime), this.safeNumber(message, "open"), this.safeNumber(message, "high"), this.safeNumber(message, "low"), this.safeNumber(message, "close"), this.safeNumber(message, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -1388,7 +1388,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             return;
         }
         Object type = this.safeValue(message, "type");
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "ORDER_BOOK_UPDATE", "handleOrderBook");
             put( "ORDER_BOOK_SNAPSHOT", "handleOrderBook");
             put( "ACTIVE_ORDERS_SNAPSHOT", "handleOrders");
@@ -1484,7 +1484,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = (Client)this.safeValue(this.clients, url);
-            Object type = "SUBSCRIBE";
+            String type = "SUBSCRIBE";
             Object subscription = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(client, null)))
             {
@@ -1526,13 +1526,13 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 this.checkRequiredCredentials();
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "type", "AUTHENTICATE" );
                     put( "api_token", OnetradingCore.this.apiKey );
                 }};

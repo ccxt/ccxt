@@ -595,7 +595,7 @@ public class CoinspotCore extends CoinspotApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balances = this.safeValue2(response, "balance", "balances");
@@ -706,7 +706,7 @@ public class CoinspotCore extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
             Object orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
@@ -833,7 +833,7 @@ public class CoinspotCore extends CoinspotApi
             //        }
             //    }
             //
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -876,7 +876,7 @@ public class CoinspotCore extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privatePostOrdersHistory(this.extend(request, parameters))).join();
@@ -918,7 +918,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1022,7 +1022,7 @@ public class CoinspotCore extends CoinspotApi
             String audGst = this.safeString(trade, "audGst");
             // The transaction fee which consumers pay is inclusive of GST by default
             Object feeCost = Precise.stringAdd(audfeeExGst, audGst);
-            Object feeCurrencyId = "AUD";
+            String feeCurrencyId = "AUD";
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", CoinspotCore.this.parseNumber(feeCost) );
                 put( "currency", CoinspotCore.this.safeCurrencyCode(feeCurrencyId) );
@@ -1084,7 +1084,7 @@ public class CoinspotCore extends CoinspotApi
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
                 put( "amount", amount );
                 put( "rate", price );
@@ -1135,7 +1135,7 @@ public class CoinspotCore extends CoinspotApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a side parameter, \"buy\" or \"sell\"")) ;
             }
             parameters = this.omit(parameters, "side");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object response = null;

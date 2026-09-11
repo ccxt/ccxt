@@ -38,7 +38,7 @@ public class TestFetchTickers extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object method = "fetchTickers";
+        String method = "fetchTickers";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         Object values = Helpers.objectValues(response);
@@ -81,7 +81,7 @@ public class TestFetchTickers extends BaseTest {
             Object nonInactiveMarkets = TestSharedMethods.getActiveMarkets(exchange);
             Object notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
             Object obtainedTickersLength = Helpers.getArrayLength(tickersValues);
-            Object minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
+            Double minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(notInactiveSymbolsLength)), " active markets"));
             //
             // ensure tickers length is less than markets length

@@ -516,7 +516,7 @@ public class CryptomusCore extends CryptomusApi
         // currency here is array of networks
         Object id = null; // all entries have same id, as they were grouped by
         Object code = null;
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrency)); i++)
         {
             Object networkEntry = Helpers.GetValue(rawCurrency, i);
@@ -665,7 +665,7 @@ public class CryptomusCore extends CryptomusApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object level = 0;
@@ -724,7 +724,7 @@ public class CryptomusCore extends CryptomusApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetV1ExchangeMarketTradesCurrencyPair(this.extend(request, parameters))).join();
@@ -805,7 +805,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = (this.privateGetV2UserApiExchangeAccountBalance(this.extend(request, parameters))).join();
             //
             //     {
@@ -833,7 +833,7 @@ public class CryptomusCore extends CryptomusApi
         //         "held": "0.00000000"
         //     }
         //
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", balance );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balance)); i++)
@@ -883,7 +883,7 @@ public class CryptomusCore extends CryptomusApi
             }
             Object market = this.market(symbol);
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "direction", finalSide );
                 put( "tag", "ccxt" );
@@ -894,7 +894,7 @@ public class CryptomusCore extends CryptomusApi
                 parameters = this.omit(parameters, "clientOrderId");
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             }
-            Object sideBuy = Helpers.isEqual(side, "buy");
+            Boolean sideBuy = Helpers.isEqual(side, "buy");
             Object amountToString = this.numberToString(amount);
             Object priceToString = this.numberToString(price);
             Object cost = null;
@@ -973,7 +973,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(request, "orderId", id);
             Object response = (this.privateDeleteV2UserApiExchangeOrdersOrderId(this.extend(request, parameters))).join();
             //
@@ -1017,7 +1017,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1069,7 +1069,7 @@ public class CryptomusCore extends CryptomusApi
             //     }
             //
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object order = Helpers.GetValue(result, i);
@@ -1114,7 +1114,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 market = this.market(symbol);
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
@@ -1266,7 +1266,7 @@ public class CryptomusCore extends CryptomusApi
     public String parseOrderStatus(Object... optionalArgs)
     {
         Object status = Helpers.getArg(optionalArgs, 0, null);
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "active", "open" );
             put( "completed", "closed" );
             put( "partially_completed", "open" );
@@ -1347,7 +1347,7 @@ public class CryptomusCore extends CryptomusApi
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
             Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
             Object symbols = this.symbols;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
@@ -1377,8 +1377,8 @@ public class CryptomusCore extends CryptomusApi
     public Object parseFeeTiers(Object feeTiers, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);

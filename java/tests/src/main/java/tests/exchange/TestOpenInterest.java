@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestOpenInterest extends BaseTest {
     public static void testOpenInterest(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "BTC/USDT" );
             put( "openInterestAmount", exchange.parseNumber("3544581864.598") );
             put( "openInterestValue", exchange.parseNumber("3544581864.598") );
@@ -21,7 +21,7 @@ public class TestOpenInterest extends BaseTest {
             put( "datetime", "2022-04-07T23:20:00.000Z" );
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "timestamp", "openInterestAmount", "openInterestValue", "datetime"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol");
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);

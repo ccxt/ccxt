@@ -540,7 +540,7 @@ public class LatokenCore extends LatokenApi
             }
             Object currencies = this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
             Object currenciesById = this.indexBy(currencies, "id");
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
@@ -680,7 +680,7 @@ public class LatokenCore extends LatokenApi
         String tag = this.safeString(currency, "tag");
         String code = (String) this.safeCurrencyCode(tag);
         String currencyType = this.safeString(currency, "type");
-        Object isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
+        Boolean isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -747,7 +747,7 @@ public class LatokenCore extends LatokenApi
             //         }
             //     ]
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "timestamp", null );
                 put( "datetime", null );
@@ -812,7 +812,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -847,8 +847,8 @@ public class LatokenCore extends LatokenApi
             // aggregation failed to drop, so it is removed here
             Object rawAsks = this.safeList(response, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawBids = this.safeList(response, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
             {
                 Object askEntry = Helpers.GetValue(rawAsks, i);
@@ -867,7 +867,7 @@ public class LatokenCore extends LatokenApi
                     ((java.util.List<Object>)bids).add(bidEntry);
                 }
             }
-            Object filtered = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> filtered = new java.util.HashMap<String, Object>() {{
                 put( "ask", asks );
                 put( "bid", bids );
             }};
@@ -946,7 +946,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "base", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -1079,8 +1079,8 @@ public class LatokenCore extends LatokenApi
                 side = "sell";
             }
         }
-        Object isBuy = (Helpers.isEqual(side, "buy"));
-        Object isMaker = Helpers.isTrue((Helpers.isEqual(makerBuyer, true))) && Helpers.isTrue(isBuy);
+        Boolean isBuy = (Helpers.isEqual(side, "buy"));
+        Boolean isMaker = Helpers.isTrue((Helpers.isEqual(makerBuyer, true))) && Helpers.isTrue(isBuy);
         Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
@@ -1147,7 +1147,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -1213,7 +1213,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -1249,7 +1249,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -1299,7 +1299,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1341,7 +1341,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_STATUS_PLACED", "open" );
             put( "ORDER_STATUS_CLOSED", "closed" );
             put( "ORDER_STATUS_CANCELLED", "canceled" );
@@ -1351,7 +1351,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_TYPE_MARKET", "market" );
             put( "ORDER_TYPE_LIMIT", "limit" );
         }};
@@ -1360,7 +1360,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ORDER_CONDITION_GOOD_TILL_CANCELLED", "GTC" );
             put( "ORDER_CONDITION_IMMEDIATE_OR_CANCEL", "IOC" );
             put( "ORDER_CONDITION_FILL_OR_KILL", "FOK" );
@@ -1519,7 +1519,7 @@ public class LatokenCore extends LatokenApi
             parameters = this.omit(parameters, "stop");
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
             }};
@@ -1585,7 +1585,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
@@ -1666,7 +1666,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
@@ -1742,7 +1742,7 @@ public class LatokenCore extends LatokenApi
             }
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "baseCurrency", Helpers.GetValue(market, "baseId") );
                 put( "quoteCurrency", Helpers.GetValue(market, "quoteId") );
                 put( "side", ((String)finalSide).toUpperCase() );
@@ -1807,7 +1807,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
@@ -1856,7 +1856,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
@@ -1923,7 +1923,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = (this.privateGetAuthTransaction(this.extend(request, parameters))).join();
             //
             //     {
@@ -1993,7 +1993,7 @@ public class LatokenCore extends LatokenApi
         String addressTo = this.safeString(transaction, "recipientAddress");
         String txid = this.safeString(transaction, "transactionHash");
         String tagTo = this.safeString(transaction, "memo");
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
             put( "rate", null );
@@ -2031,7 +2031,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "TRANSACTION_STATUS_CONFIRMED", "ok" );
             put( "TRANSACTION_STATUS_EXECUTED", "ok" );
             put( "TRANSACTION_STATUS_CHECKING", "pending" );
@@ -2044,7 +2044,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseTransactionType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "TRANSACTION_TYPE_DEPOSIT", "deposit" );
             put( "TRANSACTION_TYPE_WITHDRAWAL", "withdrawal" );
         }};
@@ -2139,7 +2139,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "recipient", toAccount );
                 put( "value", LatokenCore.this.currencyToPrecision(code, amount) );
@@ -2225,7 +2225,7 @@ public class LatokenCore extends LatokenApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "TRANSFER_STATUS_COMPLETED", "ok" );
             put( "TRANSFER_STATUS_PENDING", "pending" );
             put( "TRANSFER_STATUS_REJECTED", "failed" );

@@ -21,7 +21,7 @@ public class TestOrderBook extends BaseTest {
                 put( "symbol", true );
             }}, skippedProperties);
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "symbol", "ETH/BTC" );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.24"), exchange.parseNumber("0.453"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.25"), exchange.parseNumber("0.157"))))) );
             put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.23"), exchange.parseNumber("0.123"))), new java.util.ArrayList<Object>(java.util.Arrays.asList(exchange.parseNumber("1.22"), exchange.parseNumber("0.543"))))) );
@@ -29,7 +29,7 @@ public class TestOrderBook extends BaseTest {
             put( "datetime", "2017-09-01T00:00:00" );
             put( "nonce", 134234234 );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("nonce"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("nonce"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);

@@ -512,7 +512,7 @@ public class CoinmateCore extends CoinmateApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
@@ -581,7 +581,7 @@ public class CoinmateCore extends CoinmateApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object currencyIds = Helpers.objectKeys(balances);
@@ -645,7 +645,7 @@ public class CoinmateCore extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
                 put( "groupByPriceLimit", "False" );
             }};
@@ -677,7 +677,7 @@ public class CoinmateCore extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
@@ -747,7 +747,7 @@ public class CoinmateCore extends CoinmateApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(data);
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object market = this.market(Helpers.GetValue(keys, i));
@@ -825,7 +825,7 @@ public class CoinmateCore extends CoinmateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "limit", 1000 );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -850,7 +850,7 @@ public class CoinmateCore extends CoinmateApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );
             put( "WAITING", "pending" );
             put( "SENT", "pending" );
@@ -977,7 +977,7 @@ public class CoinmateCore extends CoinmateApi
                 Object allowedCurrencies = Helpers.objectKeys(methods);
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " withdraw() only allows withdrawing the following currencies: "), String.join((String)", ", (java.util.List<String>)allowedCurrencies))) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", CoinmateCore.this.currencyToPrecision(code, amount) );
                 put( "address", address );
             }};
@@ -1073,7 +1073,7 @@ public class CoinmateCore extends CoinmateApi
                 limit = 1000;
             }
             final Object finalLimit = limit;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "limit", finalLimit );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1188,7 +1188,7 @@ public class CoinmateCore extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
                 put( "minutesIntoHistory", 10 );
             }};
@@ -1235,7 +1235,7 @@ public class CoinmateCore extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privatePostTraderFees(this.extend(request, parameters))).join();
@@ -1284,7 +1284,7 @@ public class CoinmateCore extends CoinmateApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.privatePostOpenOrders(this.extend(new java.util.HashMap<String, Object>() {{}}, parameters))).join();
-            Object extension = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extension = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1322,7 +1322,7 @@ public class CoinmateCore extends CoinmateApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             // offset param that appears in other parts of the API doesn't appear to be supported here
@@ -1339,7 +1339,7 @@ public class CoinmateCore extends CoinmateApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "FILLED", "closed" );
             put( "CANCELLED", "canceled" );
             put( "PARTIALLY_FILLED", "open" );
@@ -1350,7 +1350,7 @@ public class CoinmateCore extends CoinmateApi
 
     public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
         }};
@@ -1477,7 +1477,7 @@ public class CoinmateCore extends CoinmateApi
             }
             Object method = Helpers.add("privatePost", this.capitalize(side));
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
@@ -1546,7 +1546,7 @@ public class CoinmateCore extends CoinmateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             Object market = null;
@@ -1579,7 +1579,7 @@ public class CoinmateCore extends CoinmateApi
             //   {"error":false,"errorMessage":null,"data":{"success":true,"remainingAmount":0.01}}
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             Object response = (this.privatePostCancelOrderWithInfo(this.extend(request, parameters))).join();

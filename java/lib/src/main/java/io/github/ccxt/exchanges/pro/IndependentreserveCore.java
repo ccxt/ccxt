@@ -180,7 +180,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             Object limitString = this.numberToString(limit);
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), limitString);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
             }};
             Object orderbook = (this.watch(url, messageHash, null, messageHash, subscription)).join();
@@ -347,7 +347,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
     public void handleMessage(Client client, Object message)
     {
         Object eventVar = this.safeString(message, "Event");
-        Object handlers = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "Subscriptions", "handleSubscriptions");
             put( "Heartbeat", "handleHeartbeat");
             put( "Trade", "handleTrades");

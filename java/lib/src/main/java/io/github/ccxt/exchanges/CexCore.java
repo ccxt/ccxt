@@ -379,7 +379,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             ((java.util.List<Object>)promises).add(this.publicPostGetCurrenciesInfo(parameters));
             //
             //    {
@@ -431,10 +431,10 @@ public class CexCore extends CexApi
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = (String) this.safeCurrencyCode(id);
-        Object isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
+        Boolean isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
         Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
@@ -442,8 +442,8 @@ public class CexCore extends CexApi
             Object networkId = Helpers.GetValue(keys, j);
             Object rawNetwork = Helpers.GetValue(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
-            Object withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
+            Boolean deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
+            Boolean withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -675,7 +675,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Helpers.addElementToObject(request, "pairs", this.marketIds(symbols));
@@ -766,7 +766,7 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -865,7 +865,7 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
@@ -930,7 +930,7 @@ public class CexCore extends CexApi
             }
             Object market = this.market(symbol);
             final Object finalDataType = dataType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "resolution", Helpers.GetValue(CexCore.this.timeframes, timeframe) );
                 put( "dataType", finalDataType );
@@ -1031,7 +1031,7 @@ public class CexCore extends CexApi
     public Object parseTradingFees(Object response, Object... optionalArgs)
     {
         Object useKeyAsId = Helpers.getArg(optionalArgs, 0, false);
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -1190,7 +1190,7 @@ public class CexCore extends CexApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object keys = Helpers.objectKeys(response);
@@ -1199,7 +1199,7 @@ public class CexCore extends CexApi
             Object key = Helpers.GetValue(keys, i);
             Object balance = this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
             String code = (String) this.safeCurrencyCode(key);
-            Object account = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
                 put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
                 put( "total", CexCore.this.safeString(balance, "balance") );
             }};
@@ -1237,8 +1237,8 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
-            Object isClosedOrders = (Helpers.isEqual(status, "closed"));
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Boolean isClosedOrders = (Helpers.isEqual(status, "closed"));
             if (Helpers.isTrue(isClosedOrders))
             {
                 Helpers.addElementToObject(request, "archived", true);
@@ -1387,7 +1387,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
             Object result = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
@@ -1417,7 +1417,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
             }};
             Object result = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
@@ -1428,7 +1428,7 @@ public class CexCore extends CexApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING_NEW", "open" );
             put( "NEW", "open" );
             put( "PARTIALLY_FILLED", "open" );
@@ -1486,7 +1486,7 @@ public class CexCore extends CexApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object fee = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object feeAmount = this.safeNumber(order, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
@@ -1570,7 +1570,7 @@ public class CexCore extends CexApi
             final Object finalAccountId = accountId;
             final Object finalType = type;
             final Object finalSide = side;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "clientOrderId", CexCore.this.uuid() );
                 put( "currency1", Helpers.GetValue(market, "baseId") );
                 put( "currency2", Helpers.GetValue(market, "quoteId") );
@@ -1674,7 +1674,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", Helpers.parseInt(id) );
                 put( "cancelRequestId", Helpers.add("c_", String.valueOf((CexCore.this.milliseconds()))) );
                 put( "timestamp", CexCore.this.milliseconds() );
@@ -1722,7 +1722,7 @@ public class CexCore extends CexApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object ids = this.safeList(data, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1761,7 +1761,7 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object currency = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -1847,7 +1847,7 @@ public class CexCore extends CexApi
 
     public Object parseLedgerEntryType(Object type)
     {
-        Object ledgerType = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> ledgerType = new java.util.HashMap<String, Object>() {{
             put( "deposit", "deposit" );
             put( "withdraw", "withdrawal" );
             put( "commission", "fee" );
@@ -1879,7 +1879,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1964,7 +1964,7 @@ public class CexCore extends CexApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "rejected", "rejected" );
             put( "pending", "pending" );
             put( "approved", "ok" );
@@ -2022,10 +2022,10 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            Object fromMain = (Helpers.isEqual(fromAccount, ""));
+            Boolean fromMain = (Helpers.isEqual(fromAccount, ""));
             Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", CexCore.this.currencyToPrecision(code, amount) );
                 put( "accountId", targetAccount );
@@ -2069,7 +2069,7 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", CexCore.this.currencyToPrecision(code, amount) );
                 put( "fromAccountId", fromAccount );
@@ -2165,7 +2165,7 @@ public class CexCore extends CexApi
             Object currency = this.currency(code);
             final Object finalAccountId = accountId;
             final Object finalNetworkCode = networkCode;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "accountId", finalAccountId );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );

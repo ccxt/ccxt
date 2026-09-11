@@ -219,7 +219,7 @@ public class PaymiumCore extends PaymiumApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object currencies = Helpers.objectKeys(this.currencies);
@@ -287,7 +287,7 @@ public class PaymiumCore extends PaymiumApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetDataCurrencyDepth(this.extend(request, parameters))).join();
@@ -367,7 +367,7 @@ public class PaymiumCore extends PaymiumApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
             Object ticker = (this.publicGetDataCurrencyTicker(this.extend(request, parameters))).join();
@@ -446,7 +446,7 @@ public class PaymiumCore extends PaymiumApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetDataCurrencyTrades(this.extend(request, parameters))).join();
@@ -507,7 +507,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "address", code );
             }};
             Object response = (this.privateGetUserAddressesAddress(this.extend(request, parameters))).join();
@@ -608,7 +608,7 @@ public class PaymiumCore extends PaymiumApi
             }
             Object market = this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", Helpers.add(PaymiumCore.this.capitalize(finalType), "Order") );
                 put( "currency", Helpers.GetValue(market, "id") );
                 put( "direction", side );
@@ -644,7 +644,7 @@ public class PaymiumCore extends PaymiumApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "uuid", id );
             }};
             Object response = (this.privateDeleteUserOrdersUuidCancel(this.extend(request, parameters))).join();
@@ -687,7 +687,7 @@ public class PaymiumCore extends PaymiumApi
                 throw new ExchangeError((String)Helpers.add(this.id, " transfer() only allows BTC or EUR")) ;
             }
             final Object finalCode = code;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", PaymiumCore.this.currencyToPrecision(finalCode, amount) );
                 put( "email", toAccount );
@@ -786,7 +786,7 @@ public class PaymiumCore extends PaymiumApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "executed", "ok" );
         }};
         return this.safeString(statuses, status, status);

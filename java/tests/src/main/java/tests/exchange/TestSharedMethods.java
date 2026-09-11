@@ -48,20 +48,20 @@ public class TestSharedMethods extends BaseTest {
         // because "typeof" string is not transpilable without === 'name', we list them manually at this moment
         Object entryKeyVal = exchange.safeValue(entry, key);
         Object formatKeyVal = exchange.safeValue(format, key);
-        Object same_string = Helpers.isTrue(((entryKeyVal instanceof String))) && Helpers.isTrue(((formatKeyVal instanceof String)));
-        Object same_numeric = Helpers.isTrue(((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double))) && Helpers.isTrue(((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double)));
-        Object same_boolean = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(entryKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(entryKeyVal, false))))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(formatKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(formatKeyVal, false)))));
-        Object same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
+        Boolean same_string = Helpers.isTrue(((entryKeyVal instanceof String))) && Helpers.isTrue(((formatKeyVal instanceof String)));
+        Boolean same_numeric = Helpers.isTrue(((entryKeyVal instanceof Long || entryKeyVal instanceof Integer || entryKeyVal instanceof Float || entryKeyVal instanceof Double))) && Helpers.isTrue(((formatKeyVal instanceof Long || formatKeyVal instanceof Integer || formatKeyVal instanceof Float || formatKeyVal instanceof Double)));
+        Boolean same_boolean = Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(entryKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(entryKeyVal, false))))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(formatKeyVal, true))) || Helpers.isTrue((Helpers.isEqual(formatKeyVal, false)))));
+        Boolean same_array = Helpers.isTrue(Helpers.isArray(entryKeyVal)) && Helpers.isTrue(Helpers.isArray(formatKeyVal));
         // PHP cannot tell an empty dict {} from an empty list [] (both are array()), so isDictionary
         // returns false for an empty {} format marker — accept a dict entry against an empty-array format
-        Object formatIsEmptyArray = false;
+        Boolean formatIsEmptyArray = false;
         if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
         {
             Object formatLen = Helpers.getArrayLength(formatKeyVal);
             formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
         }
-        Object same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue((Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray)));
-        Object result = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryKeyVal, null))) || Helpers.isTrue(same_string)) || Helpers.isTrue(same_numeric)) || Helpers.isTrue(same_boolean)) || Helpers.isTrue(same_array)) || Helpers.isTrue(same_object);
+        Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue((Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray)));
+        Boolean result = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryKeyVal, null))) || Helpers.isTrue(same_string)) || Helpers.isTrue(same_numeric)) || Helpers.isTrue(same_boolean)) || Helpers.isTrue(same_array)) || Helpers.isTrue(same_object);
         return result;
     }
     public static void AssertStructure(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object format, Object... optionalArgs)
@@ -84,7 +84,7 @@ public class TestSharedMethods extends BaseTest {
             Assert(Helpers.isEqual(realLength, expectedLength), Helpers.add(Helpers.add("entry length is not equal to expected length of ", String.valueOf(expectedLength)), logText));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(format)); i++)
             {
-                Object emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(i, emptyAllowedFor));
+                Boolean emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(i, emptyAllowedFor));
                 Object value = Helpers.GetValue(entry, i);
                 // check when:
                 // - it's not inside "allowe empty values" list
@@ -110,7 +110,7 @@ public class TestSharedMethods extends BaseTest {
                     continue;
                 }
                 Assert(Helpers.inOp(entry, key), Helpers.add(Helpers.add(Helpers.add("\"", stringValue(key)), "\" key is missing from structure"), logText));
-                Object emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(key, emptyAllowedFor));
+                Boolean emptyAllowedForThisKey = Helpers.isTrue((Helpers.isEqual(emptyAllowedFor, null))) || Helpers.isTrue(exchange.inArray(key, emptyAllowedFor));
                 Object value = Helpers.GetValue(entry, key);
                 // check when:
                 // - it's not inside "allowed empty values" list
@@ -148,7 +148,7 @@ public class TestSharedMethods extends BaseTest {
         {
             return;  // skipped
         }
-        Object isDateTimeObject = (keyNameOrIndex instanceof String);
+        Boolean isDateTimeObject = (keyNameOrIndex instanceof String);
         if (Helpers.isTrue(isDateTimeObject))
         {
             Assert((Helpers.inOp(entry, keyNameOrIndex)), Helpers.add(Helpers.add(Helpers.add("timestamp key \"", keyNameOrIndex), "\" is missing from structure"), logText));
@@ -163,13 +163,13 @@ public class TestSharedMethods extends BaseTest {
         {
             Assert((ts instanceof Long || ts instanceof Integer || ts instanceof Float || ts instanceof Double), Helpers.add("timestamp is not numeric", logText));
             Assert(((ts instanceof Integer) || (ts instanceof Long)), Helpers.add("timestamp should be an integer", logText));
-            Object minTs = 1230940800000L; // 03 Jan 2009 - first block
-            Object maxTs = 2147483648000L; // 19 Jan 2038 - max int
+            Long minTs = 1230940800000L; // 03 Jan 2009 - first block
+            Long maxTs = 2147483648000L; // 19 Jan 2038 - max int
             Assert(Helpers.isGreaterThan(ts, minTs), Helpers.add(Helpers.add(Helpers.add("timestamp is impossible to be before ", String.valueOf(minTs)), " (03.01.2009)"), logText)); // 03 Jan 2009 - first block
             Assert(Helpers.isLessThan(ts, maxTs), Helpers.add(Helpers.add(Helpers.add("timestamp more than ", String.valueOf(maxTs)), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
             if (Helpers.isTrue(!Helpers.isEqual(nowToCheck, null)))
             {
-                Object maxMsOffset = 60000; // 1 min
+                Integer maxMsOffset = 60000; // 1 min
                 Assert(Helpers.isLessThan(ts, Helpers.add(nowToCheck, maxMsOffset)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("returned item timestamp (", exchange.iso8601(ts)), ") is ahead of the current time ("), exchange.iso8601(nowToCheck)), ")"), logText));
             }
         }
@@ -186,7 +186,7 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         AssertTimestamp(exchange, skippedProperties, method, entry, nowToCheck, keyNameOrIndex);
-        Object isDateTimeObject = (keyNameOrIndex instanceof String);
+        Boolean isDateTimeObject = (keyNameOrIndex instanceof String);
         // only in case if the entry is a dictionary, thus it must have 'timestamp' & 'datetime' string keys
         if (Helpers.isTrue(isDateTimeObject))
         {
@@ -245,8 +245,8 @@ public class TestSharedMethods extends BaseTest {
             return;
         }
         Object logText = logTemplate(exchange, method, entry);
-        Object undefinedValues = Helpers.isTrue(Helpers.isEqual(currencyId, null)) && Helpers.isTrue(Helpers.isEqual(currencyCode, null));
-        Object definedValues = Helpers.isTrue(!Helpers.isEqual(currencyId, null)) && Helpers.isTrue(!Helpers.isEqual(currencyCode, null));
+        Boolean undefinedValues = Helpers.isTrue(Helpers.isEqual(currencyId, null)) && Helpers.isTrue(Helpers.isEqual(currencyCode, null));
+        Boolean definedValues = Helpers.isTrue(!Helpers.isEqual(currencyId, null)) && Helpers.isTrue(!Helpers.isEqual(currencyCode, null));
         Assert(Helpers.isTrue(undefinedValues) || Helpers.isTrue(definedValues), Helpers.add("currencyId and currencyCode should be either both defined or both undefined", logText));
         Assert(Helpers.isTrue(definedValues) || Helpers.isTrue(allowNull), Helpers.add("currency code and id is not defined", logText));
         if (Helpers.isTrue(definedValues))
@@ -277,7 +277,7 @@ public class TestSharedMethods extends BaseTest {
         {
             Assert(Helpers.isEqual(actualSymbol, expectedSymbol), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("symbol in response (\"", stringValue(actualSymbol)), "\") should be equal to expected symbol (\""), stringValue(expectedSymbol)), "\")"), logText));
         }
-        Object definedValues = Helpers.isTrue(!Helpers.isEqual(actualSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(expectedSymbol, null));
+        Boolean definedValues = Helpers.isTrue(!Helpers.isEqual(actualSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(expectedSymbol, null));
         Assert(Helpers.isTrue(definedValues) || Helpers.isTrue(allowNull), Helpers.add("symbols are not defined", logText));
     }
     public static void AssertSymbolInMarkets(BaseExchange exchange, Object skippedProperties, Object method, Object symbol)
@@ -470,7 +470,7 @@ public class TestSharedMethods extends BaseTest {
             // TICK_SIZE should be above zero
             AssertGreater(exchange, skippedProperties, method, entry, key, "0");
             // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw new RuntimeException(e)rror
-            Object decimalNumbers = new java.util.ArrayList<Object>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
+            java.util.List<Object> decimalNumbers = new java.util.ArrayList<Object>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(key, "amount")) && Helpers.isTrue(Helpers.inOp(skippedProperties, "precisionAmountAbnormal"))))
             {
                 return;
@@ -546,7 +546,7 @@ public class TestSharedMethods extends BaseTest {
         // set 'since' to 5 minute ago for optimal results
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(1000, 60), 5));
         // iterate
-        Object methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
+        java.util.List<Object> methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
             Object singularFetchName = Helpers.GetValue(methods_singular, i);
@@ -565,14 +565,14 @@ public class TestSharedMethods extends BaseTest {
         // search through plural methods
         if (Helpers.isTrue(Helpers.isEqual(fetchedOrder, null)))
         {
-            Object methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
+            java.util.List<Object> methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
                 Object pluralFetchName = Helpers.GetValue(methods_plural, i);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), false)))))
                 {
                     Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, pluralFetchName, new Object[] { symbol, sinceTime })).join();
-                    Object found = false;
+                    Boolean found = false;
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
                     {
                         Object currentOrder = Helpers.GetValue(orders, j);
@@ -602,12 +602,12 @@ public class TestSharedMethods extends BaseTest {
         Object filled = exchange.safeString(order, "filled");
         Object amount = exchange.safeString(order, "amount");
         // shorthand variables
-        Object statusUndefined = (Helpers.isEqual(Helpers.GetValue(order, "status"), null));
-        Object statusOpen = (Helpers.isEqual(Helpers.GetValue(order, "status"), "open"));
-        Object statusClosed = (Helpers.isEqual(Helpers.GetValue(order, "status"), "closed"));
-        Object statusClanceled = (Helpers.isEqual(Helpers.GetValue(order, "status"), "canceled"));
-        Object filledDefined = (!Helpers.isEqual(filled, null));
-        Object amountDefined = (!Helpers.isEqual(amount, null));
+        Boolean statusUndefined = (Helpers.isEqual(Helpers.GetValue(order, "status"), null));
+        Boolean statusOpen = (Helpers.isEqual(Helpers.GetValue(order, "status"), "open"));
+        Boolean statusClosed = (Helpers.isEqual(Helpers.GetValue(order, "status"), "closed"));
+        Boolean statusClanceled = (Helpers.isEqual(Helpers.GetValue(order, "status"), "canceled"));
+        Boolean filledDefined = (!Helpers.isEqual(filled, null));
+        Boolean amountDefined = (!Helpers.isEqual(amount, null));
         Object condition = null;
         //
         // ### OPEN STATUS
@@ -710,7 +710,7 @@ public class TestSharedMethods extends BaseTest {
             return a;
         } else
         {
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(a)); i++)
             {
                 ((java.util.List<Object>)result).add(Helpers.GetValue(a, i));
@@ -728,7 +728,7 @@ public class TestSharedMethods extends BaseTest {
         // there, so an empty array response is shape indeterminate and accepted, observed
         // as false positive FAILs in the live tests on https://github.com/ccxt/ccxt/pull/29696
         Object hint = Helpers.getArg(optionalArgs, 0, null);
-        Object isEmptyArrayResponse = false;
+        Boolean isEmptyArrayResponse = false;
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
             Object responseLength = Helpers.getArrayLength(response);

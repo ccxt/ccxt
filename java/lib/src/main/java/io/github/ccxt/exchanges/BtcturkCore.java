@@ -455,7 +455,7 @@ public class BtcturkCore extends BtcturkApi
     public Object parseBalance(Object response)
     {
         Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
             put( "datetime", null );
@@ -539,7 +539,7 @@ public class BtcturkCore extends BtcturkApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
@@ -758,7 +758,7 @@ public class BtcturkCore extends BtcturkApi
             }
             Object market = this.market(symbol);
             // let maxCount = 50;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -838,7 +838,7 @@ public class BtcturkCore extends BtcturkApi
             }
             Object market = this.market(symbol);
             final Object finalTimeframe = timeframe;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", BtcturkCore.this.safeValue(BtcturkCore.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
@@ -917,7 +917,7 @@ public class BtcturkCore extends BtcturkApi
         Object since = Helpers.getArg(optionalArgs, 2, null);
         Object limit = Helpers.getArg(optionalArgs, 3, null);
         Object tail = Helpers.getArg(optionalArgs, 4, false);
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object timestamp = this.safeList(ohlcvs, "t", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object high = this.safeList(ohlcvs, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object open = this.safeList(ohlcvs, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -927,7 +927,7 @@ public class BtcturkCore extends BtcturkApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(timestamp)); i++)
         {
             final Object finalI = i;
-            Object ohlcv = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> ohlcv = new java.util.HashMap<String, Object>() {{
                 put( "timestamp", BtcturkCore.this.safeInteger(timestamp, finalI) );
                 put( "high", BtcturkCore.this.safeNumber(high, finalI) );
                 put( "open", BtcturkCore.this.safeNumber(open, finalI) );
@@ -967,7 +967,7 @@ public class BtcturkCore extends BtcturkApi
             }
             Object market = this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderType", side );
                 put( "orderMethod", finalType );
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
@@ -1008,7 +1008,7 @@ public class BtcturkCore extends BtcturkApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
@@ -1050,7 +1050,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1091,7 +1091,7 @@ public class BtcturkCore extends BtcturkApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1132,7 +1132,7 @@ public class BtcturkCore extends BtcturkApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Untouched", "open" );
             put( "Partial", "open" );
             put( "Canceled", "canceled" );

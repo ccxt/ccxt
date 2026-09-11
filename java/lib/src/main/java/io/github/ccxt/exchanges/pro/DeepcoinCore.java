@@ -129,14 +129,14 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             marketId = Helpers.add(this.safeString(market, "baseId", ""), this.safeString(market, "quoteId", "")); // swap markets use symbol without slash
         }
-        Object action = "1"; // subscribe
+        String action = "1"; // subscribe
         if (Helpers.isTrue(unWatch))
         {
             action = "0"; // unsubscribe
         }
         final Object finalAction = action;
         final Object finalMarketId = marketId;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "sendTopicAction", new java.util.HashMap<String, Object>() {{
                 put( "Action", finalAction );
                 put( "FilterValue", Helpers.add(Helpers.add("DeepCoin_", finalMarketId), suffix) );
@@ -158,7 +158,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), Helpers.GetValue(market, "type"));
             Object requestId = this.requestId();
             Object request = this.createPublicRequest(market, requestId, topicID, suffix);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "subHash", messageHash );
                 put( "id", requestId );
             }};
@@ -223,7 +223,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
             // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
             // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
-            Object messageHash = "authenticate";
+            String messageHash = "authenticate";
             Client client = this.client("authenticationFlights");
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
@@ -237,7 +237,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             try
             {
                 Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
-                Object expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
+                Boolean expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
                 listenKey = this.safeString(this.options, "listenKey");
                 Object response = null;
                 if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
@@ -246,14 +246,14 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 } else if (Helpers.isTrue(expired))
                 {
                     Object method = this.safeString(this.options, "method", "privateGetDeepcoinListenkeyExtend");
-                    Object getNewKey = (Helpers.isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
+                    Boolean getNewKey = (Helpers.isEqual(method, "privateGetDeepcoinListenkeyAcquire"));
                     if (Helpers.isTrue(getNewKey))
                     {
                         response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();
                     } else
                     {
                         final Object finalListenKey = listenKey;
-                        Object request = new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                             put( "listenkey", finalListenKey );
                         }};
                         response = (this.privateGetDeepcoinListenkeyExtend(this.extend(request, parameters))).join();
@@ -630,7 +630,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String parseTradeSide(Object direction)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "0", "buy" );
             put( "1", "sell" );
         }};
@@ -639,7 +639,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String handleTakerOrMaker(Object matchRole)
     {
-        Object roles = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> roles = new java.util.HashMap<String, Object>() {{
             put( "0", "maker" );
             put( "1", "taker" );
         }};
@@ -913,7 +913,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object market = this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object orderedEntries = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderedEntries = new java.util.HashMap<String, Object>() {{
             put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
@@ -1072,7 +1072,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object messageHash = "myTrades";
+        String messageHash = "myTrades";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))
         {
@@ -1167,7 +1167,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object messageHash = "orders";
+        String messageHash = "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))
         {
@@ -1242,7 +1242,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public String parseWsOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "closed" );
             put( "4", "open" );
             put( "6", "canceled" );
@@ -1276,8 +1276,8 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }
             Object listenKey = (this.authenticate()).join();
             symbols = this.marketSymbols(symbols);
-            Object messageHash = "positions";
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String messageHash = "positions";
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1332,7 +1332,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object messageHash = "positions";
+        String messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))
         {
@@ -1406,7 +1406,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             return direction;
         }
-        Object directions = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> directions = new java.util.HashMap<String, Object>() {{
             put( "0", "long" );
             put( "1", "short" );
         }};
@@ -1419,7 +1419,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             return marginMode;
         }
-        Object modes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> modes = new java.util.HashMap<String, Object>() {{
             put( "0", "isolated" );
             put( "1", "cross" );
         }};
