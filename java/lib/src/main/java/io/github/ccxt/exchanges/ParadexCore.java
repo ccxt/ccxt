@@ -2415,7 +2415,7 @@ public class ParadexCore extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             return order;
         });
 

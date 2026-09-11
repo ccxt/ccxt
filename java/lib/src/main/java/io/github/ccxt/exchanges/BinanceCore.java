@@ -4739,7 +4739,7 @@ public class BinanceCore extends BinanceApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCurrencies)); i++)
         {
-            Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -6740,7 +6740,7 @@ public class BinanceCore extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             java.util.Map<String, Object> tickerMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            Object parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
+            java.util.Map<String, Object> parsedTicker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", Helpers.GetValue(tickerMarket, "symbol"));
             ((java.util.List<Object>)results).add(parsedTicker);
         }
@@ -11177,7 +11177,7 @@ public class BinanceCore extends BinanceApi
             } else
             {
                 final Object finalResponse = response;
-                Object order = this.safeOrder(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", finalResponse );
                 }});
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));

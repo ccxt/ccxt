@@ -387,7 +387,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawTicker = this.safeValue(tickers, 1, new java.util.HashMap<String, Object>() {{}});
         String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
-        Object ticker = this.parseTicker(rawTicker, market);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);

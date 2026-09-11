@@ -1556,7 +1556,7 @@ public class WooCore extends WooApi
                     put( "_tokens_by_id", Helpers.GetValue(tokensById, id) );
                     put( "_networks_by_id", Helpers.GetValue(networksById, id) );
                 }};
-                Object parsed = this.parseCurrency(customCurrency);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(customCurrency);
                 String code = this.safeString(parsed, "code");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {

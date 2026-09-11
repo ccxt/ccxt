@@ -1894,7 +1894,7 @@ public class DeribitCore extends DeribitApi
             java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(result, i));
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(result, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

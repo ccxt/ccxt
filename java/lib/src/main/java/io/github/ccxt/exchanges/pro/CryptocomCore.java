@@ -1490,7 +1490,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //
         String messageHash = (String) this.safeString(message, "id");
         Object rawOrder = this.safeValue(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(rawOrder);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
 

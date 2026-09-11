@@ -1091,7 +1091,7 @@ public class BackpackCore extends BackpackApi
         }
         String change = this.safeString(ticker, "priceChange");
         final Object finalPercentage = percentage;
-        Object parsedTicker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> parsedTicker = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );

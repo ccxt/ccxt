@@ -461,7 +461,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object symbol = Helpers.GetValue(market, "symbol");
         String eventVar = (String) this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
-        Object result = this.parseTicker(message, market);
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(result, "timestamp", timestamp);

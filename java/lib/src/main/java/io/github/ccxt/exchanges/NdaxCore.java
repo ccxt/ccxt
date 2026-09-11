@@ -2310,7 +2310,7 @@ public class NdaxCore extends NdaxApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "ClOrderId")));
             java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             final Object finalClientOrderId = clientOrderId;
             return this.extend(order, new java.util.HashMap<String, Object>() {{
                 put( "id", id );

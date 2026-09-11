@@ -1547,7 +1547,7 @@ public class BitsoCore extends BitsoApi
             java.util.List<Object> canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
             {
-                Object order = this.parseOrder(Helpers.GetValue(payload, i));
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(payload, i));
                 ((java.util.List<Object>)canceledOrders).add(order);
             }
             return canceledOrders;

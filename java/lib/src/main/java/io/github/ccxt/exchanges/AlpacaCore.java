@@ -1306,7 +1306,7 @@ public class AlpacaCore extends AlpacaApi
                 Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
                 Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
-                Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "timestamp", AlpacaCore.this.parse8601(datetime) );

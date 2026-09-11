@@ -1237,7 +1237,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
                 put( "margin_override", amount );
             }};
-            Object response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
             return response;
         });
 

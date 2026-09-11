@@ -134,7 +134,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object parts = Helpers.split(ch, ".");
         String marketId = (String) this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object ticker = this.parseTicker(tick, market);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(tick, market);
         Object timestamp = this.safeValue(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
         Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -239,7 +239,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(tradesCache, "append", new Object[]{trade});
         }
         client.resolve(tradesCache, ch);

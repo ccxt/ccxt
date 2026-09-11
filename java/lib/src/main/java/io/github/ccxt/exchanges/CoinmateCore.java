@@ -751,7 +751,7 @@ public class CoinmateCore extends CoinmateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(keys, i));
-                Object ticker = this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
                 Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);

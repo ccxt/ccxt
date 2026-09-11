@@ -359,6 +359,19 @@ const LOCAL_THIS_RETURN_TYPES = {
 // as before. Java has no implicit downcast, which is why the declaration carries the cast.
 const JAVA_STRUCTURE_TYPE = 'java.util.Map<String, Object>';
 
+// JN-5 additions (return-shape census; see the report): the parse*/safe* structure
+// builders whose every generated declaration was proved to return a row or null.
+// `parseMarket / parseCurrency / parseOrder / parseTicker / parseTrade` funnel through
+// safeMarketStructure / safeCurrencyStructure / safeOrder / safeTicker / safeTrade or a
+// row literal on every one of their 52/60/93/93/96 declarations (all delegates —
+// parseSpotOrder / parseUtaOrder / parseContractOrder / parseSwapOrder / parseSpotMarket /
+// parseSwapMarket / parseContractTicker / parseDustTrade / parseMyUtaTrade /
+// parseSpotOrUtaTrade / parseContractTrade, the pro `super.parseTicker` and the handful
+// of `return result` aliases — were followed to a safeMarketStructure / extend(...) /
+// row-literal path). `safeOrder`/`safeTicker` are the base mutate-and-return builders
+// (`return this.extend (order|ticker, {...})`); `safeTrade` (not listed — 0 local sites)
+// hands the caller's row back after in-place writes, the same caller-row contract the
+// landed `safeMarket` entry already accepts.
 const STRUCTURE_THIS_RETURN_TYPES = {
     'safeMarket': JAVA_STRUCTURE_TYPE,
     'safeCurrency': JAVA_STRUCTURE_TYPE,
@@ -366,7 +379,27 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'safeCurrencyStructure': JAVA_STRUCTURE_TYPE,
     'market': JAVA_STRUCTURE_TYPE,
     'currency': JAVA_STRUCTURE_TYPE,
+    'safeTicker': JAVA_STRUCTURE_TYPE,
+    'safeOrder': JAVA_STRUCTURE_TYPE,
+    'parseMarket': JAVA_STRUCTURE_TYPE,
+    'parseCurrency': JAVA_STRUCTURE_TYPE,
+    'parseOrder': JAVA_STRUCTURE_TYPE,
+    'parseTicker': JAVA_STRUCTURE_TYPE,
+    'parseTrade': JAVA_STRUCTURE_TYPE,
 };
+
+// the as-cast type nodes printAsExpression (ast-transpiler pin) can spell for a
+// Map<String, Object> local. AnyKeyword -> `((Object) x)` (a widening cast) and every
+// other non-string/non-array kind falls through to the ERASED expression — both print
+// byte-identically to the Object path, so neither can move a box or move a failure.
+// StringKeyword -> `((String) x)` and ArrayType -> `(java.util.List<...>) (x)` are
+// inconvertible casts on a Map-typed local and keep the Object declaration.
+function structureAsCastIsSafe (typeNode) {
+    if (typeNode === undefined) {
+        return true; // no type node — printAsExpression takes the erased path
+    }
+    return typeNode.kind !== ts.SyntaxKind.StringKeyword && typeNode.kind !== ts.SyntaxKind.ArrayType;
+}
 
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
@@ -1826,7 +1859,12 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
-            // compile error) — keep Object (the C# campaign's reject family, reused here)
+            // compile error) — keep Object (the C# campaign's reject family, reused here).
+            // JN-5: the structure family takes the two as-cast shapes the printer spells
+            // identically to the Object path — see structureAsCastIsSafe.
+            if (javaType === JAVA_STRUCTURE_TYPE && structureAsCastIsSafe (parent.type)) {
+                continue; // `as any` / `as Dict` / any erased type: same print as Object
+            }
             return false;
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {

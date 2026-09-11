@@ -2077,7 +2077,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
@@ -3245,7 +3245,7 @@ public class WhitebitCore extends WhitebitApi
                 Object orders = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
                 {
-                    Object order = this.parseOrder(Helpers.GetValue(orders, j), marketNew);
+                    java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, j), marketNew);
                     ((java.util.List<Object>)results).add(this.extend(order, new java.util.HashMap<String, Object>() {{
                         put( "status", "closed" );
                     }}));

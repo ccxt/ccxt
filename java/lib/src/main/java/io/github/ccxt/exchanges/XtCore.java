@@ -2356,7 +2356,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2465,7 +2465,7 @@ public class XtCore extends XtApi
                 String marketId = this.safeString(rawTicker, "s");
                 String marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
                 java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
-                Object ticker = this.parseTicker(rawTicker, marketInner);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker, marketInner);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

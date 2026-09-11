@@ -1998,7 +1998,7 @@ final Object finalMarketSymbol = marketSymbol;
 
     public Object priceToPrecision(Object outcome, Object price)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))
@@ -2010,7 +2010,7 @@ final Object finalMarketSymbol = marketSymbol;
 
     public Object amountToPrecision(Object outcome, Object amount)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))

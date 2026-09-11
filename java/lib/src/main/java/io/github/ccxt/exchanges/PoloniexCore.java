@@ -2876,7 +2876,7 @@ public class PoloniexCore extends PoloniexApi
             //         "updateTime": 1646196019020
             //     }
             //
-            Object order = this.parseOrder(response);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response);
             Helpers.addElementToObject(order, "id", id);
             return order;
         });

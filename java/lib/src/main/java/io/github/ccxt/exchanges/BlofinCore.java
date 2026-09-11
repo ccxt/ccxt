@@ -1948,7 +1948,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0);
-            Object order = this.parseOrder(first, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;

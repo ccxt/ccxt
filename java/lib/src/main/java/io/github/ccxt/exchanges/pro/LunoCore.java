@@ -129,7 +129,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object rawTrade = Helpers.GetValue(rawTrades, i);
-            Object trade = this.parseTrade(rawTrade, market);
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);

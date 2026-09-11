@@ -3116,7 +3116,7 @@ public class WeexCore extends WeexApi
             {
                 throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
             return order;
         });

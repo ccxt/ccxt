@@ -2088,7 +2088,7 @@ public class NadoCore extends NadoApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object currency = Helpers.GetValue(assets, i);
-                Object parsed = this.parseCurrency(currency);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(currency);
                 String code = this.safeString(parsed, "code");
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {

@@ -3447,7 +3447,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
         });
@@ -3501,7 +3501,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
         });

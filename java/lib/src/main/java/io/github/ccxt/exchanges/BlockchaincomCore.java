@@ -684,7 +684,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
         final Object finalType = type;
-        Object result = this.safeOrder(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", exchangeOrderId );
             put( "clientOrderId", clientOrderId );
             put( "datetime", datetime );
