@@ -559,7 +559,7 @@ final Object finalTokenId = tokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2074,7 +2074,7 @@ final Object finalTokenId = tokenId;
      * @param {int} marketId the numeric binary market id
      * @returns {any} the first resolved payload
      */
-    public java.util.concurrent.CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, Object channel2, Object marketId)
+    public java.util.concurrent.CompletableFuture<Object> subscribeOpinionChannel(Object messageHash, String channel2, Object marketId)
     {
         final Object channel3 = channel2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

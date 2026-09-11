@@ -5143,9 +5143,7 @@ export function installJavaNumericLocalTypes (transpiler) {
 // && node build/java-param-table.mjs --write.  The emitted diff is declaration-only.
 
 const JAVA_PARAM_STRING_TYPES = {
-    "assertStaticError": { 1: 'String' }, // 1 decls
-    "assertStaticRequestOutput": { 1: 'String', 3: 'String', 4: 'String' }, // 1 decls
-    "assertWsSentMessages": { 1: 'String' }, // 1 decls
+    "approveBuilderCode": { 0: 'String' }, // 1 decls
     "bindAgentWallet": { 0: 'String' }, // 1 decls
     "borrowCrossMargin": { 0: 'String' }, // 8 decls
     "borrowIsolatedMargin": { 0: 'String', 1: 'String' }, // 7 decls
@@ -5154,10 +5152,11 @@ const JAVA_PARAM_STRING_TYPES = {
     "calculateFee": { 0: 'String', 1: 'String', 2: 'String' }, // 3 decls
     "cancelOrderWithClientOrderId": { 0: 'String' }, // 1 decls
     "checkContractMarket": { 1: 'String' }, // 1 decls
-    "checkIfExchangeIsDisabled": { 0: 'String' }, // 1 decls
     "checkNoStockSymbols": { 1: 'String' }, // 1 decls
+    "checkRequiredArgument": { 0: 'String' }, // 1 decls
     "checkRequiredMarginArgument": { 0: 'String', 1: 'String', 2: 'String' }, // 1 decls
     "convertCurrencyNetwork": { 0: 'String' }, // 1 decls
+    "createAdvancedOrderRequest": { 0: 'String' }, // 1 decls
     "createConvertTrade": { 0: 'String', 1: 'String', 2: 'String' }, // 9 decls
     "createDepositAddress": { 0: 'String' }, // 19 decls
     "createEditOrderRequest": { 2: 'String' }, // 1 decls
@@ -5175,6 +5174,7 @@ const JAVA_PARAM_STRING_TYPES = {
     "createPostOnlyOrder": { 0: 'String' }, // 1 decls
     "createPublicSubscriptionRequest": { 0: 'String' }, // 1 decls
     "createReduceOnlyOrder": { 0: 'String' }, // 1 decls
+    "createSignedRequest": { 1: 'String' }, // 1 decls
     "createStopLimitOrder": { 0: 'String' }, // 1 decls
     "createStopLossOrder": { 0: 'String' }, // 1 decls
     "createStopMarketOrder": { 0: 'String' }, // 1 decls
@@ -5193,9 +5193,9 @@ const JAVA_PARAM_STRING_TYPES = {
     "editLimitSellOrder": { 0: 'String', 1: 'String' }, // 1 decls
     "editOrderWithClientOrderId": { 0: 'String', 1: 'String' }, // 1 decls
     "encodeData": { 0: 'String' }, // 1 decls
+    "encodeTriggerPriceType": { 0: 'String' }, // 2 decls
     "encodeType": { 0: 'String' }, // 1 decls
     "ethRpc": { 1: 'String' }, // 2 decls
-    "featureValue": { 0: 'String' }, // 1 decls
     "fetchADLRank": { 0: 'String' }, // 2 decls
     "fetchBorrowRate": { 0: 'String' }, // 1 decls
     "fetchBorrowRateHistory": { 0: 'String' }, // 5 decls
@@ -5246,18 +5246,22 @@ const JAVA_PARAM_STRING_TYPES = {
     "findSubscription": { 1: 'String' }, // 1 decls
     "findSwapMarketByWsBaseQuote": { 0: 'String' }, // 1 decls
     "fromString": { 0: 'String' }, // 1 decls
+    "future": { 0: 'String' }, // 1 decls
+    "futuresTransfer": { 0: 'String' }, // 1 decls
+    "getBaseDomainFromUrl": { 0: 'String' }, // 1 decls
     "getDexFromSymbols": { 0: 'String' }, // 1 decls
     "getEncoder": { 0: 'String' }, // 1 decls
     "getEvent": { 0: 'String' }, // 1 decls
     "getExceptionsByUrl": { 1: 'String' }, // 1 decls
+    "getExtendedStringToFelt": { 0: 'String' }, // 1 decls
     "getOrderBookLimitByMarketType": { 0: 'String' }, // 1 decls
-    "getSkips": { 1: 'String' }, // 1 decls
     "handleAccountIndex": { 2: 'String', 3: 'String' }, // 1 decls
     "handleApiKeyIndex": { 2: 'String', 3: 'String' }, // 1 decls
     "handleDeriveSubaccountId": { 0: 'String' }, // 1 decls
     "handleDeriveWalletAddress": { 0: 'String' }, // 1 decls
     "handleNetworkIdAndParams": { 1: 'String' }, // 1 decls
     "handleOption": { 1: 'String' }, // 1 decls
+    "handleOptionAndParams2": { 2: 'String', 3: 'String' }, // 3 decls
     "handleOriginAndSingleAddress": { 0: 'String' }, // 1 decls
     "handlePaginationParams": { 0: 'String' }, // 1 decls
     "handleParamBool": { 1: 'String' }, // 1 decls
@@ -5267,29 +5271,27 @@ const JAVA_PARAM_STRING_TYPES = {
     "handleParamString": { 1: 'String' }, // 3 decls
     "handleParamString2": { 1: 'String', 2: 'String' }, // 3 decls
     "handlePortfolioAndParams": { 0: 'String' }, // 1 decls
-    "handleRequestNetwork": { 2: 'String' }, // 1 decls
     "handleTickerAndBidAsk": { 0: 'String' }, // 1 decls
     "handleUTAAndParams": { 1: 'String' }, // 1 decls
+    "handleUntilOption": { 0: 'String' }, // 1 decls
     "handleUntilOptionString": { 0: 'String' }, // 1 decls
     "hashStruct": { 0: 'String' }, // 1 decls
     "helperForWatchMultipleConstruct": { 0: 'String' }, // 1 decls
-    "initOfflineExchange": { 0: 'String' }, // 1 decls
-    "injectWsMessages": { 1: 'String' }, // 1 decls
-    "loadCurrenciesFromFile": { 0: 'String' }, // 1 decls
-    "loadEventsFromFile": { 0: 'String' }, // 1 decls
-    "loadMarketsFromFile": { 0: 'String' }, // 1 decls
+    "integerPrecisionToAmount": { 0: 'String' }, // 1 decls
     "mintTokenizedAsset": { 0: 'String', 1: 'String' }, // 1 decls
     "off": { 0: 'String' }, // 1 decls
     "on": { 0: 'String' }, // 2 decls
     "once": { 0: 'String' }, // 2 decls
     "orderRequestWs": { 0: 'String' }, // 1 decls
+    "parseMarginModeType": { 0: 'String' }, // 2 decls
+    "parseTradeType": { 0: 'String' }, // 1 decls
     "parseWsTimestamp": { 1: 'String' }, // 1 decls
     "pow": { 0: 'String' }, // 2 decls
     "priceToPredictionPrecision": { 0: 'String' }, // 1 decls
     "queryTransactionsByEventType": { 0: 'String', 1: 'String', 2: 'String' }, // 1 decls
     "redeemTokenizedAsset": { 0: 'String', 1: 'String' }, // 1 decls
     "reduceMargin": { 0: 'String' }, // 23 decls
-    "removeHostnamefromUrl": { 0: 'String' }, // 1 decls
+    "removeMarketSuffix": { 0: 'String' }, // 1 decls
     "repayCrossMargin": { 0: 'String' }, // 8 decls
     "repayIsolatedMargin": { 0: 'String', 1: 'String' }, // 7 decls
     "repayMargin": { 0: 'String' }, // 2 decls
@@ -5300,9 +5302,6 @@ const JAVA_PARAM_STRING_TYPES = {
     "reusableFuture": { 0: 'String' }, // 1 decls
     "revokeApiKey": { 0: 'String' }, // 1 decls
     "revokeBuilderCode": { 0: 'String' }, // 1 decls
-    "runStaticTests": { 0: 'String' }, // 1 decls
-    "safeDict2": { 2: 'String' }, // 3 decls
-    "safeList2": { 2: 'String' }, // 3 decls
     "sendEvmTransaction": { 4: 'String' }, // 1 decls
     "setAgentAbstraction": { 0: 'String' }, // 1 decls
     "setOrderBookSnapshot": { 2: 'String' }, // 1 decls
@@ -5328,13 +5327,6 @@ const JAVA_PARAM_STRING_TYPES = {
     "stringSub": { 0: 'String', 1: 'String' }, // 1 decls
     "subscribeOpinionChannel": { 1: 'String' }, // 1 decls
     "tagToSlug": { 0: 'String' }, // 1 decls
-    "testExchangeRequestStatically": { 0: 'String' }, // 1 decls
-    "testExchangeResponseStatically": { 0: 'String' }, // 1 decls
-    "testExchangeWsStatically": { 0: 'String' }, // 1 decls
-    "testMethod": { 0: 'String' }, // 1 decls
-    "testRequestStatically": { 1: 'String', 3: 'String' }, // 1 decls
-    "testResponseStatically": { 1: 'String' }, // 1 decls
-    "testWsStatically": { 1: 'String' }, // 1 decls
     "tokenizedConvertStatus": { 0: 'String', 1: 'String' }, // 1 decls
     "tradeRequest": { 0: 'String' }, // 2 decls
     "transferIn": { 0: 'String' }, // 2 decls
@@ -5342,9 +5334,9 @@ const JAVA_PARAM_STRING_TYPES = {
     "unWatchChannel": { 3: 'String' }, // 1 decls
     "unWatchChannels": { 0: 'String' }, // 1 decls
     "unWatchTopics": { 1: 'String' }, // 1 decls
-    "urlencodedToDict": { 0: 'String' }, // 1 decls
+    "updateSpotCurrencyCode": { 0: 'String' }, // 1 decls
+    "uuid5": { 0: 'String' }, // 1 decls
     "verifyGiftCode": { 0: 'String' }, // 1 decls
-    "watchAndAssertSequence": { 1: 'String', 2: 'String' }, // 1 decls
 };
 
 // the Java type this parameter is emitted with, or undefined when the printer's Object

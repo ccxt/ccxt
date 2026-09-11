@@ -1007,7 +1007,7 @@ public class BydfiCore extends BydfiApi
         }}, market);
     }
 
-    public String parseTradeType(Object type)
+    public String parseTradeType(String type)
     {
         java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );

@@ -697,7 +697,7 @@ public class KalshiCore extends KalshiApi
         return null;
     }
 
-    public Object calculateFee(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
+    public Object calculateFee(String symbol, String type, String side, Object amount, Object price, Object... optionalArgs)
     {
         // kalshi's trading fee is NOT a flat 7% — it is 0.07 * contracts * price * (1 - price), which
         // peaks at price 0.5 and vanishes near 0 or 1. the describe() `taker: 0.07` is only the
@@ -1640,7 +1640,7 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3128,7 +3128,7 @@ final Object finalOi = oi;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

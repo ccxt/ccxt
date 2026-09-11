@@ -4225,7 +4225,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> approveBuilderCode(Object builderCode, Object maxFeeRate, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> approveBuilderCode(String builderCode, Object maxFeeRate, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

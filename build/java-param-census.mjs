@@ -157,6 +157,7 @@ for (const [key, decls] of declarations) {
         files: decls.length,
         paramNames: [...new Set(decls.map((d) => d.paramName))].join('|'),
         sample: decls.slice(0, 3).map((d) => d.file + ':' + d.paramName),
+        allFiles: decls.map((d) => d.file),
     });
 }
 

@@ -14,6 +14,10 @@ const sites = JSON.parse(execFileSync('node', ['build/java-param-sites.mjs', '--
 const clean = new Set(sites.map((r) => r.name + '[' + r.position + ']'));
 const entries = census.safe
     .filter((r) => r.javaType === 'String' && clean.has(r.name + '[' + r.position + ']'))
+    // a method declared ONLY in the TS test harness (ts/src/test/**) is not part of the
+    // generated product surface: its Java twin lives in java/tests and its call sites pass
+    // Object-typed test locals. Leave those parameters alone.
+    .filter((r) => !r.allFiles.every((f) => /(^|\/)ts\/src\/test\//.test(f)))
     .sort((a, b) => (a.name < b.name ? -1 : 1));
 
 const decls = entries.reduce((a, r) => a + r.count, 0);

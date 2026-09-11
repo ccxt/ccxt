@@ -2747,7 +2747,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public String encodeTriggerPriceType(Object priceType)
+    public String encodeTriggerPriceType(String priceType)
     {
         java.util.Map<String, Object> priceTypes = new java.util.HashMap<String, Object>() {{
             put( "last", "LAST_PRICE" );
@@ -4021,7 +4021,7 @@ public class BtseCore extends BtseApi
         }});
     }
 
-    public String parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(String marginMode)
     {
         java.util.Map<String, Object> marginModes = new java.util.HashMap<String, Object>() {{
             put( "91", "cross" );

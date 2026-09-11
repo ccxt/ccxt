@@ -3700,7 +3700,7 @@ public class NadoCore extends NadoApi
         return Helpers.add(Helpers.add(Helpers.add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 
-    public Object removeMarketSuffix(Object marketId)
+    public Object removeMarketSuffix(String marketId)
     {
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {

@@ -12371,7 +12371,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public String parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(String marginMode)
     {
         java.util.Map<String, Object> marginModes = new java.util.HashMap<String, Object>() {{
             put( "ISOLATED_MARGIN", "isolated" );

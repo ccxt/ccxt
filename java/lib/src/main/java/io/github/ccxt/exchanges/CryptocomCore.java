@@ -2038,7 +2038,7 @@ public class CryptocomCore extends CryptocomApi
 
     }
 
-    public Object createAdvancedOrderRequest(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public Object createAdvancedOrderRequest(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});

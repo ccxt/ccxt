@@ -3911,7 +3911,7 @@ public class GrvtCore extends GrvtApi
         return this.convertToBigIntCustom("10000");  // multiply needed https://t.me/c/3396937126/88
     }
 
-    public Object createSignedRequest(Object request, Object structureType, Object... optionalArgs)
+    public Object createSignedRequest(Object request, String structureType, Object... optionalArgs)
     {
         Object currencyObj = Helpers.getArg(optionalArgs, 0, null);
         Object signerAddress = Helpers.getArg(optionalArgs, 1, null);

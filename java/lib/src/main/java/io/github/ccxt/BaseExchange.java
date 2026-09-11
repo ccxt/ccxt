@@ -4321,7 +4321,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object safeDict2(Object dictionaryOrList, Object key1, String key2, Object... optionalArgs)
+    public Object safeDict2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -4364,7 +4364,7 @@ public Object describe()
         return defaultValue;
     }
 
-    public Object safeList2(Object dictionaryOrList, Object key1, String key2, Object... optionalArgs)
+    public Object safeList2(Object dictionaryOrList, Object key1, Object key2, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -5850,7 +5850,7 @@ public Object describe()
         return featuresObj;
     }
 
-    public Object featureValue(String symbol, Object... optionalArgs)
+    public Object featureValue(Object symbol, Object... optionalArgs)
     {
         /**
         * @method
@@ -8656,7 +8656,7 @@ public Object describe()
      * @param {boolean} isRequired - (optional) whether that param is required to be present
      * @returns {object[]} - returns [request, params] where request is the modified request object and params is the modified params object
      */
-    public Object handleRequestNetwork(Object parameters, Object request, String exchangeSpecificKey, Object... optionalArgs)
+    public Object handleRequestNetwork(Object parameters, Object request, Object exchangeSpecificKey, Object... optionalArgs)
     {
         Object currencyCode = Helpers.getArg(optionalArgs, 0, null);
         Object isRequired = Helpers.getArg(optionalArgs, 1, false);
@@ -9481,7 +9481,7 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionAndParams2(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    public Object handleOptionAndParams2(Object parameters, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = null;
@@ -10549,7 +10549,7 @@ public Object describe()
         }
     }
 
-    public Object integerPrecisionToAmount(Object precision)
+    public Object integerPrecisionToAmount(String precision)
     {
         /**
          * @ignore
@@ -11382,7 +11382,7 @@ public Object describe()
         }
     }
 
-    public void checkRequiredArgument(Object methodName, Object argument, Object argumentName, Object... optionalArgs)
+    public void checkRequiredArgument(String methodName, Object argument, Object argumentName, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -12223,7 +12223,7 @@ public Object describe()
         return newDict;
     }
 
-    public Object handleUntilOption(Object key, Object request, Object parameters, Object... optionalArgs)
+    public Object handleUntilOption(String key, Object request, Object parameters, Object... optionalArgs)
     {
         Object multiplier = Helpers.getArg(optionalArgs, 0, 1);
         Long until = (Long) this.safeInteger2(parameters, "until", "till");

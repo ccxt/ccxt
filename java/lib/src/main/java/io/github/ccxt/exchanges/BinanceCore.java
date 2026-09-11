@@ -13394,7 +13394,7 @@ public class BinanceCore extends BinanceApi
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> futuresTransfer(Object code, Object amount, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> futuresTransfer(String code, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16068,7 +16068,7 @@ final Object finalMarket = market;
         return networkCode;
     }
 
-    public Object getBaseDomainFromUrl(Object url)
+    public Object getBaseDomainFromUrl(String url)
     {
         if (Helpers.isTrue(Helpers.isEqual(url, null)))
         {

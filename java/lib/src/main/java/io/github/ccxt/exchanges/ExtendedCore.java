@@ -4239,7 +4239,7 @@ public class ExtendedCore extends ExtendedApi
         }}, market);
     }
 
-    public Object getExtendedStringToFelt(Object value)
+    public Object getExtendedStringToFelt(String value)
     {
         return this.convertToBigInt(this.stringToBase16(value));
     }

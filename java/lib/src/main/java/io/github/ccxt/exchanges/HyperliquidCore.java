@@ -1181,7 +1181,7 @@ public class HyperliquidCore extends HyperliquidApi
         }});
     }
 
-    public Object updateSpotCurrencyCode(Object code)
+    public Object updateSpotCurrencyCode(String code)
     {
         if (Helpers.isTrue(Helpers.isEqual(code, null)))
         {

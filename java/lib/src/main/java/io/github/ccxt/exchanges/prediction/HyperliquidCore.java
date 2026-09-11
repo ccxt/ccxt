@@ -1347,7 +1347,7 @@ public class HyperliquidCore extends HyperliquidApi
         return null;
     }
 
-    public Object resolveOutcomeInput(Object outcomeInput)
+    public Object resolveOutcomeInput(String outcomeInput)
     {
         if (Helpers.isTrue(Helpers.isEqual(outcomeInput, null)))
         {
@@ -2083,7 +2083,7 @@ public class HyperliquidCore extends HyperliquidApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

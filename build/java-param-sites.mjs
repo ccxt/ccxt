@@ -1,15 +1,25 @@
 // Call-site census for candidate generated method parameters (JN-15).
-// Reads the census rows (build/java-param-census.mjs --json) and, for every
-// candidate String position, scans the generated Java tree for `this.<name>(`
-// and `super.<name>(` call sites, classifying the argument text at that position.
+// Reads the census rows (build/java-param-census.mjs --json) and scans the WHOLE
+// generated java tree (lib + tests + cli + examples — the gradle compileJava gate
+// compiles all four subprojects) for calls to a candidate method, classifying the
+// argument at the narrowed position:
+//   - a string literal or a `(String)` checkcast is provably a String box;
+//   - a bare identifier is resolved in the SAME FILE: it is a String argument when
+//     every declaration of that name in the file is `String` (a local declaration or
+//     a method parameter), and unsafe when any declaration is another type or none is
+//     found;
+//   - a wrapper `super.<name>(...)` call is resolved against the enclosing wrapper
+//     method's own parameter list (the wrappers declare typed params from the TS
+//     signature);
+//   - anything else (a call, a property access, a numeric literal, ...) is unsafe.
 //
-// usage: node build/java-param-sites.mjs [--json]
+// usage: node build/java-param-sites.mjs [root] [--json]
 
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 
-const root = 'java/lib/src/main/java';
+const root = process.argv[2] && !process.argv[2].startsWith('--') ? process.argv[2] : 'java';
 const census = JSON.parse(execFileSync('node', ['build/java-param-census.mjs', 'ts/src', '--json'], { maxBuffer: 1 << 28 }).toString());
 const rows = census.safe;
 
@@ -39,16 +49,31 @@ function splitArgs(text) {
     return args;
 }
 
-// for a wrapper `super.<name>(a, b, ...)` call, the declared Java type of the
-// enclosing wrapper method's parameter `argName` (the wrappers are one-liners with a
-// regular shape: `public Ret name(Type a, Type b, ...) {`)
-function wrapperArgType(fileText, methodName, argName) {
-    const head = new RegExp('public[^\\n=;]*\\b' + methodName + '\\s*\\(([^)]*)\\)', 'g');
+function argLooksStringLiteral(text) {
+    const t = text.trim();
+    return /^"(?:[^"\\]|\\.)*"$/.test(t) || t.startsWith('(String)') || t.startsWith('((String)');
+}
+
+// every declared type of `name` in one file: local declarations and method parameters
+function declaredTypes(fileText, name) {
+    const types = new Set();
+    const re = new RegExp('\\b(String|Object|java\\.util\\.[\\w.<>, ]+?|long|double|int|float|boolean|Long|Double|Integer|Boolean|Client|Exception)\\s+(?:final\\s+)?' + name + '\\s*(?=[,;=)])', 'g');
+    let m;
+    while ((m = re.exec(fileText)) !== null) {
+        types.add(m[1]);
+    }
+    return types;
+}
+
+// the enclosing wrapper method's parameter type for `name` (wrapper files declare their
+// params from the TS signature: `public Ret name(Type a, Type b, ...) {`)
+function wrappingMethodArgType(fileText, methodName, name) {
+    const re = new RegExp('public[^\\n=;{}]*\\b' + methodName + '\\s*\\(([^)]*)\\)', 'g');
     let match;
-    while ((match = head.exec(fileText)) !== null) {
-        for (const param of match[1].split(',')) {
+    while ((match = re.exec(fileText)) !== null) {
+        for (const param of splitArgs(match[1])) {
             const m = /^\s*([\w.<>,\s\[\]]+?)\s+(\w+)\s*$/.exec(param);
-            if (m && m[2] === argName) {
+            if (m && m[2] === name) {
                 return m[1].trim();
             }
         }
@@ -56,24 +81,33 @@ function wrapperArgType(fileText, methodName, argName) {
     return undefined;
 }
 
+function argIsProvablyString(file, text, site, cand) {
+    const arg = site.arg.trim();
+    if (argLooksStringLiteral(arg)) {
+        return true;
+    }
+    const identifier = /^([A-Za-z_$][A-Za-z0-9_$]*)$/.exec(arg);
+    if (identifier === null) {
+        return false;
+    }
+    if (site.receiver === 'super') {
+        const declared = wrappingMethodArgType(text, cand.name, identifier[1]);
+        return declared === 'String' || declared === 'String[]';
+    }
+    const types = declaredTypes(text, identifier[1]);
+    return types.size > 0 && [...types].every((t) => t === 'String');
+}
+
 const candidates = rows.filter((r) => r.consistent && !r.assignedAny && r.javaType === 'String');
 const report = [];
-// a first-position argument that is provably a String box in the generated Java
-function argLooksString(text) {
-    const t = text.trim();
-    return /^"(?:[^"\\]|\\.)*"$/.test(t)      // string literal
-        || t.startsWith('(String)')           // explicit checkcast
-        || t.startsWith('((String)');         // parenthesised checkcast
-}
 for (const cand of candidates) {
     const needle = cand.name + '(';
     const sites = [];
     for (const f of files) {
         const text = contents.get(f);
-        for (const recv of ['this.', 'super.']) {
+        for (const recv of ['this.', 'super.', 'exchange.', 'ex.']) {
             let idx = 0;
             while ((idx = text.indexOf(recv + needle, idx)) !== -1) {
-                // skip a declaration: "public ... <name>(" has no receiver
                 const open = idx + recv.length + needle.length;
                 let depth = 1; let i = open;
                 let inStr = false;
@@ -85,61 +119,41 @@ for (const cand of candidates) {
                     else if (ch === ')') depth--;
                     i++;
                 }
-                const argText = text.slice(open, i - 1);
-                const args = splitArgs(argText);
+                const args = splitArgs(text.slice(open, i - 1));
                 sites.push({ file: path.relative('.', f), receiver: recv.slice(0, -1), arg: args[cand.position] ?? '', argc: args.length });
                 idx = i;
             }
         }
     }
-    const thisSites = sites.filter((s) => s.receiver === 'this');
-    const superSites = sites.filter((s) => s.receiver === 'super');
-    const badThis = thisSites.filter((s) => !argLooksString(s.arg));
-    const badSuper = superSites.filter((s) => {
-        if (argLooksString(s.arg)) {
-            return false;
-        }
-        const m = /^([A-Za-z_][A-Za-z0-9_]*)$/.exec(s.arg.trim());
-        if (m === null) {
-            return true; // an expression we cannot classify — treat as unsafe
-        }
-        const declared = wrapperArgType(contents.get(s.file), cand.name, m[1]);
-        return declared !== 'String' && declared !== 'String[]';
-    });
+    const bad = sites.filter((s) => !argIsProvablyString(s.file, contents.get(s.file), s, cand));
     report.push({
         name: cand.name,
         position: cand.position,
         decls: cand.count,
         callSites: sites.length,
-        thisSites: thisSites.length,
-        superSites: superSites.length,
-        clean: badThis.length === 0 && badSuper.length === 0,
-        badThis: badThis.slice(0, 4).map((s) => s.file + ' :: ' + s.arg),
-        badSuper: badSuper.slice(0, 4).map((s) => s.file + ' :: ' + s.arg),
+        clean: bad.length === 0,
+        bad: bad.slice(0, 3).map((s) => s.file.replace('java/', '') + ' :: ' + s.arg.slice(0, 40)),
     });
 }
 
 const cleanCallSites = report.filter((r) => r.clean);
 
-report.sort((a, b) => (a.thisSites - b.thisSites) || (b.count - a.count));
-
 if (process.argv.includes('--json')) {
     console.log(JSON.stringify(cleanCallSites.map((r) => ({
         name: r.name, position: r.position, decls: r.decls, callSites: r.callSites,
-        thisSites: r.thisSites, superSites: r.superSites, badThis: r.badThis,
     })), null, 1));
 } else {
+    console.log('java tree scanned:', files.length, 'files under', root);
     console.log('String candidates (consistent, unassigned):', report.length);
-    console.log('  call-site clean (every this.<name>( arg0 provably String):', cleanCallSites.length);
-    console.log('  declarations behind clean candidates:', cleanCallSites.reduce((a, r) => a + r.decls, 0));
-    console.log('\n-- DIRTY call sites (candidates to exclude) --');
+    console.log('  call-site clean:', cleanCallSites.length,
+        '(declarations:', cleanCallSites.reduce((a, r) => a + r.decls, 0) + ')');
+    console.log('\n-- PRUNED by the whole-tree call-site scan --');
     for (const r of report.filter((r) => !r.clean)) {
-        console.log(`${r.name}[${r.position}] decls=${r.decls} this=${r.thisSites} badThis=${r.badThis.length} badSuper=${r.badSuper.length}`);
-        for (const e of r.badThis) console.log('   this ', e);
-        for (const e of r.badSuper) console.log('   super', e);
+        console.log(`${r.name}[${r.position}] decls=${r.decls} sites=${r.callSites}`);
+        for (const e of r.bad) console.log('        ', e);
     }
     console.log('\n-- clean, sorted by declarations --');
-    for (const r of cleanCallSites.slice(0, 50)) {
-        console.log(`${String(r.decls).padStart(5)} decls  ${r.name}[${r.position}] this=${r.thisSites} super=${r.superSites}`);
+    for (const r of cleanCallSites.slice(0, 40)) {
+        console.log(`${String(r.decls).padStart(5)} decls  ${r.name}[${r.position}] sites=${r.callSites}`);
     }
 }

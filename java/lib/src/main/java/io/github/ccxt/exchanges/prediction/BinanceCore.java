@@ -619,7 +619,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1888,7 +1888,7 @@ final Object finalMarketSymbol = marketSymbol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a wallet
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWallet(Object methodName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWallet(String methodName, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

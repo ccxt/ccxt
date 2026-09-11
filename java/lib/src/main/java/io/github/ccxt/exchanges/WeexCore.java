@@ -3028,7 +3028,7 @@ public class WeexCore extends WeexApi
         return this.extend(request, parameters);
     }
 
-    public String encodeTriggerPriceType(Object triggerPriceType)
+    public String encodeTriggerPriceType(String triggerPriceType)
     {
         java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "mark", "MARK_PRICE" );

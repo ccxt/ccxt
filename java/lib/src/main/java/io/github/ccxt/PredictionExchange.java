@@ -401,7 +401,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -506,7 +506,7 @@ public Object describe()
 
     }
 
-    public Object getEvent(Object eventIdOrSlug)
+    public Object getEvent(String eventIdOrSlug)
     {
         // cache-only event resolver (the event analogue of this.outcome) - the cache fills
         // through fetchEvents; this never fetches
@@ -1199,7 +1199,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=public-trades)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1403,7 +1403,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object[]} a list of prediction [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1488,7 +1488,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1567,7 +1567,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1593,7 +1593,7 @@ public Object describe()
      * @param {object} [params] extra exchange-specific parameters
      * @returns {object} a prediction [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2207,7 +2207,7 @@ public Object describe()
         return this.amountToPrecision(marketSymbol, amount);
     }
 
-    public Object priceToPredictionPrecision(Object outcome, Object price)
+    public Object priceToPredictionPrecision(String outcome, Object price)
     {
         Object outcomeObj = this.outcome(outcome);
         String marketSymbol = this.safeString(outcomeObj, "market");
@@ -2344,7 +2344,7 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " signEvmTransaction() must be overridden by the exchange")) ;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> ethRpc(Object rpcUrl, Object method, Object rpcParams)
+    public java.util.concurrent.CompletableFuture<Object> ethRpc(Object rpcUrl, String method, Object rpcParams)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2371,7 +2371,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> sendEvmTransaction(Object rpcUrl, Object chainId, Object fromAddress, Object to, Object value, Object data, Object gasLimit)
+    public java.util.concurrent.CompletableFuture<Object> sendEvmTransaction(Object rpcUrl, Object chainId, Object fromAddress, Object to, String value, Object data, Object gasLimit)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

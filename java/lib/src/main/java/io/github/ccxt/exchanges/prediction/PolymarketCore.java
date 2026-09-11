@@ -771,7 +771,7 @@ public class PolymarketCore extends PolymarketApi
      * @param {string} tag the tag label or slug
      * @returns {string} the gamma tag slug
      */
-    public Object tagToSlug(Object tag)
+    public Object tagToSlug(String tag)
     {
         Object lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
@@ -1969,7 +1969,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure](https://docs.ccxt.com/#/?id=fee-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2011,7 +2011,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object outcome, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String outcome, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2103,7 +2103,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2861,7 +2861,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint (see createOrder)
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object outcome, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String outcome, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3323,7 +3323,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [prediction event structure](https://docs.ccxt.com/#/?id=prediction-event-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchEvent(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchEvent(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
