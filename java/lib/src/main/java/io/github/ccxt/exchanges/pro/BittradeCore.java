@@ -594,7 +594,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         // watch the snapshot in a separate async call

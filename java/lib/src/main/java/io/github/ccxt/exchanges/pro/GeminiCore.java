@@ -487,7 +487,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             // handle https://github.com/ccxt/ccxt/issues/29210
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }

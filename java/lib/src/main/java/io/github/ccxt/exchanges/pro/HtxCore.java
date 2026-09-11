@@ -726,7 +726,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             client.reject(e, messageHash);
         }

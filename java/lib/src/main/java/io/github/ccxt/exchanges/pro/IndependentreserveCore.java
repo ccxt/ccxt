@@ -283,7 +283,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                 ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
                 client.reject(error, messageHash);
                 return;
             }

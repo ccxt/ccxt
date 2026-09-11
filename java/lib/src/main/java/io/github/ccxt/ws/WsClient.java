@@ -80,11 +80,18 @@ public class WsClient {
         }, "ccxt-ws-shutdown"));
     }
 
-    // State — typed as Object for compatibility with transpiled code that casts these
+    // State. futures / subscriptions / rejections now name the exact box each field has
+    // always held (the ConcurrentHashMap in the initialisers, which the *Map()
+    // accessors below already promised). Generated code only ever reaches them through
+    // Object-taking helpers (Helpers.GetValue / inOp / objectKeys / addElementToObject)
+    // or through `(java.util.Map...)` upcasts emitted by
+    // javaTranspiler.ts#postProcessWsJava ("Pattern 12"), both of which stay legal
+    // against the concrete type, and no site (hand-written or generated) assigns a
+    // non-ConcurrentHashMap — so this is a declaration-only change.
     public String url;
-    public Object futures = new ConcurrentHashMap<String, Future>();
-    public Object subscriptions = new ConcurrentHashMap<String, Object>();
-    public Object rejections = new ConcurrentHashMap<String, Object>();
+    public ConcurrentHashMap<String, Future> futures = new ConcurrentHashMap<String, Future>();
+    public ConcurrentHashMap<String, Object> subscriptions = new ConcurrentHashMap<String, Object>();
+    public ConcurrentHashMap<String, Object> rejections = new ConcurrentHashMap<String, Object>();
     public volatile boolean isConnected = false;
     public final AtomicBoolean startedConnecting = new AtomicBoolean(false);
     public volatile long connectionEstablished = 0;
@@ -111,13 +118,11 @@ public class WsClient {
     private final Object futuresSync = new Object();
     private volatile Thread pingThread;
 
-    // Typed accessors for internal use
-    @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Future> futuresMap() { return (ConcurrentHashMap<String, Future>) futures; }
-    @SuppressWarnings("unchecked")
-    public ConcurrentHashMap<String, Object> subscriptionsMap() { return (ConcurrentHashMap<String, Object>) subscriptions; }
-    @SuppressWarnings("unchecked")
-    private ConcurrentHashMap<String, Object> rejectionsMap() { return (ConcurrentHashMap<String, Object>) rejections; }
+    // Typed accessors for internal use — the fields carry the concrete type now,
+    // so these are plain returns (no checkcast on the hot futures path).
+    private ConcurrentHashMap<String, Future> futuresMap() { return futures; }
+    public ConcurrentHashMap<String, Object> subscriptionsMap() { return subscriptions; }
+    private ConcurrentHashMap<String, Object> rejectionsMap() { return rejections; }
 
     // Config
     public long keepAlive = 30000;

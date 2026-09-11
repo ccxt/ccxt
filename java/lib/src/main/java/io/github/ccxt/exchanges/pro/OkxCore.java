@@ -1729,7 +1729,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             client.reject(error, messageHash);
         }
@@ -3166,7 +3166,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
     }
 

@@ -253,7 +253,13 @@ public class BaseExchange {
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
     public Object trades = new ConcurrentHashMap<String, Object>();
-    public Object orderbooks = new ConcurrentHashMap<String, Object>();
+    // symbol -> the live WS order book. A census of all 116 write sites
+    // (Helpers.addElementToObject(this.orderbooks, ...)) found only
+    // orderBook()/indexedOrderBook()/countedOrderBook() values and rows read back out of
+    // this same map, i.e. always an io.github.ccxt.ws.WsOrderBook; the generated read
+    // sites in exchanges/pro/*.java already cast the value to exactly that class. The
+    // nested value type therefore names what the box has always held — no box moves.
+    public java.util.Map<String, io.github.ccxt.ws.WsOrderBook> orderbooks = new ConcurrentHashMap<String, io.github.ccxt.ws.WsOrderBook>();
     public Object ohlcvs = new ConcurrentHashMap<String, Object>();
     public Object clients = new ConcurrentHashMap<String, Object>();
 
@@ -1312,7 +1318,13 @@ public class BaseExchange {
         return new HashMap<>();
     }
 
-    public ConcurrentHashMap<String, Object> createSafeDictionary(boolean isWs) {
+    // Generic in the value type so a typed WS field keeps its declaration without a
+    // cast: `this.orderbooks = this.createSafeDictionary(true)` infers
+    // V = io.github.ccxt.ws.WsOrderBook from the assignment target (the only typed
+    // target today); the untyped `Object` targets infer V = Object exactly as before.
+    // No caller passes the result where a fixed ConcurrentHashMap<String, Object> is
+    // required (census: 5 call sites, all plain assignments in cleanWsData()).
+    public <V> ConcurrentHashMap<String, V> createSafeDictionary(boolean isWs) {
         return new ConcurrentHashMap<>();
     }
 
@@ -12855,7 +12867,7 @@ public Object describe()
                 {
                     if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                     {
-                        ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                        this.orderbooks.remove((String)symbol);
                     }
                 } else if (Helpers.isTrue(Helpers.isEqual(topic, "ticker")))
                 {
