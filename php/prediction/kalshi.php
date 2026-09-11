@@ -1339,7 +1339,7 @@ class kalshi extends Exchange {
         $ticker = $this->safe_string($outcomeObj['info'], 'ticker');
         $request = array( 'ticker' => $ticker );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 1000);
         }
         $response = Async\await($this->kalshiPublicGetMarketsTrades($this->extend($request, $params)));
         $trades = $this->safe_list($response, 'trades', array());
