@@ -3158,13 +3158,15 @@ export default class limitless extends Exchange {
             const timestamp = this.iso8601 (this.milliseconds ());
             const newline = "\n"; // eslint-disable-line quotes
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
-            const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
+            const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');   
             headers = this.extend (headers, {
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
             const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
-            headers[headerKey] = this.apiKey;
+            const headersKey: Dict = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend (headers, headersKey);
         }
         url = baseUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
