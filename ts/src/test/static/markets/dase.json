@@ -1,0 +1,100 @@
+{
+  "BTC/EUR": {
+    "id": "BTC-EUR",
+    "symbol": "BTC/EUR",
+    "base": "BTC",
+    "quote": "EUR",
+    "baseId": "BTC",
+    "quoteId": "EUR",
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "taker": 0.002,
+    "maker": 0.0015,
+    "precision": {
+      "amount": 1e-8,
+      "price": 0.01
+    },
+    "limits": {
+      "amount": {
+        "min": 0.0001,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      },
+      "leverage": {}
+    },
+    "tierBased": false,
+    "percentage": true,
+    "info": {
+      "market": "BTC-EUR",
+      "description": "Bitcoin/Euro",
+      "base": "BTC",
+      "size_precision": 8,
+      "quote": "EUR",
+      "price_precision": 2,
+      "market_order_price_slippage": "0.15",
+      "min_order_size": "0.0001",
+      "min_funds": "10"
+    }
+  },
+  "ETH/EUR": {
+    "id": "ETH-EUR",
+    "symbol": "ETH/EUR",
+    "base": "ETH",
+    "quote": "EUR",
+    "baseId": "ETH",
+    "quoteId": "EUR",
+    "type": "spot",
+    "spot": true,
+    "margin": false,
+    "swap": false,
+    "future": false,
+    "option": false,
+    "contract": false,
+    "taker": 0.002,
+    "maker": 0.0015,
+    "precision": {
+      "amount": 1e-8,
+      "price": 0.01
+    },
+    "limits": {
+      "amount": {
+        "min": 0.001,
+        "max": null
+      },
+      "price": {
+        "min": null,
+        "max": null
+      },
+      "cost": {
+        "min": 10,
+        "max": null
+      },
+      "leverage": {}
+    },
+    "tierBased": false,
+    "percentage": true,
+    "info": {
+      "market": "ETH-EUR",
+      "description": "Ethereum/Euro",
+      "base": "ETH",
+      "size_precision": 8,
+      "quote": "EUR",
+      "price_precision": 2,
+      "market_order_price_slippage": "0.15",
+      "min_order_size": "0.001",
+      "min_funds": "10"
+    }
+  }
+}
