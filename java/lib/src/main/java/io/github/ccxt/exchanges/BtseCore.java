@@ -972,7 +972,7 @@ public class BtseCore extends BtseApi
                     // check if the requested time range is too large for one request
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(timeframe);
-                    Object maxDelta = Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                    Long maxDelta = (Long) Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
                     Object difference = Helpers.subtract(until, since);
                     if (Helpers.isTrue(Helpers.isLessThan(difference, maxDelta)))
                     {

@@ -1786,7 +1786,7 @@ public class ApexCore extends ApexApi
             {
                 String formattedUint32 = "4294967295";
                 String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
-                Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
+                Long expireTime = (Long) Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
                 java.util.Map<String, Object> orderToSign = new java.util.HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
                     put( "receiverAddress", ethAddress );

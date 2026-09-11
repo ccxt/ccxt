@@ -643,7 +643,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 // builder-deployed perp dexs start at 110000
                 Object dex = this.safeDict(fetchDexes, i, new java.util.HashMap<String, Object>() {{}});
-                Object secondPart = Helpers.multiply((Helpers.subtract(i, 1)), 10000);
+                Long secondPart = (Long) Helpers.multiply((Helpers.subtract(i, 1)), 10000);
                 Object offset = this.sum(110000, secondPart);
                 Helpers.addElementToObject(perpDexesOffset, Helpers.GetValue(dex, "name"), offset);
             }
@@ -1671,7 +1671,7 @@ public class HyperliquidCore extends HyperliquidApi
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
                     // optimization if limit is provided
-                    Object timeframeInMilliseconds = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long timeframeInMilliseconds = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                     since = this.sum(until, Helpers.multiply(Helpers.multiply(timeframeInMilliseconds, limit), Helpers.opNeg(1)));
                     if (Helpers.isTrue(Helpers.isLessThan(since, 0)))
                     {

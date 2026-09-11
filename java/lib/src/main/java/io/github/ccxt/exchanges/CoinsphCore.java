@@ -1336,7 +1336,7 @@ public class CoinsphCore extends CoinsphApi
                     Helpers.addElementToObject(request, "endTime", until);
                 } else
                 {
-                    Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                     Object endTimeByLimit = this.sum(since, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
                     Long now = this.milliseconds();
                     Helpers.addElementToObject(request, "endTime", Helpers.mathMin(endTimeByLimit, now));
@@ -1345,7 +1345,7 @@ public class CoinsphCore extends CoinsphApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
                 // since work properly only when it is "younger" than last "limit" candle
-                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                 Helpers.addElementToObject(request, "startTime", Helpers.subtract(until, (Helpers.multiply(duration, (Helpers.subtract(limit, 1))))));
             }
             Helpers.addElementToObject(request, "limit", limit);

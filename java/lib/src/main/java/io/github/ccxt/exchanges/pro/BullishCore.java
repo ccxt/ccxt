@@ -403,7 +403,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(sequenceNumberRange), 0)))
         {
-            Object lastIndex = Helpers.subtract(Helpers.getArrayLength(sequenceNumberRange), 1);
+            Long lastIndex = (Long) Helpers.subtract(Helpers.getArrayLength(sequenceNumberRange), 1);
             Helpers.addElementToObject(parsed, "nonce", this.safeInteger(sequenceNumberRange, lastIndex));
         }
         Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});

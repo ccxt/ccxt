@@ -1410,7 +1410,7 @@ public class LunoCore extends LunoApi
                 Helpers.addElementToObject(request, "since", this.parseToInt(since));
             } else
             {
-                Object duration = Helpers.multiply(Helpers.multiply(1000, 1000), this.parseTimeframe(timeframe));
+                Long duration = (Long) Helpers.multiply(Helpers.multiply(1000, 1000), this.parseTimeframe(timeframe));
                 Helpers.addElementToObject(request, "since", Helpers.subtract(this.milliseconds(), duration));
             }
             java.util.Map<String, Object> response = (this.exchangePrivateGetCandles(this.extend(request, parameters))).join();

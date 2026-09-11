@@ -727,7 +727,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
@@ -1285,7 +1285,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchDepositsWithdrawals", code, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "result_offset", offSet );
@@ -2700,7 +2700,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", symbol, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             final Object finalPortfolio = portfolio;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2810,7 +2810,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 market = this.market(symbol);
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Long offSet = (Long) this.safeInteger2(parameters, "offset", "result_offset", Helpers.multiply(page, maxEntriesPerRequest));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "result_offset", offSet );

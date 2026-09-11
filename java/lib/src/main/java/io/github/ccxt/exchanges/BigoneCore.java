@@ -2273,7 +2273,7 @@ public class BigoneCore extends BigoneApi
 
     public Object nonce()
     {
-        Object exchangeTimeCorrection = Helpers.multiply(this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0), 1000000);
+        Long exchangeTimeCorrection = (Long) Helpers.multiply(this.safeInteger(this.options, "exchangeMillisecondsCorrection", 0), 1000000);
         return this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection);
     }
 

@@ -812,7 +812,7 @@ public class CoinbaseCore extends CoinbaseApi
             String cursor = this.safeString(pagination, "next_starting_after");
             Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object length = Helpers.getArrayLength(accounts);
-            Object lastIndex = Helpers.subtract(length, 1);
+            Long lastIndex = (Long) Helpers.subtract(length, 1);
             Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -881,7 +881,7 @@ public class CoinbaseCore extends CoinbaseApi
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(accountsLength, 0))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
-                Object lastIndex = Helpers.subtract(accountsLength, 1);
+                Long lastIndex = (Long) Helpers.subtract(accountsLength, 1);
                 Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(last, "cursor", cursor);
                 Helpers.addElementToObject(accounts, lastIndex, last);
@@ -3138,7 +3138,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 return ledger;
             }
-            Object lastIndex = Helpers.subtract(length, 1);
+            Long lastIndex = (Long) Helpers.subtract(length, 1);
             Object last = this.safeDict(ledger, lastIndex);
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "next_starting_after");

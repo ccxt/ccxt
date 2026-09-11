@@ -1688,7 +1688,7 @@ public class BullishCore extends BullishApi
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
             int duration = this.parseTimeframe(timeframe);
-            Object maxDelta = Helpers.multiply(Helpers.multiply(1000, duration), maxLimit);
+            Long maxDelta = (Long) Helpers.multiply(Helpers.multiply(1000, duration), maxLimit);
             Object startTime = since;
             // both of since and until are required
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(startTime, null)) && Helpers.isTrue(Helpers.isEqual(until, null))))
@@ -1918,7 +1918,7 @@ public class BullishCore extends BullishApi
     {
         Object since = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object ninetyDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(90, 24), 60), 60), 1000);
+        Long ninetyDays = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(90, 24), 60), 60), 1000);
         Long now = this.milliseconds();
         Object allowedSince = Helpers.subtract(now, ninetyDays);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((Helpers.isLessThan(since, allowedSince)))))
@@ -1949,7 +1949,7 @@ public class BullishCore extends BullishApi
         Object until = this.safeInteger(parameters, "until");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) || Helpers.isTrue((!Helpers.isEqual(until, null)))))
         {
-            Object timeDelta = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // 7 days
+            Long timeDelta = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // 7 days
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
                 since = Helpers.subtract(until, timeDelta);

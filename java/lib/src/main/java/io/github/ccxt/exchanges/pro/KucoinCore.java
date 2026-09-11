@@ -307,7 +307,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             this.checkRequiredCredentials();
             Object utaToken = this.safeValue(this.options, "utaToken");
             Long lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-            Object refreshInterval = Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24); // 24 hours
+            Long refreshInterval = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24); // 24 hours
             refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
             Long now = this.milliseconds();
             Boolean expired = Helpers.isGreaterThanOrEqual((Helpers.subtract(now, lastUpdate)), refreshInterval);

@@ -1732,7 +1732,7 @@ public class BingxCore extends BingxApi
                 Helpers.addElementToObject(request, "endTime", until);
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))) && Helpers.isTrue((!Helpers.isEqual(since, null)))))
             {
-                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                 Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(duration, requestLimit)));
             }
             Object response = null;

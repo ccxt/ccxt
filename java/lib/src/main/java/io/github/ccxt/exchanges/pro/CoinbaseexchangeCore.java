@@ -1211,7 +1211,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             put( "done", "handleOrder");
             put( "error", "handleErrorMessage");
         }};
-        Object length = Helpers.subtract(((String)client.url).length(), 0);
+        Long length = (Long) Helpers.subtract(((String)client.url).length(), 0);
         Boolean authenticated = Helpers.isEqual(Helpers.GetValue(client.url, Helpers.subtract(length, 1)), "?");
         Object method = this.safeValue(methods, type);
         if (Helpers.isTrue(Helpers.isEqual(method, null)))

@@ -3857,7 +3857,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Long now = this.milliseconds();
-                Object durationInMilliseconds = Helpers.multiply(duration, 1000);
+                Long durationInMilliseconds = (Long) Helpers.multiply(duration, 1000);
                 // switch to history candles if since is past the cutoff for current candles
                 Object historyBorder = Helpers.subtract(now, (Helpers.multiply((Helpers.subtract(1440, 1)), durationInMilliseconds)));
                 if (Helpers.isTrue(Helpers.isLessThan(since, historyBorder)))
@@ -11563,8 +11563,8 @@ public class OkxCore extends OkxApi
             }
             Object response = null;
             Long now = this.milliseconds();
-            Object oneWeekAgo = Helpers.subtract(now, 604800000);
-            Object threeMonthsAgo = Helpers.subtract(now, 7776000000L);
+            Long oneWeekAgo = (Long) Helpers.subtract(now, 604800000);
+            Long threeMonthsAgo = (Long) Helpers.subtract(now, 7776000000L);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(since, null))) || Helpers.isTrue((Helpers.isGreaterThan(since, oneWeekAgo)))))
             {
                 response = (this.privateGetAccountBills(this.extend(request, parameters))).join();

@@ -1049,7 +1049,7 @@ public class BitoproCore extends BitoproApi
                 Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(limit, timeframeInSeconds))));
             } else
             {
-                Object timeframeInMilliseconds = Helpers.multiply(timeframeInSeconds, 1000);
+                Long timeframeInMilliseconds = (Long) Helpers.multiply(timeframeInSeconds, 1000);
                 alignedSince = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, timeframeInMilliseconds))))), timeframeInMilliseconds);
                 Helpers.addElementToObject(request, "from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
                 Helpers.addElementToObject(request, "to", this.sum(Helpers.GetValue(request, "from"), Helpers.multiply(limit, timeframeInSeconds)));

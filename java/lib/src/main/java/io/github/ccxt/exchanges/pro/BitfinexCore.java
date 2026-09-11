@@ -556,7 +556,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object length = Helpers.getArrayLength(trades);
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
-                Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
+                Long index = (Long) Helpers.subtract(Helpers.subtract(length, i), 1);
                 Object parsed = this.parseWsTrade(Helpers.GetValue(trades, index), market);
                 Helpers.callDynamically(stored, "append", new Object[]{parsed});
             }

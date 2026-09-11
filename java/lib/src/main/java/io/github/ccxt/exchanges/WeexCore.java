@@ -1954,7 +1954,7 @@ public class WeexCore extends WeexApi
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(since, null))) || Helpers.isTrue((Helpers.isEqual(until, null)))))
                 {
                     Long now = this.milliseconds();
-                    Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                     Object numberOfCandles = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : maxHistoricalLimit;
                     Object timeDelta = Helpers.multiply(numberOfCandles, duration);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(since, null))) && Helpers.isTrue((Helpers.isEqual(until, null)))))
@@ -5277,7 +5277,7 @@ public class WeexCore extends WeexApi
         }
         if (Helpers.isTrue(((String)marketId).endsWith(((String)"SUSDT"))))
         {
-            Object baseLength = Helpers.subtract(((String)marketId).length(), 5);
+            Long baseLength = (Long) Helpers.subtract(((String)marketId).length(), 5);
             return Helpers.add(Helpers.slice(marketId, 0, baseLength), "USDT");
         }
         return marketId;

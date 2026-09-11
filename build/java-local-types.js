@@ -1660,9 +1660,15 @@ function receiverCallIsSafe (method, javaType) {
 // every Identifier node in `scope`, by source name. Not cached: the Java printer
 // renames identifiers inside object literals in place (`x` -> `finalX`) while a body
 // is being printed, so the walk must read the live AST each time.
+// ITERATIVE on purpose: the recursive form overflowed the (web)worker stack on the deep
+// expression trees of ts/src/pro/binance.ts (JN-22 measured a RangeError in a piscina
+// worker mid-regen, killing the process). An explicit stack has no depth limit; the
+// pre-order visit order — and therefore every name's node list — is unchanged.
 function identifierIndex (scope) {
     const index = new Map ();
-    const visit = (n) => {
+    const stack = [ scope ];
+    while (stack.length > 0) {
+        const n = stack.pop ();
         if (n.kind === ts.SyntaxKind.Identifier) {
             const name = n.escapedText;
             let list = index.get (name);
@@ -1672,9 +1678,12 @@ function identifierIndex (scope) {
             }
             list.push (n);
         }
-        ts.forEachChild (n, visit);
-    };
-    ts.forEachChild (scope, visit);
+        const children = [];
+        ts.forEachChild (n, (child) => { children.push (child); });
+        for (let i = children.length - 1; i >= 0; i--) {
+            stack.push (children[i]);
+        }
+    }
     return index;
 }
 
@@ -5047,9 +5056,325 @@ function numericConditionalWithArmCasts (printer, node) {
     return `((${condition})) ? ${trueArm} : ${falseArm}`;
 }
 
+// ----- JN-22: LOCAL NUMERIC RECEIVER/OPERAND: arithmetic-result locals -----
+//
+// `a + b` / `a - b` / `a * b` / `a / b` / `a % b` all print through ast-transpiler's
+// binaryExpressionsWrappers as `Helpers.add|subtract|multiply|divide|mod (a, b)` — there is
+// NO raw Java operator anywhere in the generated arithmetic (census: 0 raw `-`/`*`/`/`
+// outside comments), so the JS-vs-Java integer-division hazard can never be introduced by
+// naming a local's box: the printed operand text is byte-identical and Helpers.divide
+// always does double division (`((Long) a).doubleValue() / ((Long) b)`).
+//
+// WHICH BOX EACH HELPER RETURNS (differential javac harness /tmp/jn22, compiled against THIS
+// worktree's Helpers.java; every row in the harness output):
+//   add:      (Long,Long)/(Integer,Integer)/(int,int) -> Long   (normalizeIntIfNeeded turns
+//             every Integer into a Long BEFORE the switch, so the Int32 branch the C#
+//             campaign found in subtract does not exist here);
+//             either operand Double -> Double; either operand String -> String;
+//             any other non-null pair -> null.
+//   subtract: (Long,Long) -> Long; either operand Double -> Double; else null.
+//             `subtract(int, int)` at Helpers.java:331 is COMMENTED OUT and reflection over
+//             Helpers.class shows EXACTLY ONE overload `Object subtract(Object,Object)` —
+//             the C#-campaign Int32-box trap has no Java equivalent (harness row
+//             `subtract(int,int literals) => box=java.lang.Long value=999`).
+//   multiply: (Long,Long)/(int,int) -> Long; with ANY Double operand the box is
+//             VALUE-DEPENDENT: `if (IsInteger(res)) return (long) res; else return res;`
+//             — the SAME static call shape gives different runtime boxes
+//             (`multiply(1L,2.5)` -> Double 2.5, `multiply(2L,2.5)` -> Long 5,
+//             `multiply(1000L,2.5)` -> Long 2500). A Double-operand multiply local can
+//             therefore NEVER be typed; the harness also shows `IsInteger(NaN)` THROWS
+//             NumberFormatException (multiply(Double.NaN, x)), which is baseline behaviour.
+//   divide:  ALWAYS Double-or-null for EVERY operand pair — the null guard is the only
+//             non-Double return. `divide(1,2)=0.5` (double division, NOT integer division),
+//             `divide(1L,0L)=Infinity`, `divide(0L,0L)=NaN`, `divide(-5L,2L)=-2.5` — all
+//             identical to the JS values (node cross-check in the harness output). So a
+//             `/`-result local needs NO operand proof at all; only its own use scan.
+//   mod:     Double-or-null whenever the first operand is numeric (`toDouble(a) % toDouble(b)`).
+//
+// WHAT THIS ADDS: the declaration `Object x = <arith>;` -> `Long|Double x = (Long|Double)
+// <arith>;` when the box is provable, plus the same use scan the numeric family already
+// applies (null is legal for both reference boxes, so the null paths need no special case).
+// The cast is REQUIRED (unlike the safe*/parse* families): `Helpers.subtract` is declared
+// `Object`, so the printed initializer is statically Object and would not assign to Long.
+// A cast on the proven box (or null) is a no-op at runtime; the harness is what proves the
+// box claim on which the cast's safety rests.
+//
+// OPERAND BOX PROOF (`arithmeticValueBox`) — a value expression is provably Long-family or
+// Double-family when it is:
+//   * a numeric literal (printer.printNumericLiteral: Integer for plain/hex, Long for the `L`
+//     suffix, Double when it prints `.`/`e`) — the literal box is what the call site autoboxes;
+//   * unary +/- (prints `Helpers.opNeg(x)` / `+(x)`): opNeg hands the argument's own box back
+//     (audited body: Byte->Byte ... Double->Double, else null) — same family as the operand;
+//   * a call to a base-tier numeric family member (safeInteger*/safeFloat*/safeNumber*/
+//     parseToInt/milliseconds/seconds/parse8601 -> Long, parseTimeframe -> int) — the exact
+//     table the landed slice already trusts, resolved through numericFamilyCallType;
+//   * `Math.floor/ceil` -> Double, `Math.round` -> Long, `Math.abs` -> Double (the printer
+//     prints `Helpers.mathAbs(Double.parseDouble(...))`), `Math.pow` -> Double;
+//   * `.length` -> int -> Integer -> Long family (`Helpers.getArrayLength(x)` / `((String)x)
+//     .length()`, both primitive int, normalized to Long inside every arithmetic helper);
+//   * another arithmetic expression of this family (recursive, depth-capped);
+//   * an identifier whose declaration the same proof reaches: a `const` (no writes at all) or
+//     a `let`/`var` whose every later write hands the same box back, or a for-loop counter
+//     (the printer rewrites its declaration to `var i = <literal>`, a primitive — the literal
+//     decides int/long/double).
+// Everything else (params, GetValue, unknown calls, Strings, Maps, ternaries, destructured
+// names, `undefined`) is unprovable and keeps the whole arithmetic expression `Object`.
+//
+// WHY BOTH OPERANDS MUST BE PROVABLE for add/subtract/multiply: the helpers switch on the
+// RUNTIME boxes, so one unknown operand can flip the result (String for add, null for
+// subtract, the value-dependent Double/Long split for multiply). divide/mod do not need the
+// operand proof (their box is value-independent) but reusing the operand walk for them costs
+// nothing and documents intent; the walk is only skipped for divide.
+
+// JS operator -> the Helpers method the printer emits for it. Every other binary operator
+// (comparisons, ===, &&, ??, ...) is wrapped differently and never produces a numeric box.
+const ARITHMETIC_OPERATOR_METHODS = new Map ([
+    [ ts.SyntaxKind.PlusToken, 'add' ],
+    [ ts.SyntaxKind.MinusToken, 'subtract' ],
+    [ ts.SyntaxKind.AsteriskToken, 'multiply' ],
+    [ ts.SyntaxKind.SlashToken, 'divide' ],
+    [ ts.SyntaxKind.PercentToken, 'mod' ],
+]);
+
+const ARITHMETIC_CAST_METHODS = new Set ([ 'add', 'subtract', 'multiply', 'divide', 'mod' ]);
+
+const ARITHMETIC_DEBUG = process.env.CCXT_JAVA_ARITHMETIC_DEBUG === '1'
+    || process.env.CCXT_JAVA_NUMERIC_DEBUG === '1';
+
+function arithmeticDebug (message) {
+    if (ARITHMETIC_DEBUG) {
+        console.error ('[java-arithmetic] ' + message);
+    }
+}
+
+const ARITHMETIC_DEPTH_CAP = 8;
+
+// the box family of a primitive Java numeric static type as the helpers see it:
+// int/long/short/byte (and their boxes) are normalized to Long; double/float stay Double.
+function arithmeticFamilyOf (javaType) {
+    if (javaType === 'Long' || javaType === 'Integer' || javaType === 'int') {
+        return 'Long';
+    }
+    if (javaType === 'Double') {
+        return 'Double';
+    }
+    return undefined;
+}
+
+function arithmeticIsConstDeclaration (declaration) {
+    const list = declaration.parent;
+    return ts.isVariableDeclarationList (list) && (list.flags & ts.NodeFlags.Const) !== 0;
+}
+
+function arithmeticIsForCounter (declaration) {
+    const list = declaration.parent;
+    return ts.isVariableDeclarationList (list)
+        && list.parent !== undefined && ts.isForStatement (list.parent)
+        && list.parent.initializer === list;
+}
+
+// `Helpers.add(|subtract(|multiply(|divide(|mod(` — the printed prefix of an arithmetic
+// initializer, derived from the SOURCE operator so a printer change can never silently
+// retype a different call shape.
+function arithmeticPrintedPrefix (method) {
+    return `Helpers.${method}(`;
+}
+
+// the printed initializer may carry explicit parentheses (`const x = (a - b)` prints
+// `(Helpers.subtract(a, b))`); the cast applies to the whole parenthesized value, so only
+// the leading parens are skipped before the prefix check.
+function arithmeticValueCarriesPrefix (value, prefix) {
+    return value.replace (/^\(+/, '').startsWith (prefix);
+}
+
+// every later write must hand the same box back (or null/undefined); compound assignment
+// prints `x = Helpers.add/subtract(x, r)` whose box depends on the right operand, and
+// ++/-- print numeric helpers — all rejected.
+function arithmeticWritesKeepBox (printer, declaration, box) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const name = declaration.name.escapedText;
+    const uses = identifierIndex (scope).get (name) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken) {
+                const right = unwrapNumericExpression (parent.right);
+                if (right === undefined) {
+                    return false;
+                }
+                if (right.kind === ts.SyntaxKind.NullKeyword) {
+                    continue;
+                }
+                if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
+                    continue;
+                }
+                const rightBox = arithmeticExpressionBox (printer, right, 1);
+                if (rightBox === undefined || rightBox !== box) {
+                    return false;
+                }
+                continue;
+            }
+            if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                return false;
+            }
+        }
+        if (ts.isPostfixUnaryExpression (parent)) {
+            return false;
+        }
+        if (ts.isPrefixUnaryExpression (parent)
+            && (parent.operator === ts.SyntaxKind.PlusToken || parent.operator === ts.SyntaxKind.MinusToken)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// the box family ('Long' | 'Double') of a value expression, or undefined when unprovable
+function arithmeticValueBox (printer, node, depth) {
+    if (depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    const n = unwrapNumericExpression (node);
+    if (n === undefined) {
+        return undefined;
+    }
+    if (n.kind === ts.SyntaxKind.NumericLiteral) {
+        return arithmeticFamilyOf (literalTypeOfNumericLiteral (printer, n));
+    }
+    if (ts.isPrefixUnaryExpression (n)
+        && (n.operator === ts.SyntaxKind.MinusToken || n.operator === ts.SyntaxKind.PlusToken)) {
+        // prints Helpers.opNeg(x) / +(x); opNeg returns the argument's own box
+        return arithmeticValueBox (printer, n.operand, depth + 1);
+    }
+    if (ts.isPropertyAccessExpression (n)) {
+        // `x.length` prints Helpers.getArrayLength(x) (int) or ((String)x).length() (int)
+        return String (n.name.escapedText) === 'length' ? 'Long' : undefined;
+    }
+    if (ts.isBinaryExpression (n) && ARITHMETIC_OPERATOR_METHODS.has (n.operatorToken.kind)) {
+        return arithmeticExpressionBox (printer, n, depth + 1);
+    }
+    if (ts.isCallExpression (n)) {
+        if (ts.isPropertyAccessExpression (n.expression)
+            && n.expression.expression.kind === ts.SyntaxKind.Identifier
+            && String (n.expression.expression.escapedText) === 'Math') {
+            const name = String (n.expression.name.escapedText);
+            if (name === 'floor' || name === 'ceil' || name === 'pow' || name === 'abs') {
+                return 'Double';
+            }
+            if (name === 'round') {
+                return 'Long';
+            }
+            return undefined; // Math.min/max hand an operand box back — unprovable
+        }
+        return arithmeticFamilyOf (numericFamilyCallType (printer, n));
+    }
+    if (ts.isIdentifier (n)) {
+        return arithmeticIdentifierBox (printer, n, depth + 1);
+    }
+    return undefined;
+}
+
+function arithmeticIdentifierBox (printer, identifier, depth) {
+    if (depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)
+        || !ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    // a for-loop counter prints `var i = <literal>` — a primitive whose family is the literal's
+    const box = arithmeticValueBox (printer, declaration.initializer, depth + 1);
+    if (box === undefined) {
+        return undefined;
+    }
+    if (arithmeticIsForCounter (declaration) || arithmeticIsConstDeclaration (declaration)) {
+        return box; // no write can change the box
+    }
+    return arithmeticWritesKeepBox (printer, declaration, box) ? box : undefined;
+}
+
+// the box family of `<a> <op> <b>` (with the printed Helpers.<method> call), or undefined
+function arithmeticExpressionBox (printer, node, depth) {
+    if (depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    const n = unwrapNumericExpression (node);
+    if (n === undefined || !ts.isBinaryExpression (n)) {
+        return undefined;
+    }
+    const method = ARITHMETIC_OPERATOR_METHODS.get (n.operatorToken.kind);
+    if (method === undefined) {
+        return undefined;
+    }
+    // divide's box is Double-or-null for every operand pair — no operand proof needed
+    if (method !== 'divide') {
+        const left = arithmeticValueBox (printer, n.left, depth + 1);
+        if (left === undefined) {
+            return undefined;
+        }
+        const right = arithmeticValueBox (printer, n.right, depth + 1);
+        if (right === undefined) {
+            return undefined;
+        }
+        if (method === 'multiply' && (left === 'Double' || right === 'Double')) {
+            // IsInteger(res) picks Long or Double BY VALUE — unprovable, never typed
+            return undefined;
+        }
+        if (method === 'mod') {
+            return 'Double';
+        }
+        return (left === 'Double' || right === 'Double') ? 'Double' : 'Long';
+    }
+    return 'Double';
+}
+
+// the type for a declaration whose initializer is a provable arithmetic expression, plus
+// the printed prefix the initializer must carry (so no other print shape can slip through)
+function arithmeticLocalTypeForDeclaration (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const box = arithmeticExpressionBox (printer, declaration.initializer, 0);
+    if (box === undefined) {
+        return undefined;
+    }
+    const initializer = unwrapNumericExpression (declaration.initializer);
+    const method = ARITHMETIC_OPERATOR_METHODS.get (initializer.operatorToken.kind);
+    if (method === undefined || !ARITHMETIC_CAST_METHODS.has (method)) {
+        return undefined;
+    }
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!numericIsSafeToNarrow (printer, declaration, sourceName, box, isProFile)) {
+        arithmeticDebug (`reject ${sourceName} (use scan)`);
+        return undefined;
+    }
+    arithmeticDebug (`typed ${sourceName} -> ${box} (${method})`);
+    return { type: box, prefix: arithmeticPrintedPrefix (method) };
+}
+
 // install the numeric slice: (1) the generated method returns, (2) the conditional-arm
-// restorations, (3) the locals fed by a whole family call. Chains with section 1-3 on
-// the same printer; safe to call more than once.
+// restorations, (3) the locals fed by a whole family call, (4) JN-22: the locals fed by a
+// provable arithmetic expression (`Object x = Helpers.subtract(a, b)` -> `Long x =
+// (Long) Helpers.subtract(a, b)`). Chains with section 1-3 on the same printer; safe to
+// call more than once.
 export function installJavaNumericLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaNumericTypesPatched) {
@@ -5086,7 +5411,14 @@ export function installJavaNumericLocalTypes (transpiler) {
         if (declaration.initializer === undefined) {
             return printed;
         }
-        const javaType = numericLocalTypeForDeclaration (printer, declaration);
+        let javaType = numericLocalTypeForDeclaration (printer, declaration);
+        let arithmetic;
+        if (javaType === undefined) {
+            // JN-22: an arithmetic-result local — `Object x = <a - b>;` prints
+            // `Object x = Helpers.subtract(a, b);`; the box is provable from both operand boxes.
+            arithmetic = arithmeticLocalTypeForDeclaration (printer, declaration);
+            javaType = arithmetic?.type;
+        }
         if (javaType === undefined) {
             return printed;
         }
@@ -5097,11 +5429,18 @@ export function installJavaNumericLocalTypes (transpiler) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.') && !value.startsWith ('super.')) {
-            return printed; // unexpected shape — leave it as the printer emitted it
+        if (arithmetic === undefined) {
+            if (!value.startsWith ('this.') && !value.startsWith ('super.')) {
+                return printed; // unexpected shape — leave it as the printer emitted it
+            }
+        } else if (!arithmeticValueCarriesPrefix (value, arithmetic.prefix)) {
+            // the initializer did not print as the expected `Helpers.<op> (` call — never guess
+            arithmeticDebug (`miss ${declaration.name.escapedText} (value ${value.slice (0, 24)})`);
+            return printed;
         }
         numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
+        const cast = arithmetic === undefined ? '' : `(${javaType}) `;
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + cast + value;
     };
     printer._javaNumericTypesPatched = true;
 }

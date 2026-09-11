@@ -854,8 +854,8 @@ public class GeminiCore extends GeminiApi
                 Double minAmount = this.safeNumber(minAmountParts, 0);
                 Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
                 Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
-                Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
-                Object startingIndex = Helpers.subtract(idLength, 3);
+                Long idLength = (Long) Helpers.subtract(Helpers.getArrayLength(marketId), 0);
+                Long startingIndex = (Long) Helpers.subtract(idLength, 3);
                 Object pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
                 Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
                 Object quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
@@ -1432,7 +1432,7 @@ public class GeminiCore extends GeminiApi
         Object quote = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
-            Object idLength = Helpers.subtract(((String)marketId).length(), 0);
+            Long idLength = (Long) Helpers.subtract(((String)marketId).length(), 0);
             if (Helpers.isTrue(Helpers.isEqual(idLength, 7)))
             {
                 baseId = Helpers.slice(marketId, 0, 4);

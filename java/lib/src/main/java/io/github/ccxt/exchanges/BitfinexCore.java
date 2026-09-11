@@ -1299,7 +1299,7 @@ public class BitfinexCore extends BitfinexApi
                 }
                 String type = this.safeString(balance, 0);
                 String currencyId = (String)this.safeStringLower(balance, 1, "");
-                Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+                Long start = (Long) Helpers.subtract(((String)((String)currencyId)).length(), 2);
                 Boolean isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "f0");
                 // this will only filter the derivative codes if the requestedType is 'derivatives'
                 Boolean derivativeCondition = (!Helpers.isTrue(isDerivative) || Helpers.isTrue(isDerivativeCode));
@@ -1477,7 +1477,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(Helpers.isEqual(type, "derivatives")))
         {
             currencyId = this.safeString(underlying, 0, transferId);
-            Object start = Helpers.subtract(((String)((String)currencyId)).length(), 2);
+            Long start = (Long) Helpers.subtract(((String)((String)currencyId)).length(), 2);
             Boolean isDerivativeCode = Helpers.isEqual(Helpers.slice(((String)currencyId), start, null), "F0");
             if (!Helpers.isTrue(isDerivativeCode))
             {
@@ -4184,7 +4184,7 @@ public class BitfinexCore extends BitfinexApi
             Object ratesLength = Helpers.getArrayLength(rawRates);
             for (var i = 0; Helpers.isLessThan(i, ratesLength); i++)
             {
-                Object index = Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
+                Long index = (Long) Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
                 Object valueAtIndex = Helpers.GetValue(rawRates, index);
                 ((java.util.List<Object>)reversedArray).add(valueAtIndex);
             }

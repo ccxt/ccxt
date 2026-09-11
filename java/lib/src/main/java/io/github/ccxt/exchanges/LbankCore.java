@@ -3769,13 +3769,13 @@ public class LbankCore extends LbankApi
     public Object convertSecretToPem(Object secret)
     {
         Integer lineLength = 64;
-        Object secretLength = Helpers.subtract(Helpers.getArrayLength(secret), 0);
+        Long secretLength = (Long) Helpers.subtract(Helpers.getArrayLength(secret), 0);
         Object numLines = this.parseToInt(Helpers.divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
         Object pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; Helpers.isLessThan(i, numLines); i++)
         {
-            Object start = Helpers.multiply(i, lineLength);
+            Long start = (Long) Helpers.multiply(i, lineLength);
             Object end = this.sum(start, lineLength);
             pem = Helpers.add(pem, Helpers.add(Helpers.slice(this.secret, start, end), "\n")); // eslint-disable-line
         }

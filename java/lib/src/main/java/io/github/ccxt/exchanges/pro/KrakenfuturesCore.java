@@ -747,7 +747,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 Object length = Helpers.getArrayLength(trades);
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
-                    Object index = Helpers.subtract(Helpers.subtract(length, 1), i); // need reverse to correct chronology
+                    Long index = (Long) Helpers.subtract(Helpers.subtract(length, 1), i); // need reverse to correct chronology
                     Object item = Helpers.GetValue(trades, index);
                     Object trade = this.parseWsTrade(item);
                     Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
