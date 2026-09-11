@@ -565,6 +565,13 @@ class weex extends \ccxt\async\weex {
         //
         $timestamp = $this->safe_integer($trade, 'T');
         $symbol = ($market === null) ? null : $market['symbol'];
+        $isBuyerMaker = $this->safe_bool($trade, 'm'); // m is the $isBuyerMaker flag of the REST trades, true means the taker sold
+        $side = null;
+        $takerOrMaker = null;
+        if ($isBuyerMaker !== null) {
+            $side = $isBuyerMaker ? 'sell' : 'buy';
+            $takerOrMaker = 'taker'; // a public $trade is reported from the aggressor's $side, same as parseTrade
+        }
         return $this->safe_trade(array(
             'info' => $trade,
             'id' => $this->safe_string($trade, 't'),
@@ -573,8 +580,8 @@ class weex extends \ccxt\async\weex {
             'symbol' => $symbol,
             'order' => null,
             'type' => null,
-            'side' => null,
-            'takerOrMaker' => null,
+            'side' => $side,
+            'takerOrMaker' => $takerOrMaker,
             'price' => $this->safe_string($trade, 'p'),
             'amount' => $this->safe_string($trade, 'q'),
             'cost' => $this->safe_string($trade, 'v'),
