@@ -18,6 +18,7 @@ export interface HttpRequestOptions {
 interface HttpResponse {
     ok: boolean;
     status: number;
+    json?: () => Promise<unknown>;
 }
 
 type FetchImplementation = (url: string, options: HttpRequestOptions) => Promise<HttpResponse>;
@@ -97,23 +98,57 @@ Upgrade now to take advantage of:
     throw new Error('Could not fit the CCXT release announcement within the message limit');
 }
 
-async function postJson (platform: string, url: string, body: object, fetchImpl: FetchImplementation): Promise<void> {
+async function postJson (platform: string, url: string, body: object, fetchImpl: FetchImplementation, headers: Record<string, string> = {}): Promise<HttpResponse> {
     const response = await fetchImpl(url, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            ...headers,
         },
         body: JSON.stringify(body),
     });
     if (!response.ok) {
         throw new Error(`${platform} rejected the release announcement with HTTP ${response.status}`);
     }
+    return response;
 }
 
-async function validateCredential (platform: string, url: string, fetchImpl: FetchImplementation): Promise<void> {
+async function postToDiscord (webhookUrl: string, botToken: string | undefined, message: string, fetchImpl: FetchImplementation): Promise<void> {
+    // ?wait=true makes the webhook return the created message, whose id is
+    // needed to publish (crosspost) it afterwards
+    const url = new URL(webhookUrl);
+    url.searchParams.set('wait', 'true');
+    const response = await postJson('Discord', url.toString(), {
+        content: message,
+        flags: discordSuppressEmbeds,
+    }, fetchImpl);
+    if (!botToken) {
+        return;
+    }
+    // publishing the message makes discord propagate it to every channel that
+    // follows the announcements channel (e.g. #general), same as pressing
+    // "Publish" in the client; needs a bot with MANAGE_MESSAGES there
+    const created = (typeof response.json === 'function') ? await response.json() as { id?: string; channel_id?: string } : undefined;
+    const messageId = created?.id;
+    const channelId = created?.channel_id;
+    if (!messageId || !channelId) {
+        throw new Error('Discord did not return the announcement message id, cannot publish it to the following channels');
+    }
+    const crosspost = await fetchImpl(`https://discord.com/api/v10/channels/${channelId}/messages/${messageId}/crosspost`, {
+        method: 'POST',
+        headers: {
+            'Authorization': `Bot ${botToken}`,
+        },
+    });
+    if (!crosspost.ok) {
+        throw new Error(`Discord refused to publish the announcement to the following channels with HTTP ${crosspost.status} - check that the webhook posts into an Announcement channel and the bot has Manage Messages there`);
+    }
+}
+
+async function validateCredential (platform: string, url: string, fetchImpl: FetchImplementation, headers: Record<string, string> = {}): Promise<void> {
     let response: HttpResponse;
     try {
-        response = await fetchImpl(url, { method: 'GET' });
+        response = await fetchImpl(url, { method: 'GET', headers });
     } catch {
         throw new Error(`${platform} credential validation request failed`);
     }
@@ -147,10 +182,16 @@ export async function publishReleaseAnnouncement (message: string, options: Publ
     if (missingVariables.length > 0) {
         throw new Error(`Missing release announcement environment variables: ${missingVariables.join(', ')}`);
     }
-    const validationResults = await Promise.allSettled([
+    const validations = [
         validateCredential('Telegram', `https://api.telegram.org/bot${env.TELEGRAM_BOT_TOKEN}/getMe`, fetchImpl),
         validateCredential('Discord', env.DISCORD_WEBHOOK_URL as string, fetchImpl),
-    ]);
+    ];
+    if (env.DISCORD_BOT_TOKEN) {
+        validations.push(validateCredential('Discord bot', 'https://discord.com/api/v10/users/@me', fetchImpl, {
+            'Authorization': `Bot ${env.DISCORD_BOT_TOKEN}`,
+        }));
+    }
+    const validationResults = await Promise.allSettled(validations);
     const validationErrors = validationResults
         .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
         .map(result => (result.reason instanceof Error) ? result.reason.message : String(result.reason));
@@ -166,10 +207,7 @@ export async function publishReleaseAnnouncement (message: string, options: Publ
             parse_mode: 'MarkdownV2',
             text: formatTelegramMessage(message),
         }, fetchImpl),
-        postJson('Discord', env.DISCORD_WEBHOOK_URL as string, {
-            content: message,
-            flags: discordSuppressEmbeds,
-        }, fetchImpl),
+        postToDiscord(env.DISCORD_WEBHOOK_URL as string, env.DISCORD_BOT_TOKEN, message, fetchImpl),
     ]);
     const errors = results
         .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
@@ -191,7 +229,8 @@ async function main (): Promise<void> {
     const dryRun = process.argv.includes('--dry') || process.argv.includes('--dry-run');
     if (!dryRun) {
         await publishReleaseAnnouncement(message);
-        console.log('Release announcement posted to Telegram and Discord.');
+        const published = process.env.DISCORD_BOT_TOKEN ? ' and published to its following channels' : '';
+        console.log(`Release announcement posted to Telegram and Discord${published}.`);
     }
 }
 
