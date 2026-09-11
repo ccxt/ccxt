@@ -1042,7 +1042,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseMarket(Object response)
+    public java.util.Map<String, Object> parseMarket(Object response)
     {
         //
         // response might be:
@@ -1382,7 +1382,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1525,7 +1525,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1645,7 +1645,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1762,7 +1762,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder (private)
@@ -2389,7 +2389,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw

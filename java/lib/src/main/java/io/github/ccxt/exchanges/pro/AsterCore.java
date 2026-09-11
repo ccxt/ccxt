@@ -2232,7 +2232,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "fstream"), 0);
             String type = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
-            java.util.Map<String, Object> fakeMarket = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> fakeMarket = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                 put( "type", type );
             }});
             Object trade = this.parseWsTrade(message, fakeMarket);

@@ -532,7 +532,7 @@ public class KalshiCore extends KalshiApi
                 if (Helpers.isTrue(!Helpers.isEqual(response, null)))
                 {
                     Object rawMarket = this.safeDict(response, "market", response);
-                    Object parsed = this.parseMarket(rawMarket);
+                    java.util.Map<String, Object> parsed = this.parseMarket(rawMarket);
                     if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
                     {
                         this.markets = this.createSafeDictionary();
@@ -647,7 +647,7 @@ public class KalshiCore extends KalshiApi
                 Object rawMarkets = this.safeList(response, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
                 {
-                    Object parsed = this.parseMarket(Helpers.GetValue(rawMarkets, i));
+                    java.util.Map<String, Object> parsed = this.parseMarket(Helpers.GetValue(rawMarkets, i));
                     if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
                     {
                         throw new ExchangeError((String)Helpers.add(this.id, " fetchOutcomes() could not resolve parsed")) ;
@@ -719,7 +719,7 @@ public class KalshiCore extends KalshiApi
         }};
     }
 
-    public Object parseMarket(Object raw)
+    public java.util.Map<String, Object> parseMarket(Object raw)
     {
         // {
         //    "can_close_early":true,
@@ -1939,7 +1939,7 @@ final Object finalOi = oi;
      * @param {object} response the raw balance response
      * @returns {object} a [balance structure](https://docs.ccxt.com/#/?id=balance-structure)
      */
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         // Kalshi balance in cents → divide by 100
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -3230,7 +3230,7 @@ final Object finalOi = oi;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
         {
             Object rawMarket = Helpers.GetValue(rawMarkets, i);
-            Object parsed = this.parseMarket(rawMarket);
+            java.util.Map<String, Object> parsed = this.parseMarket(rawMarket);
             ((java.util.List<Object>)marketsList).add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));

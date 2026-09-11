@@ -793,7 +793,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
@@ -1727,7 +1727,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //  FetchTicker (v1)
@@ -2077,7 +2077,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(response, marketId), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
@@ -2267,7 +2267,7 @@ public class WhitebitCore extends WhitebitApi
                     Object marketId = Helpers.GetValue(keys, i);
                     java.util.Map<String, Object> marketNew = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_");
                     Object rawTrades = this.safeValue(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    java.util.List<Object> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
+                    java.util.List<java.util.Map<String, Object>> parsed = this.parseTrades(rawTrades, marketNew, since, limit);
                     results = this.arrayConcat(results, parsed);
                 }
                 results = this.sortBy2(results, "timestamp", "id");
@@ -2277,7 +2277,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTradesV4
@@ -3019,7 +3019,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.List<String> balanceKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -3245,7 +3245,7 @@ public class WhitebitCore extends WhitebitApi
                 Object orders = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
                 {
-                    Object order = this.parseOrder(Helpers.GetValue(orders, j), marketNew);
+                    java.util.Map<String, Object> order = this.parseOrder(Helpers.GetValue(orders, j), marketNew);
                     ((java.util.List<Object>)results).add(this.extend(order, new java.util.HashMap<String, Object>() {{
                         put( "status", "closed" );
                     }}));
@@ -3272,7 +3272,7 @@ public class WhitebitCore extends WhitebitApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, fetchOpenOrders, cancelOrder
@@ -3999,7 +3999,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -5114,7 +5114,7 @@ public class WhitebitCore extends WhitebitApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPosition, fetchPositions

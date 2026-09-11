@@ -857,7 +857,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -1312,7 +1312,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (recent trades)
@@ -1798,7 +1798,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object editStatus = this.safeDict(response, "editStatus", new java.util.HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled")));
-            Object order = this.parseOrder(editStatus);
+            java.util.Map<String, Object> order = this.parseOrder(editStatus);
             Helpers.addElementToObject(order, "info", response);
             return order;
         });
@@ -1831,7 +1831,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }}, parameters))).join();
             String status = this.safeString(this.safeValue(response, "cancelStatus", new java.util.HashMap<String, Object>() {{}}), "status");
             this.verifyOrderActionSuccess(status, "cancelOrder");
-            Object order = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.inOp(response, "cancelStatus")))
             {
                 order = this.parseOrder(Helpers.GetValue(response, "cancelStatus"));
@@ -2392,7 +2392,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // LIMIT
@@ -2748,7 +2748,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Boolean fixedVar = false;
         Object statusId = null;
         Object price = null;
-        java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(orderEventsLength, 0)))
         {
             java.util.List<Object> executions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3322,7 +3322,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 symbol = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? "" : symbol;
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchBalance has no account for "), type)) ;
             }
-            Object balance = this.parseBalance(account);
+            java.util.Map<String, Object> balance = this.parseBalance(account);
             Helpers.addElementToObject(balance, "info", response);
             Helpers.addElementToObject(balance, "timestamp", this.parse8601(datetime));
             Helpers.addElementToObject(balance, "datetime", datetime);
@@ -3331,7 +3331,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // cashAccount
@@ -3690,13 +3690,13 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
         {
-            Object position = this.parsePosition(Helpers.GetValue(positions, i));
+            java.util.Map<String, Object> position = this.parsePosition(Helpers.GetValue(positions, i));
             ((java.util.List<Object>)result).add(position);
         }
         return result;
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         // cross
         //    {

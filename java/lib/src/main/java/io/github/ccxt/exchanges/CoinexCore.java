@@ -1548,7 +1548,7 @@ public class CoinexCore extends CoinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // Spot fetchTicker, fetchTickers
@@ -1876,7 +1876,7 @@ public class CoinexCore extends CoinexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // Spot and Swap fetchTrades (public)
@@ -2475,7 +2475,7 @@ public class CoinexCore extends CoinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // Spot and Margin createOrder, createOrders, editOrder, cancelOrders, cancelOrder, fetchOpenOrders
@@ -3221,7 +3221,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object item = this.safeDict(entry, "data", new java.util.HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item, market);
+                java.util.Map<String, Object> order = this.parseOrder(item, market);
                 ((java.util.List<Object>)results).add(order);
             }
             return results;
@@ -3416,7 +3416,7 @@ public class CoinexCore extends CoinexApi
                     throw new ExchangeError((String)feedback) ;
                 }
                 Object item = this.safeDict(entry, "data", new java.util.HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item);
+                java.util.Map<String, Object> order = this.parseOrder(item);
                 ((java.util.List<Object>)result).add(order);
             }
             return result;
@@ -4212,7 +4212,7 @@ public class CoinexCore extends CoinexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -5144,7 +5144,7 @@ final Object finalI = i;
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

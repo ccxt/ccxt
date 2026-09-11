@@ -973,7 +973,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //    {
@@ -1212,7 +1212,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //  {
@@ -1396,7 +1396,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1766,7 +1766,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //        {
@@ -2019,7 +2019,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -2988,7 +2988,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //            {
@@ -3625,7 +3625,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrders, fetchOpenOrders, fetchOrder, createOrder

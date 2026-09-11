@@ -1054,7 +1054,7 @@ public class DigifinexCore extends DigifinexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // spot and margin
@@ -1379,7 +1379,7 @@ public class DigifinexCore extends DigifinexApi
                 java.util.Map<String, Object> rawTicker = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "date", date );
                 }}, Helpers.GetValue(tickers, i));
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1491,7 +1491,7 @@ public class DigifinexCore extends DigifinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1572,7 +1572,7 @@ public class DigifinexCore extends DigifinexApi
         }}, market);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot: fetchTrades
@@ -2098,7 +2098,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", Helpers.GetValue(market, "symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -2597,7 +2597,7 @@ public class DigifinexCore extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot: createOrder
@@ -3648,7 +3648,7 @@ public class DigifinexCore extends DigifinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -4643,7 +4643,7 @@ public class DigifinexCore extends DigifinexApi
             //
             String dataRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "positions";
             Object data = this.safeList(response, dataRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object position = this.parsePosition(Helpers.GetValue(data, 0), market);
+            java.util.Map<String, Object> position = this.parsePosition(Helpers.GetValue(data, 0), market);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 return position;
@@ -4657,7 +4657,7 @@ public class DigifinexCore extends DigifinexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // swap

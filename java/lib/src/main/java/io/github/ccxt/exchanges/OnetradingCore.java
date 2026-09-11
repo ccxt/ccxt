@@ -568,7 +568,7 @@ public class OnetradingCore extends OnetradingApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //   {
@@ -610,8 +610,8 @@ public class OnetradingCore extends OnetradingApi
         //      "state": "ACTIVE"
         //  }
         //
-        java.util.Map<String, Object> baseAsset = (java.util.Map<String, Object>) this.safeDict(market, "base", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> quoteAsset = (java.util.Map<String, Object>) this.safeDict(market, "quote", new java.util.HashMap<String, Object>() {{}});
+        Object baseAsset = this.safeDict(market, "base", new java.util.HashMap<String, Object>() {{}});
+        Object quoteAsset = this.safeDict(market, "quote", new java.util.HashMap<String, Object>() {{}});
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
@@ -769,21 +769,21 @@ public class OnetradingCore extends OnetradingApi
             //     },
             // ];
             //
-            java.util.Map<String, Object> spotFees = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> futuresFees = (java.util.Map<String, Object>) this.safeDict(response, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> spotFeeTiers = (java.util.List<Object>) this.safeList(spotFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> futuresFeeTiers = (java.util.List<Object>) this.safeList(futuresFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object spotFees = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            Object futuresFees = this.safeDict(response, 1, new java.util.HashMap<String, Object>() {{}});
+            Object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object spotTiers = this.parseFeeTiers(spotFeeTiers);
             Object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
-            java.util.Map<String, Object> firstSpotTier = (java.util.Map<String, Object>) this.safeDict(spotTiers, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> firstFuturesTier = (java.util.Map<String, Object>) this.safeDict(futuresTiers, 0, new java.util.HashMap<String, Object>() {{}});
+            Object firstSpotTier = this.safeDict(spotTiers, 0, new java.util.HashMap<String, Object>() {{}});
+            Object firstFuturesTier = this.safeDict(futuresTiers, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                java.util.Map<String, Object> tierObject = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? firstSpotTier : firstFuturesTier;
+                Object tierObject = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? firstSpotTier : firstFuturesTier;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -841,9 +841,9 @@ public class OnetradingCore extends OnetradingApi
             //    ]
             // }
             //
-            java.util.List<Object> activeFeeTier = (java.util.List<Object>) this.safeList(response, "active_fee_tiers");
-            java.util.Map<String, Object> spotFees = (java.util.Map<String, Object>) this.safeDict(activeFeeTier, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> futuresFees = (java.util.Map<String, Object>) this.safeDict(activeFeeTier, 1, new java.util.HashMap<String, Object>() {{}});
+            Object activeFeeTier = this.safeList(response, "active_fee_tiers");
+            Object spotFees = this.safeDict(activeFeeTier, 0, new java.util.HashMap<String, Object>() {{}});
+            Object futuresFees = this.safeDict(activeFeeTier, 1, new java.util.HashMap<String, Object>() {{}});
             String spotMakerFee = this.safeString(spotFees, "maker_fee");
             String spotTakerFee = this.safeString(spotFees, "taker_fee");
             spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
@@ -899,7 +899,7 @@ public class OnetradingCore extends OnetradingApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker, fetchTickers
@@ -1047,7 +1047,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1169,7 +1169,7 @@ public class OnetradingCore extends OnetradingApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object granularity = this.safeValue(ohlcv, "granularity");
         String unit = this.safeString(granularity, "unit");
-        Object period = this.safeString(granularity, "period");
+        String period = this.safeString(granularity, "period");
         java.util.Map<String, Object> units = new java.util.HashMap<String, Object>() {{
             put( "MINUTES", "m" );
             put( "HOURS", "h" );
@@ -1265,7 +1265,7 @@ public class OnetradingCore extends OnetradingApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1356,9 +1356,9 @@ public class OnetradingCore extends OnetradingApi
         }}, market);
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
-        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -1436,7 +1436,7 @@ public class OnetradingCore extends OnetradingApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1582,7 +1582,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String uppercaseType = ((String)type).toUpperCase();
+            Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -1767,7 +1767,7 @@ public class OnetradingCore extends OnetradingApi
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeOrder(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }});
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
@@ -1799,7 +1799,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            java.util.Map<String, Object> response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "order": {
@@ -2019,7 +2019,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

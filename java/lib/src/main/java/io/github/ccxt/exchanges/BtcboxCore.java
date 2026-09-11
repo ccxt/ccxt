@@ -356,7 +356,7 @@ public class BtcboxCore extends BtcboxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -416,7 +416,7 @@ public class BtcboxCore extends BtcboxApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -498,7 +498,7 @@ public class BtcboxCore extends BtcboxApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
@@ -584,7 +584,7 @@ public class BtcboxCore extends BtcboxApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -769,7 +769,7 @@ public class BtcboxCore extends BtcboxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -921,7 +921,7 @@ public class BtcboxCore extends BtcboxApi
             //      },
             // ]
             //
-            java.util.List<Object> orders = this.parseOrders(response, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(response, market, since, limit);
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
             if (Helpers.isTrue(Helpers.isEqual(type, "open")))

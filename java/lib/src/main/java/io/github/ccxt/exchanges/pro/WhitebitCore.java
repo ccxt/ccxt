@@ -387,7 +387,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawTicker = this.safeValue(tickers, 1, new java.util.HashMap<String, Object>() {{}});
         String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
-        Object ticker = this.parseTicker(rawTicker, market);
+        java.util.Map<String, Object> ticker = this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
         client.resolve(ticker, messageHash);
@@ -489,7 +489,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeValue(parameters, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
+        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});

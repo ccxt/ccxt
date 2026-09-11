@@ -400,7 +400,7 @@ public class ApexCore extends ApexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // {
@@ -764,7 +764,7 @@ public class ApexCore extends ApexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String id2 = this.safeString(market, "crossSymbolName");
@@ -834,7 +834,7 @@ public class ApexCore extends ApexApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -1146,7 +1146,7 @@ public class ApexCore extends ApexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // [
@@ -1342,7 +1342,7 @@ public class ApexCore extends ApexApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // {
@@ -2348,7 +2348,7 @@ public class ApexCore extends ApexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {

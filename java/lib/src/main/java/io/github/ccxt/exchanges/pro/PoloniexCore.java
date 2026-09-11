@@ -1259,7 +1259,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object marketId = this.safeString(item, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
-                Object ticker = this.parseTicker(item);
+                java.util.Map<String, Object> ticker = this.parseTicker(item);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

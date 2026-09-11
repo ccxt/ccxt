@@ -1960,7 +1960,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object parsedOrder = this.parseOrder(data);
+        java.util.Map<String, Object> parsedOrder = this.parseOrder(data);
         Helpers.callDynamically(stored, "append", new Object[]{parsedOrder});
         Object symbol = Helpers.GetValue(parsedOrder, "symbol");
         String spotHash = "spot:order";
@@ -2040,7 +2040,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Object marketId = this.safeString(result, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-", type);
-        Object parsed = this.parseTrade(result, market);
+        java.util.Map<String, Object> parsed = this.parseTrade(result, market);
         Object symbol = Helpers.GetValue(parsed, "symbol");
         String spotHash = "spot:mytrades";
         String swapHash = "swap:mytrades";

@@ -385,7 +385,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             {
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new java.util.HashMap<String, Object>() {{}}));
             }
-            Object updatedTicker = this.parseTicker(update);
+            java.util.Map<String, Object> updatedTicker = this.parseTicker(update);
             java.util.Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
@@ -659,7 +659,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //     }
         //
         Object data = this.safeValue(message, "data");
-        Object balance = this.parseBalance(data);
+        java.util.Map<String, Object> balance = this.parseBalance(data);
         this.balance = this.extend(this.balance, balance);
         Object messageHash = this.safeString(message, "table");
         client.resolve(this.balance, messageHash);
@@ -736,7 +736,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
-            java.util.List<Object> trades = this.parseTrades(Helpers.GetValue(dataByMarketIds, marketId), market);
+            java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(Helpers.GetValue(dataByMarketIds, marketId), market);
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
@@ -1032,7 +1032,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             Object side = this.safeString(position, "side");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -1295,7 +1295,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 {
                     rawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), currentOrder);
                 }
-                Object order = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> order = this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = Helpers.GetValue(order, "symbol");
                 Helpers.addElementToObject(symbols, ((String)symbol), true);
@@ -1421,7 +1421,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> dataByExecType = this.groupBy(data, "execType");
         Object rawTrades = this.safeValue(dataByExecType, "Trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> trades = this.parseTrades(rawTrades);
+        java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1431,7 +1431,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
         {
-            Object trade = Helpers.GetValue(trades, j);
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) Helpers.GetValue(trades, j);
             Object symbol = Helpers.GetValue(trade, "symbol");
             Helpers.callDynamically(stored, "append", new Object[]{trade});
             Helpers.addElementToObject(symbols, ((String)symbol), trade);

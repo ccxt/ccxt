@@ -1115,7 +1115,7 @@ public class BitmexCore extends BitmexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "underlying");
@@ -1275,7 +1275,7 @@ public class BitmexCore extends BitmexApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //     [
@@ -2012,7 +2012,7 @@ public class BitmexCore extends BitmexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //    {
@@ -2161,7 +2161,7 @@ public class BitmexCore extends BitmexApi
             java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
                 String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2173,7 +2173,7 @@ public class BitmexCore extends BitmexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         // see response sample under "fetchMarkets" because same endpoint is being used here
         Object market = Helpers.getArg(optionalArgs, 0, null);
@@ -2332,7 +2332,7 @@ public class BitmexCore extends BitmexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2482,7 +2482,7 @@ public class BitmexCore extends BitmexApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -3264,7 +3264,7 @@ public class BitmexCore extends BitmexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

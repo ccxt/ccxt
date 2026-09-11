@@ -518,7 +518,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
@@ -1423,7 +1423,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrders
@@ -1670,7 +1670,7 @@ public class BitteamCore extends BitteamApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
                 Object rawTicker = Helpers.GetValue(rawTickers, i);
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = this.parseTicker(rawTicker);
                 ((java.util.List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -1892,7 +1892,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -2259,7 +2259,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -2400,7 +2400,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //     {
@@ -2603,7 +2603,7 @@ public class BitteamCore extends BitteamApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {

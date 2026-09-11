@@ -198,7 +198,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             (this.authenticate(url, messageType)).join();
             Object rawOrder = (this.requestPrivate(url, request, channel)).join();
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             return order;
         });
 
@@ -507,7 +507,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate(url, messageType)).join();
             Object rawOrders = (this.requestPrivate(url, this.extend(newRequest, requestParams), channel)).join();
-            java.util.List<Object> orders = this.parseOrders(rawOrders, market);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(rawOrders, market);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -1093,7 +1093,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object rawTicker = Helpers.GetValue(results, i);
             Object marketId = this.safeString(rawTicker, "s");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
-            Object parsedItem = this.parseTicker(rawTicker, market);
+            java.util.Map<String, Object> parsedItem = this.parseTicker(rawTicker, market);
             Object symbol = Helpers.GetValue(parsedItem, "symbol");
             if (Helpers.isTrue(isTicker))
             {
@@ -1269,10 +1269,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             result = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
         }
-        java.util.List<Object> parsedTrades = this.parseTrades(result);
+        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(result);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedTrades)); i++)
         {
-            Object trade = Helpers.GetValue(parsedTrades, i);
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) Helpers.GetValue(parsedTrades, i);
             Object symbol = Helpers.GetValue(trade, "symbol");
             Object cachedTrades = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
@@ -1507,11 +1507,11 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = cachedTrades;
         }
-        java.util.List<Object> parsed = this.parseTrades(result);
+        java.util.List<java.util.Map<String, Object>> parsed = this.parseTrades(result);
         java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
-            Object trade = Helpers.GetValue(parsed, i);
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) Helpers.GetValue(parsed, i);
             Helpers.callDynamically(cachedTrades, "append", new Object[]{trade});
             Object symbol = Helpers.GetValue(trade, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1855,7 +1855,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawPosition = Helpers.GetValue(data, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             Object symbol = this.safeString(position, "symbol");
             Object side = this.safeString(position, "side");
             // Control when position is closed no side is returned
@@ -2055,10 +2055,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object stored = ((Helpers.isTrue(isTrigger))) ? this.triggerOrders : this.orders;
         java.util.Map<String, Object> marketIds = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> parsedOrders = this.parseOrders(orders);
+        java.util.List<java.util.Map<String, Object>> parsedOrders = this.parseOrders(orders);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
         {
-            Object parsed = Helpers.GetValue(parsedOrders, i);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) Helpers.GetValue(parsedOrders, i);
             // inject order status
             Object info = this.safeValue(parsed, "info");
             Object eventVar = this.safeString(info, "event");

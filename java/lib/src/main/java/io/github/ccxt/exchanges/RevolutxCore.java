@@ -305,7 +305,7 @@ public class RevolutxCore extends RevolutxApi
      * @param {object} market the raw market data from the exchange
      * @returns {object} a [market structure]{@link https://docs.ccxt.com/?id=market-structure}
      */
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "id");
         String base = this.safeString(market, "base", "");
@@ -538,7 +538,7 @@ public class RevolutxCore extends RevolutxApi
      * @param {object} [market] the market the ticker is for
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String tickerSymbol = this.safeString(ticker, "symbol");
@@ -647,7 +647,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Object tickerData = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickerData, "timestamp", timestamp);
-                Object ticker = this.parseTicker(tickerData);
+                java.util.Map<String, Object> ticker = this.parseTicker(tickerData);
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, "")))
                 {
@@ -852,7 +852,7 @@ public class RevolutxCore extends RevolutxApi
      * @param {object} [market] the market the trade was executed in
      * @returns {object} a [trade structure]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(trade, "id");
@@ -1054,7 +1054,7 @@ public class RevolutxCore extends RevolutxApi
      * @param {object} [market] the market the order was placed in
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String orderId = this.safeString2(order, "id", "venue_order_id");
@@ -1227,7 +1227,7 @@ public class RevolutxCore extends RevolutxApi
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
             final Object finalType = type;
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
                 put( "id", venueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );
@@ -1740,7 +1740,7 @@ public class RevolutxCore extends RevolutxApi
             Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String newVenueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
                 put( "id", newVenueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );

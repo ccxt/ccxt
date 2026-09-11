@@ -899,7 +899,7 @@ public class BittradeCore extends BittradeApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -1105,7 +1105,7 @@ public class BittradeCore extends BittradeApi
             //     }
             //
             Object tick = this.safeDict(response, "tick", new java.util.HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            java.util.Map<String, Object> ticker = this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -1143,7 +1143,7 @@ public class BittradeCore extends BittradeApi
                 String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
                 Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
                 Helpers.addElementToObject(result, symbol, ticker);
@@ -1153,7 +1153,7 @@ public class BittradeCore extends BittradeApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1388,7 +1388,7 @@ public class BittradeCore extends BittradeApi
                 Object trades = this.safeList(Helpers.GetValue(data, i), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((java.util.List<Object>)result).add(trade);
                 }
             }
@@ -1597,7 +1597,7 @@ public class BittradeCore extends BittradeApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeList(Helpers.GetValue(response, "data"), "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -1937,7 +1937,7 @@ public class BittradeCore extends BittradeApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {                  id:  13997833014,
@@ -2528,7 +2528,7 @@ public class BittradeCore extends BittradeApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

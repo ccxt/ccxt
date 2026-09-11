@@ -657,7 +657,7 @@ public class ExtendedCore extends ExtendedApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -1025,7 +1025,7 @@ public class ExtendedCore extends ExtendedApi
                 String marketId = this.safeString(marketData, "name");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object stats = this.safeDict(marketData, "marketStats", new java.util.HashMap<String, Object>() {{}});
-                Object ticker = this.parseTicker(stats, market);
+                java.util.Map<String, Object> ticker = this.parseTicker(stats, market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1037,7 +1037,7 @@ public class ExtendedCore extends ExtendedApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1436,7 +1436,7 @@ public class ExtendedCore extends ExtendedApi
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1866,7 +1866,7 @@ public class ExtendedCore extends ExtendedApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -2571,7 +2571,7 @@ public class ExtendedCore extends ExtendedApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -3015,7 +3015,7 @@ public class ExtendedCore extends ExtendedApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -3976,7 +3976,7 @@ public class ExtendedCore extends ExtendedApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = this.parseOrders(data, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(data, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -4072,7 +4072,7 @@ public class ExtendedCore extends ExtendedApi
                 }
                 ((java.util.List<Object>)result).add(entry);
             }
-            java.util.List<Object> orders = this.parseOrders(result, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -4149,7 +4149,7 @@ public class ExtendedCore extends ExtendedApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {

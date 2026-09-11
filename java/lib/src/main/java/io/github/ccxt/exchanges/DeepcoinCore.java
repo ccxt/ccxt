@@ -630,7 +630,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         // spot markets
@@ -1000,7 +1000,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1123,7 +1123,7 @@ public class DeepcoinCore extends DeepcoinApi
         return productGroup;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1235,7 +1235,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //     {
@@ -1403,7 +1403,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3014,7 +3014,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // regular order
@@ -3276,7 +3276,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

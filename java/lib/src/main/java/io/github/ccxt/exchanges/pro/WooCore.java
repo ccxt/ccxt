@@ -1716,7 +1716,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object marketId = Helpers.GetValue(postitionsIds, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object rawPosition = Helpers.GetValue(rawPositions, marketId);
-            Object position = this.parsePosition(rawPosition, market);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             String messageHash = (String) Helpers.add("positions::", Helpers.GetValue(market, "symbol"));

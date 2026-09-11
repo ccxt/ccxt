@@ -1183,7 +1183,7 @@ public class ZebpayCore extends ZebpayApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchMyTrades
@@ -1524,7 +1524,7 @@ public class ZebpayCore extends ZebpayApi
             //    }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(data);
+            java.util.Map<String, Object> parsedOrder = this.parseOrder(data);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedOrder));
         });
 
@@ -1682,7 +1682,7 @@ public class ZebpayCore extends ZebpayApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //      {
@@ -1715,7 +1715,7 @@ public class ZebpayCore extends ZebpayApi
         String timeInForce = this.safeString(order, "timeInForce");
         String status = (String)this.safeStringLower(order, "status");
         String orderId = this.safeString(order, "orderId");
-        Object parsedOrder = this.safeOrder(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> parsedOrder = this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );
@@ -1740,7 +1740,7 @@ public class ZebpayCore extends ZebpayApi
             put( "average", null );
             put( "trades", null );
         }}, market);
-        return parsedOrder;
+        return (java.util.Map<String, Object>) parsedOrder;
     }
 
     /**
@@ -2206,7 +2206,7 @@ public class ZebpayCore extends ZebpayApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -2231,7 +2231,7 @@ public class ZebpayCore extends ZebpayApi
         return this.safeBalance(result);
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // isolated
@@ -2307,7 +2307,7 @@ public class ZebpayCore extends ZebpayApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     [

@@ -1512,7 +1512,7 @@ public class BitstampCore extends BitstampApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -1710,7 +1710,7 @@ public class BitstampCore extends BitstampApi
         return null;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2026,7 +2026,7 @@ public class BitstampCore extends BitstampApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object finalResponse = response; // java req
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -2415,7 +2415,7 @@ public class BitstampCore extends BitstampApi
                 }
             }
             Object orderResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
-            Object order = this.parseOrder(orderResponse, market);
+            java.util.Map<String, Object> order = this.parseOrder(orderResponse, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2466,7 +2466,7 @@ public class BitstampCore extends BitstampApi
                 Helpers.addElementToObject(request, "id", id);
             }
             java.util.Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, parameters))).join();
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2934,7 +2934,7 @@ public class BitstampCore extends BitstampApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDepositsWithdrawals
@@ -3096,7 +3096,7 @@ public class BitstampCore extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //   from fetch order:
@@ -3246,7 +3246,7 @@ public class BitstampCore extends BitstampApi
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (Helpers.isTrue(Helpers.isEqual(type, "trade")))
         {
-            Object parsedTrade = this.parseTrade(item);
+            java.util.Map<String, Object> parsedTrade = this.parseTrade(item);
             Object market = null;
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(item);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -3285,7 +3285,7 @@ public class BitstampCore extends BitstampApi
             }}, currency);
         } else
         {
-            Object parsedTransaction = this.parseTransaction(item, currency);
+            java.util.Map<String, Object> parsedTransaction = this.parseTransaction(item, currency);
             Object direction = null;
             if (Helpers.isTrue(Helpers.inOp(item, "amount")))
             {

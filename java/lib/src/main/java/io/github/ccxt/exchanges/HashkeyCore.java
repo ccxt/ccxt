@@ -1004,7 +1004,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         // spot
         //     {
@@ -1606,7 +1606,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1901,7 +1901,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -2079,7 +2079,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public java.util.Map<String, Object> parseBalance(Object balance)
     {
         //
         //     {
@@ -2443,7 +2443,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //  fetchDeposits
@@ -3447,7 +3447,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), Helpers.GetValue(market, "type")), " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            java.util.Map<String, Object> order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
         });
@@ -3501,7 +3501,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is not supported for "), marketType), " type of markets")) ;
             }
-            Object order = this.safeOrder(response);
+            java.util.Map<String, Object> order = this.safeOrder(response);
             Helpers.addElementToObject(order, "info", response);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
         });
@@ -3913,7 +3913,7 @@ public class HashkeyCore extends HashkeyApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(isTrigger, parameters));
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder spot
@@ -4448,7 +4448,7 @@ public class HashkeyCore extends HashkeyApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "symbol");

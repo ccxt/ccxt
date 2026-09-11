@@ -544,7 +544,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object updateType = this.safeString(message, "type", "");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object symbol = null;
-        Object parsed = this.parseTicker(data);
+        java.util.Map<String, Object> parsed = this.parseTicker(data);
         if (Helpers.isTrue((Helpers.isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
@@ -947,7 +947,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
+            java.util.Map<String, Object> parsed = this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1041,7 +1041,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
             Object rawPosition = Helpers.GetValue(lists, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             Object side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later

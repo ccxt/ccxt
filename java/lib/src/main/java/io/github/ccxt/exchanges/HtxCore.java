@@ -2937,7 +2937,7 @@ public class HtxCore extends HtxApi
         return symbolOrMarketId;
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -3139,7 +3139,7 @@ public class HtxCore extends HtxApi
             //     }
             //
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            java.util.Map<String, Object> ticker = this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -3471,7 +3471,7 @@ public class HtxCore extends HtxApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot fetchTrades (public)
@@ -4041,7 +4041,7 @@ public class HtxCore extends HtxApi
                 Object trades = this.safeList(Helpers.GetValue(data, i), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((java.util.List<Object>)result).add(trade);
                 }
             }
@@ -6103,7 +6103,7 @@ public class HtxCore extends HtxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -8359,7 +8359,7 @@ public class HtxCore extends HtxApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -9881,7 +9881,7 @@ public class HtxCore extends HtxApi
         }};
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //    {
@@ -10108,7 +10108,7 @@ public class HtxCore extends HtxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object position = Helpers.GetValue(data, i);
-                Object parsed = this.parsePosition(position);
+                java.util.Map<String, Object> parsed = this.parsePosition(position);
                 ((java.util.List<Object>)result).add(this.extend(parsed, new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", HtxCore.this.iso8601(timestamp) );
@@ -10211,7 +10211,7 @@ public class HtxCore extends HtxApi
                 position = this.safeValue(positions, 0);
             }
             Long timestamp = this.safeInteger(response, "ts");
-            Object parsed = this.parsePosition(this.extend(position, omitted), market);
+            java.util.Map<String, Object> parsed = this.parsePosition(this.extend(position, omitted), market);
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
             return parsed;

@@ -793,7 +793,7 @@ public class BitsoCore extends BitsoApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeList(payload, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -901,7 +901,7 @@ public class BitsoCore extends BitsoApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1084,7 +1084,7 @@ public class BitsoCore extends BitsoApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "bucket_start_time"), this.safeNumber(ohlcv, "first_rate"), this.safeNumber(ohlcv, "max_rate"), this.safeNumber(ohlcv, "min_rate"), this.safeNumber(ohlcv, "last_rate"), this.safeNumber(ohlcv, "volume")));
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1547,7 +1547,7 @@ public class BitsoCore extends BitsoApi
             java.util.List<Object> canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
             {
-                Object order = this.parseOrder(Helpers.GetValue(payload, i));
+                java.util.Map<String, Object> order = this.parseOrder(Helpers.GetValue(payload, i));
                 ((java.util.List<Object>)canceledOrders).add(order);
             }
             return canceledOrders;
@@ -1566,7 +1566,7 @@ public class BitsoCore extends BitsoApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //
@@ -1667,7 +1667,7 @@ public class BitsoCore extends BitsoApi
             }};
             java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = this.parseOrders(payload, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(payload, market, since, limit);
             return orders;
         });
 
@@ -2259,7 +2259,7 @@ public class BitsoCore extends BitsoApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // deposit

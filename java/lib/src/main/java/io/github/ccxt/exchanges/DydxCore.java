@@ -604,7 +604,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         // {
@@ -765,7 +765,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // {
@@ -1049,7 +1049,7 @@ public class DydxCore extends DydxApi
         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a user parameter inside 'params' or the walletAddress set")) ;
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // {
@@ -1313,7 +1313,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {
@@ -2545,7 +2545,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // {
@@ -3041,7 +3041,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(response, "freeCollateral"));

@@ -803,8 +803,8 @@ public class DeribitCore extends DeribitApi
         // support expired option contracts
         String quote = "USD";
         Object settle = null;
-        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
-        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
+        Object optionParts = Helpers.split(symbol, "-");
+        Object symbolBase = Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -835,7 +835,7 @@ public class DeribitCore extends DeribitApi
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1))))
         {
-            java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(base, "_");
+            Object splitSymbol = Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);
         }
         String strike = this.safeString(optionParts, 2);
@@ -978,7 +978,7 @@ public class DeribitCore extends DeribitApi
             //        "testnet": false
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1204,7 +1204,7 @@ public class DeribitCore extends DeribitApi
                 //         "testnet": false
                 //     }
                 //
-                java.util.List<Object> currenciesResult = (java.util.List<Object>) this.safeList(currenciesResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object currenciesResult = this.safeList(currenciesResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesResult)); i++)
                 {
                     String currencyId = this.safeString(Helpers.GetValue(currenciesResult, i), "currency");
@@ -1290,7 +1290,7 @@ public class DeribitCore extends DeribitApi
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(instrumentsResponses)); i++)
             {
-                java.util.List<Object> instrumentsResult = (java.util.List<Object>) this.safeList(Helpers.GetValue(instrumentsResponses, i), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object instrumentsResult = this.safeList(Helpers.GetValue(instrumentsResponses, i), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(instrumentsResult)); k++)
                 {
                     Object market = Helpers.GetValue(instrumentsResult, k);
@@ -1436,7 +1436,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public java.util.Map<String, Object> parseBalance(Object balance)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", balance );
@@ -1543,7 +1543,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         });
 
@@ -1558,7 +1558,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1654,7 +1654,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker /public/ticker
@@ -1890,11 +1890,11 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
-                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(result, i));
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(result, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2001,7 +2001,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2113,7 +2113,7 @@ public class DeribitCore extends DeribitApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2259,7 +2259,7 @@ public class DeribitCore extends DeribitApi
             //     }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> fees = (java.util.List<Object>) this.safeList(result, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object fees = this.safeList(result, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> perpetualFee = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> futureFee = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> optionFee = new java.util.HashMap<String, Object>() {{}};
@@ -2433,7 +2433,7 @@ public class DeribitCore extends DeribitApi
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -2489,7 +2489,7 @@ public class DeribitCore extends DeribitApi
         Object lastTradeTimestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(filledString, null)))
         {
-            Boolean isFilledPositive = Precise.stringGt(filledString, "0");
+            Object isFilledPositive = Precise.stringGt(filledString, "0");
             if (Helpers.isTrue(isFilledPositive))
             {
                 lastTradeTimestamp = lastUpdate;
@@ -2820,7 +2820,7 @@ public class DeribitCore extends DeribitApi
      * @param {float} [params.trailingAmount] the quote amount to trail away from the current market price
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3054,7 +3054,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3353,7 +3353,7 @@ public class DeribitCore extends DeribitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchWithdrawals
@@ -3429,7 +3429,7 @@ public class DeribitCore extends DeribitApi
         }};
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -3633,7 +3633,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [volatility history objects]{@link https://docs.ccxt.com/?id=volatility-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchVolatilityHistory(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchVolatilityHistory(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3683,7 +3683,7 @@ public class DeribitCore extends DeribitApi
         //         "testnet": false
         //     }
         //
-        java.util.List<Object> volatilityResult = (java.util.List<Object>) this.safeList(volatility, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object volatilityResult = this.safeList(volatility, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatilityResult)); i++)
         {
@@ -3789,7 +3789,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4004,7 +4004,7 @@ public class DeribitCore extends DeribitApi
             //      "testnet": true
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
         });
 
@@ -4147,7 +4147,7 @@ public class DeribitCore extends DeribitApi
             //    }
             //
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object fr = Helpers.GetValue(result, i);
@@ -4217,7 +4217,7 @@ public class DeribitCore extends DeribitApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4292,7 +4292,7 @@ public class DeribitCore extends DeribitApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
         {
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
                 Object first = Helpers.GetValue(data, 0);
@@ -4421,7 +4421,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4566,7 +4566,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4613,7 +4613,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object chain = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         });
@@ -4629,7 +4629,7 @@ public class DeribitCore extends DeribitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4797,8 +4797,8 @@ public class DeribitCore extends DeribitApi
             //         "testnet": true
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         });
 
@@ -4879,8 +4879,8 @@ public class DeribitCore extends DeribitApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
-            String timestamp = String.valueOf(this.milliseconds());
+            Object nonce = String.valueOf(this.nonce());
+            Object timestamp = String.valueOf(this.milliseconds());
             String requestBody = "";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {

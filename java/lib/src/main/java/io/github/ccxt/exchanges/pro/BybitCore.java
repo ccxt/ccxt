@@ -700,7 +700,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Boolean isSpot = !Helpers.isEqual(this.safeString(data, "usdIndexPrice"), null);
         String type = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Object symbol = null;
-        Object parsed = null;
+        java.util.Map<String, Object> parsed = null;
         if (Helpers.isTrue((Helpers.isEqual(updateType, "snapshot"))))
         {
             parsed = this.parseTicker(data);
@@ -1994,7 +1994,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             Object side = this.safeString(position, "side");
             // hacky solution to handle closing positions
             // without crashing, we should handle this properly later
@@ -2331,7 +2331,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //
         Object messageHash = this.safeString(message, "reqId");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(data);
+        java.util.Map<String, Object> order = this.parseOrder(data);
         client.resolve(order, messageHash);
     }
 
@@ -2437,7 +2437,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            java.util.Map<String, Object> parsed = this.parseOrder(Helpers.GetValue(rawOrders, i));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

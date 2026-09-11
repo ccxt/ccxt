@@ -3381,7 +3381,7 @@ public class KucoinCore extends KucoinApi
         }}, market);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         // wrapper for parseTickers
         // parseTickers used only in methods for contract markets
@@ -3389,7 +3389,7 @@ public class KucoinCore extends KucoinApi
         return this.parseContractTicker(ticker, market);
     }
 
-    public Object parseContractTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseContractTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -7587,7 +7587,7 @@ public class KucoinCore extends KucoinApi
         return tradeType;
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String tradeType = this.safeString(order, "tradeType");
@@ -7612,7 +7612,7 @@ public class KucoinCore extends KucoinApi
         }
     }
 
-    public Object parseContractOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseContractOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrder, fetchOrdersByStatus
@@ -7757,7 +7757,7 @@ public class KucoinCore extends KucoinApi
         }}, market);
     }
 
-    public Object parseSpotOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseSpotOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -7948,7 +7948,7 @@ public class KucoinCore extends KucoinApi
         }}, market);
     }
 
-    public Object parseUtaOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseUtaOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -8697,7 +8697,7 @@ public class KucoinCore extends KucoinApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.inOp(trade, "liquidityRole")))
@@ -8715,7 +8715,7 @@ public class KucoinCore extends KucoinApi
         }
     }
 
-    public Object parseSpotOrUtaTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseSpotOrUtaTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -8872,7 +8872,7 @@ public class KucoinCore extends KucoinApi
         }}, market);
     }
 
-    public Object parseContractTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseContractTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -9024,7 +9024,7 @@ public class KucoinCore extends KucoinApi
         }}, market);
     }
 
-    public Object parseMyUtaTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseMyUtaTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -9273,7 +9273,7 @@ public class KucoinCore extends KucoinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -12794,7 +12794,7 @@ public class KucoinCore extends KucoinApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //    {

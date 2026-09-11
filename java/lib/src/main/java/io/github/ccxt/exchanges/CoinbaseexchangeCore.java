@@ -982,7 +982,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         }};
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1079,7 +1079,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1292,7 +1292,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -1675,7 +1675,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -2588,7 +2588,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         }
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // privateGetTransfers

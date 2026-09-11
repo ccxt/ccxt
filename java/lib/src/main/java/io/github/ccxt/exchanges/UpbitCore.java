@@ -693,7 +693,7 @@ public class UpbitCore extends UpbitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "market");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
@@ -760,7 +760,7 @@ public class UpbitCore extends UpbitApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -939,7 +939,7 @@ public class UpbitCore extends UpbitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //       {                market: "BTC-ETH",
@@ -1153,7 +1153,7 @@ public class UpbitCore extends UpbitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -2181,7 +2181,7 @@ public class UpbitCore extends UpbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits, fetchDeposit
@@ -2263,7 +2263,7 @@ public class UpbitCore extends UpbitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         // {
         //   "market": "KRW-USDT",

@@ -578,7 +578,7 @@ public class CoinmateCore extends CoinmateApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -751,7 +751,7 @@ public class CoinmateCore extends CoinmateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(keys, i));
-                Object ticker = this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
+                java.util.Map<String, Object> ticker = this.parseTicker(this.safeValue(data, Helpers.GetValue(keys, i)), market);
                 Helpers.addElementToObject(result, Helpers.GetValue(market, "symbol"), ticker);
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
@@ -759,7 +759,7 @@ public class CoinmateCore extends CoinmateApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -862,7 +862,7 @@ public class CoinmateCore extends CoinmateApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // deposits
@@ -1028,7 +1028,7 @@ public class CoinmateCore extends CoinmateApi
             //     }
             //
             Object data = this.safeValue(response, "data");
-            Object transaction = this.parseTransaction(data, currency);
+            java.util.Map<String, Object> transaction = this.parseTransaction(data, currency);
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
@@ -1092,7 +1092,7 @@ public class CoinmateCore extends CoinmateApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchMyTrades (private)
@@ -1357,7 +1357,7 @@ public class CoinmateCore extends CoinmateApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // limit sell

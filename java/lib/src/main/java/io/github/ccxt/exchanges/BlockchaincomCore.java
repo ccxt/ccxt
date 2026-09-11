@@ -540,7 +540,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -648,7 +648,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         return this.safeString(states, state, state);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -684,7 +684,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
         final Object finalType = type;
-        Object result = this.safeOrder(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", exchangeOrderId );
             put( "clientOrderId", clientOrderId );
             put( "datetime", datetime );
@@ -705,7 +705,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             put( "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "info", order );
         }});
-        return result;
+        return (java.util.Map<String, Object>) result;
     }
 
     /**
@@ -1013,7 +1013,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -1168,7 +1168,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         return this.safeString(states, state, state);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // deposit

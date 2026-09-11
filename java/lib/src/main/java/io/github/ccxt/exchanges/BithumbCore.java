@@ -771,7 +771,7 @@ public class BithumbCore extends BithumbApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // generation 1
@@ -988,7 +988,7 @@ public class BithumbCore extends BithumbApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // generation 1: fetchTicker, fetchTickers
@@ -1625,7 +1625,7 @@ public class BithumbCore extends BithumbApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // generation 1: fetchTrades (public)
@@ -2421,7 +2421,7 @@ public class BithumbCore extends BithumbApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //
@@ -3249,7 +3249,7 @@ public class BithumbCore extends BithumbApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // generation 1: withdraw

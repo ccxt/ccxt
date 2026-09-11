@@ -81,6 +81,82 @@
 // filterBySymbol / filterByKey (dictionary on the indexed path), arraySlice / toArray
 // (byte[] callers receive byte[] / List<Byte> back).
 //
+// ===== 2b. map-returning parse* singulars + map-element list returns (JN-7) =====
+//
+// (a) JAVA_MAP_RETURN_METHODS (25 names) retypes the seven unified parse* singulars
+//     (parseTicker / parseTrade / parseOrder / parseMarket / parseTransaction /
+//     parsePosition / parseBalance), the seven BaseExchange row normalizers they funnel
+//     through (safeTicker / safeTrade / safeOrder / safeBalance / safePosition /
+//     safeMarketStructure / safeCurrencyStructure) and the eleven venue-local peers
+//     (kucoin parseContractTicker / parseMyUtaTrade / parseSpotOrUtaTrade /
+//     parseContractTrade / parseUtaOrder / parseContractOrder / parseSpotOrder, phemex
+//     parseSwapOrder / parseSpotMarket / parseSwapMarket, binance parseDustTrade) to
+//     `java.util.Map<String, Object>`. A census of all 541 declarations of the seven
+//     singulars (94–96 venue overrides each) plus the 23 declarations of the normalizer
+//     and peer set, across BaseExchange.java + exchanges/{,pro,prediction}/*.java, found
+//     every return path of every listed name ending in:
+//
+//       * an object literal (prints `new java.util.HashMap<String, Object>() {{...}}`,
+//         assignable to the Map directly — 76 of the 77 parseTransaction declarations
+//         are exactly this shape, the `{...} as Transaction` bodies);
+//       * `null` / undefined;
+//       * a `this.<name>(...)` call to another listed name (fixpoint — this also covers
+//         `super.parseTicker(...)` in the pro coinbaseexchange override) or to the
+//         Map-declared hand-written this.extend / this.deepExtend;
+//       * the base safeTrade / safeBalance / safePosition own-parameter return, reached
+//         only after the body has written the parameter through
+//         Helpers.addElementToObject, which throws for a null target, for a List under a
+//         string key ("fee" / "free" / ... are not integers) and for any object without
+//         the field/setter — the (Map) checkcast at the return only moves that throw to
+//         the return site (the filterByLimit own-parameter precedent);
+//       * a function-local identifier with exactly one write in the enclosing function,
+//         that write being a listed map producer or a HashMap literal (backpack
+//         parseTicker parsedTicker, blofin parseTrade result, zebpay parseOrder
+//         parsedOrder, blockchaincom parseOrder result, safeMarketStructure result —
+//         mapReturnCastFor re-proves the shape at the return).
+//
+//     A name whose census found any other return shape (a local with a second write,
+//     a Helpers.add(...) return, ...) stays Object — the census found none, and the
+//     scan is recorded with the JN-7 branch. The decision is per NAME, so a base
+//     virtual and every override always print the same return type (Java's override
+//     return compatibility holds). The box this names is the plain
+//     HashMap/LinkedHashMap row the code already builds: MarketInterface / Trade /
+//     Order / ... are wrapper classes used only by the hand-written facade, naming any
+//     of them here would change the box (rule 1), so Map<String, Object> is the
+//     lossless spelling — the same conclusion the market/currency row family (section
+//     above) already reached. Callers that pass the value to an Object parameter
+//     (Helpers.GetValue, safeString*, filterBy*, arrayConcat, ...) bind exactly as
+//     before; a caller that assigned the result to a local keeps the module's static
+//     type for that call.
+//
+// (b) JAVA_MAP_ELEMENT_LIST_METHODS (5 names) — parseTrades / parseTradesHelper /
+//     parseOrders / parseTransactions / parseLedger now return
+//     `java.util.List<java.util.Map<String, Object>>`. Census (base plus the derive
+//     parseTrades override): every `result.add (...)` in every declaration adds an
+//     `extend (...)` result — a fresh LinkedHashMap on every path — and every tail
+//     returns a filterBy* slice of that same accumulator or a fresh empty ArrayList
+//     (parseTrades just forwards to parseTradesHelper). The filterBy* tails and the
+//     empty-list tails carry the unchecked `(Object)` bridge cast: a direct
+//     List<Object> -> List<Map> cast is a javac inconvertible-types error, while the
+//     bridge erases to the same box and adds no runtime check beyond the List check
+//     the old List<Object> declaration already implied. filterBy* itself keeps
+//     List<Object> (its elements are caller-dependent); parseOHLCVs is deliberately NOT
+//     in the set — its elements are `this.parseOHLCV (...)` results, i.e. OHLCV row
+//     LISTS (or the raw row base parseOHLCV hands back unchanged for a non-array
+//     input), never maps.
+//
+//     Consumer locals that previously took the List<Object> view either follow the new
+//     element type when their uses allow it (receiver policy
+//     MAP_LIST_RECEIVER_METHODS — Object-taking helper prints and `contains` only) or
+//     keep the pre-existing declaration through the widening bridge
+//     (javaLocalTypeOf's fallback), so no site loses the typing it had.
+//
+//     The element type unlocks the map-element access locals:
+//         const t = trades[i];  ->  java.util.Map<String, Object> t =
+//                                       (java.util.Map<String, Object>) Helpers.GetValue (trades, i);
+//     (elementAccessHasMapElements — same receiver discipline as the string-elements
+//     family above: one binding, declared before the site, every other use a read).
+//
 // ===== 3. locals fed by the retyped methods and the parse* accessors =====
 //
 // A local whose initializer is a whole call to
@@ -202,17 +278,68 @@ export const JAVA_STRING_RETURN_METHODS_CASE_CAST = new Set ([
 ]);
 
 // every name proved list-returning by the tree census (see the header)
-export const JAVA_LIST_RETURN_METHODS = new Set ([
-    'filterByLimit', 'filterBySinceLimit', 'filterByValueSinceLimit',
-    'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
-    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs',
+//
+// JN-7 split: the parse* list families whose ELEMENT is provably a
+// java.util.Map<String, Object> (every `result.add (...)` in every declaration is an
+// `extend(...)` result — a fresh LinkedHashMap on every path) get the element-typed
+// return `java.util.List<java.util.Map<String, Object>>`; the filterBy* chain, whose
+// element type is caller-dependent, keeps `java.util.List<Object>`. parseOHLCVs is
+// deliberately NOT in the map-element set: its elements are `this.parseOHLCV (...)` /
+// `Helpers.GetValue (ohlcvs, i)` results — OHLCV row LISTS (or the whole raw row the
+// base parseOHLCV hands back unchanged for a non-array input), never Maps.
+export const JAVA_MAP_ELEMENT_LIST_METHODS = new Set ([
+    'parseTrades', 'parseTradesHelper', 'parseOrders',
     'parseTransactions', 'parseLedger',
 ]);
 
-// one name in both tables is a hard bug: the fixed per-name return type would differ
+export const JAVA_PLAIN_LIST_RETURN_METHODS = new Set ([
+    'filterByLimit', 'filterBySinceLimit', 'filterByValueSinceLimit',
+    'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
+    'parseOHLCVs',
+]);
+
+export const JAVA_LIST_RETURN_METHODS = new Set ([
+    ...JAVA_MAP_ELEMENT_LIST_METHODS, ...JAVA_PLAIN_LIST_RETURN_METHODS,
+]);
+
+// every name proved to return a java.util.Map<String, Object> (or throw / return null)
+// on EVERY return path of EVERY declaration — the JN-7 tree census (see the header).
+// The set is closed under the `this.<name>(...)` return targets of its members: the
+// venue-local peers and the base row normalizers the seven unified parse* singulars
+// funnel through. Retyped per NAME like the string family, so a base virtual and each
+// override print the same signature.
+export const JAVA_MAP_RETURN_METHODS = new Set ([
+    // the seven unified parse* singulars
+    'parseTicker', 'parseTrade', 'parseOrder', 'parseMarket', 'parseTransaction',
+    'parsePosition', 'parseBalance',
+    // the row normalizers they funnel through (BaseExchange, no venue overrides)
+    'safeTicker', 'safeTrade', 'safeOrder', 'safeBalance', 'safePosition',
+    'safeMarketStructure', 'safeCurrencyStructure',
+    // the venue-local peers (kucoin/phemex/poloniex/binance) every return of which is a
+    // call to one of the two families above or a HashMap literal
+    'parseContractTicker', 'parseMyUtaTrade', 'parseSpotOrUtaTrade', 'parseContractTrade',
+    'parseUtaOrder', 'parseContractOrder', 'parseSpotOrder', 'parseSwapOrder',
+    'parseSpotMarket', 'parseSwapMarket', 'parseDustTrade',
+]);
+
+// the element-typed list return
+const JAVA_MAP_LIST_TYPE = 'java.util.List<java.util.Map<String, Object>>';
+
+// env-gated calibration trace for the map-returning ident casts (JN-7)
+const MAP_RETURN_DEBUG = process.env.CCXT_JAVA_MAP_RETURN_DEBUG === '1';
+
+// one name in two tables is a hard bug: the fixed per-name return type would differ
 for (const name of JAVA_LIST_RETURN_METHODS) {
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
         throw new Error ('java-local-types: ' + name + ' listed as both string and list returning');
+    }
+    if (JAVA_MAP_RETURN_METHODS.has (name)) {
+        throw new Error ('java-local-types: ' + name + ' listed as both list and map returning');
+    }
+}
+for (const name of JAVA_MAP_RETURN_METHODS) {
+    if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+        throw new Error ('java-local-types: ' + name + ' listed as both string and map returning');
     }
 }
 
@@ -718,6 +845,88 @@ function isProvablyNonNullStringOperand (printer, node, selfName) {
     }
     return isThisCall (value)
         && UUID_STRING_METHODS.has (String (value.expression.name.escapedText));
+}
+
+// ===== map-element access locals (JN-7) =====
+//
+// The JN-7 counterpart of the string-elements family: `recv[key]` where recv is a local
+// fed by one of the element-typed list producers (JAVA_MAP_ELEMENT_LIST_METHODS) prints
+//
+//     java.util.Map<String, Object> trade = (java.util.Map<String, Object>) Helpers.GetValue (recv, key);
+//
+// Every element those methods can hold is a map: every `result.add (x)` in every
+// declaration adds an `extend (...)` result (a fresh LinkedHashMap on every path —
+// Generic.Extend tolerates null/list inputs by building a fresh map and throws for a
+// non-mapable non-null input, so it never hands a foreign box back). The (Map) checkcast
+// on such an element cannot fire on any input that reaches the print alive: a non-map
+// element could only have been added by code that does not exist in the censused
+// declarations, and the receiver-use guard below rejects any receiver a later write /
+// alias / escape could have re-pointed. Same receiver discipline as the string family:
+// one binding, declared before the site, every other use a plain read.
+function elementAccessHasMapElements (initializer) {
+    const site = unwrapParens (initializer);
+    if (site?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return false;
+    }
+    const receiver = site.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = enclosingFunction (site);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (receiver.escapedText);
+    if (!uses) {
+        return false;
+    }
+    let declaration;
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+            bindings++;
+            declaration = parent;
+        }
+    }
+    if (bindings !== 1
+        || declaration?.kind !== ts.SyntaxKind.VariableDeclaration
+        || declaration.initializer === undefined
+        || !mapElementsProducer (declaration.initializer)) {
+        return false;
+    }
+    if (declaration.getStart () > site.getStart ()) {
+        return false; // the list is not provably built before the read
+    }
+    for (const n of uses) {
+        if (n === receiver || n === declaration.name) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// does the printed Java for this initializer hand back a list whose every element is a
+// map? only a whole `this.<element-typed list producer>(...)` call does.
+function mapElementsProducer (initializer) {
+    const node = unwrapParens (initializer);
+    if (node === undefined || !ts.isCallExpression (node) || !isThisCall (node)) {
+        return false;
+    }
+    return JAVA_MAP_ELEMENT_LIST_METHODS.has (node.expression.name.escapedText);
+}
+
+// a string literal `x + 'lit'` binds add(String, String) AFTER narrowing where it bound
+// add(Object, Object) before; the two only agree when the right operand is provably a
+// string (see the `+` trap comment above).
+function isProvablyStringOperand (node) {
+    const value = unwrapParens (node);
+    return value !== undefined
+        && (value.kind === ts.SyntaxKind.StringLiteral
+            || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
 }
 
 // the full LEFT-operand rule for one read `n` of the local: is every `Helpers.add` call
@@ -1322,7 +1531,13 @@ function javaMethodReturnType (printer, node, own) {
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
         return 'String';
     }
-    if (JAVA_LIST_RETURN_METHODS.has (name)) {
+    if (JAVA_MAP_RETURN_METHODS.has (name)) {
+        return JAVA_STRUCTURE_TYPE;
+    }
+    if (JAVA_MAP_ELEMENT_LIST_METHODS.has (name)) {
+        return JAVA_MAP_LIST_TYPE;
+    }
+    if (JAVA_PLAIN_LIST_RETURN_METHODS.has (name)) {
         return JAVA_ARRAY_TYPE;
     }
     return undefined;
@@ -1344,6 +1559,44 @@ function returnCastFor (printer, node, methodName) {
                 || call === 'safeStringUpperN' || call === 'safeStringLowerN') {
                 return '(String)';
             }
+        }
+        return undefined;
+    }
+    if (JAVA_MAP_RETURN_METHODS.has (methodName)) {
+        const value = unwrapReturnValue (node.expression);
+        // the 1-arg / spread / 3+-arg `this.extend (...)` resolves to the VARARGS
+        // overload `Object extend(Object...)` (the fixed-arity `extend (Object, Object)`
+        // is declared Map and needs none); Generic.Extend still builds a fresh
+        // LinkedHashMap on every path, so the checkcast only names that box.
+        // deepExtend's only Java declaration is `java.util.Map<String, Object> deepExtend
+        // (Object...)` — cast-free.
+        if (value !== undefined && isThisCall (value)
+            && value.expression.name.escapedText === 'extend'
+            && (value.arguments.length !== 2 || value.arguments.some ((a) => ts.isSpreadElement (a)))) {
+            return '(' + JAVA_STRUCTURE_TYPE + ')';
+        }
+        return mapReturnCastFor (printer, node, value);
+    }
+    if (JAVA_MAP_ELEMENT_LIST_METHODS.has (methodName)) {
+        // `return this.parseTradesHelper (...)` — the same type after the retype (no
+        // cast). The filterBy* tails hand back the SAME list they were passed (built by
+        // the method from `extend` results) and the empty-list returns a fresh ArrayList,
+        // so every element is one of the proven maps; the (Object) bridge is the only
+        // legal spelling — a direct List<Object> -> List<Map> cast is a javac
+        // inconvertible-types error, and the unchecked bridge moves no runtime check
+        // beyond the List one the old List<Object> signature already implied.
+        const value = unwrapReturnValue (node.expression);
+        if (value !== undefined && isThisCall (value)) {
+            const call = value.expression.name.escapedText;
+            if (JAVA_MAP_ELEMENT_LIST_METHODS.has (call)) {
+                return undefined;
+            }
+            if (JAVA_PLAIN_LIST_RETURN_METHODS.has (call)) {
+                return '(' + JAVA_MAP_LIST_TYPE + ') (Object)';
+            }
+        }
+        if (value !== undefined && isEmptyArrayListLiteral (value)) {
+            return '(' + JAVA_MAP_LIST_TYPE + ') (Object)';
         }
         return undefined;
     }
@@ -1457,6 +1710,117 @@ function gatedAccessorCallType (printer, node) {
         return undefined;
     }
     return entry;
+}
+
+// the printer's empty-list emit (`const result = []` / a `[]` return)
+function isEmptyArrayListLiteral (node) {
+    const value = unwrapParens (node);
+    if (value === undefined) {
+        return false;
+    }
+    return ts.isArrayLiteralExpression (value) && value.elements.length === 0;
+}
+
+// a return expression with the TS-only wrappers the Java printer drops stripped:
+// parentheses, `as` / angle-bracket assertions and `!` (safeBalance returns
+// `balance as any`, safeTrade `trade as Trade`, safePosition `position as Position` —
+// all print the operand unchanged in return position).
+function unwrapReturnValue (node) {
+    let value = node;
+    while (value !== undefined
+        && (ts.isParenthesizedExpression (value) || ts.isAsExpression (value)
+            || ts.isTypeAssertionExpression (value) || ts.isNonNullExpression (value))) {
+        value = value.expression;
+    }
+    return value;
+}
+
+// `return <identifier>;` inside a JAVA_MAP_RETURN_METHODS declaration. The JN-7 census
+// found exactly two shapes needing a cast (everything else is a call to a listed name —
+// the same type after the retype — an object literal, the Map-declared extend/deepExtend
+// call, or null):
+//
+//   * the base safeTrade / safeBalance / safePosition return their own parameter AFTER
+//     the body has written to it through Helpers.addElementToObject, which throws for a
+//     null target, for a List with a string key ("fee"/"free"/... are not integers) and
+//     for any object without the field/setter — the checkcast only moves that throw to
+//     the return (the filterByLimit own-parameter precedent);
+//   * four venue declarations (backpack parseTicker, blofin parseTrade, zebpay
+//     parseOrder, blockchaincom parseOrder) plus safeMarketStructure return a
+//     function-local whose ONLY write is a listed map producer (safeTicker/safeOrder/
+//     safeTicker call or a HashMap literal, or the Map-declared this.extend) — scanned
+//     name-based over the enclosing function, exactly like every other read/write scan
+//     in this module: any other write keeps the declaration Object and the name would
+//     not have been admitted.
+function mapReturnCastFor (printer, node, expression) {
+    if (expression === undefined || !ts.isIdentifier (expression)) {
+        return undefined;
+    }
+    const symbol = printer.getChecker ().getSymbolAtLocation (expression);
+    const declaration = symbol?.valueDeclaration;
+    if (MAP_RETURN_DEBUG) {
+        const method = enclosingMethod (node);
+        console.error ('[java-map-return] method=' + (method?.name?.escapedText ?? '?') + ' ident=' + expression.escapedText
+            + ' decl=' + (declaration === undefined ? 'none' : ts.SyntaxKind[declaration.kind]));
+    }
+    if (declaration === undefined) {
+        return undefined;
+    }
+    if (ts.isParameter (declaration)) {
+        const method = enclosingMethod (node);
+        if (method === undefined || !method.parameters.some ((p) => p === declaration || p.name === declaration)) {
+            return undefined;
+        }
+        return '(' + JAVA_STRUCTURE_TYPE + ')';
+    }
+    if (!ts.isVariableDeclaration (declaration) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined || scope !== enclosingFunction (node)) {
+        return undefined;
+    }
+    const uses = identifierIndex (scope).get (String (expression.escapedText)) ?? [];
+    for (const n of uses) {
+        if (n === expression || n === declaration.name) {
+            continue;
+        }
+        if (identifierUseIsWrite (n)) {
+            return undefined;
+        }
+    }
+    const init = unwrapParens (declaration.initializer);
+    if (ts.isObjectLiteralExpression (init)) {
+        return '(' + JAVA_STRUCTURE_TYPE + ')';
+    }
+    if (isThisCall (init)) {
+        const call = init.expression.name.escapedText;
+        // extend/deepExtend are declared `java.util.Map<String, Object>` in the
+        // hand-written base, so their box is the row/structure itself (Generic.java)
+        if (JAVA_MAP_RETURN_METHODS.has (call) || call === 'extend' || call === 'deepExtend') {
+            return '(' + JAVA_STRUCTURE_TYPE + ')';
+        }
+    }
+    return undefined;
+}
+
+// is this occurrence of the identifier a WRITE to its binding (assignment target,
+// compound assignment, ++/--, destructuring target)? Reads of every kind stay false.
+function identifierUseIsWrite (identifier) {
+    const parent = identifier.parent;
+    if (parent === undefined) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.BinaryExpression) {
+        return parent.left === identifier && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
+    }
+    if (parent.kind === ts.SyntaxKind.PostfixUnaryExpression || parent.kind === ts.SyntaxKind.PrefixUnaryExpression) {
+        return true;
+    }
+    if (parent.kind === ts.SyntaxKind.BindingElement && parent.name === identifier) {
+        return true;
+    }
+    return false;
 }
 
 // ===== local narrowing (initializer -> Java type) =====
@@ -1634,6 +1998,13 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (elementAccessHasStringElements (initializer)) {
         return { type: 'String', cast: '(String)', valuePrefix: 'Helpers.GetValue(', strictPlus: true };
     }
+    // map-element access (JN-7): `const trade = trades[i]` where `trades` is provably a
+    // list of maps (parseTrades/parseTradesHelper/parseOrders/parseTransactions/
+    // parseLedger) — printed `Helpers.GetValue(trades, i)`, cast on the box the list
+    // already holds
+    if (elementAccessHasMapElements (initializer)) {
+        return { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')', valuePrefix: 'Helpers.GetValue(' };
+    }
     // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
     // endpoint's on-disk `CompletableFuture<T>` — cast-free
     if (initializer.kind === ts.SyntaxKind.AwaitExpression) {
@@ -1733,8 +2104,17 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         // same name would print an untyped call and could not hold a String result
         return resolvesToMethodNamed (printer, initializer, name) ? { type: 'String' } : undefined;
     }
-    if (JAVA_LIST_RETURN_METHODS.has (name)) {
+    if (JAVA_MAP_ELEMENT_LIST_METHODS.has (name)) {
+        // JN-7: the element-typed list family — the retyped signature returns the type,
+        // so the declaration needs no cast
+        return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_MAP_LIST_TYPE } : undefined;
+    }
+    if (JAVA_PLAIN_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_ARRAY_TYPE } : undefined;
+    }
+    if (JAVA_MAP_RETURN_METHODS.has (name)) {
+        // JN-7: the map-returning singular family (retyped signature, no cast)
+        return resolvesToMethodNamed (printer, initializer, name) ? { type: JAVA_STRUCTURE_TYPE } : undefined;
     }
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
     if (accessor !== undefined && resolvesToBaseAccessor (printer, initializer, name)) {
@@ -1822,6 +2202,10 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return wsMapReadType (node) === javaType;
             }
             if (javaType === JAVA_STRUCTURE_TYPE) {
+                // JN-7: the retyped map-returning signatures hand back the Map directly
+                if (JAVA_MAP_RETURN_METHODS.has (name)) {
+                    return resolvesToMethodNamed (printer, node, name);
+                }
                 return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
             }
             if (javaType === 'String') {
@@ -1878,6 +2262,13 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     return true;
                 }
                 return false;
+            }
+            if (javaType === JAVA_MAP_LIST_TYPE) {
+                // a same-family write (fixpoint). filterBy*/toArray hand back a
+                // List<Object>, which is NOT assignable to List<Map<...>> (generics are
+                // invariant) — the reassignment hook has no legal cast for it either, so
+                // such a write rejects and the local keeps the printer's Object.
+                return JAVA_MAP_ELEMENT_LIST_METHODS.has (name) && resolvesToMethodNamed (printer, node, name);
             }
             return false;
         }
@@ -2103,6 +2494,15 @@ const LIST_RECEIVER_METHODS = new Set ([
     'flat', 'flatMap', 'keys', 'values', 'entries', 'toString', 'at', 'remove', 'clear',
     'add', 'size', 'isEmpty', 'get', 'set', 'insert', 'append',
 ]);
+// java.util.List<java.util.Map<String, Object>>-safe receiver methods (JN-7): the printer
+// emits these through Object-taking helpers (Helpers.getIndexOf / Helpers.slice /
+// Helpers.split / Helpers.concat / String.valueOf / toFixed) or a plain
+// `contains(Object)`. push/pop/shift/reverse print `((java.util.List<Object>) x)…` — a
+// javac inconvertible-types error on this receiver (probe-verified, javac 21) — and
+// join prints a `(java.util.List<String>)` cast; everything else rejects by default.
+const MAP_LIST_RECEIVER_METHODS = new Set ([
+    'includes', 'indexOf', 'slice', 'split', 'concat', 'toString', 'toFixed',
+]);
 // `x.join(sep)` prints `String.join((String)sep, (java.util.List<String>)x)` — the
 // checkcast to List<String> is inconvertible from a List<Object>-typed local
 // (probe-verified), so a join receiver must never carry the list family.
@@ -2168,6 +2568,9 @@ function receiverCallIsSafe (method, javaType) {
     }
     if (javaType === JAVA_ARRAY_TYPE) {
         return LIST_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === JAVA_MAP_LIST_TYPE) {
+        return MAP_LIST_RECEIVER_METHODS.has (method);
     }
     if (javaType === JAVA_STRUCTURE_TYPE) {
         return MAP_RECEIVER_METHODS.has (method);
@@ -2371,6 +2774,22 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
         return undefined;
     }
     if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
+        // JN-7 fallback: an element-typed list whose uses cannot take the stronger
+        // List<Map<...>> view keeps the pre-existing java.util.List<Object> declaration
+        // through an unchecked (Object) widening bridge — the same declaration the
+        // module emitted for this initializer before the element type existed, so no
+        // use regresses (a direct List<Map> -> List<Object> cast is a javac
+        // inconvertible-types error; the bridge is legal and erases to the same box).
+        if (info.type === JAVA_MAP_LIST_TYPE) {
+            const fallback = {
+                type: JAVA_ARRAY_TYPE,
+                cast: '(' + JAVA_ARRAY_TYPE + ') (Object)',
+                valuePrefix: info.valuePrefix,
+            };
+            if (isSafeToNarrow (printer, declaration, sourceName, JAVA_ARRAY_TYPE, isProFile, fallback)) {
+                return fallback;
+            }
+        }
         return undefined;
     }
     return info;
@@ -3519,7 +3938,8 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const methodName = method.name.escapedText;
-        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)) {
+        if (!JAVA_STRING_RETURN_METHODS_CASE_CAST.has (methodName) && !JAVA_LIST_RETURN_METHODS.has (methodName)
+            && !JAVA_MAP_RETURN_METHODS.has (methodName)) {
             return printed;
         }
         const cast = returnCastFor (printer, node, methodName);
@@ -3637,8 +4057,10 @@ export function installJavaLocalTypes (transpiler) {
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const gated = gatedAccessorCallType (printer, right);
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
-            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
+            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined
+                && !JAVA_MAP_RETURN_METHODS.has (call))
             || (gated !== undefined && gated.type === javaType)
+            || (javaType === JAVA_ARRAY_TYPE && JAVA_MAP_ELEMENT_LIST_METHODS.has (call))
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
             || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
                 || call === 'safeStringUpper' || call === 'safeStringLower'
@@ -3648,7 +4070,7 @@ export function installJavaLocalTypes (transpiler) {
             : (javaType === 'String' ? '(String)'
                 : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')'
                     : (gated !== undefined && gated.type === javaType) ? '(' + javaType + ')'
-                        : '(Long)');
+                        : javaType === JAVA_ARRAY_TYPE ? '(' + JAVA_ARRAY_TYPE + ') (Object)' : '(Long)');
         if (cast === '') {
             return printed;
         }
@@ -3973,7 +4395,13 @@ function dataflowThisCallType (printer, node) {
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
     }
-    if (JAVA_LIST_RETURN_METHODS.has (name)) {
+    if (JAVA_MAP_RETURN_METHODS.has (name)) {
+        return resolvesToMethodNamed (printer, node, name) ? JAVA_STRUCTURE_TYPE : undefined;
+    }
+    if (JAVA_MAP_ELEMENT_LIST_METHODS.has (name)) {
+        return resolvesToMethodNamed (printer, node, name) ? JAVA_MAP_LIST_TYPE : undefined;
+    }
+    if (JAVA_PLAIN_LIST_RETURN_METHODS.has (name)) {
         return resolvesToMethodNamed (printer, node, name) ? JAVA_ARRAY_TYPE : undefined;
     }
     if (DATAFLOW_STRING_BASE_METHODS.has (name)) {

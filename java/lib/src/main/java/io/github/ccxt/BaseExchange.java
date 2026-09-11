@@ -5176,7 +5176,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         throw new NotSupported((String)Helpers.add(this.id, " parseMarket() is not supported yet")) ;
     }
@@ -5191,7 +5191,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parseTicker() is not supported yet")) ;
@@ -5203,13 +5203,13 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseDepositAddress() is not supported yet")) ;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parseTrade() is not supported yet")) ;
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parseTransaction() is not supported yet")) ;
@@ -5236,7 +5236,7 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseLedgerEntry() is not supported yet")) ;
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parseOrder() is not supported yet")) ;
@@ -5282,7 +5282,7 @@ public Object describe()
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         throw new NotSupported((String)Helpers.add(this.id, " parsePosition() is not supported yet")) ;
@@ -6080,7 +6080,7 @@ public Object describe()
         }};
     }
 
-    public Object safeCurrencyStructure(Object currency)
+    public java.util.Map<String, Object> safeCurrencyStructure(Object currency)
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -6196,7 +6196,7 @@ public Object describe()
         }}, currency);
     }
 
-    public Object safeMarketStructure(Object... optionalArgs)
+    public java.util.Map<String, Object> safeMarketStructure(Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         java.util.Map<String, Object> cleanStructure = new java.util.HashMap<String, Object>() {{
@@ -6287,9 +6287,9 @@ public Object describe()
                     Helpers.addElementToObject(result, "index", false);
                 }
             }
-            return result;
+            return (java.util.Map<String, Object>) result;
         }
-        return this.extend(cleanStructure);
+        return (java.util.Map<String, Object>) this.extend(cleanStructure);
     }
 
     public Object setMarkets(Object markets, Object... optionalArgs)
@@ -6367,7 +6367,7 @@ public Object describe()
                 Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.inOp(market, "base")))
                 {
-                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> currency = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "baseId", "base") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "baseNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "base") );
@@ -6377,7 +6377,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(Helpers.inOp(market, "quote")))
                 {
-                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> currency = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
                         put( "id", BaseExchange.this.safeString2(market, "quoteId", "quote") );
                         put( "numericId", BaseExchange.this.safeInteger(market, "quoteNumericId") );
                         put( "code", BaseExchange.this.safeString(market, "quote") );
@@ -6467,7 +6467,7 @@ public Object describe()
         return superWithRestDescribe;
     }
 
-    public Object safeBalance(Object balance)
+    public java.util.Map<String, Object> safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
         java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
@@ -6512,10 +6512,10 @@ public Object describe()
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
         }
-        return balance;
+        return (java.util.Map<String, Object>) balance;
     }
 
-    public Object safeOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> safeOrder(Object order, Object... optionalArgs)
     {
         // parses numbers as strings
         // * it is important pass the trades as unparsed rawTrades
@@ -6869,7 +6869,7 @@ public Object describe()
         }});
     }
 
-    public java.util.List<Object> parseOrders(Object orders, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseOrders(Object orders, Object... optionalArgs)
     {
         //
         // the value of orders is either a dict or a list
@@ -6898,14 +6898,14 @@ public Object describe()
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            return new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            return (java.util.List<java.util.Map<String, Object>>) (Object) new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
         Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isArray(orders)))
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
-                Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
+                java.util.Map<String, Object> parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 java.util.Map<String, Object> order = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
@@ -6918,14 +6918,14 @@ public Object describe()
                 java.util.Map<String, Object> idExtended = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
-                Object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
+                java.util.Map<String, Object> parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
                 java.util.Map<String, Object> order = this.extend(parsedOrder, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
         }
         results = this.sortBy(results, "timestamp");
         String symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(results, symbol, since, limit);
+        return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
     public Object calculateFeeWithRate(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
@@ -7035,7 +7035,7 @@ public Object describe()
         return liquidation;
     }
 
-    public Object safeTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> safeTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String amount = this.safeString(trade, "amount");
@@ -7065,7 +7065,7 @@ public Object describe()
         Helpers.addElementToObject(trade, "amount", this.parseNumber(amount));
         Helpers.addElementToObject(trade, "price", this.parseNumber(price));
         Helpers.addElementToObject(trade, "cost", this.parseNumber(cost));
-        return trade;
+        return (java.util.Map<String, Object>) trade;
     }
 
     public Object createCcxtTradeId(Object... optionalArgs)
@@ -7317,7 +7317,7 @@ public Object describe()
         return result;
     }
 
-    public Object safeTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> safeTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object open = this.omitZero(this.safeString(ticker, "open"));
@@ -8339,7 +8339,7 @@ public Object describe()
 
     }
 
-    public Object safePosition(Object position)
+    public java.util.Map<String, Object> safePosition(Object position)
     {
         // simplified version of: /pull/12765/
         String unrealizedPnlString = this.safeString(position, "unrealizedPnl");
@@ -8367,7 +8367,7 @@ public Object describe()
             contractSize = this.safeNumber(market, "contractSize");
             Helpers.addElementToObject(position, "contractSize", contractSize);
         }
-        return position;
+        return (java.util.Map<String, Object>) position;
     }
 
     public Object parsePositions(Object positions, Object... optionalArgs)
@@ -8423,7 +8423,7 @@ public Object describe()
         return result;
     }
 
-    public java.util.List<Object> parseTradesHelper(Object isWs, Object trades, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseTradesHelper(Object isWs, Object trades, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8446,10 +8446,10 @@ public Object describe()
         }
         result = this.sortBy2(result, "timestamp", "id");
         String symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public java.util.List<Object> parseTrades(Object trades, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseTrades(Object trades, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8467,7 +8467,7 @@ public Object describe()
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
-    public java.util.List<Object> parseTransactions(Object transactions, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseTransactions(Object transactions, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8482,7 +8482,7 @@ public Object describe()
         }
         result = this.sortBy(result, "timestamp");
         Object code = ((Helpers.isTrue((!Helpers.isEqual(currency, null))))) ? Helpers.GetValue(currency, "code") : null;
-        return this.filterByCurrencySinceLimit(result, code, since, limit);
+        return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
     public Object parseTransfers(Object transfers, Object... optionalArgs)
@@ -8503,7 +8503,7 @@ public Object describe()
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
-    public java.util.List<Object> parseLedger(Object data, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseLedger(Object data, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8527,7 +8527,7 @@ public Object describe()
         }
         result = this.sortBy(result, "timestamp");
         Object code = ((Helpers.isTrue((!Helpers.isEqual(currency, null))))) ? Helpers.GetValue(currency, "code") : null;
-        return this.filterByCurrencySinceLimit(result, code, since, limit);
+        return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
     public Object nonce()
@@ -9127,7 +9127,7 @@ public Object describe()
                 Object parts = Helpers.split(marketId, delimiter);
                 Object partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
-                java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
                     put( "marketId", finalMarketId );
                 }});
@@ -9164,7 +9164,7 @@ public Object describe()
             return market;
         }
         final Object finalMarketId_2 = marketId;
-        java.util.Map<String, Object> emptyMarket = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> emptyMarket = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalMarketId_2 );
             put( "marketId", finalMarketId_2 );
         }});
@@ -9247,7 +9247,7 @@ public Object describe()
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         throw new NotSupported((String)Helpers.add(this.id, " parseBalance() is not supported yet")) ;
     }
@@ -10753,7 +10753,7 @@ public Object describe()
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
+                java.util.Map<String, Object> parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
                 java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
@@ -10764,7 +10764,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
+                java.util.Map<String, Object> parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
                 java.util.Map<String, Object> ticker = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }

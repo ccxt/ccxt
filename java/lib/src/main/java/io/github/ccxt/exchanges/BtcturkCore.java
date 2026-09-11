@@ -367,7 +367,7 @@ public class BtcturkCore extends BtcturkApi
 
     }
 
-    public Object parseMarket(Object entry)
+    public java.util.Map<String, Object> parseMarket(Object entry)
     {
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "numerator");
@@ -452,7 +452,7 @@ public class BtcturkCore extends BtcturkApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -561,7 +561,7 @@ public class BtcturkCore extends BtcturkApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //   {
@@ -665,7 +665,7 @@ public class BtcturkCore extends BtcturkApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1141,7 +1141,7 @@ public class BtcturkCore extends BtcturkApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrders / fetchOpenOrders

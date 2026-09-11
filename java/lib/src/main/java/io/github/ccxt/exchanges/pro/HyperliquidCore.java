@@ -201,7 +201,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object dataObject = this.safeDict(responseObject, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(dataObject, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(statuses, 0, new java.util.HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(first, market);
+            java.util.Map<String, Object> parsedOrder = this.parseOrder(first, market);
             return parsedOrder;
         });
 
@@ -1544,7 +1544,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -1765,7 +1765,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawOrder = Helpers.GetValue(data, i);
-            Object order = this.parseOrder(rawOrder);
+            java.util.Map<String, Object> order = this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             Object symbol = this.safeString(order, "symbol");
             Helpers.addElementToObject(marketSymbols, ((String)symbol), true);

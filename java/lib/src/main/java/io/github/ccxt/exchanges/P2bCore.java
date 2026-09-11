@@ -397,7 +397,7 @@ public class P2bCore extends P2bApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String marketId = this.safeString(market, "name");
         String baseId = this.safeString(market, "stock");
@@ -565,7 +565,7 @@ public class P2bCore extends P2bApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // parseTickers
@@ -760,7 +760,7 @@ public class P2bCore extends P2bApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -957,7 +957,7 @@ public class P2bCore extends P2bApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //    {
@@ -1451,7 +1451,7 @@ public class P2bCore extends P2bApi
             {
                 Object marketId = Helpers.GetValue(keys, i);
                 Object marketOrders = Helpers.GetValue(result, marketId);
-                java.util.List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+                java.util.List<java.util.Map<String, Object>> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
                 orders = this.arrayConcat(orders, parsedOrders);
             }
             return orders;
@@ -1459,7 +1459,7 @@ public class P2bCore extends P2bApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // cancelOrder, fetchOpenOrders, createOrder

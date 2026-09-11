@@ -811,13 +811,13 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results");
+            Object data = this.safeList(response, "results");
             return this.parseMarkets(data);
         });
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -1007,10 +1007,10 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        java.util.Map<String, Object> feeConfig = (java.util.Map<String, Object>) this.safeDict(fee, "fee_config", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> apiFee = (java.util.Map<String, Object>) this.safeDict(feeConfig, "api_fee", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> makerFee = (java.util.Map<String, Object>) this.safeDict(apiFee, "maker_fee", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> takerFee = (java.util.Map<String, Object>) this.safeDict(apiFee, "taker_fee", new java.util.HashMap<String, Object>() {{}});
+        Object feeConfig = this.safeDict(fee, "fee_config", new java.util.HashMap<String, Object>() {{}});
+        Object apiFee = this.safeDict(feeConfig, "api_fee", new java.util.HashMap<String, Object>() {{}});
+        Object makerFee = this.safeDict(apiFee, "maker_fee", new java.util.HashMap<String, Object>() {{}});
+        Object takerFee = this.safeDict(apiFee, "taker_fee", new java.util.HashMap<String, Object>() {{}});
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
@@ -1031,7 +1031,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1069,8 +1069,8 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         });
 
@@ -1272,7 +1272,7 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
 
@@ -1323,14 +1323,14 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ticker = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         });
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1413,7 +1413,7 @@ public class ParadexCore extends ParadexApi
             Object target = "ALL";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     target = ((String)Helpers.GetValue(this.market(Helpers.GetValue(symbols, 0)), "id"));
@@ -1424,7 +1424,7 @@ public class ParadexCore extends ParadexApi
                 put( "market", finalTarget );
             }};
             java.util.Map<String, Object> response = (this.publicGetMarketsSummary(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         });
 
@@ -1593,7 +1593,7 @@ public class ParadexCore extends ParadexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1656,7 +1656,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1773,8 +1773,8 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> interest = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object interest = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
         });
 
@@ -1838,7 +1838,7 @@ public class ParadexCore extends ParadexApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.Map<String, Object> cachedConfig = (java.util.Map<String, Object>) this.safeDict(this.options, "systemConfig");
+            Object cachedConfig = this.safeDict(this.options, "systemConfig");
             if (Helpers.isTrue(!Helpers.isEqual(cachedConfig, null)))
             {
                 return cachedConfig;
@@ -1909,7 +1909,7 @@ public class ParadexCore extends ParadexApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.Map<String, Object> cachedAccount = (java.util.Map<String, Object>) this.safeDict(this.options, "paradexAccount");
+            Object cachedAccount = this.safeDict(this.options, "paradexAccount");
             if (Helpers.isTrue(!Helpers.isEqual(cachedAccount, null)))
             {
                 return cachedAccount;
@@ -2033,7 +2033,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // {
@@ -2090,7 +2090,7 @@ public class ParadexCore extends ParadexApi
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
         Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
-        java.util.List<Object> flags = (java.util.List<Object>) this.safeList(order, "flags");
+        Object flags = this.safeList(order, "flags");
         Object reduceOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(flags, null)))
         {
@@ -2185,8 +2185,8 @@ public class ParadexCore extends ParadexApi
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        String orderType = ((String)type).toUpperCase();
-        String orderSide = ((String)((String)side)).toUpperCase();
+        Object orderType = ((String)type).toUpperCase();
+        Object orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
@@ -2415,7 +2415,7 @@ public class ParadexCore extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             return order;
         });
 
@@ -2437,7 +2437,7 @@ public class ParadexCore extends ParadexApi
      * @param {float} [params.triggerPrice] The price a trigger order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2533,7 +2533,7 @@ public class ParadexCore extends ParadexApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
@@ -2561,8 +2561,8 @@ public class ParadexCore extends ParadexApi
             //     ]
             // }
             //
-            java.util.List<Object> responseOrders = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> parsedOrders = this.parseOrders(responseOrders);
+            Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object parsedOrders = this.parseOrders(responseOrders);
             Object errors = this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errors)); i++)
             {
@@ -2918,7 +2918,7 @@ public class ParadexCore extends ParadexApi
             //
             Object orders = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
-            Integer ordersLength = Helpers.getArrayLength(orders);
+            Object ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(ordersLength, 0)))))
             {
                 Object first = Helpers.GetValue(orders, 0);
@@ -3032,20 +3032,20 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseBalance(data);
         });
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
-            java.util.Map<String, Object> balance = (java.util.Map<String, Object>) this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
+            Object balance = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "token");
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -3226,7 +3226,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -3669,7 +3669,7 @@ public class ParadexCore extends ParadexApi
         }};
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits & fetchWithdrawals
@@ -3745,7 +3745,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3773,7 +3773,7 @@ public class ParadexCore extends ParadexApi
             //     ]
             // }
             //
-            java.util.List<Object> configs = (java.util.List<Object>) this.safeList(response, "configs");
+            Object configs = this.safeList(response, "configs");
             return this.parseMarginMode(this.safeDict(configs, 0), market);
         });
 
@@ -3842,7 +3842,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3870,7 +3870,7 @@ public class ParadexCore extends ParadexApi
             //     ]
             // }
             //
-            java.util.List<Object> configs = (java.util.List<Object>) this.safeList(response, "configs");
+            Object configs = this.safeList(response, "configs");
             return this.parseLeverage(this.safeDict(configs, 0), market);
         });
 
@@ -3950,7 +3950,7 @@ public class ParadexCore extends ParadexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3999,8 +3999,8 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> greeks = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object greeks = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseGreeks(greeks, market);
         });
 
@@ -4065,7 +4065,7 @@ public class ParadexCore extends ParadexApi
             //         ]
             //     }
             //
-            java.util.List<Object> results = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseAllGreeks(results, symbols);
         });
 
@@ -4108,7 +4108,7 @@ public class ParadexCore extends ParadexApi
         market = this.safeMarket(marketId, market, null, "option");
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(greeks, "created_at");
-        java.util.Map<String, Object> greeksData = (java.util.Map<String, Object>) this.safeDict(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
+        Object greeksData = this.safeDict(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -4210,7 +4210,7 @@ public class ParadexCore extends ParadexApi
             //     ]
             // }
             //
-            java.util.List<Object> results = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(results, market, since, limit);
         });
 

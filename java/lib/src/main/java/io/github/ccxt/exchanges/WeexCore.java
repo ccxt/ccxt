@@ -1154,7 +1154,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         // spot
@@ -1474,7 +1474,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot
@@ -2067,7 +2067,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -2492,7 +2492,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3116,7 +3116,7 @@ public class WeexCore extends WeexApi
             {
                 throw new NullResponse((String)Helpers.add(this.id, " parseOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "status", "canceled");
             return order;
         });
@@ -3807,7 +3807,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder (spot)
@@ -4505,7 +4505,7 @@ public class WeexCore extends WeexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -4693,7 +4693,7 @@ public class WeexCore extends WeexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
-            java.util.List<Object> orders = this.parseOrders(response, market);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(response, market);
             return this.safeDict(orders, 0);
         });
 

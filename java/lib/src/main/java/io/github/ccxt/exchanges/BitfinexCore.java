@@ -1553,7 +1553,7 @@ public class BitfinexCore extends BitfinexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // on trading pairs (ex. tBTCUSD)
@@ -1780,7 +1780,7 @@ public class BitfinexCore extends BitfinexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2085,7 +2085,7 @@ public class BitfinexCore extends BitfinexApi
         return this.safeString(orderTypes, orderType, "GTC");
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object orderList = this.safeList(order, "result");
@@ -3150,7 +3150,7 @@ public class BitfinexCore extends BitfinexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -3697,7 +3697,7 @@ public class BitfinexCore extends BitfinexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //    [

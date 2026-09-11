@@ -4045,7 +4045,7 @@ public class GateCore extends GateApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // SPOT
@@ -5196,7 +5196,7 @@ public class GateCore extends GateApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public
@@ -5587,7 +5587,7 @@ final Object finalPointFee = pointFee;
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -6457,7 +6457,7 @@ final Object finalPointFee = pointFee;
         return this.safeString(statuses, status, ((String)status));
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // SPOT
@@ -7369,7 +7369,7 @@ final Object finalRebate = rebate;
                 }
                 result = spotResult;
             }
-            java.util.List<Object> orders = this.parseOrders(result, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -7963,7 +7963,7 @@ final Object finalRebate = rebate;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // swap and future

@@ -998,7 +998,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String type = this.safeString(market, "instrument_type");
         String marketType = null;
@@ -1215,7 +1215,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -1393,7 +1393,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public java.util.List<Object> parseTrades(Object trades, Object... optionalArgs)
+    public java.util.List<java.util.Map<String, Object>> parseTrades(Object trades, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -1410,16 +1410,16 @@ public class DeriveCore extends DeriveApi
             {
                 continue;
             }
-            Object parsed = this.parseTrade(rawTrade, market);
+            java.util.Map<String, Object> parsed = this.parseTrade(rawTrade, market);
             java.util.Map<String, Object> trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
         String symbol = this.safeString(market, "symbol");
-        return this.filterBySymbolSinceLimit(result, symbol, since, limit);
+        return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades & fetchMyTrades
@@ -1863,7 +1863,7 @@ public class DeriveCore extends DeriveApi
             {
                 rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             }
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2037,7 +2037,7 @@ public class DeriveCore extends DeriveApi
             //
             Object result = this.safeDict(response, "result");
             Object rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             return order;
         });
 
@@ -2475,7 +2475,7 @@ public class DeriveCore extends DeriveApi
         return null;
     }
 
-    public Object parseOrder(Object rawOrder, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object rawOrder, Object... optionalArgs)
     {
         //
         // {
@@ -2894,7 +2894,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {
@@ -3191,7 +3191,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3351,7 +3351,7 @@ public class DeriveCore extends DeriveApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // {

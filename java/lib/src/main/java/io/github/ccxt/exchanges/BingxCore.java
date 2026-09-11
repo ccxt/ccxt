@@ -1507,7 +1507,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         Object id = ((String)this.safeString(market, "symbol"));
         Object symbolParts = Helpers.split(id, "-");
@@ -1943,7 +1943,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot fetchTrades
@@ -3039,7 +3039,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // mark price
@@ -3207,7 +3207,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // standard
@@ -3522,7 +3522,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // inverse swap
@@ -4335,7 +4335,7 @@ public class BingxCore extends BingxApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -6178,7 +6178,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -7148,7 +7148,7 @@ public class BingxCore extends BingxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
             {
                 final Object finalI = i;
-                Object position = this.parsePosition(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> position = this.parsePosition(new java.util.HashMap<String, Object>() {{
                     put( "positionId", Helpers.GetValue(success, finalI) );
                 }});
                 ((java.util.List<Object>)positions).add(position);

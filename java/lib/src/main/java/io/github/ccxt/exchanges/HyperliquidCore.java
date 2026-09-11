@@ -513,7 +513,7 @@ public class HyperliquidCore extends HyperliquidApi
         Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), ((String)id), name);
         final Object finalName = name;
         final Object finalCode = code;
-        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "name", finalName );
             put( "code", finalCode );
@@ -1060,7 +1060,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -1445,7 +1445,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Object market = Helpers.GetValue(response, i);
                 Object info = Helpers.GetValue(market, "info");
-                Object ticker = this.parseTicker(info, market);
+                java.util.Map<String, Object> ticker = this.parseTicker(info, market);
                 String symbol = this.safeString(ticker, "symbol");
                 Helpers.addElementToObject(result, ((String)symbol), ticker);
             }
@@ -1599,7 +1599,7 @@ public class HyperliquidCore extends HyperliquidApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -4042,7 +4042,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrdersWs error
@@ -4359,7 +4359,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -4578,7 +4578,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -5196,7 +5196,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // { status: 'ok', response: { type: 'default' } }

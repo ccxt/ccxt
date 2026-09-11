@@ -277,7 +277,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object rawData = this.safeDict(parameters, "data");
         Object data = this.safeDict(rawData, "instrument_ticker", new java.util.HashMap<String, Object>() {{}});
         Object topic = this.safeString(parameters, "channel");
-        Object ticker = null;
+        java.util.Map<String, Object> ticker = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(topic, null)) && Helpers.isTrue(((String)topic).startsWith(((String)"ticker_slim")))))
         {
             // the slim payload uses short keys and does not carry the instrument name,
@@ -545,7 +545,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i));
+            java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(data, i));
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, tradesArray);
@@ -720,7 +720,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object data = Helpers.GetValue(rawOrders, i);
-            Object parsed = this.parseOrder(data);
+            java.util.Map<String, Object> parsed = this.parseOrder(data);
             Object symbol = this.safeString(parsed, "symbol");
             Object orderId = this.safeString(parsed, "id");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -831,7 +831,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object rawTrades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
-            Object trade = this.parseTrade(message);
+            java.util.Map<String, Object> trade = this.parseTrade(message);
             Helpers.callDynamically(myTrades, "append", new Object[]{trade});
             client.resolve(myTrades, topic);
             Object messageHash = Helpers.add(topic, this.safeString(trade, "symbol", ""));

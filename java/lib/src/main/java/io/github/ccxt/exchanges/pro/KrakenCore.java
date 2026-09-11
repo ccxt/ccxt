@@ -388,7 +388,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(result);
+        java.util.Map<String, Object> order = this.parseOrder(result);
         Object messageHash = this.safeString2(message, "reqid", "req_id");
         client.resolve(order, messageHash);
     }
@@ -627,7 +627,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         final Object finalVwap = vwap;
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -684,7 +684,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        java.util.List<Object> parsed = this.parseTrades(data, market);
+        java.util.List<java.util.Map<String, Object>> parsed = this.parseTrades(data, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
@@ -1851,7 +1851,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(result, code, account);
         }
         String type = "spot";
-        Object balance = this.safeBalance(result);
+        java.util.Map<String, Object> balance = this.safeBalance(result);
         Object oldBalance = this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> newBalance = this.deepExtend(oldBalance, balance);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));

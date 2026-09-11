@@ -425,7 +425,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(trades))); i++)
         {
             Object item = Helpers.GetValue((java.util.List<Object>)(trades), i);
-            Object trade = this.parseTrade(item, market);
+            java.util.Map<String, Object> trade = this.parseTrade(item, market);
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
         String messageHash = (String) Helpers.add("deals::", symbol);

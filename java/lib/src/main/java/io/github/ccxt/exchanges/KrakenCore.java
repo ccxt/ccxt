@@ -1235,7 +1235,7 @@ public class KrakenCore extends KrakenApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1665,7 +1665,7 @@ public class KrakenCore extends KrakenApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1910,7 +1910,7 @@ public class KrakenCore extends KrakenApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -2265,7 +2265,7 @@ public class KrakenCore extends KrakenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -3007,7 +3007,7 @@ final Object finalId = id;
                 {
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
                 }
-                java.util.List<Object> trades = this.parseTrades(rawTrades, null, since, limit);
+                java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(rawTrades, null, since, limit);
                 Object tradesFilteredBySymbol = this.filterBySymbol(trades, symbol);
                 result = this.arrayConcat(result, tradesFilteredBySymbol);
             }
@@ -3048,7 +3048,7 @@ final Object finalId = id;
             {
                 Object id = Helpers.GetValue(orderIds, i);
                 Object item = Helpers.GetValue(result, id);
-                Object order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                 }}, item));
                 ((java.util.List<Object>)orders).add(order);
@@ -3555,7 +3555,7 @@ final Object finalId = id;
         return this.safeString(withdrawMethods, network, network);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -3681,7 +3681,7 @@ final Object finalId = id;
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
         {
-            Object transaction = this.parseTransaction(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> transaction = this.parseTransaction(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "type", type );
             }}, Helpers.GetValue(transactions, i)));
             ((java.util.List<Object>)result).add(transaction);
@@ -4219,7 +4219,7 @@ final Object finalId = id;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //             {

@@ -153,10 +153,10 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        java.util.List<Object> parsedTrades = this.parseTrades(rawTrades, market);
+        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(rawTrades, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedTrades)); i++)
         {
-            Object parsed = Helpers.GetValue(parsedTrades, i);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) Helpers.GetValue(parsedTrades, i);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), symbol);
