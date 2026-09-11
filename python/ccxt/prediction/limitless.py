@@ -1153,7 +1153,7 @@ class limitless(PredictionExchange, ImplicitAPI):
             'slug': slug,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 100)
         response = await self.limitlessPublicGetMarketsSlugEvents(self.extend(request, params))
         #
         #     {
@@ -2453,8 +2453,8 @@ class limitless(PredictionExchange, ImplicitAPI):
         if rawSide.find('limit') >= 0:
             type = 'limit'
             takerOrMaker = 'maker'
-        if rawSide is None:
-            raise ExchangeError(self.id + ' method() missing rawSide')
+            if rawSide is None:
+                raise ExchangeError(self.id + ' method() missing rawSide')
         elif rawSide.find('market') >= 0:
             type = 'market'
             takerOrMaker = 'taker'

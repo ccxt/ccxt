@@ -1217,7 +1217,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {'ticker': ticker}
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = await self.kalshiPublicGetMarketsTrades(self.extend(request, params))
         trades = self.safe_list(response, 'trades', [])
         filteredTrades = []
