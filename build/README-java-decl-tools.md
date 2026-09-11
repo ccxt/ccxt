@@ -64,6 +64,10 @@ type changes; the comment/blank classes are warnings, not hard failures.
 
 ## Evidence
 
+* **Build gate @853ab685540 (branch `java-nt-measure`)**: `npm run force-transpileJava` +
+  `npx tsx build/javaTranspiler.ts --prediction --force` → 0 changed files, a second run is
+  IDEMPOTENT (`git status` clean); `cd java && ./gradlew compileJava` → BUILD SUCCESSFUL.
+  (The tools touch no generated source; the gate proves the baseline tree is green.)
 * **Self-test (`node build/java-decl-paircheck-selftest.mjs`): 23/23 PASS.** A scratch git
   repo gets 10 known-good mutations (decl retypes, signature changes, receiver casts,
   ternary-operand casts, imports, whitespace) → all exit 0; 10 known-bad mutations (number,
