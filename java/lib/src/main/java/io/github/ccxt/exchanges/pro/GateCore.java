@@ -1790,9 +1790,9 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object messageHash = messageHash3;
             Object type = type3;
             final Object finalType = type;
-            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
-            }}))).join();
+            }}))).join());
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

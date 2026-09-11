@@ -3494,9 +3494,9 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "uta", uta );
-            }}))).join();
+            }}))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
@@ -3539,7 +3539,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object position = (this.fetchPosition((Object)(symbol))).join();
+            Object position = io.github.ccxt.TypedCores.fromPosition((this.fetchPosition((Object)(symbol))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             Object cache = this.positions;
             Helpers.callDynamically(cache, "append", new Object[]{position});

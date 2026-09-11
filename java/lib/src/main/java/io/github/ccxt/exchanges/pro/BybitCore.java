@@ -1915,10 +1915,10 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             java.util.List<Object> fetchFunctions = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
         put( "type", "swap" );
         put( "subType", "linear" );
-    }}), this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
+    }}).thenApply(io.github.ccxt.TypedCores::fromPositionList), this.fetchPositions(null, (Object) new java.util.HashMap<String, Object>() {{
         put( "type", "swap" );
         put( "subType", "inverse" );
-    }})));
+    }}).thenApply(io.github.ccxt.TypedCores::fromPositionList)));
             Object promises = (Helpers.promiseAll(fetchFunctions)).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;

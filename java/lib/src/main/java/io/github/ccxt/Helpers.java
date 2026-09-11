@@ -67,6 +67,28 @@ public class Helpers {
     }
 
     /**
+     * Same contract as {@link #joinUnwrapped(CompletableFuture)} but for a future
+     * whose value type is concrete: {@code CompletableFuture<Ticker>} is not a
+     * {@code CompletableFuture<Object>} (Java generics are invariant), so typed
+     * cores and the typed wrappers need a generic join. Identical unwrapping.
+     */
+    public static <T> T joinTyped(CompletableFuture<T> future) {
+        try {
+            return future.join();
+        } catch (CompletionException ce) {
+            Throwable t = ce.getCause();
+            while (t != null
+                    && t.getClass() == RuntimeException.class
+                    && t.getCause() instanceof io.github.ccxt.errors.BaseError) {
+                t = t.getCause();
+            }
+            if (t instanceof RuntimeException re) throw re;
+            if (t instanceof Error err) throw err;
+            throw ce;
+        }
+    }
+
+    /**
      * Unwrap a {@link CompletionException} (and any transpile-bridge
      * {@link RuntimeException} wrappers) to expose the underlying ccxt error.
      *

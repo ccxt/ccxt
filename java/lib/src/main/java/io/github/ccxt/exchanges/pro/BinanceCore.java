@@ -6149,7 +6149,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 Helpers.addElementToObject(parameters, "portfolioMargin", true);
             }
-            Object positions = (this.fetchPositions((Object)(null), (Object)(parameters))).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)(parameters))).join());
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

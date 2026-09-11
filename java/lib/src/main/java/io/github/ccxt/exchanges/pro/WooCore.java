@@ -1651,7 +1651,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositionsAsync()).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositionsAsync()).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

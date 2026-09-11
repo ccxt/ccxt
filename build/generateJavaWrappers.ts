@@ -17,11 +17,13 @@ import Transpiler from "ast-transpiler";
 import * as fs from 'fs';
 import { fileURLToPath } from 'node:url';
 import { writeOverloadStrippedFile, removeOverloadStrippedFile, restoreParamsBagInitializers } from './stripOverloads.js';
+import { TYPED_CORES } from './javaTypedCores.js';
 
 const TS_BASE_FILE = './ts/src/base/Exchange.ts';
 const EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/';
 const WS_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/pro/';
 const PREDICTION_EXCHANGES_FOLDER = './java/lib/src/main/java/io/github/ccxt/exchanges/prediction/';
+const PREDICTION_PACKAGE = 'io.github.ccxt.exchanges.prediction';
 
 // Known CCXT types that have Java equivalents in io.github.ccxt.types
 const KNOWN_TYPES = new Set([
@@ -341,11 +343,17 @@ function genDelegateCall(methodName: string, allParams: ParamInfo[], castToObjec
     return `super.${methodName}(${args})`;
 }
 
-function genMethod(m: MethodInfo, castToObject = false): string {
+function genMethod(m: MethodInfo, castToObject = false, preConvert = true): string {
     const methodName = camelCase(m.name);
     const allParams = [...m.requiredParams, ...m.optionalParams];
     const fullParamDecl = allParams.map(p => `${p.javaType} ${p.name}`).join(', ');
     const delegateCall = genDelegateCall(methodName, allParams, castToObject);
+    // A core whose return is in build/javaTypedCores.ts already hands back the
+    // unified type, so the wrapper must NOT convert a second time (`new Ticker(res)`
+    // on a Ticker is a ClassCastException in TypeHelper.toMap). `Helpers.joinTyped`
+    // is the generic join (CF<Object> is not a CF<Ticker>). Only the crypto tier:
+    // prediction cores are deliberately untyped in this slice.
+    const preConverted = preConvert && !castToObject && m.javaReturnType !== 'Object' && TYPED_CORES[m.name] !== undefined;
 
     const lines: string[] = [];
 
@@ -364,8 +372,12 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     // — same shape as JDK exceptions, no .getCause() unwrap needed.
     lines.push(`    @SuppressWarnings("unchecked")`);
     lines.push(`    public ${m.javaReturnType} ${methodName}(${fullParamDecl}) {`);
-    lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
-    lines.push(`        return ${genReturnExpr(m)};`);
+    if (preConverted) {
+        lines.push(`        return Helpers.joinTyped(${delegateCall});`);
+    } else {
+        lines.push(`        Object res = Helpers.joinUnwrapped(${delegateCall});`);
+        lines.push(`        return ${genReturnExpr(m)};`);
+    }
     lines.push(`    }`);
 
     // Truncation overloads: required + first k optionals, for k = 0 .. N-1.
@@ -406,7 +418,11 @@ function genMethod(m: MethodInfo, castToObject = false): string {
     // blocking the calling thread.
     lines.push(`    @SuppressWarnings("unchecked")`);
     lines.push(`    public CompletableFuture<${m.javaReturnType}> ${methodName}Async(${fullParamDecl}) {`);
-    lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
+    if (preConverted) {
+        lines.push(`        return ${delegateCall};`);
+    } else {
+        lines.push(`        return ${delegateCall}.thenApply(${genAsyncReturnExpr(m)});`);
+    }
     lines.push(`    }`);
 
     // Async truncation overloads — symmetric with the sync truncations above.
@@ -476,11 +492,15 @@ function genMethod(m: MethodInfo, castToObject = false): string {
  */
 const genMethodCacheSync = new WeakMap<MethodInfo, string>();
 const genMethodCacheCast = new WeakMap<MethodInfo, string>();
-function genMethodCached(m: MethodInfo, castToObject = false): string {
-    const cache = castToObject ? genMethodCacheCast : genMethodCacheSync;
+const genMethodCacheNoPre = new WeakMap<MethodInfo, string>();
+function genMethodCached(m: MethodInfo, castToObject = false, preConvert = true): string {
+    // `preConvert=false` is the prediction tier: its cores stay untyped in this
+    // slice, so the wrapper's converting body must be emitted there even for a
+    // name that is in TYPED_CORES.
+    const cache = castToObject ? genMethodCacheCast : (preConvert ? genMethodCacheSync : genMethodCacheNoPre);
     let out = cache.get(m);
     if (out === undefined) {
-        out = genMethod(m, castToObject);
+        out = genMethod(m, castToObject, preConvert);
         cache.set(m, out);
     }
     return out;
@@ -554,7 +574,7 @@ function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], j
 
     // All typed methods
     for (const m of methods) {
-        lines.push(genMethodCached(m));
+        lines.push(genMethodCached(m, false, javaPackage !== PREDICTION_PACKAGE));
         lines.push('');
     }
 

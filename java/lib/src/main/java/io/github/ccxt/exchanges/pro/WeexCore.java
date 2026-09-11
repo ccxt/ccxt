@@ -2177,7 +2177,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object positions = (this.fetchPositions((Object)(null), (Object)(parameters))).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)(parameters))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolById();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

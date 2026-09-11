@@ -246,7 +246,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, Helpers.GetValue(market, "symbol")))))
             {
-                Object snapshot = (this.fetchOrderBook((Object)(symbol), (Object)(limit))).join();
+                Object snapshot = io.github.ccxt.TypedCores.fromOrderBook((this.fetchOrderBook((Object)(symbol), (Object)(limit))).join());
                 Helpers.addElementToObject(this.orderbooks, Helpers.GetValue(market, "symbol"), this.orderBook(snapshot, limit));
             }
             Object orderbook = (this.watchPublic("book_depth", market, messageHash, parameters)).join();
@@ -311,7 +311,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 ((java.util.List<Object>)messageHashes).add(messageHash);
                 if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, Helpers.GetValue(market, "symbol")))))
                 {
-                    Object snapshot = (this.fetchOrderBook((Object)(symbol), (Object)(limit))).join();
+                    Object snapshot = io.github.ccxt.TypedCores.fromOrderBook((this.fetchOrderBook((Object)(symbol), (Object)(limit))).join());
                     Helpers.addElementToObject(this.orderbooks, Helpers.GetValue(market, "symbol"), this.orderBook(snapshot, limit));
                 }
             }

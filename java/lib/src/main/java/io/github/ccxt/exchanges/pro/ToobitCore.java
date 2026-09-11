@@ -1311,7 +1311,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object parameters = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
             }};
-            Object positions = (this.fetchPositions((Object)(null), (Object)(parameters))).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)(parameters))).join());
             Helpers.addElementToObject(this.positions, type, new ArrayCache.ArrayCacheBySymbolBySide());
             Object cache = Helpers.GetValue(this.positions, type);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
