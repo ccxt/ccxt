@@ -511,7 +511,7 @@ public class CoinmateCore extends CoinmateApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -519,8 +519,8 @@ public class CoinmateCore extends CoinmateApi
                 String id = this.safeString(market, "name");
                 String baseId = this.safeString(market, "firstCurrency");
                 String quoteId = this.safeString(market, "secondCurrency");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -580,7 +580,7 @@ public class CoinmateCore extends CoinmateApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+        Object balances = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -588,7 +588,7 @@ public class CoinmateCore extends CoinmateApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object balance = this.safeValue(balances, currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -745,7 +745,7 @@ public class CoinmateCore extends CoinmateApi
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(data);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -848,7 +848,7 @@ public class CoinmateCore extends CoinmateApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );
@@ -907,7 +907,7 @@ public class CoinmateCore extends CoinmateApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "amountCurrency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", CoinmateCore.this.safeString2(transaction, "transactionId", "id") );
@@ -970,7 +970,7 @@ public class CoinmateCore extends CoinmateApi
             }
             Object currency = this.currency(code);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Object methods = this.safeValue(withdrawOptions, "methods", new java.util.HashMap<String, Object>() {{}});
+            Object methods = this.safeDict(withdrawOptions, "methods", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(methods, code);
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
@@ -1130,7 +1130,7 @@ public class CoinmateCore extends CoinmateApi
         String type = (String)this.safeStringLower(trade, "orderType");
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString(trade, "transactionId");
-        Object timestamp = this.safeInteger2(trade, "timestamp", "createdTimestamp");
+        Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "createdTimestamp");
         Object fee = null;
         String feeCostString = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
@@ -1337,7 +1337,7 @@ public class CoinmateCore extends CoinmateApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "FILLED", "closed" );
@@ -1348,7 +1348,7 @@ public class CoinmateCore extends CoinmateApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -1415,11 +1415,11 @@ public class CoinmateCore extends CoinmateApi
         String priceString = this.safeString(order, "price");
         String amountString = this.safeString(order, "originalAmount");
         String remainingString = this.safeString2(order, "remainingAmount", "amount");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object type = this.parseOrderType(this.safeString(order, "orderTradeType"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        String type = this.parseOrderType(this.safeString(order, "orderTradeType"));
         String averageString = this.safeString(order, "avgPrice");
         String marketId = this.safeString(order, "currencyPair");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         String clientOrderId = this.safeString(order, "clientOrderId");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );

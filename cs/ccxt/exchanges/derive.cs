@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class derive : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "derive" },
@@ -765,7 +765,7 @@ public partial class derive : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> tokenResponse = await this.publicGetGetAllCurrencies(parameters);
@@ -821,7 +821,7 @@ public partial class derive : Exchange
         return this.parseCurrencies(currencies);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(currencyId);
@@ -956,7 +956,7 @@ public partial class derive : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? type = this.safeString(market, "instrument_type");
         string? marketType = null;
@@ -3181,7 +3181,7 @@ public partial class derive : Exchange
         return this.safeString(statuses, ((string)status), status);
     }
 
-    public virtual object handleDeriveSubaccountId(object methodName, object parameters)
+    public virtual List<object> handleDeriveSubaccountId(object methodName, object parameters)
     {
         object derivesubAccountId = null;
         IList<object> derivesubAccountIdparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "subaccount_id");
@@ -3200,7 +3200,7 @@ public partial class derive : Exchange
         throw new ArgumentsRequired ((string)add(add(add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public virtual object handleDeriveWalletAddress(object methodName, object parameters)
+    public virtual List<object> handleDeriveWalletAddress(object methodName, object parameters)
     {
         object deriveWalletAddress = null;
         IList<object> deriveWalletAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");

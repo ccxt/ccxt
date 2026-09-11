@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class onetrading { public onetrading(object args = null) : base(args) { } }
 public partial class onetrading : ccxt.onetrading
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -218,7 +218,7 @@ public partial class onetrading : ccxt.onetrading
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        object tickers = this.safeValue(message, "ticker_updates", new List<object>() {});
+        List<object> tickers = this.safeList(message, "ticker_updates", new List<object>() {});
         string? datetime = this.safeString(message, "time");
         for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
@@ -428,7 +428,7 @@ public partial class onetrading : ccxt.onetrading
         //
         //   [ 'BUY', "0.053595", "0" ]
         //
-        object bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, 1, 2);
         string? type = this.safeString(delta, 0);
         if (isTrue(isEqual(type, "BUY")))
         {
@@ -765,7 +765,7 @@ public partial class onetrading : ccxt.onetrading
             Int64? limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCacheBySymbolById(limit);
         }
-        object rawOrders = this.safeValue(message, "orders", new List<object>() {});
+        List<object> rawOrders = this.safeList(message, "orders", new List<object>() {});
         int rawOrdersLength = getArrayLength(rawOrders);
         if (isTrue(isEqual(rawOrdersLength, 0)))
         {
@@ -778,7 +778,7 @@ public partial class onetrading : ccxt.onetrading
             string? symbol = this.safeString(order, "symbol", "");
             callDynamically(orders, "append", new object[] {order});
             callDynamically(client as WebSocketClient, "resolve", new object[] {this.orders, add("orders:", symbol)});
-            object rawTrades = this.safeValue(getValue(rawOrders, i), "trades", new List<object>() {});
+            List<object> rawTrades = this.safeList(getValue(rawOrders, i), "trades", new List<object>() {});
             for (int ii = 0; isLessThan(ii, getArrayLength(rawTrades)); postFixIncrement(ref ii))
             {
                 object trade = this.parseTrade(getValue(rawTrades, ii));
@@ -1033,7 +1033,7 @@ public partial class onetrading : ccxt.onetrading
             string? orderId = this.safeString(update, "order_id");
             string? datetime = this.safeString2(update, "time", "timestamp");
             object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
-            object previousOrder = this.safeValue(previousOrderArray, 0, new Dictionary<string, object>() {});
+            IDictionary<string, object> previousOrder = this.safeDict(previousOrderArray, 0, new Dictionary<string, object>() {});
             symbol = getValue(previousOrder, "symbol");
             string? filled = this.safeString(update, "filled_amount");
             string? status = this.parseWsOrderStatus(updateType);
@@ -1102,7 +1102,7 @@ public partial class onetrading : ccxt.onetrading
         //
         string? currencyId = this.safeString(balance, "currency_code");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "new_available");
         ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "new_locked");
         if (isTrue(!isEqual(code, null)))
@@ -1398,7 +1398,7 @@ public partial class onetrading : ccxt.onetrading
         //        "time": "2022-06-24T20:45:25.447488Z"
         //    }
         //
-        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
         if (isTrue(!isEqual(future, null)))
         {
             (future as Future).resolve(true);

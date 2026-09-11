@@ -372,8 +372,8 @@ public class BtcturkCore extends BtcturkApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "numerator");
         String quoteId = this.safeString(entry, "denominator");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object filters = this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
@@ -464,7 +464,7 @@ public class BtcturkCore extends BtcturkApi
         {
             Object entry = Helpers.GetValue(data, i);
             String currencyId = this.safeString(entry, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
@@ -696,13 +696,13 @@ public class BtcturkCore extends BtcturkApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(trade, "date", "timestamp");
+        Long timestamp = (Long) this.safeInteger2(trade, "date", "timestamp");
         String id = this.safeString2(trade, "tid", "id");
         String order = this.safeString(trade, "orderId");
         String priceString = this.safeString(trade, "price");
         Object amountString = Precise.stringAbs(this.safeString(trade, "amount"));
         String marketId = this.safeString(trade, "pair");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String side = this.safeString2(trade, "side", "orderType");
         Object fee = null;
         String feeAmountString = this.safeString(trade, "fee");
@@ -910,7 +910,7 @@ public class BtcturkCore extends BtcturkApi
 
     }
 
-    public Object parseOHLCVs(Object ohlcvs, Object... optionalArgs)
+    public java.util.List<Object> parseOHLCVs(Object ohlcvs, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timeframe = Helpers.getArg(optionalArgs, 1, "1m");
@@ -1130,7 +1130,7 @@ public class BtcturkCore extends BtcturkApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "Untouched", "open" );
@@ -1183,13 +1183,13 @@ public class BtcturkCore extends BtcturkApi
         Object amount = Precise.stringAbs(amountString);
         String remaining = this.safeString(order, "leftAmount");
         String marketId = this.safeString(order, "pairSymbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String side = this.safeString(order, "type");
         String type = this.safeString(order, "method");
         String clientOrderId = this.safeString(order, "orderClientId");
-        Object timestamp = this.safeInteger2(order, "updateTime", "datetime");
+        Long timestamp = (Long) this.safeInteger2(order, "updateTime", "datetime");
         String rawStatus = this.safeString(order, "status");
-        Object status = this.parseOrderStatus(rawStatus);
+        String status = this.parseOrderStatus(rawStatus);
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
             put( "id", id );

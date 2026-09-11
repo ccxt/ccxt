@@ -408,8 +408,8 @@ public class CryptomusCore extends CryptomusApi
         Object parts = Helpers.split(marketId, "_");
         Object baseId = Helpers.GetValue(parts, 0);
         Object quoteId = Helpers.GetValue(parts, 1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object fees = this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
@@ -840,7 +840,7 @@ public class CryptomusCore extends CryptomusApi
         {
             Object balanceEntry = Helpers.GetValue(balance, i);
             String currencyId = this.safeString(balanceEntry, "ticker");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balanceEntry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balanceEntry, "held"));
@@ -1208,7 +1208,7 @@ public class CryptomusCore extends CryptomusApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String dateTime = this.safeString(order, "createdAt");
-        Object timestamp = this.parse8601(dateTime);
+        Long timestamp = this.parse8601(dateTime);
         Object deal = this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
         Object averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
         String type = this.safeString(order, "type");
@@ -1232,7 +1232,7 @@ public class CryptomusCore extends CryptomusApi
         }
         Object amount = this.safeNumber(order, "quantity");
         Object cost = this.safeNumber(order, "value");
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         String clientOrderId = this.safeString(order, "clientOrderId");
         final Object finalMarket = market;
         final Object finalPrice = price;
@@ -1263,7 +1263,7 @@ public class CryptomusCore extends CryptomusApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object... optionalArgs)
+    public String parseOrderStatus(Object... optionalArgs)
     {
         Object status = Helpers.getArg(optionalArgs, 0, null);
         Object statuses = new java.util.HashMap<String, Object>() {{

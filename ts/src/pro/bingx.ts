@@ -1400,7 +1400,7 @@ export default class bingx extends bingxRest {
         client.resolve (newPositions, 'swap:positions');
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //

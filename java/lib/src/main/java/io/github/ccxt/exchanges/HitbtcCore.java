@@ -899,9 +899,9 @@ public class HitbtcCore extends HitbtcApi
                 String baseId = this.safeString2(market, "base_currency", "underlying");
                 String quoteId = this.safeString(market, "quote_currency");
                 String feeCurrencyId = this.safeString(market, "fee_currency");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
                 Object settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1066,7 +1066,7 @@ public class HitbtcCore extends HitbtcApi
     public Object parseCurrency(Object currency)
     {
         Object currencyId = Helpers.GetValue(currency, "_coin_id");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object entry = currency;
         Object rawNetworks = this.safeList(entry, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networks = new java.util.HashMap<String, Object>() {{}};
@@ -1210,7 +1210,7 @@ public class HitbtcCore extends HitbtcApi
             String address = this.safeString(firstAddress, "address");
             String currencyId = this.safeString(firstAddress, "currency");
             String tag = this.safeString(firstAddress, "payment_id");
-            Object parsedCode = this.safeCurrencyCode(currencyId);
+            String parsedCode = (String) this.safeCurrencyCode(currencyId);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "currency", parsedCode );
@@ -1231,7 +1231,7 @@ public class HitbtcCore extends HitbtcApi
         {
             Object entry = Helpers.GetValue(response, i);
             String currencyId = this.safeString(entry, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "reserved"));
@@ -1261,7 +1261,7 @@ public class HitbtcCore extends HitbtcApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             String type = (String)this.safeStringLower(parameters, "type", "spot");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("type")));
-            Object accountsByType = this.safeValue(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object account = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? null : this.safeString(accountsByType, type, type);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(account, "wallet")))
@@ -1411,8 +1411,8 @@ public class HitbtcCore extends HitbtcApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(Helpers.GetValue(ticker, "timestamp"));
-        Object symbol = this.safeSymbol(null, market);
+        Long timestamp = this.parse8601(Helpers.GetValue(ticker, "timestamp"));
+        String symbol = (String) this.safeSymbol(null, market);
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = this.safeString(ticker, "volume_quote");
         String open = this.safeString(ticker, "open");
@@ -1489,7 +1489,7 @@ public class HitbtcCore extends HitbtcApi
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object marketInner = this.market(marketId);
                 Object rawTrades = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object parsed = this.parseTrades(rawTrades, marketInner);
+                java.util.List<Object> parsed = this.parseTrades(rawTrades, marketInner);
                 trades = this.arrayConcat(trades, parsed);
             }
             return trades;
@@ -1633,7 +1633,7 @@ public class HitbtcCore extends HitbtcApi
         //  }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(Helpers.GetValue(trade, "timestamp"));
+        Long timestamp = this.parse8601(Helpers.GetValue(trade, "timestamp"));
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1652,7 +1652,7 @@ public class HitbtcCore extends HitbtcApi
         {
             Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
             String feeCurrency = this.safeString(info, "fee_currency");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrency);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrency);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1746,7 +1746,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CREATED", "pending" );
@@ -1762,7 +1762,7 @@ public class HitbtcCore extends HitbtcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -1807,13 +1807,13 @@ public class HitbtcCore extends HitbtcApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transaction, "operation_id", "id");
-        Object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
-        Object updated = this.parse8601(this.safeString(transaction, "updated_at"));
-        Object type = this.parseTransactionType(this.safeString(transaction, "type"));
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
+        Long updated = this.parse8601(this.safeString(transaction, "updated_at"));
+        String type = this.parseTransactionType(this.safeString(transaction, "type"));
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Object nativeVar = this.safeValue(transaction, "native", new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(nativeVar, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String txhash = this.safeString(nativeVar, "hash");
         String address = this.safeString(nativeVar, "address");
         Object addressTo = address;
@@ -1974,8 +1974,8 @@ public class HitbtcCore extends HitbtcApi
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
-                Object symbol = this.safeSymbol(marketId);
-                Object timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
+                String symbol = (String) this.safeSymbol(marketId);
+                Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp, "bid", "ask"));
             }
             return result;
@@ -2013,7 +2013,7 @@ public class HitbtcCore extends HitbtcApi
                 Helpers.addElementToObject(request, "depth", limit);
             }
             Object response = (this.publicGetPublicOrderbookSymbol(this.extend(request, parameters))).join();
-            Object timestamp = this.parse8601(this.safeString(response, "timestamp"));
+            Long timestamp = this.parse8601(this.safeString(response, "timestamp"));
             return this.parseOrderBook(response, symbol, timestamp, "bid", "ask");
         });
 
@@ -2032,7 +2032,7 @@ public class HitbtcCore extends HitbtcApi
         Object taker = this.safeNumber(fee, "take_rate");
         Object maker = this.safeNumber(fee, "make_rate");
         String marketId = this.safeString(fee, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -2350,7 +2350,7 @@ public class HitbtcCore extends HitbtcApi
                     throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() not support this market type")) ;
                 }
             }
-            Object parsed = this.parseOrders(response, market, since, limit);
+            java.util.List<Object> parsed = this.parseOrders(response, market, since, limit);
             return this.filterByArray(parsed, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed", "canceled")), false);
         });
 
@@ -3044,7 +3044,7 @@ public class HitbtcCore extends HitbtcApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(request, parameters));
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
@@ -3139,7 +3139,7 @@ public class HitbtcCore extends HitbtcApi
         String price = this.safeString(order, "price");
         String average = this.safeString(order, "price_average");
         String created = this.safeString(order, "created_at");
-        Object timestamp = this.parse8601(created);
+        Long timestamp = this.parse8601(created);
         String updated = this.safeString(order, "updated_at");
         Object lastTradeTimestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(updated, created)))
@@ -3147,7 +3147,7 @@ public class HitbtcCore extends HitbtcApi
             lastTradeTimestamp = this.parse8601(updated);
         }
         String filled = this.safeString(order, "quantity_cumulative");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -3337,7 +3337,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " convertCurrencyNetwork() only supports USDT currently")) ;
             }
-            Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             fromNetwork = ((String)fromNetwork).toUpperCase();
             toNetwork = ((String)toNetwork).toUpperCase();
             fromNetwork = this.safeString(networks, fromNetwork); // handle ETH>ERC20 alias
@@ -3587,7 +3587,7 @@ public class HitbtcCore extends HitbtcApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(fundingRateData)); j++)
                 {
                     Object entry = Helpers.GetValue(fundingRateData, j);
-                    Object symbolInner = this.safeSymbol(Helpers.GetValue(marketInner, "symbol"));
+                    String symbolInner = (String) this.safeSymbol(Helpers.GetValue(marketInner, "symbol"));
                     Object fundingRate = this.safeNumber(entry, "funding_rate");
                     String datetime = this.safeString(entry, "timestamp");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
@@ -3828,7 +3828,7 @@ public class HitbtcCore extends HitbtcApi
         String marginMode = this.safeString(position, "type");
         Object leverage = this.safeNumber(position, "leverage");
         String datetime = this.safeString(position, "updated_at");
-        Object positions = this.safeValue(position, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object positions = this.safeList(position, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object liquidationPrice = null;
         Object entryPrice = null;
         Object contracts = null;
@@ -3839,7 +3839,7 @@ public class HitbtcCore extends HitbtcApi
             entryPrice = this.safeNumber(entry, "price_entry");
             contracts = this.safeNumber(entry, "quantity");
         }
-        Object currencies = this.safeValue(position, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object currencies = this.safeList(position, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object collateral = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
         {
@@ -4516,7 +4516,7 @@ public class HitbtcCore extends HitbtcApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networks = this.safeValue(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {

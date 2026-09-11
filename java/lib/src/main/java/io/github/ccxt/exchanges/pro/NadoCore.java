@@ -442,7 +442,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{resultSymbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(resultSymbol, resultTimeframe, filtered);
         });
 

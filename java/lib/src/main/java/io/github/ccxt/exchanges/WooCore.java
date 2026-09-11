@@ -1073,8 +1073,8 @@ public class WooCore extends WooApi
         }
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object settleId = null;
         Object settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1306,7 +1306,7 @@ public class WooCore extends WooApi
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeStringN(item, feeTokenKeys);
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1320,7 +1320,7 @@ public class WooCore extends WooApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -1571,7 +1571,7 @@ public class WooCore extends WooApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "_coin_id");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object tokensByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_tokens_by_id"), "network");
         Object chainsByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_networks_by_id"), "network");
         Object keys = Helpers.objectKeys(chainsByNetworkId);
@@ -2499,7 +2499,7 @@ public class WooCore extends WooApi
 
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ioc", "IOC" );
@@ -2679,7 +2679,7 @@ public class WooCore extends WooApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
@@ -3161,7 +3161,7 @@ public class WooCore extends WooApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object code = this.safeCurrencyCode(this.safeString(balance, "token"));
+            String code = (String) this.safeCurrencyCode(this.safeString(balance, "token"));
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "holding"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availableBalance"));
@@ -3392,7 +3392,7 @@ public class WooCore extends WooApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String networkizedCode = this.safeString(item, "token");
-        Object code = this.safeCurrencyCode(networkizedCode, currency);
+        String code = (String) this.safeCurrencyCode(networkizedCode, currency);
         currency = this.safeCurrency(code, currency);
         Object amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "tokenSide");
@@ -3596,7 +3596,7 @@ public class WooCore extends WooApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "pending" );
@@ -3786,7 +3786,7 @@ public class WooCore extends WooApi
         //        }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object code = this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
+        String code = (String) this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
         Object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
         Object success = this.safeBool(transfer, "success");
         Object status = null;
@@ -4096,9 +4096,9 @@ public class WooCore extends WooApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String amount = this.safeString(income, "fundingFee");
-        Object code = this.safeCurrencyCode("USD");
+        String code = (String) this.safeCurrencyCode("USD");
         String id = this.safeString(income, "id");
         Object timestamp = this.safeInteger(income, "updatedTime");
         Object rate = this.safeNumber(income, "fundingRate");
@@ -4231,7 +4231,7 @@ public class WooCore extends WooApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
-        Object nextFundingTimestamp = this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
+        Long nextFundingTimestamp = (Long) this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
         Object estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
         Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
         String intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
@@ -5239,11 +5239,11 @@ public class WooCore extends WooApi
         //
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
-        Object timestamp = this.safeInteger2(conversion, "expireTimestamp", "createdTime");
+        Long timestamp = (Long) this.safeInteger2(conversion, "expireTimestamp", "createdTime");
         String fromCurr = this.safeString2(conversion, "sellToken", "buyAsset");
-        Object fromCode = this.safeCurrencyCode(fromCurr, fromCurrency);
+        String fromCode = (String) this.safeCurrencyCode(fromCurr, fromCurrency);
         String to = this.safeString2(conversion, "buyToken", "sellAsset");
-        Object toCode = this.safeCurrencyCode(to, toCurrency);
+        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -5296,7 +5296,7 @@ public class WooCore extends WooApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 String id = this.safeString(entry, "token");
-                Object code = this.safeCurrencyCode(id);
+                String code = (String) this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;

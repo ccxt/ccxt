@@ -622,9 +622,9 @@ public class BydfiCore extends BydfiApi
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
         String settleId = this.safeString(market, "marginAsset");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settle = this.safeCurrencyCode(settleId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object inverse = this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
@@ -1007,7 +1007,7 @@ public class BydfiCore extends BydfiApi
         }}, market);
     }
 
-    public Object parseTradeType(Object type)
+    public String parseTradeType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -1112,7 +1112,7 @@ public class BydfiCore extends BydfiApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = this.parseOHLCVs(data, market, timeframe, since, limit);
+            java.util.List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
         });
 
@@ -1228,7 +1228,7 @@ public class BydfiCore extends BydfiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(ticker, "time", "E");
+        Long timestamp = (Long) this.safeInteger2(ticker, "time", "E");
         String last = this.safeString2(ticker, "last", "c");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1312,7 +1312,7 @@ public class BydfiCore extends BydfiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object timestamp = this.safeInteger(contract, "time");
         Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
@@ -1644,7 +1644,7 @@ public class BydfiCore extends BydfiApi
         return this.extend(request, parameters);
     }
 
-    public Object encodeWorkingType(Object workingType)
+    public String encodeWorkingType(Object workingType)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "markPrice", "MARK_PRICE" );
@@ -2289,13 +2289,13 @@ public class BydfiCore extends BydfiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(order, "createTime", "ctime");
+        Long timestamp = (Long) this.safeInteger2(order, "createTime", "ctime");
         String rawType = this.safeString(order, "orderType");
         String stopPrice = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "activatePrice", "triggerPrice")));
         Object isStopLossOrder = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawType, "STOP"))) || Helpers.isTrue((Helpers.isEqual(rawType, "STOP_MARKET")))) || Helpers.isTrue((Helpers.isEqual(rawType, "TRAILING_STOP_MARKET")));
         Object isTakeProfitOrder = Helpers.isTrue((Helpers.isEqual(rawType, "TAKE_PROFIT"))) || Helpers.isTrue((Helpers.isEqual(rawType, "TAKE_PROFIT_MARKET")));
         String rawTimeInForce = this.safeString(order, "timeInForce");
-        Object timeInForce = this.parseOrderTimeInForce(rawTimeInForce);
+        String timeInForce = this.parseOrderTimeInForce(rawTimeInForce);
         Object postOnly = null;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "PO")))
         {
@@ -2342,7 +2342,7 @@ public class BydfiCore extends BydfiApi
         }}, market);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -2356,7 +2356,7 @@ public class BydfiCore extends BydfiApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrderTimeInForce(Object timeInForce)
+    public String parseOrderTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -2368,7 +2368,7 @@ public class BydfiCore extends BydfiApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -3222,7 +3222,7 @@ public class BydfiCore extends BydfiApi
         {
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "asset");
-            Object code = this.safeCurrencyCode(symbol);
+            String code = (String) this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "available", "availableBalance"));
@@ -3424,7 +3424,7 @@ public class BydfiCore extends BydfiApi
         }};
     }
 
-    public Object paraseTransferStatus(Object status)
+    public String paraseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -3618,7 +3618,7 @@ public class BydfiCore extends BydfiApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String rawStatus = (String)this.safeStringLower(transaction, "status");
         Object timestamp = this.safeInteger(transaction, "createTime");
         Object fee = null;
@@ -3656,7 +3656,7 @@ public class BydfiCore extends BydfiApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );

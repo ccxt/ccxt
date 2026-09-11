@@ -1703,7 +1703,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //    }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeValue(data, "positions", new java.util.HashMap<String, Object>() {{}});
+        Object rawPositions = this.safeDict(data, "positions", new java.util.HashMap<String, Object>() {{}});
         Object postitionsIds = Helpers.objectKeys(rawPositions);
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
@@ -1796,7 +1796,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(balances, key);
-            Object code = this.safeCurrencyCode(key);
+            String code = (String) this.safeCurrencyCode(key);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {

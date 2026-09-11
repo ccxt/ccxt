@@ -21,8 +21,8 @@ public partial class BaseTest
             Assert(exchange.isBinaryMessage(result1));
             Assert(isEqual(exchange.binaryLength(result1), padding1));
             object expectedBinary1 = exchange.base16ToBinary("00000000499602d2");
-            object resultBase64 = exchange.binaryToBase64(result1);
-            object expectedBase64 = exchange.binaryToBase64(expectedBinary1);
+            string resultBase64 = exchange.binaryToBase64(result1);
+            string expectedBase64 = exchange.binaryToBase64(expectedBinary1);
             Assert(isEqual(resultBase64, expectedBase64), add(add(add("Expected base64: ", expectedBase64), ", got: "), resultBase64));
             // 0 with 1-byte padding => 0x00
             object result2 = exchange.numberToBE(0, 1);

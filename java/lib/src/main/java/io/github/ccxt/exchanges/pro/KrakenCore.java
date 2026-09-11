@@ -684,7 +684,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object market = this.market(symbol);
-        Object parsed = this.parseTrades(data, market);
+        java.util.List<Object> parsed = this.parseTrades(data, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
@@ -719,7 +719,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = Helpers.GetValue(data, 0);
         Object marketId = this.safeString(first, "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
@@ -740,7 +740,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         {
             Object candle = Helpers.GetValue(data, i);
             Object datetime = this.safeString(candle, "interval_begin");
-            Object timestamp = this.parse8601(datetime);
+            Long timestamp = this.parse8601(datetime);
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber(candle, "open"), this.safeNumber(candle, "high"), this.safeNumber(candle, "low"), this.safeNumber(candle, "close"), this.safeNumber(candle, "volume")));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -1142,7 +1142,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object symbol = ((String)this.safeString(first, "symbol"));
-        Object a = this.safeValue(first, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object a = this.safeList(first, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object b = this.safeValue(first, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object c = this.safeInteger(first, "checksum");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
@@ -1175,7 +1175,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
-                Object deltas = this.safeValue(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object deltas = this.safeList(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object deltasLength = Helpers.getArrayLength(deltas);
                 if (Helpers.isTrue(Helpers.isGreaterThan(deltasLength, 0)))
                 {
@@ -1641,7 +1641,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(length, limit)) && Helpers.isTrue((Helpers.isEqual(previousOrder, null)))))
                 {
                     Object first = Helpers.GetValue(stored, 0);
-                    Object symbolsByOrderId = this.safeValue(this.options, "symbolsByOrderId", new java.util.HashMap<String, Object>() {{}});
+                    Object symbolsByOrderId = this.safeDict(this.options, "symbolsByOrderId", new java.util.HashMap<String, Object>() {{}});
                     if (Helpers.isTrue(Helpers.inOp(symbolsByOrderId, Helpers.GetValue(first, "id"))))
                     {
                         ((java.util.Map<String,Object>)symbolsByOrderId).remove((String)Helpers.GetValue(first, "id"));

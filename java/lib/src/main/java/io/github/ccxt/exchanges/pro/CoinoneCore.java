@@ -127,8 +127,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         String baseId = (String)this.safeStringUpper(data, "target_currency");
         String quoteId = (String)this.safeStringUpper(data, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         Object timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -264,8 +264,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object last = this.safeString(ticker, "last");
         Object baseId = this.safeString(ticker, "target_currency");
         Object quoteId = this.safeString(ticker, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -384,8 +384,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String baseId = (String)this.safeStringUpper(trade, "target_currency");
         String quoteId = (String)this.safeStringUpper(trade, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);

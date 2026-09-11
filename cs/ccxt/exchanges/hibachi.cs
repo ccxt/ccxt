@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class hibachi : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "hibachi" },
@@ -328,7 +328,7 @@ public partial class hibachi : Exchange
         return id;
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? marketId = this.safeString(market, "symbol");
         double? numericId = this.safeNumber(market, "id");
@@ -434,7 +434,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(rows));
     }
 
-    public virtual object hardcodedCurrencies()
+    public virtual Dictionary<string, object> hardcodedCurrencies()
     {
         // Hibachi only supports USDT on Arbitrum at this time
         // We don't have an API endpoint to expose this information yet
@@ -486,7 +486,7 @@ public partial class hibachi : Exchange
                 { "info", new Dictionary<string, object>() {} },
             });
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public override object parseBalance(object response)
@@ -496,7 +496,7 @@ public partial class hibachi : Exchange
         };
         // Hibachi only supports USDT on Arbitrum at this time
         string? code = this.safeCurrencyCode("USDT");
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["total"] = this.safeString(response, "balance");
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "maximalWithdraw");
         if (isTrue(!isEqual(code, null)))
@@ -988,8 +988,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", this.safeNumber(this.options, "defaultTakerFee", 0.00045));
         double? makerFee = this.safeNumber(market, "maker", this.safeNumber(this.options, "defaultMakerFee", 0.00015));
-        object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
-        object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
+        double? takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
+        double? makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         string sideInternal = "";
         if (isTrue(isEqual(side, "sell")))
@@ -1016,7 +1016,7 @@ public partial class hibachi : Exchange
             { "signature", signature },
             { "maxFeesPercent", this.numberToString(feeRate) },
         };
-        object postOnly = this.isPostOnly(isEqual(((string)type).ToUpper(), "MARKET"), null, parameters);
+        bool postOnly = this.isPostOnly(isEqual(((string)type).ToUpper(), "MARKET"), null, parameters);
         bool? reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
         string? triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -1137,8 +1137,8 @@ public partial class hibachi : Exchange
         Dictionary<string, object> market = this.market(symbol);
         double? takerFee = this.safeNumber(market, "taker", 0);
         double? makerFee = this.safeNumber(market, "maker", 0);
-        object takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
-        object makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
+        double? takerFeeValue = ((bool) isTrue((isEqual(takerFee, null)))) ? 0 : takerFee;
+        double? makerFeeValue = ((bool) isTrue((isEqual(makerFee, null)))) ? 0 : makerFee;
         object feeRate = mathMax(takerFeeValue, makerFeeValue);
         object message = this.orderMessage(market, nonce, feeRate, type, side, amount, price);
         object signature = this.signMessage(message, this.privateKey);
@@ -1751,7 +1751,7 @@ public partial class hibachi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus("filled", symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        object filtered = this.filterBy(orders, "status", "closed");
+        List<object> filtered = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filtered, since, limit));
     }
 
@@ -1772,7 +1772,7 @@ public partial class hibachi : Exchange
     {
         parameters ??= new Dictionary<string, object>();
         object orders = ccxt.BaseExchange.FromOrderList(await this.FetchOrdersByStatus(null, symbol,ccxt.BaseExchange.ToInt64Arg(since),ccxt.BaseExchange.ToInt64Arg(limit), parameters));
-        object filtered = this.filterBy(orders, "status", "canceled");
+        List<object> filtered = this.filterBy(orders, "status", "canceled");
         return ccxt.BaseExchange.ToOrderList(this.filterBySinceLimit(filtered, since, limit));
     }
 
@@ -2361,7 +2361,7 @@ public partial class hibachi : Exchange
         return ccxt.BaseExchange.ToTransactionList(this.filterBySinceLimit(withdrawals, since, limit, "timestamp"));
     }
 
-    public virtual object parseSettlement(object settlement, object market = null)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market = null)
     {
         //
         //     {

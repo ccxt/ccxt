@@ -432,8 +432,8 @@ public class BitflyerCore extends BitflyerApi
                     }
                     type = "future";
                 }
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object taker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "taker");
                 Object maker = Helpers.GetValue(Helpers.GetValue(this.fees, "trading"), "maker");
@@ -525,7 +525,7 @@ public class BitflyerCore extends BitflyerApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency_code");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
@@ -614,8 +614,8 @@ public class BitflyerCore extends BitflyerApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
-        Object timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
+        String symbol = (String) this.safeSymbol(null, market);
+        Long timestamp = this.parse8601(this.safeString(ticker, "timestamp"));
         String last = this.safeString(ticker, "ltp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -720,7 +720,7 @@ public class BitflyerCore extends BitflyerApi
         {
             order = this.safeString(trade, "child_order_acceptance_id");
         }
-        Object timestamp = this.parse8601(this.safeString(trade, "exec_date"));
+        Long timestamp = this.parse8601(this.safeString(trade, "exec_date"));
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String id = this.safeString(trade, "id");
@@ -920,7 +920,7 @@ public class BitflyerCore extends BitflyerApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
@@ -935,16 +935,16 @@ public class BitflyerCore extends BitflyerApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(order, "child_order_date"));
+        Long timestamp = this.parse8601(this.safeString(order, "child_order_date"));
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
         String filled = this.safeString(order, "executed_size");
         String remaining = this.safeString(order, "outstanding_size");
-        Object status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
+        String status = this.parseOrderStatus(this.safeString(order, "child_order_state"));
         String type = (String)this.safeStringLower(order, "child_order_type");
         String side = (String)this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "product_code");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object fee = null;
         Object feeCost = this.safeNumber(order, "total_commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1377,7 +1377,7 @@ public class BitflyerCore extends BitflyerApi
 
     }
 
-    public Object parseDepositStatus(Object status)
+    public String parseDepositStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -1386,7 +1386,7 @@ public class BitflyerCore extends BitflyerApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWithdrawalStatus(Object status)
+    public String parseWithdrawalStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -1436,8 +1436,8 @@ public class BitflyerCore extends BitflyerApi
         String id = this.safeString2(transaction, "id", "message_id");
         String address = this.safeString(transaction, "address");
         String currencyId = this.safeString(transaction, "currency_code");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.parse8601(this.safeString(transaction, "event_date"));
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
         Object amount = this.safeNumber(transaction, "amount");
         String txId = this.safeString(transaction, "tx_hash");
         String rawStatus = this.safeString(transaction, "status");
@@ -1531,7 +1531,7 @@ public class BitflyerCore extends BitflyerApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String nextFundingDatetime = this.safeString(contract, "next_funding_rate_settledate");
-        Object nextFundingTimestamp = this.parse8601(nextFundingDatetime);
+        Long nextFundingTimestamp = this.parse8601(nextFundingDatetime);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BitflyerCore.this.safeString(market, "symbol") );

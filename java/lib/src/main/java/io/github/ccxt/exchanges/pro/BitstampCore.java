@@ -125,7 +125,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object storedOrderBook = this.safeValue(this.orderbooks, symbol);
         Object nonce = this.safeValue(storedOrderBook, "nonce");
         Object delta = this.safeValue(message, "data");
@@ -409,7 +409,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         // }
         //
         Object channel = this.safeString(message, "channel");
-        Object order = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object order = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -524,7 +524,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
     }
 

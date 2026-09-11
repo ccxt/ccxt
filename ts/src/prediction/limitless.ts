@@ -424,7 +424,7 @@ export default class limitless extends Exchange {
         const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString (raw, 'conditionId');
-        const tokens = this.safeValue (raw, 'tokens', {});
+        const tokens = this.safeDict (raw, 'tokens', {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool (raw, 'expired', false);

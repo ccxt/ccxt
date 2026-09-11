@@ -591,7 +591,7 @@ public class BigoneCore extends BigoneApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "binding_gateways", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -756,8 +756,8 @@ public class BigoneCore extends BigoneApi
                 Object quoteAsset = this.safeDict(market, "quote_asset", new java.util.HashMap<String, Object>() {{}});
                 String baseId = this.safeString(baseAsset, "symbol");
                 String quoteId = this.safeString(quoteAsset, "symbol");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", BigoneCore.this.safeString(market, "name") );
@@ -818,9 +818,9 @@ public class BigoneCore extends BigoneApi
                 String quoteId = this.safeString(market, "quoteCurrency");
                 String settleId = this.safeString(market, "settleCurrency");
                 String marketId = this.safeString(market, "symbol");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object inverse = this.safeBool(market, "isInverse");
     final Object finalBase = base;
                 final Object finalInverse = inverse;
@@ -929,7 +929,7 @@ public class BigoneCore extends BigoneApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "asset_pair_name"))))) ? "spot" : "swap";
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
-        Object symbol = this.safeSymbol(marketId, market, "-", marketType);
+        String symbol = (String) this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
         Object bid = this.safeDict(ticker, "bid", new java.util.HashMap<String, Object>() {{}});
         Object ask = this.safeDict(ticker, "ask", new java.util.HashMap<String, Object>() {{}});
@@ -1292,7 +1292,7 @@ public class BigoneCore extends BigoneApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString2(trade, "created_at", "inserted_at"));
+        Long timestamp = this.parse8601(this.safeString2(trade, "created_at", "inserted_at"));
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "asset_pair_name");
@@ -1603,7 +1603,7 @@ public class BigoneCore extends BigoneApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String symbol = this.safeString(balance, "asset_symbol");
-            Object code = this.safeCurrencyCode(symbol);
+            String code = (String) this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_balance"));
@@ -1659,7 +1659,7 @@ public class BigoneCore extends BigoneApi
 
     }
 
-    public Object parseType(Object type)
+    public String parseType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "STOP_LIMIT", "limit" );
@@ -1694,8 +1694,8 @@ public class BigoneCore extends BigoneApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
         String marketId = this.safeString(order, "asset_pair_name");
-        Object symbol = this.safeSymbol(marketId, market, "-");
-        Object timestamp = this.parse8601(this.safeString(order, "created_at"));
+        String symbol = (String) this.safeSymbol(marketId, market, "-");
+        Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String side = this.safeString(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "BID")))
         {
@@ -1715,7 +1715,7 @@ public class BigoneCore extends BigoneApi
         {
             timeInForce = "IOC";
         }
-        Object type = this.parseType(this.safeString(order, "type"));
+        String type = this.parseType(this.safeString(order, "type"));
         String price = this.safeString(order, "price");
         Object amount = null;
         Object filled = null;
@@ -2205,7 +2205,7 @@ public class BigoneCore extends BigoneApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "open" );
@@ -2397,7 +2397,7 @@ public class BigoneCore extends BigoneApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "WITHHOLD", "ok" );
@@ -2464,12 +2464,12 @@ public class BigoneCore extends BigoneApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "asset_symbol");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String id = this.safeString(transaction, "id");
         Object amount = this.safeNumber(transaction, "amount");
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
-        Object timestamp = this.parse8601(this.safeString(transaction, "inserted_at"));
-        Object updated = this.parse8601(this.safeString2(transaction, "updated_at", "completed_at"));
+        String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "inserted_at"));
+        Long updated = this.parse8601(this.safeString2(transaction, "updated_at", "completed_at"));
         String txid = this.safeString(transaction, "txid");
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
@@ -2704,7 +2704,7 @@ public class BigoneCore extends BigoneApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "ok" );

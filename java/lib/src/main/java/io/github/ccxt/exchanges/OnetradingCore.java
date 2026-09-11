@@ -511,7 +511,7 @@ public class OnetradingCore extends OnetradingApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "code");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "code", code );
@@ -615,8 +615,8 @@ public class OnetradingCore extends OnetradingApi
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
         String type = this.safeString(market, "type");
         Object isPerp = Helpers.isEqual(type, "PERP");
@@ -922,9 +922,9 @@ public class OnetradingCore extends OnetradingApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(ticker, "time"));
+        Long timestamp = this.parse8601(this.safeString(ticker, "time"));
         String marketId = this.safeString(ticker, "instrument_code");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         String last = this.safeString(ticker, "last_price");
         String percentage = this.safeString(ticker, "price_change_percentage");
         String change = this.safeString(ticker, "price_change");
@@ -1144,7 +1144,7 @@ public class OnetradingCore extends OnetradingApi
             //         ]
             //     }
             //
-            Object timestamp = this.parse8601(this.safeString(response, "time"));
+            Long timestamp = this.parse8601(this.safeString(response, "time"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
         });
 
@@ -1185,7 +1185,7 @@ public class OnetradingCore extends OnetradingApi
         Object timeframe = Helpers.add(period, lowercaseUnit);
         Object durationInSeconds = this.parseTimeframe(timeframe);
         Object duration = Helpers.multiply(durationInSeconds, 1000);
-        Object timestamp = this.parse8601(this.safeString(ohlcv, "time"));
+        Long timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseOHLCV() missing timestamp")) ;
@@ -1318,14 +1318,14 @@ public class OnetradingCore extends OnetradingApi
         String amountString = this.safeString(trade, "amount");
         String costString = this.safeString(trade, "volume");
         String marketId = this.safeString(trade, "instrument_code");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         String feeCostString = this.safeString(feeInfo, "fee_amount");
         Object takerOrMaker = null;
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String feeCurrencyId = this.safeString(feeInfo, "fee_currency");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             String feeRateString = this.safeString(feeInfo, "fee_percentage");
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
@@ -1358,7 +1358,7 @@ public class OnetradingCore extends OnetradingApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeValue(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -1366,7 +1366,7 @@ public class OnetradingCore extends OnetradingApi
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "currency_code");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -1418,7 +1418,7 @@ public class OnetradingCore extends OnetradingApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -1508,16 +1508,16 @@ public class OnetradingCore extends OnetradingApi
         Object rawOrder = this.safeValue(order, "order", order);
         String id = this.safeString(rawOrder, "order_id");
         String clientOrderId = this.safeString(rawOrder, "client_id");
-        Object timestamp = this.parse8601(this.safeString(rawOrder, "time"));
-        Object status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
+        Long timestamp = this.parse8601(this.safeString(rawOrder, "time"));
+        String status = this.parseOrderStatus(this.safeString(rawOrder, "status"));
         String marketId = this.safeString(rawOrder, "instrument_code");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         String price = this.safeString(rawOrder, "price");
         String amount = this.safeString(rawOrder, "amount");
         String filled = this.safeString(rawOrder, "filled_amount");
         String side = (String)this.safeStringLower(rawOrder, "side");
         String type = (String)this.safeStringLower(rawOrder, "type");
-        Object timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
+        String timeInForce = this.parseTimeInForce(this.safeString(rawOrder, "time_in_force"));
         Object postOnly = this.safeValue(rawOrder, "is_post_only");
         Object rawTrades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1544,7 +1544,7 @@ public class OnetradingCore extends OnetradingApi
         }}, market);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GOOD_TILL_CANCELLED", "GTC" );

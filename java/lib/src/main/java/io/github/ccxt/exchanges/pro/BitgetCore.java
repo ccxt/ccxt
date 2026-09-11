@@ -798,7 +798,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
@@ -1290,7 +1290,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
-            Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             if (Helpers.isTrue(Helpers.isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
             {
                 Object filtered = this.removeRepeatedTradesFromArray(result);
@@ -1510,7 +1510,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         if (Helpers.isTrue(!Helpers.isEqual(first, null)))
         {
             Object feeCurrencyId = this.safeString(first, "feeCoin");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFirst = first;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", Precise.stringAbs(BitgetCore.this.safeString2(finalFirst, "totalFee", "fee")) );
@@ -2316,7 +2316,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         Object marketId = this.safeString2(order, "instId", "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(order, "cTime", "createdTime");
+        Long timestamp = (Long) this.safeInteger2(order, "cTime", "createdTime");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawStatus = this.safeString2(order, "status", "orderStatus");
         Object orderFee = this.safeValue(order, "feeDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2430,7 +2430,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
@@ -2851,7 +2851,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawBalance = Helpers.GetValue(data, i);
@@ -2862,7 +2862,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 {
                     Object entry = Helpers.GetValue(coins, j);
                     Object currencyId = this.safeString(entry, "coin");
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
                     {
@@ -2885,7 +2885,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             } else
             {
                 Object currencyId = this.safeString2(rawBalance, "coin", "marginCoin");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
                 {

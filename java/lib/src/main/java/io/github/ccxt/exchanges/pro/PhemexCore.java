@@ -54,7 +54,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         }});
     }
 
-    public Object fromEn(Object en, Object scale)
+    public String fromEn(Object en, Object scale)
     {
         if (Helpers.isTrue(Helpers.isEqual(en, null)))
         {
@@ -329,7 +329,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             ((java.util.List<Object>)tickers).add(this.parseTicker(ticker));
         } else if (Helpers.isTrue(Helpers.inOp(message, "data")))
         {
-            Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 ((java.util.List<Object>)tickers).add(this.parsePerpetualTicker(Helpers.GetValue(data, i)));
@@ -430,7 +430,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         {
             Object balance = Helpers.GetValue(message, i);
             Object currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
             Object scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
@@ -505,7 +505,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object trades = this.safeValue2(message, "trades", "trades_p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object parsed = this.parseTrades(trades, market);
+        java.util.List<Object> parsed = this.parseTrades(trades, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
@@ -556,7 +556,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
         {
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
-            Object ohlcvs = this.parseOHLCVs(candles, market);
+            java.util.List<Object> ohlcvs = this.parseOHLCVs(candles, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -1345,7 +1345,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             {
                 return;
             }
-            trades = this.safeValue(message, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            trades = this.safeList(message, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);

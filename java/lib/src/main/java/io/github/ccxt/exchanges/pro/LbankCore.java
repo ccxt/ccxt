@@ -240,7 +240,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //      }
         //
         Object marketId = this.safeString(message, "pair");
-        Object symbol = this.safeSymbol(marketId, null, "_");
+        String symbol = (String) this.safeSymbol(marketId, null, "_");
         Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
         Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object records = this.safeValue(message, "records");
@@ -375,7 +375,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object market = this.safeMarket(marketId);
         Object parsedTicker = this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -410,7 +410,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "pair");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object datetime = this.safeString(ticker, "TS");
         Object tickerData = this.safeValue(ticker, "tick");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -516,7 +516,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             }};
             Object request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
-            Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
         });
 
@@ -551,7 +551,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object market = this.safeMarket(marketId);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -698,7 +698,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        Object symbol = this.safeSymbol(marketId, null, "_");
+        String symbol = (String) this.safeSymbol(marketId, null, "_");
         Object myOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -772,7 +772,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             type = ((Helpers.isTrue((Helpers.isEqual(exchangeType, "market"))))) ? "market" : "limit";
         }
         Object marketId = this.safeString(order, "pair");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         Object timestamp = this.safeInteger(orderUpdate, "updateTime");
         Object status = this.safeString(orderUpdate, "orderStatus");
         Object orderAmount = this.safeString(orderUpdate, "orderAmt");
@@ -808,7 +808,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "-1", "canceled" );
@@ -870,13 +870,13 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.parse8601(this.safeString(message, "TS"));
+        Long timestamp = this.parse8601(this.safeString(message, "TS"));
         Object datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", datetime);
         Object currencyId = this.safeString(data, "assetCode");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "free"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "freeze"));
@@ -1035,10 +1035,10 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //     }
         //
         Object marketId = this.safeString(message, "pair");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object orderBook = this.safeValue(message, "depth", message);
         Object datetime = this.safeString(message, "TS");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {

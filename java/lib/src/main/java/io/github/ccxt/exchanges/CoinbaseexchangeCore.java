@@ -724,7 +724,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
     {
         String id = this.safeString(rawCurrency, "id");
         String name = this.safeString(rawCurrency, "name");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object details = this.safeDict(rawCurrency, "details", new java.util.HashMap<String, Object>() {{}});
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -856,8 +856,8 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 // BTCAUCTION-USD vs BTC-USD conflict workaround, see the output sample above
                 // const baseId = this.safeString (market, 'base_currency');
                 // const quoteId = this.safeString (market, 'quote_currency');
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
     final Object finalBase = base;
                 final Object finalStatus = status;
@@ -991,7 +991,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "hold"));
@@ -1317,7 +1317,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
+        Long timestamp = this.parse8601(this.safeString2(trade, "time", "created_at"));
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
         Object feeRate = null;
@@ -1662,7 +1662,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "open" );
@@ -1699,7 +1699,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(order, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String marketId = this.safeString(order, "product_id");
         market = this.safeMarket(marketId, market, "-");
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
@@ -2271,9 +2271,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object amount = this.parseNumber(amountString);
         Object after = this.parseNumber(afterString);
         Object before = this.parseNumber(beforeString);
-        Object timestamp = this.parse8601(this.safeValue(item, "created_at"));
+        Long timestamp = this.parse8601(this.safeValue(item, "created_at"));
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
-        Object code = this.safeCurrencyCode(null, currency);
+        String code = (String) this.safeCurrencyCode(null, currency);
         Object details = this.safeValue(item, "details", new java.util.HashMap<String, Object>() {{}});
         Object account = null;
         Object referenceAccount = null;
@@ -2567,7 +2567,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
 
     }
 
-    public Object parseTransactionStatus(Object transaction)
+    public String parseTransactionStatus(Object transaction)
     {
         Object canceled = this.safeValue(transaction, "canceled_at");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(canceled, null))) && Helpers.isTrue((!Helpers.isEqual(canceled, null)))))
@@ -2622,9 +2622,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object details = this.safeValue(transaction, "details", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object amount = this.safeNumber(transaction, "amount");
         String type = this.safeString(transaction, "type");
         String address = this.safeString(details, "crypto_address");

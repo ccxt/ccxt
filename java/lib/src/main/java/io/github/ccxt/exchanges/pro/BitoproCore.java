@@ -214,7 +214,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object eventVar = this.safeString(message, "event");
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object rawData = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object trades = this.parseTrades(rawData, market);
+        java.util.List<Object> trades = this.parseTrades(rawData, market);
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
@@ -300,8 +300,8 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object baseId = this.safeString(data, "base");
         Object quoteId = this.safeString(data, "quote");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         Object messageHash = this.safeString(message, "event");
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
@@ -342,8 +342,8 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object timestamp = this.safeTimestamp(trade, "transactionTimestamp");
         Object baseId = this.safeString(trade, "base");
         Object quoteId = this.safeString(trade, "quote");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         market = this.safeMarket(symbol, market);
         Object price = this.safeString(trade, "price");
@@ -362,7 +362,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object amount = this.safeString(trade, "volume");
         Object fee = null;
         Object feeAmount = this.safeString(trade, "fee");
-        Object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
+        String feeSymbol = (String) this.safeCurrencyCode(this.safeString(trade, "feeCurrency"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
@@ -566,7 +566,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             Object currency = this.safeString(currencies, i);
             Object balance = this.safeValue(data, currency);
             Object currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "amount"));

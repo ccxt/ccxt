@@ -1205,8 +1205,8 @@ public class BitstampCore extends BitstampApi
                 var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1426,8 +1426,8 @@ public class BitstampCore extends BitstampApi
             var baseIdquoteIdVariable = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeString(market, "base_currency"), this.safeString(market, "counter_currency")));
             var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
             var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-            Object base = this.safeCurrencyCode(baseId);
-            Object quote = this.safeCurrencyCode(quoteId);
+            String base = (String) this.safeCurrencyCode(baseId);
+            String quote = (String) this.safeCurrencyCode(quoteId);
             String description = this.safeString(market, "description");
             if (Helpers.isTrue(Helpers.isEqual(description, null)))
             {
@@ -1532,7 +1532,7 @@ public class BitstampCore extends BitstampApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "pair");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
@@ -2042,7 +2042,7 @@ public class BitstampCore extends BitstampApi
         {
             Object currencyBalance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(currencyBalance, "currency");
-            Object currencyCode = this.safeCurrencyCode(currencyId);
+            String currencyCode = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(currencyBalance, "available"));
             Helpers.addElementToObject(account, "used", this.safeString(currencyBalance, "reserved"));
@@ -2257,7 +2257,7 @@ public class BitstampCore extends BitstampApi
         {
             Object id = Helpers.GetValue(ids, i);
             Object fees = this.safeValue(response, i, new java.util.HashMap<String, Object>() {{}});
-            Object code = this.safeCurrencyCode(id);
+            String code = (String) this.safeCurrencyCode(id);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(codes, null))) && !Helpers.isTrue(this.inArray(code, codes))))
             {
                 continue;
@@ -2566,7 +2566,7 @@ public class BitstampCore extends BitstampApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "In Queue", "open" );
@@ -2976,9 +2976,9 @@ public class BitstampCore extends BitstampApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(transaction, "datetime"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "datetime"));
         Object currencyId = this.getCurrencyIdFromTransaction(transaction);
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String feeCost = this.safeString(transaction, "fee");
         Object feeCurrency = null;
         Object amount = null;
@@ -3080,7 +3080,7 @@ public class BitstampCore extends BitstampApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         //
         //   withdrawals:
@@ -3170,10 +3170,10 @@ public class BitstampCore extends BitstampApi
             side = ((Helpers.isTrue((Helpers.isEqual(side, "1"))))) ? "sell" : "buy";
         }
         // there is no timestamp from fetchOrder
-        Object timestamp = this.parse8601(this.safeString(order, "datetime"));
+        Long timestamp = this.parse8601(this.safeString(order, "datetime"));
         String marketId = (String)this.safeStringLower(order, "currency_pair");
-        Object symbol = this.safeSymbol(marketId, market, "/");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String symbol = (String) this.safeSymbol(marketId, market, "/");
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String amount = this.safeString(order, "amount");
         Object transactions = this.safeValue(order, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String price = this.safeString(order, "price");
@@ -3686,7 +3686,7 @@ public class BitstampCore extends BitstampApi
         return result;
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "ok", "ok" );
@@ -3810,7 +3810,7 @@ public class BitstampCore extends BitstampApi
                 ((java.util.List<Object>)errors).add(reasonInner);
             } else
             {
-                Object all = this.safeValue(reasonInner, "__all__", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object all = this.safeList(reasonInner, "__all__", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
                 {
                     ((java.util.List<Object>)errors).add(Helpers.GetValue(all, i));

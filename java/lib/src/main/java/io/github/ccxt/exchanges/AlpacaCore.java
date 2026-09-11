@@ -756,7 +756,7 @@ public class AlpacaCore extends AlpacaApi
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        Object base = this.safeCurrencyCode(baseId);
+        String base = (String) this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
         // We can safely coerce us_equity quote to USD
@@ -999,7 +999,7 @@ public class AlpacaCore extends AlpacaApi
             //
             Object orderbooks = this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
             Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
+            Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
         });
 
@@ -1174,7 +1174,7 @@ public class AlpacaCore extends AlpacaApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String datetime = this.safeString(ohlcv, "t");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
 
@@ -1905,7 +1905,7 @@ public class AlpacaCore extends AlpacaApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String alpacaStatus = this.safeString(order, "status");
-        Object status = this.parseOrderStatus(alpacaStatus);
+        String status = this.parseOrderStatus(alpacaStatus);
         String feeValue = this.safeString(order, "commission");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
@@ -1926,7 +1926,7 @@ public class AlpacaCore extends AlpacaApi
             }
         }
         String datetime = this.safeString(order, "submitted_at");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1954,7 +1954,7 @@ public class AlpacaCore extends AlpacaApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending_new", "open" );
@@ -1967,7 +1967,7 @@ public class AlpacaCore extends AlpacaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "day", "Day" );
@@ -2085,9 +2085,9 @@ public class AlpacaCore extends AlpacaApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "S", "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String datetime = this.safeString2(trade, "t", "transaction_time");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         String alpacaSide = this.safeString(trade, "tks");
         String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(alpacaSide, "B")))
@@ -2551,7 +2551,7 @@ public class AlpacaCore extends AlpacaApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PROCESSING", "pending" );
@@ -2564,7 +2564,7 @@ public class AlpacaCore extends AlpacaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "INCOMING", "deposit" );
@@ -2652,7 +2652,7 @@ public class AlpacaCore extends AlpacaApi
         }};
         Object account = this.account();
         String currencyId = this.safeString(response, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))

@@ -2217,7 +2217,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
             // the collateral balance is tied to the signature type / funder that holds the USDC
-            Object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
+            Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_type", "COLLATERAL" );
@@ -2536,7 +2536,7 @@ final Object finalClobTokenId = clobTokenId;
      * @param {string} status the raw polymarket order status
      * @returns {string} a unified order status
      */
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "live", "open" );
@@ -2733,7 +2733,7 @@ final Object finalClobTokenId = clobTokenId;
         // maker-only: the CLOB rejects the order if it would immediately take
         Object postOnly = this.safeBool(parameters, "postOnly", false);
         // 0=EOA, 1=POLY_PROXY, 2=GNOSIS_SAFE, 3=POLY_1271 (deposit wallet, default); funder/maker holds the USDC
-        Object signatureType = this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
+        Long signatureType = (Long) this.safeInteger2(parameters, "signatureType", "signature_type", this.safeInteger(this.options, "signatureType", 3));
         // the signer/owner is the EOA behind the privateKey; the funder/maker is the proxy or deposit wallet (walletAddress)
         Object eoa = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
         Object funder = this.ethChecksumAddress(this.safeString2(parameters, "funder", "maker", this.safeString(this.options, "funder", this.walletAddress)));
@@ -2936,7 +2936,7 @@ final Object finalClobTokenId = clobTokenId;
         }};
     }
 
-    public Object signClobOrder(Object message, Object exchangeAddress, Object domainVersion, Object sigType)
+    public String signClobOrder(Object message, Object exchangeAddress, Object domainVersion, Object sigType)
     {
         // param is sigType, not signatureType: the php regex transpiler would rewrite the
         // substring "signatureType" inside the orderTypeString literal below into the local
@@ -4359,7 +4359,7 @@ final Object finalOutcome = outcome;
         }
     }
 
-    public Object tokenIdToSymbol(Object tokenId)
+    public String tokenIdToSymbol(Object tokenId)
     {
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) || Helpers.isTrue((Helpers.isEqual(tokenId, "")))))
         {

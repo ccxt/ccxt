@@ -1063,7 +1063,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
@@ -1124,8 +1124,8 @@ public class MudrexCore extends MudrexApi
         {
             typ = "limit";
         }
-        Object ts = this.parse8601(this.safeString(order, "created_at"));
-        Object status = this.parseOrderStatus(this.safeStringLower(order, "status"));
+        Long ts = this.parse8601(this.safeString(order, "created_at"));
+        String status = this.parseOrderStatus(this.safeStringLower(order, "status"));
         Object sym = Helpers.GetValue(market, "symbol");
         final Object finalTyp = typ;
         final Object finalSide = side;
@@ -1474,7 +1474,7 @@ public class MudrexCore extends MudrexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         String ms = this.safeString(position, "symbol");
-        Object symbol = this.safeSymbol(ms, market);
+        String symbol = (String) this.safeSymbol(ms, market);
         // open positions use "order_type", closed positions (history) use "position_type"
         String rawSide = (String)this.safeStringUpper2(position, "order_type", "position_type");
         Object side = null;
@@ -1485,7 +1485,7 @@ public class MudrexCore extends MudrexApi
         {
             side = "short";
         }
-        Object ts = this.parse8601(this.safeString(position, "updated_at"));
+        Long ts = this.parse8601(this.safeString(position, "updated_at"));
         if (Helpers.isTrue(Helpers.isEqual(ts, null)))
         {
             ts = this.parse8601(this.safeString(position, "created_at"));
@@ -1827,7 +1827,7 @@ public class MudrexCore extends MudrexApi
         String ms = this.safeString(trade, "symbol");
         market = this.safeMarket(ms, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object ts = this.parse8601(this.safeString(trade, "created_at"));
+        Long ts = this.parse8601(this.safeString(trade, "created_at"));
         // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays undefined
         String side = (String)this.safeStringLower(trade, "order_type");
         Object tradeSide = null;

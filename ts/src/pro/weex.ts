@@ -1936,7 +1936,7 @@ export default class weex extends weexRest {
         return message;
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         //     {
         //         "result": false,

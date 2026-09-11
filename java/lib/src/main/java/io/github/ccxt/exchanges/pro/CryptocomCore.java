@@ -357,7 +357,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object channel = this.safeString(message, "channel");
-        Object nonce = this.safeInteger2(data, "u", "s");
+        Long nonce = (Long) this.safeInteger2(data, "u", "s");
         Object books = data;
         if (Helpers.isTrue(Helpers.isEqual(channel, "book")))
         {
@@ -551,13 +551,13 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
         }
-        Object parsedTrades = this.parseTrades(data, market);
+        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -777,7 +777,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object messageHash = this.safeString(message, "subscription");
         Object marketId = this.safeString(message, "instrument_name");
         Object market = this.safeMarket(marketId);
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
@@ -1115,7 +1115,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
         Object channel = this.safeString(message, "channel");
         Object symbolSpecificMessageHash = this.safeString(message, "subscription");
-        Object orders = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object orders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 0)))
         {
@@ -1125,7 +1125,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.orders;
-            Object parsed = this.parseOrders(orders);
+            java.util.List<Object> parsed = this.parseOrders(orders);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
             {
                 Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
@@ -1277,7 +1277,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         // and has exactly one subscriptionhash which is the account type
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstData = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeValue(firstData, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPositions = this.safeList(firstData, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1375,14 +1375,14 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //     }
         //
         Object messageHash = this.safeString(message, "subscription");
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object positionBalances = this.safeValue(Helpers.GetValue(data, 0), "position_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object positionBalances = this.safeList(Helpers.GetValue(data, 0), "position_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionBalances)); i++)
         {
             Object balance = Helpers.GetValue(positionBalances, i);
             Object currencyId = this.safeString(balance, "instrument_name");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "reserved_qty"));

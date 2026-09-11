@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class backpack : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "backpack" },
@@ -655,7 +655,7 @@ public partial class backpack : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetApiV1Assets(parameters);
@@ -685,7 +685,7 @@ public partial class backpack : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? currencyId = this.safeString(rawCurrency, "symbol");
         string? code = this.safeCurrencyCode(currencyId);
@@ -774,7 +774,7 @@ public partial class backpack : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //     [
@@ -1043,7 +1043,7 @@ public partial class backpack : Exchange
             percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         }
         string? change = this.safeString(ticker, "priceChange");
-        object parsedTicker = this.safeTicker(new Dictionary<string, object>() {
+        Dictionary<string, object> parsedTicker = this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
             { "datetime", null },
@@ -1632,7 +1632,7 @@ public partial class backpack : Exchange
             string? id = ((string)getValue(balanceKeys, i));
             string? code = this.safeCurrencyCode(id);
             object balance = getValue(response, id);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? locked = this.safeString(balance, "locked");
             string? staked = this.safeString(balance, "staked");
             string? used = Precise.stringAdd(locked, staked);

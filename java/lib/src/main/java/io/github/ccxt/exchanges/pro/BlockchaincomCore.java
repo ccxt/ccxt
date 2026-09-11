@@ -127,12 +127,12 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", message );
         }};
-        Object balances = this.safeValue(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object entry = Helpers.GetValue(balances, i);
             Object currencyId = this.safeString(entry, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));
@@ -222,7 +222,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "updated")))
         {
             Object marketId = this.safeString(message, "symbol");
-            Object symbol = this.safeSymbol(marketId, null, "-");
+            String symbol = (String) this.safeSymbol(marketId, null, "-");
             Object messageHash = Helpers.add("ohlcv:", symbol);
             Object request = this.safeValue(client.subscriptions, messageHash);
             Object timeframeId = this.safeString(request, "granularity");
@@ -343,7 +343,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         Object lastTicker = Helpers.getArg(optionalArgs, 0, null);
         Object market = Helpers.getArg(optionalArgs, 1, null);
         Object marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = (String) this.safeSymbol(marketId, null, "-");
         Object last = this.safeString(ticker, "mark_price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -437,7 +437,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             return;
         }
         Object marketId = this.safeString(message, "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object market = this.safeMarket(marketId);
         Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -627,7 +627,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
-            Object orders = this.safeValue(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -720,7 +720,7 @@ final Object finalTradeId = tradeId;
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "open" );
@@ -816,10 +816,10 @@ final Object finalTradeId = tradeId;
         }
         Object type = this.safeString(message, "channel");
         Object marketId = this.safeString(message, "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), type);
         Object datetime = this.safeString(message, "timestamp");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());

@@ -477,7 +477,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
-            Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             if (Helpers.isTrue(Helpers.isEqual(this.handleOption("watchTrades", "ignoreDuplicates", true), true)))
             {
                 Object filtered = this.removeRepeatedTradesFromArray(result);
@@ -846,8 +846,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         }
         orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = null;
-        Object timestamp = this.safeInteger2(message, "timestamp", "ts");
-        timestamp = this.safeInteger2(data, "timestamp", "ts", timestamp);
+        Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
+        timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "p", "a");
@@ -2090,7 +2090,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Object a = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(a, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger2(message, "T", "E");
+        Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         Object spotUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
         Object isSpot = Helpers.isTrue((!Helpers.isEqual(spotUrl, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.getIndexOf(client.url, spotUrl), 0)));
         Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
@@ -2105,7 +2105,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "a");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "info", balance);
             Helpers.addElementToObject(account, "used", this.safeString(balance, "lk"));

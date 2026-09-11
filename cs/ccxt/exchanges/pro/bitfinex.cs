@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitfinex { public bitfinex(object args = null) : base(args) { } }
 public partial class bitfinex : ccxt.bitfinex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -830,7 +830,7 @@ public partial class bitfinex : ccxt.bitfinex
                 (bookside as IOrderBookSide).storeArray(new List<object> {this.parseNumber(price), this.parseNumber(amount), idString});
             } else
             {
-                object amount = this.safeString(deltas, 2);
+                string? amount = this.safeString(deltas, 2);
                 string? counter = this.safeString(deltas, 1);
                 string? price = this.safeString(deltas, 0);
                 object size = ((bool) isTrue(Precise.stringLt(amount, "0"))) ? Precise.stringNeg(amount) : amount;
@@ -998,7 +998,7 @@ public partial class bitfinex : ccxt.bitfinex
             string? code = this.safeCurrencyCode(currencyId);
             object balance = this.parseWsBalance(rawBalance);
             string? balanceType = this.safeString(rawBalance, 0);
-            object oldBalance = this.safeValue(this.balance, balanceType, new Dictionary<string, object>() {});
+            IDictionary<string, object> oldBalance = this.safeDict(this.balance, balanceType, new Dictionary<string, object>() {});
             if (isTrue(!isEqual(code, null)))
             {
                 ((IDictionary<string,object>)oldBalance)[(string)code] = balance;
@@ -1031,7 +1031,7 @@ public partial class bitfinex : ccxt.bitfinex
         //
         string? totalBalance = this.safeString(balance, 2);
         string? availableBalance = this.safeString(balance, 4);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         if (isTrue(!isEqual(availableBalance, null)))
         {
             ((IDictionary<string,object>)account)["free"] = availableBalance;
@@ -1053,7 +1053,7 @@ public partial class bitfinex : ccxt.bitfinex
         return message;
     }
 
-    public virtual object handleUnsubscriptionStatus(WebSocketClient client, object message)
+    public virtual bool handleUnsubscriptionStatus(WebSocketClient client, object message)
     {
         //
         // {
@@ -1076,7 +1076,7 @@ public partial class bitfinex : ccxt.bitfinex
             this.cleanUnsubscription(client as WebSocketClient, subHash, messageHash);
         }
         this.cleanCache(subscription);
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public virtual object handleSubscriptionStatus(WebSocketClient client, object message)
@@ -1163,7 +1163,7 @@ public partial class bitfinex : ccxt.bitfinex
         if (isTrue(isEqual(status, "OK")))
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -1251,7 +1251,7 @@ public partial class bitfinex : ccxt.bitfinex
         //        ]
         //    ]
         //
-        object data = this.safeValue(message, 2, new List<object>() {});
+        List<object> data = this.safeList(message, 2, new List<object>() {});
         string? messageType = this.safeString(message, 1);
         if (isTrue(isEqual(this.orders, null)))
         {
@@ -1371,7 +1371,7 @@ public partial class bitfinex : ccxt.bitfinex
         string? price = this.safeString(order, 16);
         Int64? timestamp = this.safeInteger2(order, 5, 4);
         string? average = this.safeString(order, 17);
-        object stopPrice = this.omitZero(this.safeString(order, 18));
+        string? stopPrice = ((string)this.omitZero(this.safeString(order, 18)));
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "id", id },

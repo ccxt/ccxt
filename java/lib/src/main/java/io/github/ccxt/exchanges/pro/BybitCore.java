@@ -870,7 +870,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -1509,7 +1509,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger2(trade, "t", "T");
+        Long timestamp = (Long) this.safeInteger2(trade, "t", "T");
         String side = (String)this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object m = this.safeValue(trade, "m");
@@ -1543,7 +1543,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }}, market);
     }
 
-    public Object getPrivateType(Object url)
+    public String getPrivateType(Object url)
     {
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "spot"), 0)))
         {
@@ -1760,7 +1760,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (!Helpers.isTrue(Helpers.isArray(data)))
         {
-            data = this.safeValue(data, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            data = this.safeList(data, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -1990,7 +1990,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }
         Object cache = this.positions;
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object rawPositions = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
@@ -2201,7 +2201,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString2(liquidation, "symbol", "s");
         market = this.safeMarket(marketId, market, "", "contract");
-        Object timestamp = this.safeInteger2(liquidation, "updatedTime", "T");
+        Long timestamp = (Long) this.safeInteger2(liquidation, "updatedTime", "T");
         final Object finalMarket = market;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -2426,7 +2426,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object rawOrders = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeValue(rawOrders, 0, new java.util.HashMap<String, Object>() {{}});
         Object category = this.safeString(first, "category");
         Object isSpot = Helpers.isEqual(category, "spot");
@@ -2699,7 +2699,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         if (Helpers.isTrue(Helpers.isEqual(topic, "outboundAccountInfo")))
         {
             account = "spot";
-            Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object B = this.safeValue(Helpers.GetValue(data, i), "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2777,7 +2777,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
         Object currencyId = this.safeString2(balance, "a", "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeStringN(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("availableToWithdraw", "f", "free"))));
         Object used = this.safeString2(balance, "l", "locked");
         if (Helpers.isTrue(!Helpers.isEqual(used, null)))

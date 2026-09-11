@@ -525,11 +525,11 @@ public class BitteamCore extends BitteamApi
         Object parts = Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object active = this.safeValue(market, "active");
         String timeStart = this.safeString(market, "timeStart");
-        Object created = this.parse8601(timeStart);
+        Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
         Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
@@ -735,7 +735,7 @@ public class BitteamCore extends BitteamApi
         Object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString(currency, "symbol");
         Object numericId = this.safeInteger(currency, "id");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
@@ -1525,9 +1525,9 @@ public class BitteamCore extends BitteamApi
             timestamp = this.safeTimestamp(order, "timestamp");
         }
         String updatedAt = this.safeString(order, "updatedAt");
-        Object lastUpdateTimestamp = this.parse8601(updatedAt);
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object type = this.parseOrderType(this.safeString(order, "type"));
+        Long lastUpdateTimestamp = this.parse8601(updatedAt);
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        String type = this.parseOrderType(this.safeString(order, "type"));
         String side = this.safeString(order, "side");
         Object feeRaw = this.safeValue(order, "fee");
         String price = this.safeString(order, "price");
@@ -1573,7 +1573,7 @@ public class BitteamCore extends BitteamApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -1588,7 +1588,7 @@ public class BitteamCore extends BitteamApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "market", "market" );
@@ -1597,7 +1597,7 @@ public class BitteamCore extends BitteamApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseValueToPricision(Object valueObject, Object valueKey, Object preciseObject, Object precisionKey)
+    public String parseValueToPricision(Object valueObject, Object valueKey, Object preciseObject, Object precisionKey)
     {
         String valueRawString = this.safeString(valueObject, valueKey);
         String precisionRawString = this.safeString(preciseObject, precisionKey);
@@ -2459,7 +2459,7 @@ public class BitteamCore extends BitteamApi
             String free = this.safeString(currencyBalance, "free");
             String used = this.safeString(currencyBalance, "used");
             String total = this.safeString(currencyBalance, "total");
-            Object currencyCode = this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
+            String currencyCode = (String) this.safeCurrencyCode(((String)rawCurrencyId).toLowerCase());
             if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
             {
                 Helpers.addElementToObject(balance, currencyCode, new java.util.HashMap<String, Object>() {{
@@ -2655,7 +2655,7 @@ public class BitteamCore extends BitteamApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object currencyObject = this.safeValue(transaction, "currency");
         String currencyId = this.safeString(currencyObject, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String id = this.safeString(transaction, "id");
         Object parameters = this.safeValue(transaction, "params");
         String txid = this.safeString(parameters, "tx_id");
@@ -2670,9 +2670,9 @@ public class BitteamCore extends BitteamApi
         String addressFrom = this.safeString(transaction, "sender");
         String addressTo = this.safeString(transaction, "recipient");
         String tag = this.safeString(transaction, "message");
-        Object type = this.parseTransactionType(this.safeString(transaction, "type"));
-        Object amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
-        Object status = this.parseTransactionStatus(this.safeValue(transaction, "status"));
+        String type = this.parseTransactionType(this.safeString(transaction, "type"));
+        String amount = this.parseValueToPricision(transaction, "amount", currencyObject, "decimals");
+        String status = this.parseTransactionStatus(this.safeValue(transaction, "status"));
         final Object finalNetworkId = networkId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2698,7 +2698,7 @@ public class BitteamCore extends BitteamApi
         }};
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "deposit", "deposit" );
@@ -2707,7 +2707,7 @@ public class BitteamCore extends BitteamApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "approving", "pending" );

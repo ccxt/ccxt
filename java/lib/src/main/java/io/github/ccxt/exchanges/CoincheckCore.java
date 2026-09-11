@@ -495,7 +495,7 @@ public class CoincheckCore extends CoincheckApi
             }
             Object response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             Object rawOrders = this.safeValue(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object parsedOrders = this.parseOrders(rawOrders, market, since, limit);
+            java.util.List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
             {
@@ -527,13 +527,13 @@ public class CoincheckCore extends CoincheckApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
         String side = this.safeString(order, "order_type");
-        Object timestamp = this.parse8601(this.safeString(order, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String amount = this.safeString(order, "pending_amount");
         String remaining = this.safeString(order, "pending_amount");
         String price = this.safeString(order, "rate");
         Object status = null;
         String marketId = this.safeString(order, "pair");
-        Object symbol = this.safeSymbol(marketId, market, "_");
+        String symbol = (String) this.safeSymbol(marketId, market, "_");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -604,7 +604,7 @@ public class CoincheckCore extends CoincheckApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -708,7 +708,7 @@ public class CoincheckCore extends CoincheckApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(trade, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(trade, "created_at"));
         String id = this.safeString(trade, "id");
         String priceString = this.safeString(trade, "rate");
         String marketId = this.safeString(trade, "pair");
@@ -1164,7 +1164,7 @@ public class CoincheckCore extends CoincheckApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "pending" );
@@ -1207,13 +1207,13 @@ public class CoincheckCore extends CoincheckApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transaction, "id");
-        Object timestamp = this.parse8601(this.safeString(transaction, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String address = this.safeString(transaction, "address");
         Object amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        Long updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Object fee = null;
         Object feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))

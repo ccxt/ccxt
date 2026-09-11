@@ -1181,7 +1181,7 @@ public class AsterCore extends AsterApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "asset");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "code", code );
@@ -1349,8 +1349,8 @@ public class AsterCore extends AsterApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object active = Helpers.isEqual(this.safeString(market, "status"), "TRADING");
         Object spot = null;
         Object symbol = null;
@@ -1655,11 +1655,11 @@ public class AsterCore extends AsterApi
         Object marketType = ((Helpers.isTrue((Helpers.inOp(trade, "positionSide"))))) ? "swap" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         String currencyId = this.safeString2(trade, "commissionAsset", "marginAsset");
-        Object currencyCode = this.safeCurrencyCode(currencyId);
+        String currencyCode = (String) this.safeCurrencyCode(currencyId);
         String amountString = this.safeString2(trade, "qty", "q");
         String priceString = this.safeString2(trade, "price", "p");
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
-        Object timestamp = this.safeInteger2(trade, "time", "T");
+        Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = (String)this.safeStringLower(trade, "side");
         Object isMaker = this.safeBool(trade, "maker");
         Object takerOrMaker = null;
@@ -2602,7 +2602,7 @@ public class AsterCore extends AsterApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -2728,7 +2728,7 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -2782,7 +2782,7 @@ public class AsterCore extends AsterApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -2795,7 +2795,7 @@ public class AsterCore extends AsterApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -4264,7 +4264,7 @@ public class AsterCore extends AsterApi
             direction = "in";
         }
         String currencyId = this.safeString(item, "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
@@ -4686,7 +4686,7 @@ public class AsterCore extends AsterApi
         {
             Object entry = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(entry, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             String crossWalletBalance = this.safeString(entry, "crossWalletBalance");
             String crossUnPnl = this.safeString(entry, "crossUnPnl");
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -5005,7 +5005,7 @@ public class AsterCore extends AsterApi
                 {
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
-                    Object symbol = this.safeSymbol(marketId, null, null, "contract");
+                    String symbol = (String) this.safeSymbol(marketId, null, null, "contract");
                     Object brackets = this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
@@ -5256,7 +5256,7 @@ public class AsterCore extends AsterApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -5403,7 +5403,7 @@ public class AsterCore extends AsterApi
         }};
     }
 
-    public Object encodeValuesWithJson(Object values)
+    public String encodeValuesWithJson(Object values)
     {
         Object encodedString = "";
         Object keys = Helpers.objectKeys(values);

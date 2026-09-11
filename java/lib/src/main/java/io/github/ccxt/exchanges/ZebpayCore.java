@@ -534,7 +534,7 @@ public class ZebpayCore extends ZebpayApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -961,7 +961,7 @@ public class ZebpayCore extends ZebpayApi
                     Helpers.addElementToObject(request, "since", since);
                 }
             }
-            Object until = this.safeInteger2(parameters, "until", "endtime");
+            Long until = (Long) this.safeInteger2(parameters, "until", "endtime");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
@@ -1220,7 +1220,7 @@ public class ZebpayCore extends ZebpayApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "aggregateTradeId");
         String orderId = this.safeString2(trade, "id", "order");
-        Object timestamp = this.safeInteger2(trade, "timestamp", "tradeTime");
+        Long timestamp = (Long) this.safeInteger2(trade, "timestamp", "tradeTime");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1707,7 +1707,7 @@ public class ZebpayCore extends ZebpayApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String type = this.safeString(order, "type");
         Object timestamp = this.safeNumber(order, "timestamp");
-        Object datetime = this.iso8601(timestamp);
+        String datetime = this.iso8601(timestamp);
         String price = this.safeString(order, "price");
         String side = this.safeString(order, "side");
         String amount = this.safeString(order, "amount");
@@ -2073,8 +2073,8 @@ public class ZebpayCore extends ZebpayApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -2161,9 +2161,9 @@ public class ZebpayCore extends ZebpayApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
     final Object finalSymbol = symbol;
@@ -2222,7 +2222,7 @@ public class ZebpayCore extends ZebpayApi
             Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "used"));
             String currencyId = this.safeString(entry, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(result, code, account);
@@ -2296,7 +2296,7 @@ public class ZebpayCore extends ZebpayApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -2328,7 +2328,7 @@ public class ZebpayCore extends ZebpayApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(ticker, "timestamp", "ts");
+        Long timestamp = (Long) this.safeInteger2(ticker, "timestamp", "ts");
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId);
         String close = this.safeString(ticker, "close");

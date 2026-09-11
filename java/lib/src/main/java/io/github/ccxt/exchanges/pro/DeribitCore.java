@@ -100,7 +100,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(parameters)).join();
             Object messageHash = "balance";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object currencies = this.safeValue(this.options, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object currencies = this.safeList(this.options, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
@@ -170,7 +170,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(this.balance, "info", data);
         Object currencyId = this.safeString(data, "currency");
-        Object currencyCode = this.safeCurrencyCode(currencyId);
+        String currencyCode = (String) this.safeCurrencyCode(currencyId);
         Object balance = this.parseBalance(data);
         if (Helpers.isTrue(!Helpers.isEqual(currencyCode, null)))
         {
@@ -322,7 +322,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parameters = this.safeValue(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "instrument_name");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object ticker = this.parseTicker(data);
         Object messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -518,7 +518,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parts = Helpers.split(channel, ".");
         Object marketId = this.safeString(parts, 1);
         Object interval = this.safeString(parts, 2);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object market = this.safeMarket(marketId);
         Object trades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, symbol), null)))
@@ -627,7 +627,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object parsed = this.parseTrades(trades);
+        java.util.List<Object> parsed = this.parseTrades(trades);
         Object marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
@@ -780,7 +780,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             descriptor = ((String)interval);
         }
         Object marketId = this.safeString(data, "instrument_name");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object timestamp = this.safeInteger(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -1019,7 +1019,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 

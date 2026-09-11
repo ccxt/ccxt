@@ -1140,7 +1140,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object base = this.safeString(data, "s");
         Object marketId = this.coinToMarketId(base);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object timeframe = this.safeString(data, "i");
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
@@ -1871,7 +1871,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //
         Object coin = this.safeString(subscription, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object subMessageHash = Helpers.add("orderbook:", symbol);
         Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
@@ -1886,7 +1886,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //
         Object coin = this.safeString(subscription, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object subMessageHash = Helpers.add("trade:", symbol);
         Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
@@ -1914,7 +1914,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //
         Object coin = this.safeString(subscription, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object subMessageHash = Helpers.add("ticker:", symbol);
         Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
@@ -1928,7 +1928,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
     {
         Object coin = this.safeString(subscription, "coin");
         Object marketId = this.coinToMarketId(coin);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object interval = this.safeString(subscription, "interval");
         Object timeframe = this.findTimeframe(interval);
         Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);

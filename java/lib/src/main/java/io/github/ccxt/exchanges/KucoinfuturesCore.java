@@ -99,7 +99,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            Object toAccountString = this.parseTransferType(toAccount);
+            String toAccountString = this.parseTransferType(toAccount);
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
@@ -124,12 +124,12 @@ public class KucoinfuturesCore extends KucoinfuturesApi
 
     }
 
-    public Object parseTransferType(Object transferType)
+    public String parseTransferType(Object transferType)
     {
         Object transferTypes = new java.util.HashMap<String, Object>() {{
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};
-        return this.safeStringUpper(transferTypes, transferType, transferType);
+        return (String) this.safeStringUpper(transferTypes, transferType, transferType);
     }
 }

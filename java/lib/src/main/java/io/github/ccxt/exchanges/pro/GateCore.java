@@ -507,7 +507,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object url = this.getUrlByMarket(market);
             (this.authenticate(url, messageType)).join();
             Object rawOrders = (this.requestPrivate(url, this.extend(newRequest, requestParams), channel)).join();
-            Object orders = this.parseOrders(rawOrders, market);
+            java.util.List<Object> orders = this.parseOrders(rawOrders, market);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -706,7 +706,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object marketIdParts = Helpers.split(marketIdWithPrefix, ".");
         Object marketId = this.safeString(marketIdParts, 1);
-        Object symbol = this.safeSymbol(marketId, null, "_", "spot");
+        String symbol = (String) this.safeSymbol(marketId, null, "_", "spot");
         Object messageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.orderbooks, symbol), null)))
         {
@@ -801,7 +801,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object deltaStart = this.safeInteger(delta, "U");
         Object deltaEnd = this.safeInteger(delta, "u");
         Object marketId = this.safeString(delta, "s");
-        Object symbol = this.safeSymbol(marketId, null, "_", marketType);
+        String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
         Object nonce = this.safeInteger(storedOrderBook, "nonce");
@@ -1269,7 +1269,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             result = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
         }
-        Object parsedTrades = this.parseTrades(result);
+        java.util.List<Object> parsedTrades = this.parseTrades(result);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedTrades)); i++)
         {
             Object trade = Helpers.GetValue(parsedTrades, i);
@@ -1374,7 +1374,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object timeframe = this.findTimeframe(timeframeId);
             Object prefix = Helpers.add(timeframe, "_");
             Object marketId = Helpers.replace((String)subscription, (String)prefix, (String)"");
-            Object symbol = this.safeSymbol(marketId, null, "_", marketType);
+            String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
             Object parsed = this.parseOHLCV(ohlcv);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1494,7 +1494,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //     ]
         // }
         //
-        Object result = this.safeValue(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object tradesLength = Helpers.getArrayLength(result);
         if (Helpers.isTrue(Helpers.isEqual(tradesLength, 0)))
         {
@@ -1507,7 +1507,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = cachedTrades;
         }
-        Object parsed = this.parseTrades(result);
+        java.util.List<Object> parsed = this.parseTrades(result);
         Object marketIds = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
@@ -1642,15 +1642,15 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //       ]
         //   }
         //
-        Object result = this.safeValue(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", result);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
         {
             Object rawBalance = Helpers.GetValue(result, i);
             Object account = this.account();
             Object currencyId = this.safeString(rawBalance, "currency", "USDT"); // when not present it is USDT
-            Object code = this.safeCurrencyCode(currencyId);
-            Object timestamp = this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
+            String code = (String) this.safeCurrencyCode(currencyId);
+            Long timestamp = (Long) this.safeInteger2(rawBalance, "time_ms", "timestamp_ms");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
             Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
@@ -1849,7 +1849,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         //    }
         //
         Object type = this.getMarketTypeByUrl(client.url);
-        Object data = this.safeValue(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object cache = Helpers.GetValue(this.positions, type);
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -2055,7 +2055,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
         Object stored = ((Helpers.isTrue(isTrigger))) ? this.triggerOrders : this.orders;
         Object marketIds = new java.util.HashMap<String, Object>() {{}};
-        Object parsedOrders = this.parseOrders(orders);
+        java.util.List<Object> parsedOrders = this.parseOrders(orders);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
         {
             Object parsed = Helpers.GetValue(parsedOrders, i);
@@ -2391,7 +2391,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
                     {
                         Object marketType = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(parsedChannel, 0), "futures")))) ? "swap" : Helpers.GetValue(parsedChannel, 0);
-                        Object symbol = this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
+                        String symbol = (String) this.safeSymbol(Helpers.GetValue(payload, i), null, "_", marketType);
                         Object messageHashSymbol = Helpers.add(Helpers.add(Helpers.GetValue(parsedChannel, 1), ":"), symbol);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(messageHashSymbol, null))) && Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHashSymbol)))))
                         {
@@ -2660,7 +2660,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         }
     }
 
-    public Object getTypeByMarket(Object market)
+    public String getTypeByMarket(Object market)
     {
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {

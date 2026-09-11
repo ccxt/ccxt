@@ -361,8 +361,8 @@ public class BlockchaincomCore extends BlockchaincomApi
                 Object market = this.safeValue(markets, marketId);
                 String baseId = this.safeString(market, "base_currency");
                 String quoteId = this.safeString(market, "counter_currency");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object numericId = this.safeNumber(market, "id");
                 Object active = null;
                 String marketState = this.safeString(market, "status");
@@ -552,7 +552,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = (String) this.safeSymbol(marketId, market, "-");
         String last = this.safeString(ticker, "last_trade_price");
         String baseVolume = this.safeString(ticker, "volume_24h");
         String open = this.safeString(ticker, "price_24h");
@@ -635,7 +635,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     }
 
-    public Object parseOrderState(Object state)
+    public String parseOrderState(Object state)
     {
         Object states = new java.util.HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -672,15 +672,15 @@ public class BlockchaincomCore extends BlockchaincomApi
         String clientOrderId = this.safeString(order, "clOrdId");
         String type = (String)this.safeStringLower(order, "ordType");
         String statusId = this.safeString(order, "ordStatus");
-        Object state = this.parseOrderState(statusId);
+        String state = this.parseOrderState(statusId);
         String side = (String)this.safeStringLower(order, "side");
         String marketId = this.safeString(order, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = (String) this.safeSymbol(marketId, market, "-");
         String exchangeOrderId = this.safeString(order, "exOrdId");
         Object price = ((Helpers.isTrue((!Helpers.isEqual(type, "market"))))) ? this.safeString(order, "price") : null;
         Object average = this.safeNumber(order, "avgPx");
         Object timestamp = this.safeInteger(order, "timestamp");
-        Object datetime = this.iso8601(timestamp);
+        String datetime = this.iso8601(timestamp);
         String filled = this.safeString(order, "cumQty");
         String remaining = this.safeString(order, "leavesQty");
         final Object finalType = type;
@@ -1036,7 +1036,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         Object timestamp = this.safeInteger(trade, "timestamp");
-        Object datetime = this.iso8601(timestamp);
+        String datetime = this.iso8601(timestamp);
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object fee = null;
@@ -1156,7 +1156,7 @@ public class BlockchaincomCore extends BlockchaincomApi
 
     }
 
-    public Object parseTransactionState(Object state)
+    public String parseTransactionState(Object state)
     {
         Object states = new java.util.HashMap<String, Object>() {{
             put( "COMPLETED", "ok" );
@@ -1201,7 +1201,7 @@ public class BlockchaincomCore extends BlockchaincomApi
         Object amount = this.safeNumber(transaction, "amount");
         Object timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String state = this.safeString(transaction, "state");
         if (Helpers.isTrue(Helpers.inOp(transaction, "depositId")))
         {
@@ -1490,7 +1490,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             {
                 Object entry = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
                 Helpers.addElementToObject(account, "total", this.safeString(entry, "balance"));

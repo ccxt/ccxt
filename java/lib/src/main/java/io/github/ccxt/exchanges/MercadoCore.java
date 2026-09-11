@@ -372,8 +372,8 @@ public class MercadoCore extends MercadoApi
                 Object coin = Helpers.GetValue(coins, i);
                 Object baseId = coin;
                 Object quoteId = "BRL";
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     continue;
@@ -481,7 +481,7 @@ public class MercadoCore extends MercadoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "date");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -640,7 +640,7 @@ public class MercadoCore extends MercadoApi
     public Object parseBalance(Object response)
     {
         Object data = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeValue(data, "balance", new java.util.HashMap<String, Object>() {{}});
+        Object balances = this.safeDict(data, "balance", new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -648,7 +648,7 @@ public class MercadoCore extends MercadoApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.inOp(balances, currencyId)))
             {
                 Object balance = this.safeValue(balances, currencyId, new java.util.HashMap<String, Object>() {{}});
@@ -817,7 +817,7 @@ public class MercadoCore extends MercadoApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "2", "open" );
@@ -862,7 +862,7 @@ public class MercadoCore extends MercadoApi
         {
             side = ((Helpers.isTrue((Helpers.isEqual(order_type, "1"))))) ? "buy" : "sell";
         }
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "coin_pair");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeTimestamp(order, "created_timestamp");
@@ -1241,7 +1241,7 @@ public class MercadoCore extends MercadoApi
             Object response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object ordersRaw = this.safeValue(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = this.parseOrders(ordersRaw, market, since, limit);
+            java.util.List<Object> orders = this.parseOrders(ordersRaw, market, since, limit);
             Object trades = this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, Helpers.GetValue(market, "symbol"), since, limit);
         });
@@ -1253,7 +1253,7 @@ public class MercadoCore extends MercadoApi
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
-            Object trades = this.safeValue(Helpers.GetValue(orders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(Helpers.GetValue(orders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var y = 0; Helpers.isLessThan(y, Helpers.getArrayLength(trades)); y++)
             {
                 ((java.util.List<Object>)result).add(Helpers.GetValue(trades, y));

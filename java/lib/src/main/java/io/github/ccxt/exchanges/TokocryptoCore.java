@@ -868,7 +868,7 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadTimeDifference()).join();
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object list = this.safeValue(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
             {
@@ -878,15 +878,15 @@ public class TokocryptoCore extends TokocryptoApi
                 String id = this.safeString(market, "symbol");
                 String lowercaseId = (String)this.safeStringLower(market, "symbol");
                 String settleId = this.safeString(market, "marginAsset");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object filters = this.safeValue(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Object active = (Helpers.isEqual(status, "1"));
-                Object permissions = this.safeValue(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object permissions = this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(permissions)); j++)
                 {
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(permissions, j), "TRD_GRP_003")))
@@ -953,7 +953,7 @@ public class TokocryptoCore extends TokocryptoApi
                 }};
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "PRICE_FILTER")))
                 {
-                    Object filter = this.safeValue(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
+                    Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
@@ -1061,7 +1061,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         "timestamp":1692262634599
             //     }
             Object data = this.safeValue(response, "data", response);
-            Object timestamp = this.safeInteger2(response, "T", "timestamp");
+            Long timestamp = (Long) this.safeInteger2(response, "T", "timestamp");
             Object orderbook = this.parseOrderBook(data, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderbook;
@@ -1165,12 +1165,12 @@ public class TokocryptoCore extends TokocryptoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(trade, "T", "time");
+        Long timestamp = (Long) this.safeInteger2(trade, "T", "time");
         String price = this.safeString2(trade, "p", "price");
         String amount = this.safeString2(trade, "q", "qty");
         String cost = this.safeString2(trade, "quoteQty", "baseQty"); // inverse futures
         String marketId = this.safeString(trade, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String id = this.safeString2(trade, "t", "a");
         id = this.safeString2(trade, "id", "tradeId", id);
         Object side = null;
@@ -1404,7 +1404,7 @@ public class TokocryptoCore extends TokocryptoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(ticker, "closeTime");
         String marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
         Object isCoinm = (Helpers.inOp(ticker, "baseVolume"));
         Object baseVolume = null;
@@ -1806,12 +1806,12 @@ public class TokocryptoCore extends TokocryptoApi
             put( "datetime", TokocryptoCore.this.iso8601(timestamp) );
         }};
         Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeValue(data, "accountAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(data, "accountAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
             String currencyId = this.safeString(balance, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -1823,7 +1823,7 @@ public class TokocryptoCore extends TokocryptoApi
         return this.safeBalance(result);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "-2", "open" );
@@ -1946,9 +1946,9 @@ public class TokocryptoCore extends TokocryptoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty", "0");
         Object timestamp = this.safeInteger(order, "createTime");
         String average = this.safeString(order, "avgPrice");
@@ -1958,7 +1958,7 @@ public class TokocryptoCore extends TokocryptoApi
         //   Note this is not the actual cost, since Binance futures uses leverage to calculate margins.
         String cost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("cummulativeQuoteQty", "cumQuote", "executedQuoteQty", "cumBase")));
         String id = this.safeString(order, "orderId");
-        Object type = this.parseOrderType(this.safeStringLower(order, "type"));
+        String type = this.parseOrderType(this.safeStringLower(order, "type"));
         String side = (String)this.safeStringLower(order, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "0")))
         {
@@ -2005,7 +2005,7 @@ public class TokocryptoCore extends TokocryptoApi
         }}, market);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "2", "market" );
@@ -2525,7 +2525,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object endTime = this.safeInteger2(parameters, "until", "endTime");
+            Long endTime = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "startTime", since);
@@ -2878,10 +2878,10 @@ public class TokocryptoCore extends TokocryptoApi
             txid = Helpers.slice(txid, 18, null);
         }
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = null;
         Object insertTime = this.safeInteger(transaction, "insertTime");
-        Object createTime = this.safeInteger2(transaction, "createTime", "timestamp");
+        Long createTime = (Long) this.safeInteger2(transaction, "createTime", "timestamp");
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {

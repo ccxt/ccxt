@@ -363,7 +363,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object ticker = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(ticker, "s");
         Object market = this.safeMarket(marketId);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object parsedTicker = this.parseWsTicker(ticker, market);
         Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -391,7 +391,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object last = this.safeString(ticker, "c");
         Object open = this.safeString(ticker, "o");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -508,7 +508,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         Object market = this.safeMarket(marketId);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object parsedBidAsk = this.parseWsBidAsk(data, market);
         Object messageHash = Helpers.add(Helpers.add("bidask", ":"), symbol);
         Helpers.addElementToObject(this.bidsasks, symbol, parsedBidAsk);
@@ -649,7 +649,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -852,7 +852,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
-            Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599389/job/59597208008?pr=27624#step:10:537
         });
 
@@ -1143,7 +1143,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -1442,7 +1442,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status, Object... optionalArgs)
+    public String parseWsOrderStatus(Object status, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object statuses = new java.util.HashMap<String, Object>() {{
@@ -1457,7 +1457,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrderSide(Object side)
+    public String parseWsOrderSide(Object side)
     {
         Object sides = new java.util.HashMap<String, Object>() {{
             put( "Bid", "buy" );

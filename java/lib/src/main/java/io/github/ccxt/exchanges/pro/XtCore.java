@@ -169,7 +169,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
         Object nonce = this.safeInteger(orderbook, "nonce");
         Object firstDelta = this.safeValue(cache, 0);
-        Object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
+        Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(firstDeltaNonce, null)))) && Helpers.isTrue((Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))))
         {
             return Helpers.opNeg(1);
@@ -177,7 +177,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaNonce = this.safeInteger2(delta, "i", "u");
+            Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(deltaNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, null)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(deltaNonce, nonce)))))
             {
                 return i;
@@ -1614,7 +1614,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object marketId = this.safeString2(order, "s", "symbol");
         Object tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
-        Object timestamp = this.safeInteger2(order, "ct", "createTime");
+        Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -1748,7 +1748,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString2(data, "c", "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "f"));

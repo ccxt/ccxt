@@ -153,7 +153,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsedTrades = this.parseTrades(rawTrades, market);
+        java.util.List<Object> parsedTrades = this.parseTrades(rawTrades, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedTrades)); i++)
         {
             Object parsed = Helpers.GetValue(parsedTrades, i);
@@ -177,7 +177,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", DydxCore.this.safeString(trade, "id") );
             put( "info", trade );

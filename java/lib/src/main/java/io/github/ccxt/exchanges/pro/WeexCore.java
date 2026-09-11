@@ -769,7 +769,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -2083,7 +2083,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             Object entry = this.safeDict(balanceUpdates, i);
             Object currencyId = this.safeString(entry, "coin");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(entry, "available", "amount"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "frozen"));

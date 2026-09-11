@@ -1100,8 +1100,8 @@ public class PoloniexCore extends PoloniexApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrencyName");
         String quoteId = this.safeString(market, "quoteCurrencyName");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
         Object active = Helpers.isEqual(state, "NORMAL");
         Object symbolTradeLimit = this.safeValue(market, "symbolTradeLimit");
@@ -1194,9 +1194,9 @@ public class PoloniexCore extends PoloniexApi
         String baseId = this.safeString(market, "bCcy");
         String quoteId = this.safeString(market, "qCcy");
         String settleId = this.safeString(market, "sCcy");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settle = this.safeCurrencyCode(settleId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Object active = Helpers.isEqual(status, "OPEN");
         Object linear = Helpers.isEqual(Helpers.GetValue(market, "ctType"), "LINEAR");
@@ -1342,7 +1342,7 @@ public class PoloniexCore extends PoloniexApi
         //            },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(ticker, "ts", "cT");
+        Long timestamp = (Long) this.safeInteger2(ticker, "ts", "cT");
         String marketId = this.safeString2(ticker, "symbol", "s");
         market = this.safeMarket(marketId);
         String baseVolume = this.safeString2(ticker, "quantity", "qty");
@@ -1533,7 +1533,7 @@ public class PoloniexCore extends PoloniexApi
     {
         Object entry = currency;
         String id = this.safeString(entry, "coin");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainsLength = Helpers.getArrayLength(chains);
@@ -1753,7 +1753,7 @@ public class PoloniexCore extends PoloniexApi
         String feeCostString = this.safeString2(trade, "feeAmount", "feeAmt");
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -1965,13 +1965,13 @@ public class PoloniexCore extends PoloniexApi
             //         }
             //     ]
             //
-            Object result = this.parseTrades(response, market, since, limit);
+            java.util.List<Object> result = this.parseTrades(response, market, since, limit);
             return result;
         });
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -2105,10 +2105,10 @@ public class PoloniexCore extends PoloniexApi
         String price = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "rate", "px")));
         String amount = this.safeString2(order, "quantity", "sz");
         String filled = this.safeString2(order, "filledQuantity", "execQty");
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         String side = (String)this.safeStringLower(order, "side");
         String rawType = this.safeString(order, "type");
-        Object type = this.parseOrderType(rawType);
+        String type = this.parseOrderType(rawType);
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderNumber", "id", "orderId", "ordId")));
         Object fee = null;
         String feeCurrency = this.safeString2(order, "tokenFeeCurrency", "feeCcy");
@@ -2173,7 +2173,7 @@ public class PoloniexCore extends PoloniexApi
         }}, market);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -2968,7 +2968,7 @@ public class PoloniexCore extends PoloniexApi
             {
                 Object balance = Helpers.GetValue(details, i);
                 String currencyId = this.safeString(balance, "ccy");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "avail"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "im"));
@@ -2988,7 +2988,7 @@ public class PoloniexCore extends PoloniexApi
             {
                 Object balance = this.safeValue(balances, j);
                 String currencyId = this.safeString(balance, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object newAccount = this.account();
                 Helpers.addElementToObject(newAccount, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(newAccount, "used", this.safeString(balance, "hold"));
@@ -3602,8 +3602,8 @@ public class PoloniexCore extends PoloniexApi
             }
             Object withdrawals = this.safeValue(response, "withdrawals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object deposits = this.safeValue(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
-            Object depositTransactions = this.parseTransactions(deposits, currency, since, limit);
+            java.util.List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
+            java.util.List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
             Object transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
             return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit);
         });
@@ -3637,7 +3637,7 @@ public class PoloniexCore extends PoloniexApi
                 currency = this.currency(code);
             }
             Object withdrawals = this.safeValue(response, "withdrawals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object transactions = this.parseTransactions(withdrawals, currency, since, limit);
+            java.util.List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         });
 
@@ -3735,7 +3735,7 @@ public class PoloniexCore extends PoloniexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(responseKeys, i);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object feeInfo = Helpers.GetValue(response, currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
@@ -3832,13 +3832,13 @@ public class PoloniexCore extends PoloniexApi
                 currency = this.currency(code);
             }
             Object deposits = this.safeValue(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object transactions = this.parseTransactions(deposits, currency, since, limit);
+            java.util.List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         });
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
@@ -3898,7 +3898,7 @@ public class PoloniexCore extends PoloniexApi
         }
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object status = this.safeString(transaction, "status", "pending");
         status = ((String)this.parseTransactionStatus(status));
         String txid = this.safeString(transaction, "txid");

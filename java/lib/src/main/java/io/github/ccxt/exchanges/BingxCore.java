@@ -1342,7 +1342,7 @@ public class BingxCore extends BingxApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Object networkList = this.safeList(rawCurrency, "networkList");
         Object networks = new java.util.HashMap<String, Object>() {{}};
@@ -1513,8 +1513,8 @@ public class BingxCore extends BingxApi
         Object symbolParts = Helpers.split(id, "-");
         Object baseId = Helpers.GetValue(symbolParts, 0);
         Object quoteId = Helpers.GetValue(symbolParts, 1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object currency = this.safeString(market, "currency");
         Object checkIsInverse = false;
         Object checkIsLinear = true;
@@ -1526,7 +1526,7 @@ public class BingxCore extends BingxApi
             checkIsInverse = true;
             checkIsLinear = false;
         }
-        Object settle = this.safeCurrencyCode(currency);
+        String settle = (String) this.safeCurrencyCode(currency);
         Object pricePrecision = this.safeNumber(market, "tickSize");
         if (Helpers.isTrue(Helpers.isEqual(pricePrecision, null)))
         {
@@ -1725,7 +1725,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "limit", requestLimit);
             }
-            Object until = this.safeInteger2(parameters, "until", "endTime");
+            Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -2066,7 +2066,7 @@ public class BingxCore extends BingxApi
         String cost = this.safeString(trade, "quoteQty");
         // const type = (cost === undefined) ? 'spot' : 'swap'; this is not reliable
         String currencyId = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency", "N", "commissionAsset")));
-        Object currencyCode = this.safeCurrencyCode(currencyId);
+        String currencyCode = (String) this.safeCurrencyCode(currencyId);
         Object m = this.safeBool(trade, "m");
         String marketId = this.safeString2(trade, "s", "symbol");
         Object isBuyerMaker = this.safeBoolN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("buyerMaker", "isBuyerMaker", "maker")));
@@ -2268,7 +2268,7 @@ public class BingxCore extends BingxApi
             //
             Object orderbook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object nonce = this.safeInteger(orderbook, "lastUpdateId");
-            Object timestamp = this.safeInteger2(orderbook, "T", "ts");
+            Long timestamp = (Long) this.safeInteger2(orderbook, "T", "ts");
             Object result = this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
@@ -2577,7 +2577,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger2(parameters, "until", "endTime");
+            Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -2728,9 +2728,9 @@ public class BingxCore extends BingxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(interest, "time", "timestamp");
+        Long timestamp = (Long) this.safeInteger2(interest, "time", "timestamp");
         String id = this.safeString(interest, "symbol");
-        Object symbol = this.safeSymbol(id, market, "-", "swap");
+        String symbol = (String) this.safeSymbol(id, market, "-", "swap");
         Object openInterest = this.safeNumber(interest, "openInterest");
         Object inverse = this.safeBool(market, "inverse", false);
         Object isInverse = (Helpers.isEqual(inverse, true));
@@ -3115,7 +3115,7 @@ public class BingxCore extends BingxApi
         {
             ts = null;
         }
-        Object datetime = this.iso8601(ts);
+        String datetime = this.iso8601(ts);
         String bid = this.safeString(ticker, "bidPrice");
         String bidVolume = this.safeString(ticker, "bidQty");
         String ask = this.safeString(ticker, "askPrice");
@@ -3305,7 +3305,7 @@ public class BingxCore extends BingxApi
                 {
                     break;
                 }
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString2(balance, "availableMargin", "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "usedMargin"));
@@ -3321,7 +3321,7 @@ public class BingxCore extends BingxApi
             {
                 Object balance = Helpers.GetValue(spotBalances, i);
                 String currencyId = this.safeString(balance, "asset");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -4309,7 +4309,7 @@ public class BingxCore extends BingxApi
 
     }
 
-    public Object parseOrderSide(Object side)
+    public String parseOrderSide(Object side)
     {
         Object sides = new java.util.HashMap<String, Object>() {{
             put( "BUY", "buy" );
@@ -4322,7 +4322,7 @@ public class BingxCore extends BingxApi
         return this.safeString(sides, side, side);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "trigger_market", "market" );
@@ -4635,7 +4635,7 @@ public class BingxCore extends BingxApi
         }
         String side = (String)this.safeStringLower2(order, "side", "S");
         Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "transactTime", "E", "createdTime")));
-        Object lastTradeTimestamp = this.safeInteger2(order, "updateTime", "T");
+        Long lastTradeTimestamp = (Long) this.safeInteger2(order, "updateTime", "T");
         String statusId = (String)this.safeStringUpperN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "X", "orderStatus")));
         Object feeCurrencyCode = this.safeString2(order, "feeAsset", "N");
         String feeCost = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "commission", "n")));
@@ -4740,7 +4740,7 @@ public class BingxCore extends BingxApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -5881,7 +5881,7 @@ public class BingxCore extends BingxApi
         String tranId = this.safeString(transfer, "transferId");
         Object timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "asset");
-        Object currencyCode = this.safeCurrencyCode(currencyId, currency);
+        String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transfer, "status");
         Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         String fromId = this.safeString(transfer, "fromAccount");
@@ -5901,7 +5901,7 @@ public class BingxCore extends BingxApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CONFIRMED", "ok" );
@@ -6233,7 +6233,7 @@ public class BingxCore extends BingxApi
         String id = this.safeString(transaction, "id", dataId);
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "addressTag");
-        Object timestamp = this.safeInteger2(transaction, "insertTime", "timestamp");
+        Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "timestamp");
         Object datetime = this.iso8601(timestamp);
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
@@ -6284,7 +6284,7 @@ public class BingxCore extends BingxApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "pending" );

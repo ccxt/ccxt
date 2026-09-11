@@ -141,7 +141,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 Object firstSymbol = this.safeString(firstMarket, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{firstSymbol, limit});
             }
-            Object result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
+            java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/20755599430/job/59597237029?pr=27624#step:11:611
         });
 
@@ -545,7 +545,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 

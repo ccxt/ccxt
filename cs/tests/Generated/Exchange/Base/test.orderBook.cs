@@ -34,13 +34,13 @@ public partial class testMainClass : BaseTest
         int bidsLength = getArrayLength(bids);
         for (int i = 0; isLessThan(i, bidsLength); postFixIncrement(ref i))
         {
-            object currentBidString = exchange.safeString(getValue(bids, i), 0);
+            string? currentBidString = exchange.safeString(getValue(bids, i), 0);
             if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
             {
                 object nextI = add(i, 1);
                 if (isTrue(isGreaterThan(bidsLength, nextI)))
                 {
-                    object nextBidString = exchange.safeString(getValue(bids, nextI), 0);
+                    string? nextBidString = exchange.safeString(getValue(bids, nextI), 0);
                     assert(Precise.stringGt(currentBidString, nextBidString), add(add(add(add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
                 }
             }
@@ -55,13 +55,13 @@ public partial class testMainClass : BaseTest
         int asksLength = getArrayLength(asks);
         for (int i = 0; isLessThan(i, asksLength); postFixIncrement(ref i))
         {
-            object currentAskString = exchange.safeString(getValue(asks, i), 0);
+            string? currentAskString = exchange.safeString(getValue(asks, i), 0);
             if (!isTrue((inOp(skippedProperties, "compareToNextItem"))))
             {
                 object nextI = add(i, 1);
                 if (isTrue(isGreaterThan(asksLength, nextI)))
                 {
-                    object nextAskString = exchange.safeString(getValue(asks, nextI), 0);
+                    string? nextAskString = exchange.safeString(getValue(asks, nextI), 0);
                     assert(Precise.stringLt(currentAskString, nextAskString), add(add(add(add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
                 }
             }
@@ -76,8 +76,8 @@ public partial class testMainClass : BaseTest
         {
             if (isTrue(isTrue((isGreaterThan(bidsLength, 0))) && isTrue((isGreaterThan(asksLength, 0)))))
             {
-                object firstBid = exchange.safeString(getValue(bids, 0), 0);
-                object firstAsk = exchange.safeString(getValue(asks, 0), 0);
+                string? firstBid = exchange.safeString(getValue(bids, 0), 0);
+                string? firstAsk = exchange.safeString(getValue(asks, 0), 0);
                 // check bid-ask spread
                 assert(Precise.stringLt(firstBid, firstAsk), add(add(add(add(add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
             }

@@ -641,10 +641,10 @@ public class DydxCore extends DydxApi
         Object parts = Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object settleId = "USDC";
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object contract = true;
         Object swap = true;
@@ -779,7 +779,7 @@ public class DydxCore extends DydxApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(trade, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(trade, "createdAt"));
         String symbol = this.safeString(market, "symbol");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "size");
@@ -1012,7 +1012,7 @@ public class DydxCore extends DydxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
-                Object timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
+                Long timestamp = this.parse8601(this.safeString(entry, "effectiveAt"));
                 String marketId = this.safeString(entry, "ticker");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -1077,14 +1077,14 @@ public class DydxCore extends DydxApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.parseOrderStatus(this.safeStringUpper(order, "status"));
+        String status = this.parseOrderStatus(this.safeStringUpper(order, "status"));
         String marketId = this.safeString(order, "ticker");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "totalFilled");
-        Object timestamp = this.parse8601(this.safeString(order, "updatedAt"));
+        Long timestamp = this.parse8601(this.safeString(order, "updatedAt"));
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "size");
-        Object type = this.parseOrderType(this.safeStringUpper(order, "type"));
+        String type = this.parseOrderType(this.safeStringUpper(order, "type"));
         String side = (String)this.safeStringLower(order, "side");
         String timeInForce = (String)this.safeStringUpper(order, "timeInForce");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1114,7 +1114,7 @@ public class DydxCore extends DydxApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "UNTRIGGERED", "open" );
@@ -1126,7 +1126,7 @@ public class DydxCore extends DydxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "LIMIT" );
@@ -1137,7 +1137,7 @@ public class DydxCore extends DydxApi
             put( "TAKE_PROFIT_MARKET", "MARKET" );
             put( "TRAILING_STOP", "MARKET" );
         }};
-        return this.safeStringUpper(types, type, type);
+        return (String) this.safeStringUpper(types, type, type);
     }
 
     /**
@@ -1345,7 +1345,7 @@ public class DydxCore extends DydxApi
         {
             quantity = Precise.stringMul("-1", quantity);
         }
-        Object timestamp = this.parse8601(this.safeString(position, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(position, "createdAt"));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -2183,7 +2183,7 @@ public class DydxCore extends DydxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String type = (String)this.safeStringUpper(item, "type");
         Object direction = null;
@@ -2198,7 +2198,7 @@ public class DydxCore extends DydxApi
             }
         }
         String amount = this.safeString(item, "size");
-        Object timestamp = this.parse8601(this.safeString(item, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
         Object sender = this.safeDict(item, "sender");
         Object recipient = this.safeDict(item, "recipient");
         final Object finalDirection = direction;
@@ -2483,13 +2483,13 @@ public class DydxCore extends DydxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transfer, "id");
         String currencyId = this.safeString(transfer, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object amount = this.safeNumber(transfer, "size");
         Object sender = this.safeDict(transfer, "sender");
         Object recipient = this.safeDict(transfer, "recipient");
         String fromAccount = this.safeString(sender, "address");
         String toAccount = this.safeString(recipient, "address");
-        Object timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", id );
@@ -2574,8 +2574,8 @@ public class DydxCore extends DydxApi
         String addressFrom = this.safeString(sender, "address");
         String txid = this.safeString(transaction, "transactionHash");
         String currencyId = this.safeString(transaction, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
         Object amount = this.safeNumber(transaction, "size");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );

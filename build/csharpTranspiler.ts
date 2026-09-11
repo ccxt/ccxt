@@ -651,6 +651,12 @@ const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
 // this.markets / this.currencies / this.markets_by_id / this.currencies_by_id hold plain
 // Dictionary<string, object> rows (setMarkets builds each row with deepExtend and toArray
 // de-types the typed fetchMarkets list before the merge), so naming the type moves no box.
+// The row BUILDERS (parseMarket / parseCurrency / createExpiredOptionMarket) return the
+// same family of rows: a census of all 119 declarations found every return path ending in
+// safeMarketStructure / safeCurrencyStructure, this.extend / deepExtend, a fresh
+// Dictionary literal, or a peer builder that resolves to one of those (poloniex's
+// parseMarket forwards to parseSpot/SwapMarket, both ending in safeMarketStructure), so
+// the ToDict funnel below is identity for them too.
 // Every declaration (the BaseExchange original and every venue override — C# overrides are
 // invariant) is rewritten, and each return expression is funnelled through ToDict (`as`
 // cast: identity for these rows, null for null) unless it already hands the dictionary back
@@ -663,6 +669,9 @@ const SYNC_TYPED_CORES: Record<string, string> = {
     'safeCurrency': 'Dictionary<string, object>',
     'market': 'Dictionary<string, object>',
     'currency': 'Dictionary<string, object>',
+    'parseMarket': 'Dictionary<string, object>',
+    'parseCurrency': 'Dictionary<string, object>',
+    'createExpiredOptionMarket': 'Dictionary<string, object>',
 };
 
 // Generated C# core parameters that can be narrowed from `object` to `string`.
@@ -769,6 +778,9 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'fetchUtaCanceledAndClosedOrders': { 1: 'Int64?', 2: 'Int64?' },
     'fetchUtaOrdersByStatus': { 2: 'Int64?', 3: 'Int64?' },
     'fetchWithdrawals': { 1: 'Int64?', 2: 'Int64?' },
+    // cs-5: TS `amount: number` (required) -> double; the four call sites (bingx/lighter
+    // addMargin/reduceMargin) get the ToDoubleArgRequired wrap.
+    'setMargin': { 1: 'double' },
     'transfer': { 1: 'double' },
     'watchMyTrades': { 1: 'Int64?', 2: 'Int64?' },
     // additional watch* numeric args, same evidence gate as above (build/tmp_watch_args.py)
@@ -940,6 +952,13 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchGreeks': [ 0 ],
     'fetchIndexOHLCV': [ 0, 1 ],
     'fetchIsolatedBorrowRate': [ 0 ],
+    // cs-5: first-parameter symbol/id positions admitted by build/analyzeCoreArgs.py on the
+    // current tree (the table predates these methods). Every call site already passes a
+    // string-typed arg (blockchaincom fetchOrderBook -> fetchL3OrderBook, weex fetchPosition
+    // -> fetchPositionsForSymbol) or receives the standard ((string)…) wrap (bingx/lighter
+    // addMargin/reduceMargin -> setMargin).
+    'fetchL2OrderBook': [ 0 ],
+    'fetchL3OrderBook': [ 0 ],
     'fetchLedger': [ 0 ],
     'fetchLedgerByEntries': [ 0 ],
     'fetchLedgerEntriesByIds': [ 1 ],
@@ -964,7 +983,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOHLCVRequest': [ 1 ],
     'fetchOHLCVWs': [ 0, 1 ],
     'fetchOpenInterest': [ 0 ],
-    'fetchOpenInterestHistory': [ 1 ],
+    'fetchOpenInterestHistory': [ 0, 1 ],
     'fetchOpenOrder': [ 0, 1 ],
     'fetchOpenOrders': [ 0 ],
     'fetchOpenOrdersWs': [ 0 ],
@@ -974,6 +993,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOrder': [ 0, 1 ],
     'fetchOrderBook': [ 0 ],
     'fetchOrderBookWs': [ 0 ],
+    'fetchOrderStatus': [ 0, 1 ],
     'fetchOrderTrades': [ 0, 1 ],
     'fetchOrderWithClientOrderId': [ 0, 1 ],
     'fetchOrderWs': [ 0, 1 ],
@@ -987,6 +1007,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchPositionHistory': [ 0 ],
     'fetchPositionMode': [ 0 ],
     'fetchPositionWs': [ 0 ],
+    'fetchPositionsForSymbol': [ 0 ],
     'fetchPositionsForSymbolWs': [ 0 ],
     'fetchPremiumIndexOHLCV': [ 0, 1 ],
     'fetchSettlements': [ 0 ],
@@ -1036,6 +1057,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'requestWalletHistoryRows': [ 2 ],
     'safeDeterministicCall': [ 4 ],
     'setLeverage': [ 1 ],
+    'setMargin': [ 0 ],
     'setMarginMode': [ 0, 1 ],
     'setPositionMode': [ 1 ],
     'transfer': [ 0, 2, 3 ],

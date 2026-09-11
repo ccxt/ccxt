@@ -384,8 +384,8 @@ public class BitbankCore extends BitbankApi
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
         String quoteId = this.safeString(entry, "quote_asset");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -443,7 +443,7 @@ public class BitbankCore extends BitbankApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -669,7 +669,7 @@ public class BitbankCore extends BitbankApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object pairs = this.safeValue(data, "pairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object pairs = this.safeList(data, "pairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
@@ -784,12 +784,12 @@ public class BitbankCore extends BitbankApi
             put( "datetime", null );
         }};
         Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object assets = this.safeValue(data, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object assets = this.safeList(data, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
             Object balance = Helpers.GetValue(assets, i);
             String currencyId = this.safeString(balance, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "free_amount"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked_amount"));
@@ -859,7 +859,7 @@ public class BitbankCore extends BitbankApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "UNFILLED", "open" );
@@ -883,7 +883,7 @@ public class BitbankCore extends BitbankApi
         String filled = this.safeString(order, "executed_amount");
         String remaining = this.safeString(order, "remaining_amount");
         String average = this.safeString(order, "average_price");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String type = (String)this.safeStringLower(order, "type");
         String side = (String)this.safeStringLower(order, "side");
         final Object finalMarket = market;

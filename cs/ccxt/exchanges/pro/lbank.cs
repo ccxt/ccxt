@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class lbank { public lbank(object args = null) : base(args) { } }
 public partial class lbank : ccxt.lbank
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -808,7 +808,7 @@ public partial class lbank : ccxt.lbank
         ((IDictionary<string,object>)this.balance)["datetime"] = datetime;
         string? currencyId = this.safeString(data, "assetCode");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "free");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "freeze");
         ((IDictionary<string,object>)account)["total"] = this.safeString(data, "asset");

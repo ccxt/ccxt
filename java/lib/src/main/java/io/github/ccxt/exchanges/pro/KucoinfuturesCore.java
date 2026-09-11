@@ -123,12 +123,12 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
 
     }
 
-    public Object parseTransferType(Object transferType)
+    public String parseTransferType(Object transferType)
     {
         Object transferTypes = new java.util.HashMap<String, Object>() {{
             put( "spot", "TRADE" );
             put( "funding", "MAIN" );
         }};
-        return this.safeStringUpper(transferTypes, transferType, transferType);
+        return (String) this.safeStringUpper(transferTypes, transferType, transferType);
     }
 }

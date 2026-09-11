@@ -1476,7 +1476,7 @@ export default class bybit extends bybitRest {
         const executionFast = topic === 'execution.fast';
         let data = this.safeValue (message, 'data', []);
         if (!Array.isArray (data)) {
-            data = this.safeValue (data, 'result', []);
+            data = this.safeList (data, 'result', []);
         }
         if (this.myTrades === undefined) {
             const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
@@ -1660,7 +1660,7 @@ export default class bybit extends bybitRest {
         }
         const cache = this.positions;
         const newPositions: Position[] = [];
-        const rawPositions = this.safeValue (message, 'data', []);
+        const rawPositions = this.safeList (message, 'data', []);
         for (let i = 0; i < rawPositions.length; i++) {
             const rawPosition = rawPositions[i];
             const position = this.parsePosition (rawPosition);
@@ -2033,7 +2033,7 @@ export default class bybit extends bybitRest {
             this.orders = new ArrayCacheBySymbolById (limit);
         }
         const orders = this.orders;
-        let rawOrders = this.safeValue (message, 'data', []);
+        let rawOrders = this.safeList (message, 'data', []);
         const first = this.safeValue (rawOrders, 0, {});
         const category = this.safeString (first, 'category');
         const isSpot = category === 'spot';
@@ -2276,7 +2276,7 @@ export default class bybit extends bybitRest {
         let account: Str = undefined;
         if (topic === 'outboundAccountInfo') {
             account = 'spot';
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 const B = this.safeValue (data[i], 'B', []);
                 rawBalances = this.arrayConcat (rawBalances, B);

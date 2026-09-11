@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitmex { public bitmex(object args = null) : base(args) { } }
 public partial class bitmex : ccxt.bitmex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -468,7 +468,7 @@ public partial class bitmex : ccxt.bitmex
         //        ]
         //    }
         //
-        object rawLiquidations = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         List<object> newLiquidations = new List<object>() {};
         if (isTrue(isEqual(this.liquidations, null)))
         {
@@ -760,7 +760,7 @@ public partial class bitmex : ccxt.bitmex
         if (isTrue(isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
-            var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+            Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
             (future as Future).resolve(true);
         } else
         {
@@ -967,7 +967,7 @@ public partial class bitmex : ccxt.bitmex
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
-        object rawPositions = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawPositions = this.safeList(message, "data", new List<object>() {});
         List<object> newPositions = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
@@ -997,7 +997,7 @@ public partial class bitmex : ccxt.bitmex
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1206,7 +1206,7 @@ public partial class bitmex : ccxt.bitmex
         //         ]
         //     }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string messageHash = "order";
         // initial subscription response with multiple orders
         int dataLength = getArrayLength(data);
@@ -1602,7 +1602,7 @@ public partial class bitmex : ccxt.bitmex
         string interval = ((string)((string)table)).Replace((string)"tradeBin", (string)"");
         object timeframe = this.findTimeframe(interval);
         int duration = this.parseTimeframe(timeframe);
-        object candles = this.safeValue(message, "data", new List<object>() {});
+        List<object> candles = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> results = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(candles)); postFixIncrement(ref i))
         {
@@ -1700,7 +1700,7 @@ public partial class bitmex : ccxt.bitmex
         {
             return;  // protecting from weird updates
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         // if it's an initial snapshot
         if (isTrue(isEqual(action, "partial")))
         {
@@ -1833,7 +1833,7 @@ public partial class bitmex : ccxt.bitmex
         if (isTrue(!isEqual(error, null)))
         {
             object request = this.safeValue(message, "request", new Dictionary<string, object>() {});
-            object args = this.safeValue(request, "args", new List<object>() {});
+            List<object> args = this.safeList(request, "args", new List<object>() {});
             int numArgs = getArrayLength(args);
             if (isTrue(isGreaterThan(numArgs, 0)))
             {

@@ -419,7 +419,7 @@ public class BitoproCore extends BitoproApi
     {
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object deposit = this.safeBool(rawCurrency, "deposit");
         Object withdraw = this.safeBool(rawCurrency, "withdraw");
         Object isFiat = this.inArray(code, fiatCurrencies);
@@ -502,8 +502,8 @@ public class BitoproCore extends BitoproApi
         Object uppercaseId = ((String)id).toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object limits = new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
@@ -802,7 +802,7 @@ public class BitoproCore extends BitoproApi
         }
         Object fee = null;
         String feeAmount = this.safeString(trade, "fee");
-        Object feeSymbol = this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
+        String feeSymbol = (String) this.safeCurrencyCode(this.safeString(trade, "feeSymbol"));
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;
@@ -1070,7 +1070,7 @@ public class BitoproCore extends BitoproApi
             //         ]
             //     }
             //
-            Object sparse = this.parseOHLCVs(data, market, timeframe, since, limit);
+            java.util.List<Object> sparse = this.parseOHLCVs(data, market, timeframe, since, limit);
             return this.insertMissingCandles(sparse, timeframeInSeconds, alignedSince, limit);
         });
 
@@ -1141,7 +1141,7 @@ public class BitoproCore extends BitoproApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             String amount = this.safeString(balance, "amount");
             String available = this.safeString(balance, "available");
             Object account = new java.util.HashMap<String, Object>() {{
@@ -1194,7 +1194,7 @@ public class BitoproCore extends BitoproApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "-1", "open" );
@@ -1246,7 +1246,7 @@ public class BitoproCore extends BitoproApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(order, "id", "orderId");
-        Object timestamp = this.safeInteger2(order, "timestamp", "createdTimestamp");
+        Long timestamp = (Long) this.safeInteger2(order, "timestamp", "createdTimestamp");
         Object side = this.safeString(order, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -1259,7 +1259,7 @@ public class BitoproCore extends BitoproApi
         market = this.safeMarket(marketId, market, "_");
         String symbol = this.safeString(market, "symbol");
         String orderStatus = this.safeString(order, "status");
-        Object status = this.parseOrderStatus(orderStatus);
+        String status = this.parseOrderStatus(orderStatus);
         String type = (String)this.safeStringLower(order, "type");
         String average = this.safeString(order, "avgExecutionPrice");
         String filled = this.safeString(order, "executedAmount");
@@ -1272,7 +1272,7 @@ public class BitoproCore extends BitoproApi
         }
         Object fee = null;
         String feeAmount = this.safeString(order, "fee");
-        Object feeSymbol = this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
+        String feeSymbol = (String) this.safeCurrencyCode(this.safeString(order, "feeSymbol"));
         if (Helpers.isTrue(Precise.stringGt(feeAmount, "0")))
         {
             fee = new java.util.HashMap<String, Object>() {{
@@ -1811,7 +1811,7 @@ final Object finalJ = j;
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object states = new java.util.HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
@@ -1875,7 +1875,7 @@ final Object finalJ = j;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transaction, "timestamp");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "message");

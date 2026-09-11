@@ -701,7 +701,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         Object market = Helpers.GetValue(data, currencyId);
-                        Object base = this.safeCurrencyCode(currencyId);
+                        String base = (String) this.safeCurrencyCode(currencyId);
                         Object active = true;
                         if (Helpers.isTrue(Helpers.isArray(market)))
                         {
@@ -823,7 +823,7 @@ public class BithumbCore extends BithumbApi
                 Object entry = Helpers.GetValue(response, i);
                 Object account = this.account();
                 String currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1078,9 +1078,9 @@ public class BithumbCore extends BithumbApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(ticker, "date", "trade_timestamp");
+        Long timestamp = (Long) this.safeInteger2(ticker, "date", "trade_timestamp");
         String marketId = this.safeString(ticker, "market");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String close = this.safeString2(ticker, "closing_price", "trade_price");
         Object change = this.safeString2(ticker, "signed_change_price", "change_price");
         String percentage = this.safeString2(ticker, "signed_change_rate", "change_rate");
@@ -1291,7 +1291,7 @@ public class BithumbCore extends BithumbApi
                             continue;
                         }
                         Object market = this.safeMarket(marketId);
-                        Object symbol = this.safeSymbol(marketId, market);
+                        String symbol = (String) this.safeSymbol(marketId, market);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                         {
                             continue;
@@ -1342,7 +1342,7 @@ public class BithumbCore extends BithumbApi
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
                         Object ticker = Helpers.GetValue(data, currencyId);
-                        Object base = this.safeCurrencyCode(currencyId);
+                        String base = (String) this.safeCurrencyCode(currencyId);
                         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                         Object market = this.safeMarket(symbol);
                         Helpers.addElementToObject(ticker, "date", timestamp);
@@ -2406,7 +2406,7 @@ public class BithumbCore extends BithumbApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "Pending", "open" );
@@ -2547,7 +2547,7 @@ public class BithumbCore extends BithumbApi
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
             {
                 Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
-                Object normalizedTimestamp = this.parse8601(normalized);
+                Long normalizedTimestamp = this.parse8601(normalized);
                 if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
                 {
                     timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
@@ -2573,7 +2573,7 @@ public class BithumbCore extends BithumbApi
         {
             side = "sell";
         }
-        Object status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
+        String status = this.parseOrderStatus(this.safeString2(order, "order_status", "state"));
         String price = this.safeString2(order, "order_price", "price");
         String type = this.safeString2(order, "order_type", "ord_type");
         String progressCount = this.safeString(order, "progress_count");
@@ -2602,8 +2602,8 @@ public class BithumbCore extends BithumbApi
         Object symbol = null;
         String baseId = this.safeString(order, "order_currency");
         String quoteId = this.safeString(order, "payment_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -3282,7 +3282,7 @@ public class BithumbCore extends BithumbApi
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
         {
             Object normalized = Helpers.replace((String)datetime, (String)"+09:00", (String)"Z");
-            Object normalizedTimestamp = this.parse8601(normalized);
+            Long normalizedTimestamp = this.parse8601(normalized);
             if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
             {
                 timestamp = Helpers.subtract(normalizedTimestamp, Helpers.multiply(9, 3600000));
@@ -3852,7 +3852,7 @@ public class BithumbCore extends BithumbApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(response, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(response, "deposit_address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {

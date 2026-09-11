@@ -229,7 +229,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object stored = this.safeValue(this.ohlcvs, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -303,9 +303,9 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //    }
         //
         Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object datetime = this.safeString(message, "t");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         Object isSnapshot = this.safeBool(message, "r", false);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -400,7 +400,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //     ]
         //
         Object marketId = this.safeString(message, "S");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {

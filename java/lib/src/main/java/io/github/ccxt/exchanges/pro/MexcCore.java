@@ -198,7 +198,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         this.handleBidAsk(client, message);
         Object rawTicker = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "publicAggreBookTicker")));
         Object marketId = this.safeString2(message, "s", "symbol");
-        Object timestamp = this.safeInteger2(message, "t", "sendTime");
+        Long timestamp = (Long) this.safeInteger2(message, "t", "sendTime");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = null;
@@ -895,7 +895,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object msg = this.safeString(message, "msg", "");
         Object parts = Helpers.split(msg, "@");
         Object marketId = this.safeString(parts, 2);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
     }
 
@@ -999,7 +999,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "publicAggreDepths")));
         Object marketId = this.safeString2(message, "s", "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object subscription = this.safeValue(client.subscriptions, messageHash);
         Object limit = this.safeInteger(subscription, "limit");
@@ -1392,11 +1392,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(trade, "T", "time");
+        Long timestamp = (Long) this.safeInteger2(trade, "T", "time");
         Object tradeId = this.safeString2(trade, "t", "tradeId");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
-            timestamp = this.safeInteger(trade, "t");
+            timestamp = (Long) this.safeInteger(trade, "t");
             tradeId = null;
         }
         Object priceString = this.safeString2(trade, "p", "price");
@@ -1706,7 +1706,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status, Object... optionalArgs)
+    public String parseWsOrderStatus(Object status, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object statuses = new java.util.HashMap<String, Object>() {{
@@ -1724,7 +1724,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrderType(Object type)
+    public String parseWsOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -1739,7 +1739,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         return this.safeString(types, type);
     }
 
-    public Object parseWsTimeInForce(Object timeInForce)
+    public String parseWsTimeInForce(Object timeInForce)
     {
         Object timeInForceIds = new java.util.HashMap<String, Object>() {{
             put( "1", "GTC" );
@@ -1830,8 +1830,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object type = ((Helpers.isTrue((Helpers.isEqual(channel, "spot@private.account.v3.api.pb"))))) ? "spot" : "swap";
         Object messageHash = Helpers.add("balance:", type);
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("data", "privateAccount")));
-        Object futuresTimestamp = this.safeInteger2(message, "ts", "createTime");
-        Object timestamp = this.safeInteger2(data, "time", futuresTimestamp);
+        Long futuresTimestamp = (Long) this.safeInteger2(message, "ts", "createTime");
+        Long timestamp = (Long) this.safeInteger2(data, "time", futuresTimestamp);
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});
@@ -1840,7 +1840,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "datetime", this.iso8601(timestamp));
         Object currencyId = this.safeString2(data, "currency", "vcoinName");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString2(data, "balanceAmount", "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString2(data, "frozenBalance", "frozenAmount"));

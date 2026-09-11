@@ -32,7 +32,7 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {
             { "foo", "c" },
         }};
-            object currentValue = exchange.filterBy(sampleArray, "foo", "a");
+            List<object> currentValue = exchange.filterBy(sampleArray, "foo", "a");
             List<object> storedValue = new List<object>() {new Dictionary<string, object>() {
             { "foo", "a" },
         }, new Dictionary<string, object>() {

@@ -469,7 +469,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 limit = Helpers.callDynamically(candles, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(candles, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -719,7 +719,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object marketId = this.safeString(message, "s");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object timestamp = this.safeInteger(message, "E");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -1104,7 +1104,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         }});
     }
 
-    public Object parseWsPositionSide(Object rawPositionSide)
+    public String parseWsPositionSide(Object rawPositionSide)
     {
         Object sides = new java.util.HashMap<String, Object>() {{
             put( "1", "long" );
@@ -1238,7 +1238,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 Object balance = Helpers.GetValue(balances, i);
                 Object currencyId = this.safeString(balance, "a");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "wb"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "tfm"));

@@ -2235,7 +2235,7 @@ public class LimitlessCore extends LimitlessApi
         Object amount = this.safeString(rawOrder, amountKey);
         Object remaining = this.safeString(rawOrder, "remainingSize");
         Object datetime = this.safeString(rawOrder, "createdAt");
-        Object ts = this.parse8601(datetime);
+        Long ts = this.parse8601(datetime);
         Object timeInForce = this.safeString2(rawOrder, "type", "orderType");
         Object type = null;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
@@ -2314,7 +2314,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {string} status the raw limitless order status
      * @returns {string} the unified order status
      */
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "LIVE", "open" );
@@ -2335,7 +2335,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {string} timeInForce the raw limitless time in force
      * @returns {string} the unified time in force
      */
-    public Object parseOrderTimeInForce(Object timeInForce)
+    public String parseOrderTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "FAK", "FOK" );
@@ -2351,7 +2351,7 @@ public class LimitlessCore extends LimitlessApi
      * @param {string} side the raw limitless order side
      * @returns {string} the unified order side
      */
-    public Object parseOrderSide(Object side)
+    public String parseOrderSide(Object side)
     {
         Object sides = new java.util.HashMap<String, Object>() {{
             put( "BUY", "buy" );
@@ -2362,7 +2362,7 @@ public class LimitlessCore extends LimitlessApi
         return this.safeString(sides, side, side);
     }
 
-    public Object applyScale(Object amount, Object... optionalArgs)
+    public String applyScale(Object amount, Object... optionalArgs)
     {
         Object multiply = Helpers.getArg(optionalArgs, 0, false);
         Object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
@@ -3095,7 +3095,7 @@ public class LimitlessCore extends LimitlessApi
         if (Helpers.isTrue(!Helpers.isEqual(matchedSize, null)))
         {
             // public market events feed trade, see fetchTrades for the response sample
-            Object ts = this.parse8601(this.safeString(trade, "createdAt"));
+            Long ts = this.parse8601(this.safeString(trade, "createdAt"));
             Object sideRaw = this.safeString(trade, "side");
             Object feedSide = null;
             if (Helpers.isTrue(Helpers.isEqual(sideRaw, "0")))

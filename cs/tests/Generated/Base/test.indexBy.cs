@@ -37,7 +37,7 @@ public partial class BaseTest
                     { "val", 3 },
                 } },
             };
-            object result1 = exchange.indexBy(input1, "id");
+            Dictionary<string, object> result1 = exchange.indexBy(input1, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result1, expected1);
             // Test 2: Skip elements with None/undefined values
             List<object> input2 = new List<object>() {new Dictionary<string, object>() {
@@ -57,7 +57,7 @@ public partial class BaseTest
                     { "val", 3 },
                 } },
             };
-            object result2 = exchange.indexBy(input2, "id");
+            Dictionary<string, object> result2 = exchange.indexBy(input2, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result2, expected2);
             // Test 3: Skip elements missing the key
             List<object> input3 = new List<object>() {new Dictionary<string, object>() {
@@ -79,12 +79,12 @@ public partial class BaseTest
                     { "val", 3 },
                 } },
             };
-            object result3 = exchange.indexBy(input3, "id");
+            Dictionary<string, object> result3 = exchange.indexBy(input3, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result3, expected3);
             // Test 4: Empty array
             List<object> input4 = new List<object>() {};
             Dictionary<string, object> expected4 = new Dictionary<string, object>() {};
-            object result4 = exchange.indexBy(input4, "id");
+            Dictionary<string, object> result4 = exchange.indexBy(input4, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result4, expected4);
             // Test 5: Duplicate keys (last one wins)
             List<object> input5 = new List<object>() {new Dictionary<string, object>() {
@@ -103,7 +103,7 @@ public partial class BaseTest
                     { "val", 3 },
                 } },
             };
-            object result5 = exchange.indexBy(input5, "id");
+            Dictionary<string, object> result5 = exchange.indexBy(input5, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result5, expected5);
             // Test 6: Numeric key values
             List<object> input6 = new List<object>() {new Dictionary<string, object>() {
@@ -130,7 +130,7 @@ public partial class BaseTest
                     { "name", "three" },
                 } },
             };
-            object result6 = exchange.indexBy(input6, "code");
+            Dictionary<string, object> result6 = exchange.indexBy(input6, "code");
             AssertDeepEqual(exchange, null, "testIndexBy", result6, expected6);
             // Test 7: List of arrays with integer key
             List<object> input7 = new List<object>() {new List<object>() {"a", 1}, new List<object>() {"b", 2}, new List<object>() {"c", 3}};
@@ -139,7 +139,7 @@ public partial class BaseTest
                 { "b", new List<object>() {"b", 2} },
                 { "c", new List<object>() {"c", 3} },
             };
-            object result7 = exchange.indexBy(input7, 0);
+            Dictionary<string, object> result7 = exchange.indexBy(input7, 0);
             AssertDeepEqual(exchange, null, "testIndexBy", result7, expected7);
             // Test 8: Single element
             List<object> input8 = new List<object>() {new Dictionary<string, object>() {
@@ -152,7 +152,7 @@ public partial class BaseTest
                     { "val", 42 },
                 } },
             };
-            object result8 = exchange.indexBy(input8, "id");
+            Dictionary<string, object> result8 = exchange.indexBy(input8, "id");
             AssertDeepEqual(exchange, null, "testIndexBy", result8, expected8);
         }
 }

@@ -1055,7 +1055,7 @@ public class WeexCore extends WeexApi
     public Object parseCurrency(Object rawCurrency)
     {
         String currencyId = this.safeString(rawCurrency, "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String name = this.safeString(rawCurrency, "name");
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1216,9 +1216,9 @@ public class WeexCore extends WeexApi
         String baseId = this.safeString(market, "baseAsset");
         String quoteId = this.safeString(market, "quoteAsset");
         String settleId = this.safeString(market, "marginAsset");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settle = this.safeCurrencyCode(settleId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object active = true;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object isSpot = true;
@@ -1545,7 +1545,7 @@ public class WeexCore extends WeexApi
             marketType = "swap";
         }
         market = this.safeMarket(marketId, market, null, marketType);
-        Object timestamp = this.safeInteger2(ticker, "closeTime", "time");
+        Long timestamp = (Long) this.safeInteger2(ticker, "closeTime", "time");
         Object percentage = Precise.stringMul(this.safeString(ticker, "priceChangePercent"), "100");
         final Object finalMarket = market;
         final Object finalMarkPrice = markPrice;
@@ -2229,7 +2229,7 @@ public class WeexCore extends WeexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "swap");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(interest, "time");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2299,7 +2299,7 @@ public class WeexCore extends WeexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "swap");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(contract, "time");
         Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         Object interval = null;
@@ -2394,7 +2394,7 @@ public class WeexCore extends WeexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "swap");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
         Object timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -2507,7 +2507,7 @@ public class WeexCore extends WeexApi
             {
                 currencyId = "USDT"; // demo trading balances are denominated in the demo asset SUSDT
             }
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(entry, "availableBalance", "free"));
             Helpers.addElementToObject(account, "used", this.safeString2(entry, "frozen", "locked"));
@@ -2596,7 +2596,7 @@ public class WeexCore extends WeexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transfer, "tradeTime");
         String currencyId = this.safeString(transfer, "coinName");
-        Object currencyCode = this.safeCurrencyCode(currencyId, currency);
+        String currencyCode = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transfer, "status");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
@@ -2611,7 +2611,7 @@ public class WeexCore extends WeexApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "Successful", "ok" );
@@ -3028,7 +3028,7 @@ public class WeexCore extends WeexApi
         return this.extend(request, parameters);
     }
 
-    public Object encodeTriggerPriceType(Object triggerPriceType)
+    public String encodeTriggerPriceType(Object triggerPriceType)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "mark", "MARK_PRICE" );
@@ -3984,7 +3984,7 @@ public class WeexCore extends WeexApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
@@ -3999,7 +3999,7 @@ public class WeexCore extends WeexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
@@ -4345,9 +4345,9 @@ public class WeexCore extends WeexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(item, "coinName", "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger2(item, "cTime", "time");
+        Long timestamp = (Long) this.safeInteger2(item, "cTime", "time");
         String amountRaw = this.safeString2(item, "deltaAmount", "income");
         String after = this.safeString2(item, "afterAmount", "balance");
         Object before = Precise.stringSub(after, amountRaw);
@@ -4395,7 +4395,7 @@ public class WeexCore extends WeexApi
         }}, currency);
     }
 
-    public Object parseLedgerType(Object type)
+    public String parseLedgerType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "transfer_in", "transfer" );
@@ -4693,7 +4693,7 @@ public class WeexCore extends WeexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.contractPrivatePostCapiV3ClosePositions(this.extend(request, parameters))).join();
-            Object orders = this.parseOrders(response, market);
+            java.util.List<Object> orders = this.parseOrders(response, market);
             return this.safeDict(orders, 0);
         });
 
@@ -4842,7 +4842,7 @@ public class WeexCore extends WeexApi
         }};
     }
 
-    public Object parseMarginType(Object marginType)
+    public String parseMarginType(Object marginType)
     {
         Object marginTypes = new java.util.HashMap<String, Object>() {{
             put( "CROSSED", "cross" );
@@ -4962,7 +4962,7 @@ public class WeexCore extends WeexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
         String marginType = this.safeString(leverage, "marginType");
-        Object marginMode = this.parseMarginType(marginType);
+        String marginMode = this.parseMarginType(marginType);
         Object crossLeverage = this.safeNumber(leverage, "crossLeverage");
         Object longLeverage = this.safeNumber(leverage, "isolatedLongLeverage");
         Object shortLeverage = this.safeNumber(leverage, "isolatedShortLeverage");

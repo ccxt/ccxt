@@ -1003,9 +1003,9 @@ public class GrvtCore extends GrvtApi
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         Object settleId = quoteId;
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settle = this.safeCurrencyCode(settleId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object type = null;
         String typeRaw = this.safeString(market, "kind");
@@ -1119,7 +1119,7 @@ public class GrvtCore extends GrvtApi
         //            },
         //
         String id = this.safeString(rawCurrency, "symbol");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "info", rawCurrency );
             put( "id", id );
@@ -1323,7 +1323,7 @@ public class GrvtCore extends GrvtApi
             //    }
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.parse8601(this.safeString(result, "event_time"));
+            Long timestamp = this.parse8601(this.safeString(result, "event_time"));
             String marketId = this.safeString(result, "instrument");
             return this.parseOrderBook(result, this.safeSymbol(marketId), timestamp, "bids", "asks", "price", "size");
         });
@@ -1700,7 +1700,7 @@ public class GrvtCore extends GrvtApi
         }};
     }
 
-    public Object getSubAccountId(Object parameters)
+    public String getSubAccountId(Object parameters)
     {
         Object subAccountId = null;
         var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "getSubAccountId", "accountId");
@@ -1806,7 +1806,7 @@ public class GrvtCore extends GrvtApi
         {
             Object balance = Helpers.GetValue(spotBalances, i);
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "free", availableBalance); // todo: revise after API team clarification
@@ -2096,7 +2096,7 @@ public class GrvtCore extends GrvtApi
         String addressFrom = this.safeString(transaction, "from_account_id");
         String addressTo = this.safeString(transaction, "to_account_id");
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         if (Helpers.isTrue(Helpers.inOp(transaction, "transfer_metadata")))
         {
             Object metaData = this.omitZero(this.safeString(transaction, "transfer_metadata"));
@@ -2374,7 +2374,7 @@ public class GrvtCore extends GrvtApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
@@ -2572,7 +2572,7 @@ public class GrvtCore extends GrvtApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             Object isMarketOrder = (Helpers.isEqual(type, "market"));
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             Object isReduceOnly = this.safeBool(parameters, "reduceOnly", false);
             final Object finalClientOrderId = clientOrderId;
             Object orderRequest = new java.util.HashMap<String, Object>() {{
@@ -3344,7 +3344,7 @@ public class GrvtCore extends GrvtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
             }};
@@ -3547,7 +3547,7 @@ public class GrvtCore extends GrvtApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object subAccountId = this.getSubAccountId(parameters);
+            String subAccountId = this.getSubAccountId(parameters);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccountId );
             }};
@@ -3769,7 +3769,7 @@ public class GrvtCore extends GrvtApi
         }}, market);
     }
 
-    public Object parseTimeInForce(Object type)
+    public String parseTimeInForce(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "GOOD_TILL_TIME", "GTC" );
@@ -3778,7 +3778,7 @@ public class GrvtCore extends GrvtApi
             put( "ALL_OR_NONE", "ALL_OR_NONE" );
             put( "RETAIL_PRICE_IMPROVEMENT", "RETAIL_PRICE_IMPROVEMENT" );
         }};
-        return this.safeStringUpper(types, type, type);
+        return (String) this.safeStringUpper(types, type, type);
     }
 
     public Object timeInForceToInt(Object timeInForce)
@@ -3793,7 +3793,7 @@ public class GrvtCore extends GrvtApi
         return this.safeInteger(timeInForces, timeInForce, 0);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING", "pending" );
@@ -3866,7 +3866,7 @@ public class GrvtCore extends GrvtApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object subAccoubntId = this.getSubAccountId(parameters);
+            String subAccoubntId = this.getSubAccountId(parameters);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", subAccoubntId );
             }};
@@ -4017,7 +4017,7 @@ public class GrvtCore extends GrvtApi
     public Object handleUntilOptionString(Object key, Object request, Object parameters, Object... optionalArgs)
     {
         Object multiplier = Helpers.getArg(optionalArgs, 0, 1);
-        Object until = this.safeInteger2(parameters, "until", "till");
+        Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (Helpers.isTrue(!Helpers.isEqual(until, null)))
         {
             Helpers.addElementToObject(request, key, this.numberToString(this.parseToInt(Helpers.multiply(until, multiplier))));

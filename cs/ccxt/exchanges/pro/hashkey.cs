@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class hashkey { public hashkey(object args = null) : base(args) { } }
 public partial class hashkey : ccxt.hashkey
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -859,7 +859,7 @@ public partial class hashkey : ccxt.hashkey
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve();
             callDynamically(client as WebSocketClient, "resolve", new object[] {getValue(this.balance, type), add("balance:", type)});
         }
@@ -897,7 +897,7 @@ public partial class hashkey : ccxt.hashkey
         ((IDictionary<string,object>)getValue(this.balance, type))["info"] = message;
         string? currencyId = this.safeString(balanceUpdate, "a");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(balanceUpdate, "f");
         ((IDictionary<string,object>)account)["used"] = this.safeString(balanceUpdate, "l");
         if (isTrue(isTrue((!isEqual(type, null))) && isTrue((!isEqual(code, null)))))

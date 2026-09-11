@@ -92,7 +92,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }});
     }
 
-    public Object getAccountTypeFromUrl(Object url)
+    public String getAccountTypeFromUrl(Object url)
     {
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(url, "fstream"), Helpers.opNeg(1))))
         {
@@ -1037,7 +1037,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Object marketId = this.safeString(trade, "s");
         Object defaultType = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? this.safeString(this.options, "defaultType", "spot") : Helpers.GetValue(market, "type");
-        Object symbol = this.safeSymbol(marketId, market, null, defaultType);
+        String symbol = (String) this.safeSymbol(marketId, market, null, defaultType);
         String side = (String)this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
@@ -1054,7 +1054,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Object feeCurrencyId = this.safeString(trade, "N");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );
@@ -1427,7 +1427,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -1845,7 +1845,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Object entry = Helpers.GetValue(B, i);
             Object currencyId = this.safeString(entry, "a");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(entry, "f"));
             Helpers.addElementToObject(account, "used", this.safeString(entry, "l"));
@@ -2431,7 +2431,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(feeCost, null))) && Helpers.isTrue((Precise.stringGt(feeCost, "0")))))
         {
             Object feeCurrencyId = this.safeString(order, "N");
-            Object feeCurrency = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrency = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCost );

@@ -359,9 +359,9 @@ public class BtcboxCore extends BtcboxApi
     public Object parseMarket(Object market)
     {
         String baseId = this.safeString(market, "base");
-        Object base = this.safeCurrencyCode(baseId);
+        String base = (String) this.safeCurrencyCode(baseId);
         String quoteId = this.safeString(market, "quote");
-        Object quote = this.safeCurrencyCode(quoteId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -501,7 +501,7 @@ public class BtcboxCore extends BtcboxApi
     public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -753,7 +753,7 @@ public class BtcboxCore extends BtcboxApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "part", "open" );
@@ -921,7 +921,7 @@ public class BtcboxCore extends BtcboxApi
             //      },
             // ]
             //
-            Object orders = this.parseOrders(response, market, since, limit);
+            java.util.List<Object> orders = this.parseOrders(response, market, since, limit);
             // status (open/closed/canceled) is undefined
             // btcbox does not return status, but we know it's 'open' as we queried for open orders
             if (Helpers.isTrue(Helpers.isEqual(type, "open")))

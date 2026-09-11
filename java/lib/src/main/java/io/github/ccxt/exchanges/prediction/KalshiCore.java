@@ -1688,7 +1688,7 @@ final Object finalOi = oi;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(trade, "trade_id");
-        Object ts = this.parse8601(this.safeString(trade, "created_time"));
+        Long ts = this.parse8601(this.safeString(trade, "created_time"));
         Object priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
         Object priceCents = this.safeNumber2(trade, "yes_price", "price");
         Object price = null;
@@ -1839,7 +1839,7 @@ final Object finalOi = oi;
             outcomeKey = Helpers.add(ticker, "-NO");
         }
         Object mkt = this.safeOutcome(outcomeKey, market);
-        Object ts = this.parse8601(this.safeString(fill, "created_time"));
+        Long ts = this.parse8601(this.safeString(fill, "created_time"));
         // action is the order side (buy/sell) of the held leg
         String action = (String)this.safeStringLower(fill, "action");
         Object side = ((Helpers.isTrue((Helpers.isEqual(action, "sell"))))) ? "sell" : "buy";
@@ -2134,7 +2134,7 @@ final Object finalOi = oi;
         {
             pnl = Helpers.subtract(payout, cost);
         }
-        Object ts = this.parse8601(this.safeString(settlement, "settled_time"));
+        Long ts = this.parse8601(this.safeString(settlement, "settled_time"));
         final Object finalTicker = ticker;
         final Object finalMarketResult = marketResult;
         final Object finalHeldYes = heldYes;
@@ -2430,7 +2430,7 @@ final Object finalOi = oi;
         {
             remaining = Helpers.subtract(amount, filled);
         }
-        Object ts = this.parse8601(this.safeString(order, "created_time"));
+        Long ts = this.parse8601(this.safeString(order, "created_time"));
         final Object finalSide = side;
         final Object finalPrice = price;
         final Object finalAmount = amount;
@@ -2473,7 +2473,7 @@ final Object finalOi = oi;
      * @param {string} status the raw kalshi order status
      * @returns {string} the unified order status
      */
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "resting", "open" );
@@ -3234,7 +3234,7 @@ final Object finalOi = oi;
             ((java.util.List<Object>)marketsList).add(parsed);
             totalVolume = this.sum(totalVolume, this.safeNumber2(rawMarket, "volume_fp", "volume", 0));
             totalLiquidity = this.sum(totalLiquidity, this.safeNumber2(rawMarket, "liquidity_dollars", "liquidity", 0));
-            Object marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
+            Long marketCreated = this.parse8601(this.safeString(rawMarket, "open_time"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketCreated, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(earliestCreated, null))) || Helpers.isTrue((Helpers.isLessThan(marketCreated, earliestCreated)))))))
             {
                 earliestCreated = marketCreated;
@@ -3250,7 +3250,7 @@ final Object finalOi = oi;
             {
                 allResolved = false;
             }
-            Object marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
+            Long marketClose = this.parse8601(this.safeString(rawMarket, "close_time"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketClose, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(latestClose, null))) || Helpers.isTrue((Helpers.isGreaterThan(marketClose, latestClose)))))))
             {
                 latestClose = marketClose;

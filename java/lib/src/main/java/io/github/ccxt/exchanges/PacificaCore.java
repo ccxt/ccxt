@@ -920,9 +920,9 @@ public class PacificaCore extends PacificaApi
             crossMargin = !Helpers.isEqual(isolatedOnly, true);
             isolatedMargin = true;
         }
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object settle = this.safeCurrencyCode(settleId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(isSwap))
         {
@@ -1984,7 +1984,7 @@ public class PacificaCore extends PacificaApi
         Object isTakeProfitOrder = (!Helpers.isEqual(takeProfitPrice, null));
         Object isStopLossOrder = (!Helpers.isEqual(stopLossPrice, null));
         Object isStopOrder = (!Helpers.isEqual(triggerPrice, null));
-        Object timeInForce = this.mapTimeInForce(tifRaw);
+        String timeInForce = this.mapTimeInForce(tifRaw);
         if (Helpers.isTrue(isMarket))
         {
             operationType = "create_market_order";
@@ -3005,7 +3005,7 @@ public class PacificaCore extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult(response);
-            Object orders = this.parseOrders(data, market, since, limit);
+            java.util.List<Object> orders = this.parseOrders(data, market, since, limit);
             return orders;
         });
 
@@ -3119,7 +3119,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
@@ -3131,7 +3131,7 @@ public class PacificaCore extends PacificaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object mapTimeInForce(Object tifRaw)
+    public String mapTimeInForce(Object tifRaw)
     {
         Object tifMap = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -3150,7 +3150,7 @@ public class PacificaCore extends PacificaApi
         return this.safeString(tifMap, tif);
     }
 
-    public Object mapSide(Object sideRaw)
+    public String mapSide(Object sideRaw)
     {
         Object sideMap = new java.util.HashMap<String, Object>() {{
             put( "sell", "ask" );
@@ -3159,7 +3159,7 @@ public class PacificaCore extends PacificaApi
         return this.safeString(sideMap, sideRaw, sideRaw);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "stop_limit", "limit" );
@@ -3264,7 +3264,7 @@ public class PacificaCore extends PacificaApi
         String marketId = this.safeString2(order, "symbol", "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger2(order, "created_at", "ct");
+        Long timestamp = (Long) this.safeInteger2(order, "created_at", "ct");
         String status = this.safeString2(order, "order_status", "os", "open"); // open if method is fetchOpenOrders
         String side = this.safeString(order, "side", "d");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
@@ -3650,7 +3650,7 @@ public class PacificaCore extends PacificaApi
         //
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -3983,7 +3983,7 @@ public class PacificaCore extends PacificaApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String amount = this.safeString(income, "amount");
-        Object code = this.safeCurrencyCode("USDC");
+        String code = (String) this.safeCurrencyCode("USDC");
         Object rate = this.safeNumber(income, "rate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );

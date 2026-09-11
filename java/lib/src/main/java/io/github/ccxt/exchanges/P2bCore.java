@@ -979,7 +979,7 @@ public class P2bCore extends P2bApi
         {
             Object currencyId = Helpers.GetValue(keys, i);
             Object balance = Helpers.GetValue(response, currencyId);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
             Object account = new java.util.HashMap<String, Object>() {{
@@ -1451,7 +1451,7 @@ public class P2bCore extends P2bApi
             {
                 Object marketId = Helpers.GetValue(keys, i);
                 Object marketOrders = Helpers.GetValue(result, marketId);
-                Object parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+                java.util.List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
                 orders = this.arrayConcat(orders, parsedOrders);
             }
             return orders;

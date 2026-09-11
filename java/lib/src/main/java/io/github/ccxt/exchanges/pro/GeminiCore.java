@@ -171,7 +171,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
         }
         String marketId = (String)this.safeStringLower(trade, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -395,8 +395,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = ((String)this.safeString(message, "symbol", "")).toLowerCase();
         Object market = this.safeMarket(marketId);
-        Object symbol = this.safeSymbol(marketId, market);
-        Object changes = this.safeValue(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        String symbol = (String) this.safeSymbol(marketId, market);
+        Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
         Object ohlcvsBySymbol = this.safeValue(this.ohlcvs, symbol);
         if (Helpers.isTrue(Helpers.isEqual(ohlcvsBySymbol, null)))
@@ -473,7 +473,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
     public void handleOrderBook(Client client, Object message)
     {
         Object isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
-        Object changes = this.safeValue(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String marketId = (String)this.safeStringLower(message, "symbol");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -949,7 +949,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "accepted", "open" );
@@ -962,7 +962,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseWsOrderType(Object type)
+    public String parseWsOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "exchange limit", "limit" );

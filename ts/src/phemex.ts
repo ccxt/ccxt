@@ -2060,7 +2060,7 @@ export default class phemex extends Exchange {
         //
         let timestamp: Int = undefined;
         const result: Dict = { 'info': response };
-        const data = this.safeValue (response, 'data', []);
+        const data = this.safeList (response, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'currency');
@@ -3989,7 +3989,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const positions = this.safeValue (data, 'positions', []);
+        const positions = this.safeList (data, 'positions', []);
         const result: Position[] = [];
         for (let i = 0; i < positions.length; i++) {
             const position = positions[i];
@@ -4291,7 +4291,7 @@ export default class phemex extends Exchange {
         //     }
         //
         const data = this.safeValue (response, 'data', {});
-        const rows = this.safeValue (data, 'rows', []);
+        const rows = this.safeList (data, 'rows', []);
         const result: FundingHistory[] = [];
         for (let i = 0; i < rows.length; i++) {
             const entry = rows[i];
@@ -5702,7 +5702,7 @@ export default class phemex extends Exchange {
             //
         }
         const data = this.safeValue (response, 'data', {});
-        const ranks = this.safeValue (data, 'positions', []);
+        const ranks = this.safeList (data, 'positions', []);
         const result: ADL[] = [];
         for (let i = 0; i < ranks.length; i++) {
             const rank = ranks[i];

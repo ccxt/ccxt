@@ -452,12 +452,12 @@ public class IndependentreserveCore extends IndependentreserveApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
-                Object base = this.safeCurrencyCode(baseId);
+                String base = (String) this.safeCurrencyCode(baseId);
                 Object minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(quoteCurrencyIds)); j++)
                 {
                     Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
-                    Object quote = this.safeCurrencyCode(quoteId);
+                    String quote = (String) this.safeCurrencyCode(quoteId);
                     Object id = Helpers.add(Helpers.add(baseId, "/"), quoteId);
     final Object finalBase = base;
                     final Object finalBaseId = baseId;
@@ -526,7 +526,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "CurrencyCode");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "AvailableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "TotalBalance"));
@@ -587,7 +587,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 put( "secondaryCurrencyCode", Helpers.GetValue(market, "quoteId") );
             }};
             Object response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
-            Object timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
+            Long timestamp = this.parse8601(this.safeString(response, "CreatedTimestampUtc"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "BuyOrders", "SellOrders", "Price", "Volume");
         });
 
@@ -609,7 +609,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         //     "CreatedTimestampUtc":"2022-01-14T22:52:29.5029223Z"
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
+        Long timestamp = this.parse8601(this.safeString(ticker, "CreatedTimestampUtc"));
         String baseId = this.safeString(ticker, "PrimaryCurrencyCode");
         String quoteId = this.safeString(ticker, "SecondaryCurrencyCode");
         Object defaultMarketId = null;
@@ -773,7 +773,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 orderType = "limit";
             }
         }
-        Object timestamp = this.parse8601(this.safeString(order, "CreatedTimestampUtc"));
+        Long timestamp = this.parse8601(this.safeString(order, "CreatedTimestampUtc"));
         String filled = this.safeString(order, "VolumeFilled");
         String feeRate = this.safeString(order, "FeePercent");
         Object feeCost = null;
@@ -817,7 +817,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "Open", "open" );
@@ -832,7 +832,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "Gtc", "GTC" );
@@ -1012,7 +1012,7 @@ public class IndependentreserveCore extends IndependentreserveApi
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.parse8601(Helpers.GetValue(trade, "TradeTimestampUtc"));
+        Long timestamp = this.parse8601(Helpers.GetValue(trade, "TradeTimestampUtc"));
         String id = this.safeString(trade, "TradeGuid");
         String orderId = this.safeString(trade, "OrderGuid");
         String priceString = this.safeString2(trade, "Price", "SecondaryCurrencyTradePrice");
@@ -1027,7 +1027,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         {
             marketId = Helpers.add(Helpers.add(baseId, "/"), quoteId);
         }
-        Object symbol = this.safeSymbol(marketId, market, "/");
+        String symbol = (String) this.safeSymbol(marketId, market, "/");
         String side = this.safeString(trade, "OrderType");
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -1125,7 +1125,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 Object fee = Helpers.GetValue(rows, i);
                 String currencyId = this.safeString(fee, "CurrencyCode");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object tradingFee = this.safeNumber(fee, "Fee");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
@@ -1409,7 +1409,7 @@ public class IndependentreserveCore extends IndependentreserveApi
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
         String tag = this.safeString(destination, "Tag");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", IndependentreserveCore.this.safeString(transaction, "TransactionGuid") );

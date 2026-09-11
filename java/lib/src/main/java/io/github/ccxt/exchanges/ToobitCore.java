@@ -960,7 +960,7 @@ public class ToobitCore extends ToobitApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coinId");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
@@ -1195,10 +1195,10 @@ public class ToobitCore extends ToobitApi
         String quoteId = this.safeString(market, "quoteAsset");
         Object baseParts = Helpers.split(baseId, "-");
         Object baseIdClean = Helpers.GetValue(baseParts, 0);
-        Object base = this.safeCurrencyCode(baseIdClean);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseIdClean);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "marginToken");
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Object active = (Helpers.isEqual(status, "TRADING"));
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1423,7 +1423,7 @@ public class ToobitCore extends ToobitApi
         //        },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(trade, "t", "time");
+        Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
         Object isBuyer = this.safeBool(trade, "isBuyer");
@@ -1876,7 +1876,7 @@ public class ToobitCore extends ToobitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object nextFundingRate = this.safeNumber(contract, "rate");
         Object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
@@ -2023,7 +2023,7 @@ public class ToobitCore extends ToobitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
-            Object code = this.safeCurrencyCode(this.safeString(balance, "asset"));
+            String code = (String) this.safeCurrencyCode(this.safeString(balance, "asset"));
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString2(balance, "free", "availableBalance"));
             Helpers.addElementToObject(account, "total", this.safeString2(balance, "total", "balance"));
@@ -2323,7 +2323,7 @@ public class ToobitCore extends ToobitApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger2(order, "transactTime", "time");
+        Long timestamp = (Long) this.safeInteger2(order, "transactTime", "time");
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         String rawType = this.safeString(order, "type");
@@ -2382,7 +2382,7 @@ public class ToobitCore extends ToobitApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "PENDING_NEW", "open" );
@@ -2400,7 +2400,7 @@ public class ToobitCore extends ToobitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -2460,7 +2460,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateDeleteApiV1FuturesOrder(this.extend(request, parameters))).join();
             }
             // response same as in `createOrder`
-            Object status = this.parseOrderStatus(this.safeString(response, "status"));
+            String status = this.parseOrderStatus(this.safeString(response, "status"));
             if (Helpers.isTrue(!Helpers.isEqual(status, "open")))
             {
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
@@ -3069,7 +3069,7 @@ public class ToobitCore extends ToobitApi
         }}, currency);
     }
 
-    public Object parseLedgerType(Object type)
+    public String parseLedgerType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "USER_ACCOUNT_TRANSFER", "transfer" );
@@ -3297,7 +3297,7 @@ public class ToobitCore extends ToobitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(transaction, "time");
         String currencyId = this.safeString2(transaction, "coin", "coinId");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String feeString = this.safeString(transaction, "fee");
         String feeCoin = this.safeString(transaction, "feeCoinName");
         Object fee = null;
@@ -3340,7 +3340,7 @@ public class ToobitCore extends ToobitApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "2", "pending" );

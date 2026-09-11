@@ -1518,9 +1518,9 @@ public class MexcCore extends MexcApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "coin");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
-        Object chains = this.safeValue(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -1656,7 +1656,7 @@ public class MexcCore extends MexcApi
             // Notes:
             // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
             //
-            Object data = this.safeValue(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1664,8 +1664,8 @@ public class MexcCore extends MexcApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseAsset");
                 String quoteId = this.safeString(market, "quoteAsset");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 String status = this.safeString(market, "status");
                 Object isSpotTradingAllowed = this.safeValue(market, "isSpotTradingAllowed");
                 Object active = false;
@@ -1799,7 +1799,7 @@ public class MexcCore extends MexcApi
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1808,9 +1808,9 @@ public class MexcCore extends MexcApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String settleId = this.safeString(market, "settleCoin");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 String state = this.safeString(market, "state");
                 Object isLinear = Helpers.isEqual(quote, settle);
     final Object finalBase = base;
@@ -2007,7 +2007,7 @@ public class MexcCore extends MexcApi
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object until = this.safeInteger2(parameters, "endTime", "until");
+                Long until = (Long) this.safeInteger2(parameters, "endTime", "until");
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     Helpers.addElementToObject(request, "startTime", since);
@@ -2284,7 +2284,7 @@ public class MexcCore extends MexcApi
                 put( "interval", timeframeValue );
             }};
             Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object until = this.safeInteger2(parameters, "until", "endTime");
+            Long until = (Long) this.safeInteger2(parameters, "until", "endTime");
             Object start = since;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isEqual(since, null)))))
             {
@@ -4355,7 +4355,7 @@ public class MexcCore extends MexcApi
         }}, market);
     }
 
-    public Object parseOrderSide(Object status)
+    public String parseOrderSide(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "BUY", "buy" );
@@ -4366,7 +4366,7 @@ public class MexcCore extends MexcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "MARKET", "market" );
@@ -4378,7 +4378,7 @@ public class MexcCore extends MexcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -4393,7 +4393,7 @@ public class MexcCore extends MexcApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderTimeInForce(Object status)
+    public String parseOrderTimeInForce(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -4403,7 +4403,7 @@ public class MexcCore extends MexcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object getTifFromRawOrderType(Object... optionalArgs)
+    public String getTifFromRawOrderType(Object... optionalArgs)
     {
         Object orderType = Helpers.getArg(optionalArgs, 0, null);
         Object statuses = new java.util.HashMap<String, Object>() {{
@@ -4480,13 +4480,13 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object response = (this.fetchAccountHelper(marketType, query)).join();
-            Object data = this.safeValue(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object account = Helpers.GetValue(data, i);
                 String currencyId = this.safeString2(account, "asset", "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "id", MexcCore.this.safeString(account, "id") );
                     put( "type", MexcCore.this.safeString(account, "type") );
@@ -4616,13 +4616,13 @@ public class MexcCore extends MexcApi
         Object wallet = null;
         if (Helpers.isTrue(Helpers.isEqual(marketType, "margin")))
         {
-            wallet = this.safeValue(response, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            wallet = this.safeList(response, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
         {
-            wallet = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            wallet = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         } else
         {
-            wallet = this.safeValue(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            wallet = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -4634,8 +4634,8 @@ public class MexcCore extends MexcApi
                 Object entry = Helpers.GetValue(wallet, i);
                 Object base = this.safeValue(entry, "baseAsset", new java.util.HashMap<String, Object>() {{}});
                 Object quote = this.safeValue(entry, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
-                Object baseCode = this.safeCurrencyCode(this.safeString(base, "asset"));
-                Object quoteCode = this.safeCurrencyCode(this.safeString(quote, "asset"));
+                String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "asset"));
+                String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
                 {
                     result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
@@ -4652,7 +4652,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "currency");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "availableBalance"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "frozenBalance"));
@@ -4668,7 +4668,7 @@ public class MexcCore extends MexcApi
             {
                 Object entry = Helpers.GetValue(wallet, i);
                 String currencyId = this.safeString(entry, "asset");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(entry, "free"));
                 Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
@@ -5219,7 +5219,7 @@ public class MexcCore extends MexcApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object resultList = this.safeValue(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object resultList = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
@@ -5266,7 +5266,7 @@ public class MexcCore extends MexcApi
         Object nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
         Object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "contract");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
         Object timestamp = this.safeInteger(contract, "timestamp");
         String interval = this.safeString(contract, "collectCycle");
         Object intervalString = null;
@@ -5424,13 +5424,13 @@ public class MexcCore extends MexcApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            Object result = this.safeValue(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                Object symbolInner = this.safeSymbol(marketId);
+                String symbolInner = (String) this.safeSymbol(marketId);
                 Object timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5620,7 +5620,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String address = this.safeString(depositAddress, "address");
         String currencyId = this.safeString(depositAddress, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "netWork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -6005,7 +6005,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transaction, "id", "tranId");
         Object type = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? "deposit" : "withdrawal";
-        Object timestamp = this.safeInteger2(transaction, "insertTime", "applyTime");
+        Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
         Object updated = this.safeInteger(transaction, "updateTime");
         Object currencyId = null;
         String currencyWithNetwork = this.safeString(transaction, "coin");
@@ -6013,7 +6013,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         {
             currencyId = Helpers.GetValue(Helpers.split(currencyWithNetwork, "-"), 0);
         }
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         String rawNetwork = this.safeString(transaction, "network");
         if (Helpers.isTrue(!Helpers.isEqual(rawNetwork, null)))
@@ -6615,7 +6615,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(transfer, "currency", "asset");
         String id = this.safeStringN(transfer, new java.util.ArrayList<Object>(java.util.Arrays.asList("transact_id", "txid", "tranId")));
-        Object timestamp = this.safeInteger2(transfer, "createTime", "timestamp");
+        Long timestamp = (Long) this.safeInteger2(transfer, "createTime", "timestamp");
         Object datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? this.iso8601(timestamp) : null;
         String direction = this.safeString(transfer, "type");
         Object accountFrom = null;
@@ -6651,7 +6651,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         }};
     }
 
-    public Object parseAccountId(Object status)
+    public String parseAccountId(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SPOT", "spot" );
@@ -6662,7 +6662,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
@@ -6926,7 +6926,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeValue(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networkList = this.safeList(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -7023,7 +7023,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeValue(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {

@@ -189,7 +189,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             Object balance = Helpers.GetValue(balances, i);
             Object currencyId = this.safeString(balance, "a");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Object free = this.safeString(balance, "F");
             Object used = this.safeString(balance, "L");
@@ -917,7 +917,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }}, market);
     }
 
-    public Object parseWsOrderType(Object typeId)
+    public String parseWsOrderType(Object typeId)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -927,7 +927,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         return this.safeString(types, typeId, typeId);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "open" );

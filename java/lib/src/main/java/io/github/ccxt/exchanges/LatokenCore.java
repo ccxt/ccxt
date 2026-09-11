@@ -555,8 +555,8 @@ public class LatokenCore extends LatokenApi
                 Object quoteCurrencyInfo = this.safeDict(quoteCurrency, "info");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(baseCurrencyInfo, null)) && Helpers.isTrue(!Helpers.isEqual(quoteCurrencyInfo, null))))
                 {
-                    Object base = this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
-                    Object quote = this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
+                    String base = (String) this.safeCurrencyCode(this.safeString(baseCurrencyInfo, "tag"));
+                    String quote = (String) this.safeCurrencyCode(this.safeString(quoteCurrencyInfo, "tag"));
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                     {
                         continue;
@@ -678,7 +678,7 @@ public class LatokenCore extends LatokenApi
     {
         String id = this.safeString(currency, "id");
         String tag = this.safeString(currency, "tag");
-        Object code = this.safeCurrencyCode(tag);
+        String code = (String) this.safeCurrencyCode(tag);
         String currencyType = this.safeString(currency, "type");
         Object isCrypto = (Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_CRYPTO")) || Helpers.isTrue(Helpers.isEqual(currencyType, "CURRENCY_TYPE_IEO")));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -758,7 +758,7 @@ public class LatokenCore extends LatokenApi
             Object types = this.safeValue(this.options, "types", new java.util.HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
             Object balancesByType = this.groupBy(response, "type");
-            Object balances = this.safeValue(balancesByType, accountType, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object balances = this.safeList(balancesByType, accountType, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
@@ -774,7 +774,7 @@ public class LatokenCore extends LatokenApi
                         maxTimestamp = Helpers.mathMax(maxTimestamp, timestamp);
                     }
                 }
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
                 Helpers.addElementToObject(account, "used", this.safeString(balance, "blocked"));
@@ -1084,8 +1084,8 @@ public class LatokenCore extends LatokenApi
         Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
@@ -1339,7 +1339,7 @@ public class LatokenCore extends LatokenApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_STATUS_PLACED", "open" );
@@ -1349,7 +1349,7 @@ public class LatokenCore extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "ORDER_TYPE_MARKET", "market" );
@@ -1358,7 +1358,7 @@ public class LatokenCore extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "ORDER_CONDITION_GOOD_TILL_CANCELLED", "GTC" );
@@ -1418,8 +1418,8 @@ public class LatokenCore extends LatokenApi
         Object timestamp = this.safeInteger(order, "timestamp");
         String baseId = this.safeString(order, "baseCurrency");
         String quoteId = this.safeString(order, "quoteCurrency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && Helpers.isTrue((!Helpers.isEqual(quote, null)))))
         {
@@ -1437,7 +1437,7 @@ public class LatokenCore extends LatokenApi
             Object partsLength = Helpers.getArrayLength(parts);
             side = this.safeStringLower(parts, Helpers.subtract(partsLength, 1));
         }
-        Object type = this.parseOrderType(this.safeString(order, "type"));
+        String type = this.parseOrderType(this.safeString(order, "type"));
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "filled");
@@ -1455,7 +1455,7 @@ public class LatokenCore extends LatokenApi
             }
         }
         String clientOrderId = this.safeString(order, "clientOrderId");
-        Object timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
+        String timeInForce = this.parseTimeInForce(this.safeString(order, "condition"));
         final Object finalStatus = status;
         final Object finalSymbol = symbol;
         final Object finalSide = side;
@@ -1986,8 +1986,8 @@ public class LatokenCore extends LatokenApi
         String id = this.safeString(transaction, "id");
         Object timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Object amount = this.safeNumber(transaction, "amount");
         String addressFrom = this.safeString(transaction, "senderAddress");
         String addressTo = this.safeString(transaction, "recipientAddress");
@@ -2004,7 +2004,7 @@ public class LatokenCore extends LatokenApi
             Helpers.addElementToObject(fee, "cost", feeCost);
             Helpers.addElementToObject(fee, "currency", code);
         }
-        Object type = this.parseTransactionType(this.safeString(transaction, "type"));
+        String type = this.parseTransactionType(this.safeString(transaction, "type"));
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2029,7 +2029,7 @@ public class LatokenCore extends LatokenApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "TRANSACTION_STATUS_CONFIRMED", "ok" );
@@ -2042,7 +2042,7 @@ public class LatokenCore extends LatokenApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "TRANSACTION_TYPE_DEPOSIT", "deposit" );
@@ -2223,7 +2223,7 @@ public class LatokenCore extends LatokenApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "TRANSFER_STATUS_COMPLETED", "ok" );

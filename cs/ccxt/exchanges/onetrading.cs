@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class onetrading : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "onetrading" },
@@ -468,7 +468,7 @@ public partial class onetrading : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> response = await this.publicGetCurrencies(parameters);
@@ -486,7 +486,7 @@ public partial class onetrading : Exchange
         return this.parseCurrencies(response);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "code");
         string? code = this.safeCurrencyCode(id);
@@ -541,7 +541,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(response));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //   {
@@ -735,8 +735,8 @@ public partial class onetrading : Exchange
         IDictionary<string, object> futuresFees = this.safeDict(response, 1, new Dictionary<string, object>() {});
         List<object> spotFeeTiers = this.safeList(spotFees, "fee_tiers", new List<object>() {});
         List<object> futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new List<object>() {});
-        object spotTiers = this.parseFeeTiers(spotFeeTiers);
-        object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
+        Dictionary<string, object> spotTiers = this.parseFeeTiers(spotFeeTiers);
+        Dictionary<string, object> futuresTiers = this.parseFeeTiers(futuresFeeTiers);
         IDictionary<string, object> firstSpotTier = this.safeDict(spotTiers, 0, new Dictionary<string, object>() {});
         IDictionary<string, object> firstFuturesTier = this.safeDict(futuresTiers, 0, new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -832,7 +832,7 @@ public partial class onetrading : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual object parseFeeTiers(object feeTiers, object market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(object feeTiers, object market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
@@ -1119,7 +1119,7 @@ public partial class onetrading : Exchange
         }
         object timeframe = add(period, lowercaseUnit);
         int durationInSeconds = this.parseTimeframe(timeframe);
-        object duration = multiply(durationInSeconds, 1000);
+        Int64 duration = multiply(durationInSeconds, 1000);
         Int64? timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if (isTrue(isEqual(timestamp, null)))
         {
@@ -1163,7 +1163,7 @@ public partial class onetrading : Exchange
         var period = ((IList<object>) periodunitVariable)[0];
         var unit = ((IList<object>) periodunitVariable)[1];
         int durationInSeconds = this.parseTimeframe(timeframeVar);
-        object duration = multiply(durationInSeconds, 1000);
+        Int64 duration = multiply(durationInSeconds, 1000);
         if (isTrue(isEqual(limitVar, null)))
         {
             limitVar = 1500;
@@ -1191,7 +1191,7 @@ public partial class onetrading : Exchange
         //         {"instrument_code":"BTC_EUR","granularity":{"unit":"HOURS","period":1},"high":"9135.7","low":"9002.59","open":"9055.45","close":"9133.98","total_amount":"26.21919","volume":"238278.8724959","time":"2020-05-09T00:59:59.999Z","last_sequence":461521},
         //     ]
         //
-        object ohlcv = this.safeList(response, "candlesticks");
+        List<object> ohlcv = this.safeList(response, "candlesticks");
         return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(ohlcv, market,((string)timeframeVar), since, limitVar));
     }
 
@@ -1282,7 +1282,7 @@ public partial class onetrading : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "balances", new List<object>() {});
+        List<object> balances = this.safeList(response, "balances", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -1291,7 +1291,7 @@ public partial class onetrading : Exchange
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "currency_code");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
             if (isTrue(!isEqual(code, null)))
@@ -1659,7 +1659,7 @@ public partial class onetrading : Exchange
         //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
         //     ]
         //
-        object order = this.safeOrder(new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.safeOrder(new Dictionary<string, object>() {
             { "info", response },
         });
         return ccxt.BaseExchange.ToOrderList(new List<object>() {order});
@@ -1850,7 +1850,7 @@ public partial class onetrading : Exchange
         //         "max_page_size": 100
         //     }
         //
-        object orderHistory = this.safeList(response, "order_history", new List<object>() {});
+        List<object> orderHistory = this.safeList(response, "order_history", new List<object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(orderHistory, market, since, limit));
     }
 
@@ -2012,7 +2012,7 @@ public partial class onetrading : Exchange
         //         "cursor": "string"
         //     }
         //
-        object tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
+        List<object> tradeHistory = this.safeList(response, "trade_history", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(tradeHistory, market, since, limit));
     }
 

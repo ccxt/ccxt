@@ -510,7 +510,7 @@ public class UpbitCore extends UpbitApi
                 maxWithdrawLimit = maxDailyWithdrawal;
             }
             String currencyId = this.safeString(currencyInfo, "code");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             final Object finalActive = active;
             final Object finalMaxWithdrawLimit = maxWithdrawLimit;
             return new java.util.HashMap<String, Object>() {{
@@ -600,8 +600,8 @@ public class UpbitCore extends UpbitApi
             String marketId = this.safeString(marketInfo, "id");
             String baseId = this.safeString(ask, "currency");
             String quoteId = this.safeString(bid, "currency");
-            Object base = this.safeCurrencyCode(baseId);
-            Object quote = this.safeCurrencyCode(quoteId);
+            String base = (String) this.safeCurrencyCode(baseId);
+            String quote = (String) this.safeCurrencyCode(quoteId);
             String state = this.safeString(marketInfo, "state");
             String bidFee = this.safeString(response, "bid_fee");
             String askFee = this.safeString(response, "ask_fee");
@@ -703,8 +703,8 @@ public class UpbitCore extends UpbitApi
         var quoteIdbaseIdVariable = Helpers.split(id, "-");
         var quoteId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(0);
         var baseId = ((java.util.List<Object>) quoteIdbaseIdVariable).get(1);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         final Object finalId = id;
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -771,7 +771,7 @@ public class UpbitCore extends UpbitApi
         {
             Object balance = Helpers.GetValue(response, i);
             String currencyId = this.safeString(balance, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "balance"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "locked"));
@@ -899,7 +899,7 @@ public class UpbitCore extends UpbitApi
             {
                 Object orderbook = Helpers.GetValue(orderbooks, i);
                 String marketId = this.safeString(orderbook, "market");
-                Object symbol = this.safeSymbol(marketId, null, "-");
+                String symbol = (String) this.safeSymbol(marketId, null, "-");
                 Object timestamp = this.safeInteger(orderbook, "timestamp");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "symbol", symbol );
@@ -2166,7 +2166,7 @@ public class UpbitCore extends UpbitApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "submitting", "pending" );
@@ -2217,14 +2217,14 @@ public class UpbitCore extends UpbitApi
         Object address = null; // not present in the data structure received from the exchange
         Object tag = null; // not present in the data structure received from the exchange
         String updatedRaw = this.safeString(transaction, "done_at");
-        Object timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
+        Long timestamp = this.parse8601(this.safeString(transaction, "created_at", updatedRaw));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
             type = "withdrawal";
         }
         String currencyId = this.safeString(transaction, "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -2253,7 +2253,7 @@ public class UpbitCore extends UpbitApi
         }};
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "wait", "open" );
@@ -2350,8 +2350,8 @@ public class UpbitCore extends UpbitApi
         }
         String identifier = this.safeString(order, "identifier");
         String type = this.safeString(order, "ord_type");
-        Object timestamp = this.parse8601(this.safeString(order, "created_at"));
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        Long timestamp = this.parse8601(this.safeString(order, "created_at"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         Object lastTradeTimestamp = null;
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "volume");
@@ -2369,7 +2369,7 @@ public class UpbitCore extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        Object trades = this.safeValue(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object trades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         final Object finalType = type;
         trades = this.parseTrades(trades, market, null, null, new java.util.HashMap<String, Object>() {{
             put( "order", id );
@@ -2794,7 +2794,7 @@ public class UpbitCore extends UpbitApi
         String address = this.safeString(depositAddress, "deposit_address");
         String tag = this.safeString(depositAddress, "secondary_address");
         String currencyId = this.safeString(depositAddress, "currency");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String networkId = this.safeString(depositAddress, "net_type");
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{

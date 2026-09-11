@@ -2456,7 +2456,7 @@ public class BybitCore extends BybitApi
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         Object amountPrecision = null;
         Object pricePrecision = null;
         // hard coded amount and price precisions from fetchOptionMarkets
@@ -2771,7 +2771,7 @@ public class BybitCore extends BybitApi
     public Object parseCurrency(Object currency)
     {
         String currencyId = this.safeString(currency, "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         String name = this.safeString(currency, "name");
         Object chains = this.safeList(currency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networks = new java.util.HashMap<String, Object>() {{}};
@@ -2978,8 +2978,8 @@ public class BybitCore extends BybitApi
                 String id = this.safeString(market, "symbol");
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 String status = this.safeString(market, "status");
                 Object active = (Helpers.isEqual(status, "Trading"));
@@ -3164,8 +3164,8 @@ public class BybitCore extends BybitApi
                 String quoteId = this.safeString(market, "quoteCoin");
                 Object defaultSettledId = ((Helpers.isTrue(linear))) ? quoteId : baseId;
                 String settleId = this.safeString(market, "settleCoin", defaultSettledId);
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object settle = null;
                 if (Helpers.isTrue(Helpers.isTrue(linearPerpetual) && Helpers.isTrue((Helpers.isEqual(settleId, "USD")))))
                 {
@@ -3199,7 +3199,7 @@ public class BybitCore extends BybitApi
                         expiry = Helpers.parseInt(expiry);
                     }
                 }
-                Object expiryDatetime = this.iso8601(expiry);
+                String expiryDatetime = this.iso8601(expiry);
                 symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
                 if (Helpers.isTrue(!Helpers.isEqual(expiry, null)))
                 {
@@ -3363,9 +3363,9 @@ public class BybitCore extends BybitApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String settleId = this.safeString(market, "settleCoin");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object lotSizeFilter = this.safeDict(market, "lotSizeFilter", new java.util.HashMap<String, Object>() {{}});
                 Object priceFilter = this.safeDict(market, "priceFilter", new java.util.HashMap<String, Object>() {{}});
                 String status = this.safeString(market, "status");
@@ -3529,7 +3529,7 @@ public class BybitCore extends BybitApi
         String marketId = this.safeString(ticker, "symbol");
         Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, type);
-        Object symbol = this.safeSymbol(marketId, market, null, type);
+        String symbol = (String) this.safeSymbol(marketId, market, null, type);
         String last = this.safeString(ticker, "lastPrice");
         String open = this.safeString(ticker, "prevPrice24h");
         String percentage = this.safeString(ticker, "price24hPcnt");
@@ -3998,7 +3998,7 @@ public class BybitCore extends BybitApi
         Object timestamp = this.safeInteger(ticker, "timestamp"); // added artificially to avoid changing the signature
         ticker = this.omit(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "swap");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
         Object fundingRate = this.safeNumber(ticker, "fundingRate");
         Object fundingTimestamp = this.safeInteger(ticker, "nextFundingTime");
         Object markPrice = this.safeNumber(ticker, "markPrice");
@@ -4832,7 +4832,7 @@ public class BybitCore extends BybitApi
                         }
                         // account['used'] = this.safeString (coinEntry, 'locked');
                         String currencyId = this.safeString(coinEntry, "coin");
-                        Object code = this.safeCurrencyCode(currencyId);
+                        String code = (String) this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                         {
                             Helpers.addElementToObject(result, code, account);
@@ -4851,7 +4851,7 @@ public class BybitCore extends BybitApi
                     Helpers.addElementToObject(account, "free", this.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "availableBalanceWithoutConvert", "availableBalance", "transferBalance"))));
                     Helpers.addElementToObject(account, "used", this.safeString(entry, "locked"));
                     String currencyId = this.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("tokenId", "coin", "currencyCoin")));
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Helpers.addElementToObject(result, code, account);
@@ -5058,7 +5058,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -5085,7 +5085,7 @@ public class BybitCore extends BybitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GoodTillCancel", "GTC" );
@@ -5228,7 +5228,7 @@ public class BybitCore extends BybitApi
         }
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger2(order, "createdTime", "createdAt");
+        Long timestamp = (Long) this.safeInteger2(order, "createdTime", "createdAt");
         String marketUnit = this.safeString(order, "marketUnit"); // '' is filtered by safeString, do not force a default:
         // bybit's spot Market Buy qty is quote-denominated unless marketUnit is explicitly 'baseCoin',
         // see https://github.com/ccxt/ccxt/issues/27725
@@ -5250,9 +5250,9 @@ public class BybitCore extends BybitApi
         }
         String filled = this.safeString(order, "cumExecQty");
         String remaining = this.safeString(order, "leavesQty");
-        Object lastTradeTimestamp = this.safeInteger2(order, "updatedTime", "updatedAt");
+        Long lastTradeTimestamp = (Long) this.safeInteger2(order, "updatedTime", "updatedAt");
         String rawStatus = this.safeString(order, "orderStatus");
-        Object status = this.parseOrderStatus(rawStatus);
+        String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new java.util.HashMap<String, Object>() {{}});
         Object feeCoins = Helpers.objectKeys(cumFeeDetail);
@@ -5272,7 +5272,7 @@ public class BybitCore extends BybitApi
         }
         Object avgPrice = this.omitZero(this.safeString(order, "avgPrice"));
         String rawTimeInForce = this.safeString(order, "timeInForce");
-        Object timeInForce = this.parseTimeInForce(rawTimeInForce);
+        String timeInForce = this.parseTimeInForce(rawTimeInForce);
         Object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
         Object reduceOnly = this.safeBool(order, "reduceOnly");
         Object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
@@ -7884,7 +7884,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "unknown" );
@@ -7947,10 +7947,10 @@ public class BybitCore extends BybitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger2(transaction, "createTime", "successAt");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = (Long) this.safeInteger2(transaction, "createTime", "successAt");
         Object updated = this.safeInteger(transaction, "updateTime");
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
+        String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Object feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "depositFee"))))) ? "deposit" : "withdrawal";
         Object fee = null;
@@ -8218,7 +8218,7 @@ public class BybitCore extends BybitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(item, "coin", "currency");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amountString = this.safeString2(item, "amount", "change");
         String afterString = this.safeString2(item, "wallet_balance", "cashBalance");
@@ -8233,10 +8233,10 @@ public class BybitCore extends BybitApi
             after = this.parseToNumeric(afterString);
             amount = this.parseToNumeric(Precise.stringAbs(amountString));
         }
-        Object timestamp = this.parse8601(this.safeString(item, "exec_time"));
+        Long timestamp = this.parse8601(this.safeString(item, "exec_time"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
-            timestamp = this.safeInteger(item, "transactionTime");
+            timestamp = (Long) this.safeInteger(item, "transactionTime");
         }
         final Object finalDirection = direction;
         final Object finalAmount = amount;
@@ -8774,11 +8774,11 @@ public class BybitCore extends BybitApi
         Object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
         String initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         String maintenanceMarginString = this.safeString(position, "positionMM");
-        Object timestamp = this.safeInteger2(position, "createdTime", "createdAt");
-        Object lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
+        Long timestamp = (Long) this.safeInteger2(position, "createdTime", "createdAt");
+        Long lastUpdateTimestamp = this.parse8601(this.safeString(position, "updated_at"));
         if (Helpers.isTrue(Helpers.isEqual(lastUpdateTimestamp, null)))
         {
-            lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
+            lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         String collateralString = this.safeString(position, "positionBalance");
         Object entryPrice = this.omitZero(this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("entryPrice", "avgPrice", "avgEntryPrice"))));
@@ -9719,7 +9719,7 @@ public class BybitCore extends BybitApi
             Object timestamp = this.safeInteger(response, "time");
             Object transfer = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             String statusRaw = this.safeString2(response, "retCode", "retMsg");
-            Object status = this.parseTransferStatus(statusRaw);
+            String status = this.parseTransferStatus(statusRaw);
             return this.extend(this.parseTransfer(transfer, currency), new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", BybitCore.this.iso8601(timestamp) );
@@ -9932,7 +9932,7 @@ public class BybitCore extends BybitApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "0", "ok" );
@@ -10080,7 +10080,7 @@ public class BybitCore extends BybitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "symbol");
         Object defaultType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : "contract";
-        Object symbol = this.safeSymbol(marketId, market, null, defaultType);
+        String symbol = (String) this.safeSymbol(marketId, market, null, defaultType);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );
@@ -10825,7 +10825,7 @@ public class BybitCore extends BybitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(greeks, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -11698,7 +11698,7 @@ final Object finalMarket = market;
                 Object disableFrom = this.safeBool(entry, "disableFrom");
                 Object disableTo = this.safeBool(entry, "disableTo");
                 Object inactive = Helpers.isTrue((Helpers.isEqual(disableFrom, true))) || Helpers.isTrue((Helpers.isEqual(disableTo, true)));
-                Object code = this.safeCurrencyCode(id);
+                String code = (String) this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;
@@ -12044,11 +12044,11 @@ final Object finalMarket = market;
         //
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
-        Object timestamp = this.safeInteger2(conversion, "expiredTime", "createdAt");
+        Long timestamp = (Long) this.safeInteger2(conversion, "expiredTime", "createdAt");
         String fromCoin = this.safeString(conversion, "fromCoin");
-        Object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "toCoin");
-        Object toCode = this.safeCurrencyCode(to, toCurrency);
+        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -12370,7 +12370,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public Object parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(Object marginMode)
     {
         Object marginModes = new java.util.HashMap<String, Object>() {{
             put( "ISOLATED_MARGIN", "isolated" );

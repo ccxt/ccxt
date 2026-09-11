@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitget { public bitget(object args = null) : base(args) { } }
 public partial class bitget : ccxt.bitget
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -95,7 +95,7 @@ public partial class bitget : ccxt.bitget
         });
     }
 
-    public virtual object getInstType(object methodName, object market, object uta = null, object parameters = null)
+    public virtual List<object> getInstType(object methodName, object market, object uta = null, object parameters = null)
     {
         uta ??= false;
         parameters ??= new Dictionary<string, object>();
@@ -749,7 +749,7 @@ public partial class bitget : ccxt.bitget
             stored = new ArrayCacheByTimestamp(limit);
             ((IDictionary<string,object>)getValue(this.ohlcvs, symbol))[(string)timeframe] = stored;
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object parsed = this.parseWsOHLCV(getValue(data, i), market);
@@ -1098,7 +1098,7 @@ public partial class bitget : ccxt.bitget
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, 0, 1);
         // we store the string representations in the orderbook for checksum calculation
         // this simplifies the code for generating checksums as we do not need to do any complex number transformations
         ((IList<object>)bidAsk).Add(delta);
@@ -1599,7 +1599,7 @@ public partial class bitget : ccxt.bitget
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(instType, ":positions::"));
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(instType, ":positions::"));
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -2223,13 +2223,13 @@ public partial class bitget : ccxt.bitget
         object avgPrice = ((bool) isTrue((isEqual(avgPriceString, null)))) ? null : this.omitZero(avgPriceString);
         string? side = this.safeString(order, "side");
         string? type = this.safeString(order, "orderType");
-        object accBaseVolume = this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty"));
-        object newSizeValue = this.omitZero(this.safeString2(order, "newSize", "cumExecValue"));
+        string? accBaseVolume = ((string)this.omitZero(this.safeString2(order, "accBaseVolume", "cumExecQty")));
+        string? newSizeValue = ((string)this.omitZero(this.safeString2(order, "newSize", "cumExecValue")));
         bool isMarketOrder = (isEqual(type, "market"));
         bool isBuy = (isEqual(side, "buy"));
-        object totalAmount = null;
+        string? totalAmount = null;
         string? filledAmount = null;
-        object cost = null;
+        string? cost = null;
         string? remaining = null;
         string? totalFilled = this.safeString2(order, "accBaseVolume", "cumExecQty");
         if (isTrue(isSpot))
@@ -2705,7 +2705,7 @@ public partial class bitget : ccxt.bitget
         //
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         string? instType = this.safeStringLower(arg, "instType");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawBalance = getValue(data, i);
@@ -2911,7 +2911,7 @@ public partial class bitget : ccxt.bitget
         //  { event: "login", code: 0 }
         //
         string messageHash = "authenticated";
-        var future = this.safeValue((client as WebSocketClient).futures, messageHash);
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, messageHash));
         (future as Future).resolve(true);
     }
 

@@ -706,7 +706,7 @@ public class ExtendedCore extends ExtendedApi
             baseId = Helpers.replace((String)baseId, (String)"SPOT", (String)"");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
-        Object base = this.safeCurrencyCode(baseId);
+        String base = (String) this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         if (Helpers.isTrue(Helpers.isEqual(quoteId, "USD")))
         {
@@ -1073,7 +1073,7 @@ public class ExtendedCore extends ExtendedApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object last = this.safeNumber(ticker, "lastPrice");
         String percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
         Object percentage = ((Helpers.isTrue((!Helpers.isEqual(percentageRaw, null))))) ? Precise.stringMul(percentageRaw, "100") : null;
@@ -1472,7 +1472,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "m", "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(trade, "T", "createdTime");
+        Long timestamp = (Long) this.safeInteger2(trade, "T", "createdTime");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
         String sideRaw = this.safeString2(trade, "S", "side");
@@ -1875,7 +1875,7 @@ public class ExtendedCore extends ExtendedApi
         {
             Object balance = this.safeDict(response, i, new java.util.HashMap<String, Object>() {{}});
             String currencyId = this.safeString(balance, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(balance, "availableToWithdraw"));
             Helpers.addElementToObject(account, "total", this.safeString(balance, "balance"));
@@ -2549,7 +2549,7 @@ public class ExtendedCore extends ExtendedApi
         return code;
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CREATED", "pending" );
@@ -2560,7 +2560,7 @@ public class ExtendedCore extends ExtendedApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -2602,7 +2602,7 @@ public class ExtendedCore extends ExtendedApi
                 put( "cost", ExtendedCore.this.parseNumber(Precise.stringAbs(finalFeeCost)) );
             }};
         }
-        Object transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
+        String transactionType = this.parseTransactionType(this.safeString(transaction, "type"));
         String network = this.safeString(transaction, "chain");
         final Object finalTransactionType = transactionType;
         final Object finalFee = fee;
@@ -3045,9 +3045,9 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(position, "createdAt", "createdTime");
-        Object lastUpdateTimestamp = this.safeInteger2(position, "updatedAt", "updatedTime");
-        lastUpdateTimestamp = this.safeInteger(position, "closedTime", lastUpdateTimestamp);
+        Long timestamp = (Long) this.safeInteger2(position, "createdAt", "createdTime");
+        Long lastUpdateTimestamp = (Long) this.safeInteger2(position, "updatedAt", "updatedTime");
+        lastUpdateTimestamp = (Long) this.safeInteger(position, "closedTime", lastUpdateTimestamp);
         String side = (String)this.safeStringLower(position, "side");
         String margin = this.safeString(position, "margin");
         final Object finalMarket = market;
@@ -3976,7 +3976,7 @@ public class ExtendedCore extends ExtendedApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = this.parseOrders(data, market, since, limit);
+            java.util.List<Object> orders = this.parseOrders(data, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -4072,7 +4072,7 @@ public class ExtendedCore extends ExtendedApi
                 }
                 ((java.util.List<Object>)result).add(entry);
             }
-            Object orders = this.parseOrders(result, market, since, limit);
+            java.util.List<Object> orders = this.parseOrders(result, market, since, limit);
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
         });
 
@@ -4134,7 +4134,7 @@ public class ExtendedCore extends ExtendedApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
@@ -4194,9 +4194,9 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger2(order, "createdTime", "timestamp");
+        Long timestamp = (Long) this.safeInteger2(order, "createdTime", "timestamp");
         Object lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String side = (String)this.safeStringLower(order, "side");
         String type = (String)this.safeStringLower(order, "type");
         String amount = this.safeString(order, "qty");

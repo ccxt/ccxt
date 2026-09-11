@@ -1315,7 +1315,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 Object assetId = Helpers.GetValue(assetIds, i);
                 Object asset = Helpers.GetValue(assets, assetId);
                 Object codeId = this.safeString(asset, "symbol");
-                Object code = this.safeCurrencyCode(codeId);
+                String code = (String) this.safeCurrencyCode(codeId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "used", this.safeString(asset, "locked_balance"));
                 Helpers.addElementToObject(account, "total", this.safeString(asset, "balance"));

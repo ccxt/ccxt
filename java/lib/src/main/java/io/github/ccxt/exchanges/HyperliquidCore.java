@@ -509,7 +509,7 @@ public class HyperliquidCore extends HyperliquidApi
         // const id = i;
         String id = this.safeString(rawCurrency, "index");
         String name = this.safeString(rawCurrency, "name");
-        Object code = this.safeCurrencyCode(name);
+        String code = (String) this.safeCurrencyCode(name);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "cachedCurrenciesById"), ((String)id), name);
         final Object finalName = name;
         final Object finalCode = code;
@@ -549,7 +549,7 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     nameWithoutU = Helpers.add(nameWithoutU, Helpers.GetValue(parts, j));
                 }
-                Object baseCode = this.safeCurrencyCode(nameWithoutU);
+                String baseCode = (String) this.safeCurrencyCode(nameWithoutU);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(Helpers.GetValue(this.options, "spotCurrencyMapping"), code, baseCode);
@@ -718,7 +718,7 @@ public class HyperliquidCore extends HyperliquidApi
                         String collateralTokenCode = this.safeString(cachedCurrencies, collateralToken);
                         Helpers.addElementToObject(data, "collateralTokenName", collateralTokenCode);
                         // eg: 'flx:crcl' => {'quote': 'USDC', 'code': 'FLX-CRCL'}
-                        Object safeCode = this.safeCurrencyCode(name);
+                        String safeCode = (String) this.safeCurrencyCode(name);
                         Object hip3Code = ((Helpers.isTrue((Helpers.isEqual(safeCode, null))))) ? name : Helpers.replace((String)safeCode, (String)":", (String)"-");
                         Helpers.addElementToObject(Helpers.GetValue(this.options, "hip3TokensByName"), ((String)name), new java.util.HashMap<String, Object>() {{
         put( "quote", collateralTokenCode );
@@ -981,8 +981,8 @@ public class HyperliquidCore extends HyperliquidApi
                 Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new java.util.HashMap<String, Object>() {{}});
                 String mappedBaseName = this.safeString(spotCurrencyMapping, baseName, baseName);
                 String mappedQuoteId = this.safeString(spotCurrencyMapping, quoteId, quoteId);
-                Object mappedBase = this.safeCurrencyCode(mappedBaseName);
-                Object mappedQuote = this.safeCurrencyCode(mappedQuoteId);
+                String mappedBase = (String) this.safeCurrencyCode(mappedBaseName);
+                String mappedQuote = (String) this.safeCurrencyCode(mappedQuoteId);
                 Object mappedSymbol = Helpers.add(Helpers.add(mappedBase, "/"), mappedQuote);
                 Object innerBaseTokenInfo = this.safeDict(baseTokenInfo, "spec", baseTokenInfo);
                 // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
@@ -1093,9 +1093,9 @@ public class HyperliquidCore extends HyperliquidApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing base currency")) ;
         }
         base = Helpers.replace((String)base, (String)":", (String)"-"); // handle hip3 tokens and converts from like flx:crcl to FLX-CRCL
-        Object quote = this.safeCurrencyCode(quoteId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String baseId = this.safeString(market, "baseId");
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object contract = true;
         Object swap = true;
@@ -1283,7 +1283,7 @@ public class HyperliquidCore extends HyperliquidApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
                 {
                     Object balance = Helpers.GetValue(balances, i);
-                    Object unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
+                    String unifiedCode = (String) this.safeCurrencyCode(this.safeString(balance, "coin"));
                     Object code = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? this.updateSpotCurrencyCode(unifiedCode) : unifiedCode;
                     Object account = this.account();
                     String total = this.safeString(balance, "total");
@@ -1572,7 +1572,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String base = this.safeString(info, "name");
         Object marketId = this.coinToMarketId(base);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object funding = this.safeNumber(info, "funding");
         Object markPx = this.safeNumber(info, "markPx");
         Object oraclePx = this.safeNumber(info, "oraclePx");
@@ -3663,7 +3663,7 @@ final Object finalClientOrderId = clientOrderId;
 
     }
 
-    public Object getDexFromHip3Symbol(Object market)
+    public String getDexFromHip3Symbol(Object market)
     {
         String baseName = this.safeString(market, "baseName", "");
         Object part = Helpers.split(baseName, ":");
@@ -3722,7 +3722,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 market = this.market(symbol);
                 // check if is hip3 symbol
-                Object dexName = this.getDexFromHip3Symbol(market);
+                String dexName = this.getDexFromHip3Symbol(market);
                 if (Helpers.isTrue(!Helpers.isEqual(dexName, null)))
                 {
                     Helpers.addElementToObject(request, "dex", dexName);
@@ -3896,7 +3896,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 market = this.market(symbol);
                 // check if is hip3 symbol
-                Object dexName = this.getDexFromHip3Symbol(market);
+                String dexName = this.getDexFromHip3Symbol(market);
                 if (Helpers.isTrue(!Helpers.isEqual(dexName, null)))
                 {
                     Helpers.addElementToObject(request, "dex", dexName);
@@ -4239,7 +4239,7 @@ final Object finalClientOrderId = clientOrderId;
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
@@ -4264,7 +4264,7 @@ final Object finalClientOrderId = clientOrderId;
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "stop limit", "limit" );
@@ -4473,7 +4473,7 @@ final Object finalClientOrderId = clientOrderId;
             } else
             {
                 Object market = this.market(Helpers.GetValue(symbols, i));
-                Object currentDexName = this.getDexFromHip3Symbol(market);
+                String currentDexName = this.getDexFromHip3Symbol(market);
                 if (Helpers.isTrue(!Helpers.isEqual(currentDexName, dexName)))
                 {
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), " only supports fetching positions for one DEX at a time for HIP3 markets")) ;
@@ -5370,7 +5370,7 @@ final Object finalClientOrderId = clientOrderId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", symbol );

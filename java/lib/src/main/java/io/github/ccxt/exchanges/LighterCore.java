@@ -1082,7 +1082,7 @@ public class LighterCore extends LighterApi
         Object priceScale = this.pow("10", Helpers.GetValue(marketInfo, "price_decimals"));
         Object triggerPriceStr = "0"; // default is 0
         Object defaultClientOrderId = this.randNumber(9); // c# only support int32 2147483647.
-        Object clientOrderId = this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
+        Long clientOrderId = (Long) this.safeInteger2(parameters, "client_order_index", "clientOrderId", defaultClientOrderId);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only", "timeInForce", "postOnly", "nonce", "apiKeyIndex", "stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice", "client_order_index", "clientOrderId")));
         if (Helpers.isTrue(isConditional))
         {
@@ -1596,9 +1596,9 @@ public class LighterCore extends LighterApi
                 }
                 Object quoteId = "USDC";
                 Object settleId = ((Helpers.isTrue((Helpers.isEqual(type, "swap"))))) ? "USDC" : null;
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 if (Helpers.isTrue(!Helpers.isEqual(settle, null)))
                 {
@@ -1717,7 +1717,7 @@ public class LighterCore extends LighterApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "asset_id");
-        Object code = this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
+        String code = (String) this.safeCurrencyCode(this.safeString(rawCurrency, "symbol"));
         String decimals = this.safeString(rawCurrency, "decimals");
         Object isUSDC = (Helpers.isEqual(code, "USDC"));
         Object depositMin = null;
@@ -2333,7 +2333,7 @@ public class LighterCore extends LighterApi
                     {
                         Object asset = Helpers.GetValue(assets, j);
                         String codeId = this.safeString(asset, "symbol");
-                        Object code = this.safeCurrencyCode(codeId);
+                        String code = (String) this.safeCurrencyCode(codeId);
                         Object balance = this.safeDict(result, code, this.account());
                         Helpers.addElementToObject(balance, "total", Precise.stringAdd(Helpers.GetValue(balance, "total"), this.safeString(asset, "balance")));
                         Helpers.addElementToObject(balance, "used", Precise.stringAdd(Helpers.GetValue(balance, "used"), this.safeString(asset, "locked_balance")));
@@ -2990,7 +2990,7 @@ public class LighterCore extends LighterApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "in-progress", "open" );
@@ -3013,7 +3013,7 @@ public class LighterCore extends LighterApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "limit", "limit" );
@@ -3029,7 +3029,7 @@ public class LighterCore extends LighterApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrderTypeInteger(Object typeInteger)
+    public String parseOrderTypeInteger(Object typeInteger)
     {
         if (Helpers.isTrue(Helpers.isEqual(typeInteger, null)))
         {
@@ -3049,7 +3049,7 @@ public class LighterCore extends LighterApi
         return this.safeString(types, String.valueOf(typeInteger));
     }
 
-    public Object parseOrderTimeInForce(Object tif)
+    public String parseOrderTimeInForce(Object tif)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "immediate-or-cancel", "IOC" );
@@ -3060,7 +3060,7 @@ public class LighterCore extends LighterApi
         return this.safeString(timeInForces, tif, tif);
     }
 
-    public Object parseOrderTimeInForceInteger(Object tifInteger)
+    public String parseOrderTimeInForceInteger(Object tifInteger)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "0", "immediate-or-cancel" );
@@ -3270,7 +3270,7 @@ public class LighterCore extends LighterApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "asset_id");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transfer, "timestamp");
         Object fromAccount = this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
         Object toAccount = this.safeDict(transfer, "to", new java.util.HashMap<String, Object>() {{}});
@@ -3526,7 +3526,7 @@ public class LighterCore extends LighterApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "failed", "failed" );

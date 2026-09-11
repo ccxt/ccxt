@@ -1428,7 +1428,7 @@ public class MyriadCore extends MyriadApi
      * @description EIP-712 signs an order-book typed-data message with the wallet private key (returns a 65-byte 0x signature)
      * @returns {string} the hex signature
      */
-    public Object signOrderbookTypedData(Object types, Object message, Object networkId)
+    public String signOrderbookTypedData(Object types, Object message, Object networkId)
     {
         Object chains = this.safeDict(this.options, "chains", new java.util.HashMap<String, Object>() {{}});
         Object chainConfig = this.safeDict(chains, networkId, new java.util.HashMap<String, Object>() {{}});
@@ -1465,7 +1465,7 @@ public class MyriadCore extends MyriadApi
      * @description EIP-712 signs the order-book Order struct
      * @returns {string} the hex signature
      */
-    public Object signClobOrder(Object message, Object networkId)
+    public String signClobOrder(Object message, Object networkId)
     {
         Object orderStruct = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "trader" );
@@ -1507,7 +1507,7 @@ public class MyriadCore extends MyriadApi
      * @description EIP-712 signs the order-book CancelAll struct
      * @returns {string} the hex signature
      */
-    public Object signCancelAll(Object message, Object networkId)
+    public String signCancelAll(Object message, Object networkId)
     {
         Object cancelStruct = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "trader" );
@@ -1635,7 +1635,7 @@ public class MyriadCore extends MyriadApi
         return scaled;
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
@@ -1664,7 +1664,7 @@ public class MyriadCore extends MyriadApi
         Object filled = ((Helpers.isTrue((Helpers.isEqual(filledWei, null))))) ? null : this.parseNumber(Precise.stringDiv(filledWei, "1000000000000000000"));
         String statusRaw = (String)this.safeStringLower(order, "status");
         Object status = this.parseOrderStatus(statusRaw);
-        Object timestamp = this.parse8601(this.safeString(order, "createdAt"));
+        Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
         String tif = (String)this.safeStringUpper(order, "timeInForce");
         Object isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         // resolve the outcome from market/outcome ids when no market was passed (e.g. fetchOrders without a outcome)
@@ -2545,7 +2545,7 @@ public class MyriadCore extends MyriadApi
         return result;
     }
 
-    public Object fromWeiWithDecimals(Object hexValue, Object decimals)
+    public String fromWeiWithDecimals(Object hexValue, Object decimals)
     {
         Object decimalString = this.hexToDecimalString(hexValue);
         if (Helpers.isTrue(Helpers.isEqual(decimalString, null)))
@@ -3886,7 +3886,7 @@ final Object finalNetworkId = networkId;
         return this.parseNumber(Precise.stringDiv(wei, "1000000000000000000"));
     }
 
-    public Object marketOutcomeToSymbol(Object networkId, Object marketId, Object outcomeId)
+    public String marketOutcomeToSymbol(Object networkId, Object marketId, Object outcomeId)
     {
         // guard the ids before concatenating: a missing id would crash on string + None in Python/PHP
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(networkId, null))) || Helpers.isTrue((Helpers.isEqual(marketId, null)))) || Helpers.isTrue((Helpers.isEqual(outcomeId, null)))))
@@ -4218,7 +4218,7 @@ final Object finalNetworkId = networkId;
 
     }
 
-    public Object walletAddressOrUndefined()
+    public String walletAddressOrUndefined()
     {
         // like walletAddressFromKeys but returns undefined instead of throwing when no wallet is configured
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.walletAddress, null))) && Helpers.isTrue((Helpers.isGreaterThan(((String)this.walletAddress).length(), 0)))))
@@ -4575,7 +4575,7 @@ final Object finalNetworkId = networkId;
         Object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
         String tif = (String)this.safeStringUpper(data, "timeInForce");
         Object isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
-        Object timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
+        Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
         final Object finalSym = sym;
         final Object finalTif = tif;
         Object parsed = this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
@@ -4751,7 +4751,7 @@ final Object finalNetworkId = networkId;
         client.resolve(stored, "positions");
     }
 
-    public Object walletAddressFromKeys()
+    public String walletAddressFromKeys()
     {
         // the orders/positions channels are keyed by the lowercase trader address (Centrifugo channels
         // are case-sensitive); lowercase here so the channel matches regardless of the address checksum.

@@ -1353,7 +1353,7 @@ final Object finalTokenId = tokenId;
      * @param {string} status the raw opinion order statusEnum
      * @returns {string} a unified order status
      */
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "Pending", "open" );
@@ -2443,7 +2443,7 @@ final Object finalTokenId = tokenId;
      * @param {int} status the numeric order status
      * @returns {string} a unified order status, or undefined
      */
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         // per the venue docs: 1 pending, 2 finished, 3 canceled, 4 expired, 5 failed
         if (Helpers.isTrue(Helpers.isEqual(status, 1)))

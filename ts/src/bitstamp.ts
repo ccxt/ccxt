@@ -2572,7 +2572,7 @@ export default class bitstamp extends Exchange {
         return code.toLowerCase ();
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return code === 'USD' || code === 'EUR' || code === 'GBP';
     }
 
@@ -2807,7 +2807,7 @@ export default class bitstamp extends Exchange {
             if (typeof reasonInner === 'string') {
                 errors.push (reasonInner);
             } else {
-                const all = this.safeValue (reasonInner, '__all__', []);
+                const all = this.safeList (reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors.push (all[i]);
                 }

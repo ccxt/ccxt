@@ -2399,7 +2399,7 @@ public class OkxCore extends OkxApi
         return super.handleMarketTypeAndParams(methodName, market, parameters, defaultValue);
     }
 
-    public Object convertToInstrumentType(Object type)
+    public String convertToInstrumentType(Object type)
     {
         Object exchangeTypes = this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
@@ -2424,7 +2424,7 @@ public class OkxCore extends OkxApi
         String strike = this.safeString(optionParts, 3);
         String optionType = this.safeString(optionParts, 4);
         Object datetime = ((Helpers.isTrue((Helpers.isEqual(expiry, null))))) ? null : this.convertExpireDate(expiry);
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         final Object finalBase = base;
         final Object finalExpiry = expiry;
         final Object finalOptionType = optionType;
@@ -2795,7 +2795,7 @@ public class OkxCore extends OkxApi
         String baseId = this.safeString(market, "baseCcy", ""); // defaulting to '' because some weird preopen markets have empty baseId
         String quoteId = this.safeString(market, "quoteCcy", "");
         String settleId = this.safeString(market, "settleCcy");
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         String underlying = this.safeString(market, "uly");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(underlying, null))) && !Helpers.isTrue(spot)))
         {
@@ -2810,8 +2810,8 @@ public class OkxCore extends OkxApi
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         // handle preopen empty markets
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(base, "")) || Helpers.isTrue(Helpers.isEqual(quote, ""))))
@@ -3099,7 +3099,7 @@ public class OkxCore extends OkxApi
         // currencies are grouped by chain entries, so there is at least one entry
         Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object type = "crypto";
         Object chainsLength = Helpers.getArrayLength(chains);
@@ -3626,7 +3626,7 @@ public class OkxCore extends OkxApi
         {
             Object feeCostSigned = Precise.stringNeg(feeCostString);
             String feeCurrencyId = this.safeString(trade, "feeCcy");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", feeCostSigned );
                 put( "currency", feeCurrencyCode );
@@ -4048,7 +4048,7 @@ public class OkxCore extends OkxApi
         {
             Object balance = Helpers.GetValue(details, i);
             String currencyId = this.safeString(balance, "ccy");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             String eq = this.safeString(balance, "eq");
@@ -4082,7 +4082,7 @@ public class OkxCore extends OkxApi
         {
             Object balance = Helpers.GetValue(data, i);
             String currencyId = this.safeString(balance, "ccy");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             // it may be incorrect to use total, free and used for swap accounts
             Helpers.addElementToObject(account, "total", this.safeString(balance, "bal"));
@@ -5481,7 +5481,7 @@ public class OkxCore extends OkxApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "canceled", "canceled" );
@@ -5724,11 +5724,11 @@ public class OkxCore extends OkxApi
         }
         String marketId = this.safeString(order, "instId");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market, "-");
+        String symbol = (String) this.safeSymbol(marketId, market, "-");
         String filled = this.safeString(order, "accFillSz");
         String price = this.safeString2(order, "px", "ordPx");
         String average = this.safeString(order, "avgPx");
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         String feeCostString = this.safeString(order, "fee");
         Object amount = null;
         Object cost = null;
@@ -5751,7 +5751,7 @@ public class OkxCore extends OkxApi
         {
             Object feeCostSigned = Precise.stringNeg(feeCostString);
             String feeCurrencyId = this.safeString(order, "feeCcy");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", OkxCore.this.parseNumber(feeCostSigned) );
                 put( "currency", feeCurrencyCode );
@@ -6883,7 +6883,7 @@ public class OkxCore extends OkxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "ccy");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger(item, "ts");
         String feeCostString = this.safeString(item, "fee");
@@ -6897,7 +6897,7 @@ public class OkxCore extends OkxApi
             }};
         }
         String marketId = this.safeString(item, "instId");
-        Object symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = (String) this.safeSymbol(marketId, null, "-");
         final Object finalFee = fee;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -7488,7 +7488,7 @@ public class OkxCore extends OkxApi
 
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         //
         // deposit statuses
@@ -7600,7 +7600,7 @@ public class OkxCore extends OkxApi
             type = "deposit";
         }
         String currencyId = this.safeString(transaction, "ccy");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object network = null;
         String chain = this.safeString(transaction, "chain");
         if (Helpers.isTrue(!Helpers.isEqual(chain, null)))
@@ -7614,7 +7614,7 @@ public class OkxCore extends OkxApi
             }
         }
         Object amount = this.safeNumber(transaction, "amt");
-        Object status = this.parseTransactionStatus(this.safeString(transaction, "state"));
+        String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String txid = this.safeString(transaction, "txId");
         Object timestamp = this.safeInteger(transaction, "ts");
         Object feeCost = null;
@@ -8053,7 +8053,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(Helpers.isEqual(side, "net")))
             {
                 String posCcy = this.safeString(position, "posCcy");
-                Object parsedCurrency = this.safeCurrencyCode(posCcy);
+                String parsedCurrency = (String) this.safeCurrencyCode(posCcy);
                 if (Helpers.isTrue(!Helpers.isEqual(parsedCurrency, null)))
                 {
                     side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "base"), parsedCurrency))))) ? "long" : "short";
@@ -8296,7 +8296,7 @@ public class OkxCore extends OkxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(transfer, "transId", "billId");
         String currencyId = this.safeString(transfer, "ccy");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object amount = this.safeNumber(transfer, "amt");
         String fromAccountId = this.safeString(transfer, "from");
         String toAccountId = this.safeString(transfer, "to");
@@ -8323,7 +8323,7 @@ public class OkxCore extends OkxApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
@@ -8515,7 +8515,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            Object timestamp = this.iso8601(this.nonce());
+            String timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", OkxCore.this.apiKey );
@@ -8588,7 +8588,7 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         String marketId = this.safeString(contract, "instId");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object nextFundingRate = this.safeNumber(contract, "nextFundingRate");
         Object fundingTime = this.safeInteger(contract, "fundingTime");
         String fundingTimeString = this.safeString(contract, "fundingTime");
@@ -8618,7 +8618,7 @@ public class OkxCore extends OkxApi
         }};
     }
 
-    public Object parseFundingInterval(Object interval)
+    public String parseFundingInterval(Object interval)
     {
         Object intervals = new java.util.HashMap<String, Object>() {{
             put( "3600000", "1h" );
@@ -8857,7 +8857,7 @@ public class OkxCore extends OkxApi
                 String instId = this.safeString(entry, "instId");
                 Object marketInner = this.safeMarket(instId);
                 String currencyId = this.safeString(entry, "ccy");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 String balanceChange = this.safeString(entry, "balChg");
                 String positionBalanceChange = this.safeString(entry, "posBalChg");
                 Object amount = null;
@@ -9094,7 +9094,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object lever = this.safeInteger2(parameters, "lever", "leverage");
+            Long lever = (Long) this.safeInteger2(parameters, "lever", "leverage");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lever, null))) || Helpers.isTrue((Helpers.isLessThan(lever, 1)))) || Helpers.isTrue((Helpers.isGreaterThan(lever, 125)))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() params[\"lever\"] should be between 1 and 125")) ;
@@ -9259,7 +9259,7 @@ public class OkxCore extends OkxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object item = Helpers.GetValue(response, i);
-            Object code = this.safeCurrencyCode(this.safeString(item, "ccy"));
+            String code = (String) this.safeCurrencyCode(this.safeString(item, "ccy"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
             {
                 if (!Helpers.isTrue((Helpers.inOp(borrowRateHistories, code))))
@@ -9950,7 +9950,7 @@ public class OkxCore extends OkxApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
-            Object type = this.convertToInstrumentType(Helpers.GetValue(market, "type"));
+            String type = this.convertToInstrumentType(Helpers.GetValue(market, "type"));
             String uly = this.safeString(Helpers.GetValue(market, "info"), "uly");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instType", type );
@@ -10339,7 +10339,7 @@ public class OkxCore extends OkxApi
         {
             Object feeInfo = Helpers.GetValue(response, i);
             String currencyId = this.safeString(feeInfo, "ccy");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
                 Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
@@ -10766,7 +10766,7 @@ public class OkxCore extends OkxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(greeks, "ts");
         String marketId = this.safeString(greeks, "instId");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -11356,11 +11356,11 @@ public class OkxCore extends OkxApi
         //
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
-        Object timestamp = this.safeInteger2(conversion, "quoteTime", "ts");
+        Long timestamp = (Long) this.safeInteger2(conversion, "quoteTime", "ts");
         String fromCoin = this.safeString(conversion, "baseCcy");
-        Object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "quoteCcy");
-        Object toCode = this.safeCurrencyCode(to, toCurrency);
+        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -11413,7 +11413,7 @@ public class OkxCore extends OkxApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 String id = this.safeString(entry, "ccy");
-                Object code = this.safeCurrencyCode(id);
+                String code = (String) this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;

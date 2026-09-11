@@ -960,7 +960,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Object size = this.safeString(parts, 3);
@@ -1465,7 +1465,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             // contract branch
             parsedOrder = this.parseWsOrder(message, market);
-            Object rawTrades = this.safeValue(message, "trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawTrades = this.safeList(message, "trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tradesLength = Helpers.getArrayLength(rawTrades);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
             {
@@ -1673,10 +1673,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object lastTradeTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("lastActTime", "updated_time", "ts")));
-        Object created = this.safeInteger2(order, "orderCreateTime", "created_time");
+        Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         Object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object amount = this.safeString2(order, "orderSize", "volume");
         Object status = this.parseOrderStatus(this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStatus", "state", "status"))));
         Object id = this.safeString2(order, "orderId", "order_id");
@@ -2001,7 +2001,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             Helpers.addElementToObject(this.positions, url, new java.util.HashMap<String, Object>() {{}});
         }
-        Object rawPositions = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(this.isEmpty(rawPositions)))
         {
             Object prefixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
@@ -2321,7 +2321,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //     }
         //
         Object channel = this.safeString(message, "ch");
-        Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
@@ -2330,7 +2330,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             // spot balance
             Object currencyId = this.safeString(data, "currency");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(data, "available"));
             Helpers.addElementToObject(account, "total", this.safeString(data, "balance"));
@@ -2357,7 +2357,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object detail = Helpers.GetValue(details, i);
                     Object currencyId = this.safeString(detail, "currency");
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -2412,7 +2412,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 //     "isolated_swap": []
                 // }
                 Object marginAsset = this.safeString(first, "margin_asset");
-                Object code = this.safeCurrencyCode(marginAsset);
+                String code = (String) this.safeCurrencyCode(marginAsset);
                 Object marginFrozen = this.safeString(first, "margin_frozen");
                 Object unifiedAccount = this.account();
                 Helpers.addElementToObject(unifiedAccount, "free", this.safeString(first, "withdraw_available"));
@@ -2430,7 +2430,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     // the cross account is one shared margin balance, keyed by the settle currency
                     Object currencyId = this.safeString2(first, "margin_asset", "margin_account");
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Object account = this.account();
@@ -2450,7 +2450,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                         Helpers.addElementToObject(account, "free", this.safeString(isolatedBalance, "margin_balance", "margin_available"));
                         Helpers.addElementToObject(account, "used", this.safeString(isolatedBalance, "margin_frozen"));
                         Object currencyId = this.safeString2(isolatedBalance, "margin_asset", "symbol");
-                        Object code = this.safeCurrencyCode(currencyId);
+                        String code = (String) this.safeCurrencyCode(currencyId);
                         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                         {
                             Helpers.addElementToObject(this.balance, code, account);
@@ -2465,7 +2465,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Object balance = Helpers.GetValue(data, i);
                     Object currencyId = this.safeString(balance, "symbol");
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(balance, "margin_available"));
                     Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
@@ -3116,7 +3116,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 // this trades object is artificially created
                 // in handleOrder
-                Object rawTrades = this.safeValue(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object rawTrades = this.safeList(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object marketId = this.safeValue(message, "symbol");
                 Object market = this.market(marketId);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
@@ -3218,7 +3218,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             type = this.safeString(orderTypeParts, 1, orderType);
         }
         Object fee = null;
-        Object feeCurrency = this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
+        String feeCurrency = (String) this.safeCurrencyCode(this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeCurrency", "fee_currency", "fee_asset"))));
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
             final Object finalFeeCurrency = feeCurrency;

@@ -3874,8 +3874,8 @@ public class BitgetCore extends BitgetApi
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object base = this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
                 Object supportMarginCoins = this.safeValue(market, "supportMarginCoins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object settleId = null;
                 if (Helpers.isTrue(this.inArray(baseId, supportMarginCoins)))
@@ -3888,7 +3888,7 @@ public class BitgetCore extends BitgetApi
                 {
                     settleId = this.safeString(supportMarginCoins, 0);
                 }
-                Object settle = this.safeCurrencyCode(settleId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object type = null;
                 Object swap = false;
@@ -4171,8 +4171,8 @@ public class BitgetCore extends BitgetApi
                 String marketId = this.safeString(market, "symbol");
                 String quoteId = this.safeString(market, "quoteCoin");
                 String baseId = this.safeString(market, "baseCoin");
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object base = this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
                 Object settleId = null;
                 Object settle = null;
                 if (Helpers.isTrue(Helpers.isEqual(category, "USDT-FUTURES")))
@@ -4396,7 +4396,7 @@ public class BitgetCore extends BitgetApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object withdraw = null;
@@ -5132,8 +5132,8 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger2(transaction, "cTime", "createdTime");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = (Long) this.safeInteger2(transaction, "cTime", "createdTime");
         String networkId = this.safeString(transaction, "chain");
         String status = this.safeString(transaction, "status");
         String tag = this.safeString(transaction, "tag");
@@ -5190,7 +5190,7 @@ final Object finalMinNotional = minNotional;
         }};
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         // the wire says withdraw, and a unified transaction says withdrawal
         Object types = new java.util.HashMap<String, Object>() {{
@@ -5199,7 +5199,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
@@ -5292,7 +5292,7 @@ final Object finalMinNotional = minNotional;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(depositAddress, "coin");
         String networkId = this.safeString(depositAddress, "chain");
-        Object parsedCurrency = this.safeCurrencyCode(currencyId, currency);
+        String parsedCurrency = (String) this.safeCurrencyCode(currencyId, currency);
         Object network = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
         {
@@ -6072,7 +6072,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("cTime", "ts", "createdTime")));
         Object fee = null;
         Object feeDetail = this.safeValue(trade, "feeDetail");
@@ -6082,7 +6082,7 @@ final Object finalMinNotional = minNotional;
         Object feeStructure = ((Helpers.isTrue(isFeeStructure))) ? Helpers.GetValue(feeDetail, 0) : feeDetail;
         if (Helpers.isTrue(!Helpers.isEqual(feeStructure, null)))
         {
-            Object currencyCode = this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
+            String currencyCode = (String) this.safeCurrencyCode(this.safeString(feeStructure, "feeCoin"));
             fee = new java.util.HashMap<String, Object>() {{
                 put( "currency", currencyCode );
             }};
@@ -6480,13 +6480,13 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
                 String marketId = this.safeString(entry, "symbol");
-                Object symbol = this.safeSymbol(marketId, null, null, marketType);
+                String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
                 Object market = this.market(symbol);
                 Object fee = this.parseTradingFee(entry, market);
                 Helpers.addElementToObject(result, symbol, fee);
@@ -6987,7 +6987,7 @@ final Object finalMinNotional = minNotional;
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
             String currencyId = this.safeString(entry, "coin");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Helpers.addElementToObject(account, "debt", this.safeString(entry, "debt"));
             Helpers.addElementToObject(account, "used", this.safeString2(entry, "locked", "frozen"));
             Helpers.addElementToObject(account, "free", this.safeString(entry, "available"));
@@ -7057,7 +7057,7 @@ final Object finalMinNotional = minNotional;
             Object entry = Helpers.GetValue(balance, i);
             Object account = this.account();
             String currencyId = this.safeString2(entry, "marginCoin", "coin");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             String borrow = this.safeString(entry, "borrow");
             if (Helpers.isTrue(!Helpers.isEqual(borrow, null)))
             {
@@ -7090,7 +7090,7 @@ final Object finalMinNotional = minNotional;
         return this.safeBalance(result);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
@@ -7348,7 +7348,7 @@ final Object finalMinNotional = minNotional;
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, marketType);
         Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("cTime", "ctime", "createdTime")));
-        Object updateTimestamp = this.safeInteger2(order, "uTime", "updatedTime");
+        Long updateTimestamp = (Long) this.safeInteger2(order, "uTime", "updatedTime");
         String rawStatus = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "state", "orderStatus", "planStatus")));
         Object fee = null;
         String feeCostString = this.safeString(order, "fee");
@@ -10022,7 +10022,7 @@ final Object finalMinNotional = minNotional;
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchCanceledAndClosedOrders() requires a symbol argument")) ;
                     }
-                    Object endTime = this.safeInteger2(parameters, "endTime", "until");
+                    Long endTime = (Long) this.safeInteger2(parameters, "endTime", "until");
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
@@ -10590,7 +10590,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "coin");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         Object timestamp = this.safeInteger(item, "cTime");
         Object after = this.safeNumber(item, "balance");
@@ -10625,7 +10625,7 @@ final Object finalMinNotional = minNotional;
         }}, currency);
     }
 
-    public Object parseLedgerType(Object type)
+    public String parseLedgerType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "trans_to_cross", "transfer" );
@@ -11644,8 +11644,8 @@ final Object finalMinNotional = minNotional;
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                Object symbolInner = this.safeSymbol(marketId, market);
-                Object timestamp = this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
+                String symbolInner = (String) this.safeSymbol(marketId, market);
+                Long timestamp = (Long) this.safeInteger2(entry, "fundingTime", "fundingRateTimestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
@@ -11916,8 +11916,8 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "swap");
-        Object fundingTimestamp = this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
+        Long fundingTimestamp = (Long) this.safeInteger2(contract, "nextFundingTime", "nextUpdate");
         String interval = this.safeString2(contract, "ratePeriod", "fundingRateInterval");
         Object timestamp = this.safeInteger(contract, "ts");
         Object markPrice = this.safeNumber(contract, "markPrice");
@@ -12071,7 +12071,7 @@ final Object finalMinNotional = minNotional;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String currencyId = this.safeString(contract, "coin");
-        Object timestamp = this.safeInteger2(contract, "cTime", "ts");
+        Long timestamp = (Long) this.safeInteger2(contract, "cTime", "ts");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BitgetCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -12750,7 +12750,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
         });
@@ -12805,7 +12805,7 @@ final Object finalMinNotional = minNotional;
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "successful", "ok" );
@@ -12838,7 +12838,7 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object chains = this.safeValue(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object chainsLength = Helpers.getArrayLength(chains);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
@@ -13440,7 +13440,7 @@ final Object finalMinNotional = minNotional;
             //
             Object timestamp = this.safeInteger(response, "requestTime");
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(first, "timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
         });
@@ -13485,7 +13485,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        Object symbol = this.safeSymbol(marketId, market, null, "spot");
+        String symbol = (String) this.safeSymbol(marketId, market, null, "spot");
         String baseId = this.safeString(info, "baseCoin");
         String quoteId = this.safeString(info, "quoteCoin");
         Object timestamp = this.safeInteger(info, "timestamp");
@@ -13579,7 +13579,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                result = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
+                result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             }
             Object timestamp = this.safeInteger(response, "requestTime");
             Helpers.addElementToObject(result, "timestamp", timestamp);
@@ -14315,9 +14315,9 @@ final Object finalMinNotional = minNotional;
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Object timestamp = this.safeInteger(conversion, "ts");
         String fromCoin = this.safeString(conversion, "fromCoin");
-        Object fromCode = this.safeCurrencyCode(fromCoin, fromCurrency);
+        String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "toCoin");
-        Object toCode = this.safeCurrencyCode(to, toCurrency);
+        String toCode = (String) this.safeCurrencyCode(to, toCurrency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", timestamp );
@@ -14372,7 +14372,7 @@ final Object finalMinNotional = minNotional;
             {
                 Object entry = Helpers.GetValue(data, i);
                 String id = this.safeString(entry, "coin");
-                Object code = this.safeCurrencyCode(id);
+                String code = (String) this.safeCurrencyCode(id);
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     final Object finalCode = code;

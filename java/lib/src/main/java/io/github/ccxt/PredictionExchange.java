@@ -598,7 +598,7 @@ public Object describe()
         return Helpers.GetValue(outcomeObj, "outcome");
     }
 
-    public Object shortenSlug(Object slug)
+    public String shortenSlug(Object slug)
     {
         Object replacements = new java.util.HashMap<String, Object>() {{
             put( "federal-reserve", "fed" );
@@ -681,8 +681,8 @@ public Object describe()
         // resolve an outcome to the wrong event (wrong-market trade). skip the prefix when the
         // event slug is absent or identical to the market slug (e.g. myriad's 1:1 markets), so
         // already-unique handles stay clean.
-        Object marketPart = this.shortenSlug(marketSlug);
-        Object eventPart = this.shortenSlug(eventSlug);
+        String marketPart = this.shortenSlug(marketSlug);
+        String eventPart = this.shortenSlug(eventSlug);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventPart, null))) || Helpers.isTrue((Helpers.isEqual(eventPart, "")))) || Helpers.isTrue((Helpers.isEqual(eventPart, marketPart)))))
         {
             return marketPart;
@@ -1004,7 +1004,7 @@ public Object describe()
 
     }
 
-    public Object outcomeSearchQuery(Object outcomeSymbol)
+    public String outcomeSearchQuery(Object outcomeSymbol)
     {
         // derive a human search query from a unified outcome handle (EVENT_MARKET:LABEL) so a
         // cache miss can be resolved through the venue's scoped search instead of a bulk listing
@@ -1075,7 +1075,7 @@ public Object describe()
             // through the venue's own scoped fetchEvents (which caches everything it finds), then
             // re-checks the cache. venues with a real by-id fetch (kalshi by ticker, polymarket by
             // token id) override this with a cheaper single fetch and fall back to super on a miss.
-            Object searchQuery = this.outcomeSearchQuery(outcomeSymbol);
+            String searchQuery = this.outcomeSearchQuery(outcomeSymbol);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(searchQuery, null))) && Helpers.isTrue(this.safeBool(this.has, "fetchEvents", false))))
             {
                 Object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
@@ -2214,7 +2214,7 @@ public Object describe()
         return this.priceToPrecision(marketSymbol, price);
     }
 
-    public Object costToPredictionPrecision(Object outcome, Object cost)
+    public String costToPredictionPrecision(Object outcome, Object cost)
     {
         Object outcomeObj = this.outcome(outcome);
         String marketSymbol = this.safeString(outcomeObj, "market");

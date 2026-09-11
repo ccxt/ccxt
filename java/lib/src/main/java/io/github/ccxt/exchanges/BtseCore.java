@@ -818,8 +818,8 @@ public class BtseCore extends BtseApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrency");
         String quoteId = this.safeString(market, "quoteCurrency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String maxAmountString = this.safeString(market, "maxOrderSize");
         String minAmountString = this.safeString(market, "minOrderSize");
@@ -1003,7 +1003,7 @@ public class BtseCore extends BtseApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = this.parseOHLCVs(data, market, timeframe, since, limit);
+            java.util.List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
         });
 
@@ -1274,7 +1274,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(inUse)); j++)
                 {
                     Object usedRow = Helpers.GetValue(inUse, j);
-                    Object usedCode = this.safeCurrencyCode(this.safeString(usedRow, "currency"));
+                    String usedCode = (String) this.safeCurrencyCode(this.safeString(usedRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(usedCode, null)))
                     {
                         continue;
@@ -1284,7 +1284,7 @@ public class BtseCore extends BtseApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(assets)); j++)
                 {
                     Object assetRow = Helpers.GetValue(assets, j);
-                    Object code = this.safeCurrencyCode(this.safeString(assetRow, "currency"));
+                    String code = (String) this.safeCurrencyCode(this.safeString(assetRow, "currency"));
                     if (Helpers.isTrue(Helpers.isEqual(code, null)))
                     {
                         continue;
@@ -1296,7 +1296,7 @@ public class BtseCore extends BtseApi
             {
                 // unified wallet row: {"asset": "BTC", "totalAmount": "100.0", "availableAmount": "100.0"}
                 // legacy spot wallet row: {"available": 520.52, "currency": "USD", "total": 5566.5566}
-                Object code = this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
+                String code = (String) this.safeCurrencyCode(this.safeString2(row, "asset", "currency"));
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1882,7 +1882,7 @@ public class BtseCore extends BtseApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object trades = this.parseTrades(data, market, since, limit);
+            java.util.List<Object> trades = this.parseTrades(data, market, since, limit);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
                 return trades;
@@ -2747,7 +2747,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object encodeTriggerPriceType(Object priceType)
+    public String encodeTriggerPriceType(Object priceType)
     {
         Object priceTypes = new java.util.HashMap<String, Object>() {{
             put( "last", "LAST_PRICE" );
@@ -3212,7 +3212,7 @@ public class BtseCore extends BtseApi
         String rawStatus = this.safeString2(order, "status", "orderState");
         String rawType = this.safeString2(order, "orderType", "type");
         Object status = this.parseOrderStatus(rawStatus);
-        Object orderType = this.parseOrderType(rawType);
+        String orderType = this.parseOrderType(rawType);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "market"))) && Helpers.isTrue((Helpers.isEqual(status, "open")))))
         {
             // market orders never rest on the book, the exchange reports the
@@ -3253,7 +3253,7 @@ public class BtseCore extends BtseApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "2", "open" );
@@ -3279,7 +3279,7 @@ public class BtseCore extends BtseApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "76", "limit" );
@@ -3289,7 +3289,7 @@ public class BtseCore extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object values = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
@@ -3591,8 +3591,8 @@ public class BtseCore extends BtseApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(transaction, "currency", "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger2(transaction, "timestamp", "transactionTime");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = (Long) this.safeInteger2(transaction, "timestamp", "transactionTime");
         String networkId = this.safeString2(transaction, "currencyNetwork", "cryptoNetwork");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3621,7 +3621,7 @@ public class BtseCore extends BtseApi
         }};
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "Deposit", "deposit" );
@@ -3632,7 +3632,7 @@ public class BtseCore extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         // the full enum from the wallet documentation, PROCESSING is also live-verified
         Object statuses = new java.util.HashMap<String, Object>() {{
@@ -3729,8 +3729,8 @@ public class BtseCore extends BtseApi
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString2(item, "currency", "asset");
-        Object code = this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger2(item, "timestamp", "transactionTime");
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
+        Long timestamp = (Long) this.safeInteger2(item, "timestamp", "transactionTime");
         String type = this.safeString(item, "type");
         return new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -3786,7 +3786,7 @@ public class BtseCore extends BtseApi
         return this.safeString(types, type, type);
     }
 
-    public Object parseLedgerEntryDirection(Object type)
+    public String parseLedgerEntryDirection(Object type)
     {
         Object directions = new java.util.HashMap<String, Object>() {{
             put( "Deposit", "in" );
@@ -4021,7 +4021,7 @@ public class BtseCore extends BtseApi
         }});
     }
 
-    public Object parseMarginModeType(Object marginMode)
+    public String parseMarginModeType(Object marginMode)
     {
         Object marginModes = new java.util.HashMap<String, Object>() {{
             put( "91", "cross" );
@@ -4579,7 +4579,7 @@ public class BtseCore extends BtseApi
         }};
     }
 
-    public Object futuresRequestId(Object market)
+    public String futuresRequestId(Object market)
     {
         // the futures v3 trading api identifies contracts by the short trade-currency
         // form, for example RAVE-PERP instead of the RAVE-PERP-USDT market id, read

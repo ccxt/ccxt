@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class blockchaincom : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "blockchaincom" },
@@ -361,17 +361,17 @@ public partial class blockchaincom : Exchange
             // price precision
             string? minPriceIncrementString = this.safeString(market, "min_price_increment");
             string? minPriceIncrementScaleString = this.safeString(market, "min_price_increment_scale");
-            object minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
+            string? minPriceScalePrecisionString = this.parsePrecision(minPriceIncrementScaleString);
             string? pricePrecisionString = Precise.stringMul(minPriceIncrementString, minPriceScalePrecisionString);
             // amount precision
             string? lotSizeString = this.safeString(market, "lot_size");
             string? lotSizeScaleString = this.safeString(market, "lot_size_scale");
-            object lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
+            string? lotSizeScalePrecisionString = this.parsePrecision(lotSizeScaleString);
             string? amountPrecisionString = Precise.stringMul(lotSizeString, lotSizeScalePrecisionString);
             // minimum order size
             string? minOrderSizeString = this.safeString(market, "min_order_size");
             string? minOrderSizeScaleString = this.safeString(market, "min_order_size_scale");
-            object minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
+            string? minOrderSizeScalePrecisionString = this.parsePrecision(minOrderSizeScaleString);
             string? minOrderSizePreciseString = Precise.stringMul(minOrderSizeString, minOrderSizeScalePrecisionString);
             double? minOrderSize = this.parseNumber(minOrderSizePreciseString);
             // maximum order size
@@ -380,7 +380,7 @@ public partial class blockchaincom : Exchange
             if (isTrue(!isEqual(maxOrderSizeRaw, "0")))
             {
                 string? maxOrderSizeScaleString = this.safeString(market, "max_order_size_scale");
-                object maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
+                string? maxOrderSizeScalePrecisionString = this.parsePrecision(maxOrderSizeScaleString);
                 string? maxOrderSizeValueString = Precise.stringMul(maxOrderSizeRaw, maxOrderSizeScalePrecisionString);
                 maxOrderSize = this.parseNumber(maxOrderSizeValueString);
             }
@@ -451,7 +451,7 @@ public partial class blockchaincom : Exchange
     public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.FetchL3OrderBook(symbol,ccxt.BaseExchange.ToInt64Arg(limit), parameters);
+        return await this.FetchL3OrderBook(((string)symbol),ccxt.BaseExchange.ToInt64Arg(limit), parameters);
     }
 
     /**
@@ -464,7 +464,7 @@ public partial class blockchaincom : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<ccxt.OrderBook> FetchL3OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchL3OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -483,7 +483,7 @@ public partial class blockchaincom : Exchange
         return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "px", "qty"));
     }
 
-    public async override Task<ccxt.OrderBook> FetchL2OrderBook(object symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchL2OrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
@@ -632,7 +632,7 @@ public partial class blockchaincom : Exchange
         string? datetime = this.iso8601(timestamp);
         string? filled = this.safeString(order, "cumQty");
         string? remaining = this.safeString(order, "leavesQty");
-        object result = this.safeOrder(new Dictionary<string, object>() {
+        Dictionary<string, object> result = this.safeOrder(new Dictionary<string, object>() {
             { "id", exchangeOrderId },
             { "clientOrderId", clientOrderId },
             { "datetime", datetime },
@@ -1311,7 +1311,7 @@ public partial class blockchaincom : Exchange
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             ((IDictionary<string,object>)result)[(string)((string)code)] = account;

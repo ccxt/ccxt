@@ -171,7 +171,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         {
             Object entry = Helpers.GetValue(rawTickers, i);
             Object marketId = this.safeString(entry, "market");
-            Object symbol = this.safeSymbol(marketId, null, null, defaultType);
+            String symbol = (String) this.safeSymbol(marketId, null, null, defaultType);
             Object market = this.safeMarket(marketId, null, null, defaultType);
             Object parsedTicker = this.parseWSTicker(entry, market);
             Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -438,7 +438,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object accountType = Helpers.getArg(optionalArgs, 0, null);
         Object account = this.account();
         Object currencyId = this.safeString(balance, "ccy");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
         Helpers.addElementToObject(account, "used", this.safeString(balance, "frozen"));
         if (Helpers.isTrue(!Helpers.isEqual(accountType, null)))
@@ -1446,7 +1446,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "active_success", "open" );

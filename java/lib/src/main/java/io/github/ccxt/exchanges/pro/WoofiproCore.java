@@ -1492,7 +1492,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             Object key = Helpers.GetValue(keys, i);
             Object value = Helpers.GetValue(balances, key);
-            Object code = this.safeCurrencyCode(key);
+            String code = (String) this.safeCurrencyCode(key);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {

@@ -292,7 +292,7 @@ export default class phemex extends phemexRest {
             const ticker = this.safeValue (message, 'spot_market24h');
             tickers.push (this.parseTicker (ticker));
         } else if ('data' in message) {
-            const data = this.safeValue (message, 'data', []);
+            const data = this.safeList (message, 'data', []);
             for (let i = 0; i < data.length; i++) {
                 tickers.push (this.parsePerpetualTicker (data[i]));
             }
@@ -1184,7 +1184,7 @@ export default class phemex extends phemexRest {
             if (ordersLength === 0) {
                 return;
             }
-            trades = this.safeValue (message, 'fills', []);
+            trades = this.safeList (message, 'fills', []);
             for (let i = 0; i < orders.length; i++) {
                 const rawOrder = orders[i];
                 const parsedOrder = this.parseOrder (rawOrder);

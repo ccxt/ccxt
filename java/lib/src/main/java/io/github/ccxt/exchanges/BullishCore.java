@@ -693,7 +693,7 @@ public class BullishCore extends BullishApi
     public Object parseCurrency(Object rawCurrency)
     {
         String id = this.safeString(rawCurrency, "symbol");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         String name = this.safeString(rawCurrency, "name");
         String precision = this.safeString(rawCurrency, "precision");
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -965,8 +965,8 @@ public class BullishCore extends BullishApi
         Object id = ((String)this.safeString(market, "symbol"));
         String baseId = this.safeString(market, "baseSymbol");
         String quoteId = this.safeString(market, "quoteSymbol");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String basePrecision = this.safeString(market, "basePrecision");
         String quotePrecision = this.safeString(market, "quotePrecision");
@@ -980,8 +980,8 @@ public class BullishCore extends BullishApi
         String minCostLimit = this.safeString(market, "minCostLimit");
         String maxCostLimit = this.safeString(market, "maxCostLimit");
         String settleId = this.safeString(market, "settlementAssetSymbol");
-        Object settle = this.safeCurrencyCode(settleId);
-        Object type = this.parseMarketType(this.safeString(market, "marketType"), "spot");
+        String settle = (String) this.safeCurrencyCode(settleId);
+        String type = this.parseMarketType(this.safeString(market, "marketType"), "spot");
         Object spot = false;
         Object swap = false;
         Object future = false;
@@ -1099,7 +1099,7 @@ public class BullishCore extends BullishApi
         }});
     }
 
-    public Object parseMarketType(Object... optionalArgs)
+    public String parseMarketType(Object... optionalArgs)
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
         Object defaultType = Helpers.getArg(optionalArgs, 1, null);
@@ -1411,7 +1411,7 @@ public class BullishCore extends BullishApi
         String side = (String)this.safeStringLower(trade, "side");
         Object isTaker = this.safeBool(trade, "isTaker");
         Object currency = Helpers.GetValue(market, "quote");
-        Object code = this.safeCurrencyCode(currency);
+        String code = (String) this.safeCurrencyCode(currency);
         Object feeCost = this.safeNumber(trade, "quoteFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -1963,8 +1963,8 @@ public class BullishCore extends BullishApi
                     until = now;
                 }
             }
-            Object sinceDate = this.iso8601(since);
-            Object untilDate = this.iso8601(until);
+            String sinceDate = this.iso8601(since);
+            String untilDate = this.iso8601(until);
             Helpers.addElementToObject(parameters, sinceKey, sinceDate);
             Helpers.addElementToObject(parameters, untilKey, untilDate);
         }
@@ -2458,7 +2458,7 @@ public class BullishCore extends BullishApi
         {
             market = this.safeMarket(marketId);
         }
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String id = this.safeString(order, "orderId");
         Object timestamp = this.safeInteger(order, "createdAtTimestamp");
         String type = this.safeString(order, "type");
@@ -2513,7 +2513,7 @@ public class BullishCore extends BullishApi
         }}, market);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "OPEN", "open" );
@@ -2524,7 +2524,7 @@ public class BullishCore extends BullishApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrderType(Object type)
+    public String parseOrderType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "LMT", "limit" );
@@ -2705,15 +2705,15 @@ public class BullishCore extends BullishApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transaction, "custodyTransactionId");
         String type = this.safeString(transaction, "direction");
-        Object timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
-        Object updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
+        Long timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
+        Long updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
         String network = this.safeString(transaction, "network");
         Object transactionDetails = this.safeDict(transaction, "transactionDetails");
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
         Object amount = this.safeNumber(transaction, "quantity");
         String currencyId = this.safeString(transaction, "symbol");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
         Object sources = this.safeList(transactionDetails, "sources", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object source = this.safeDict(sources, 0, new java.util.HashMap<String, Object>() {{}});
@@ -2753,7 +2753,7 @@ public class BullishCore extends BullishApi
         }};
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
@@ -2762,7 +2762,7 @@ public class BullishCore extends BullishApi
         return this.safeString(types, type, type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
@@ -2995,7 +2995,7 @@ public class BullishCore extends BullishApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(depositAddress, "symbol");
         String network = this.safeString(depositAddress, "network");
-        Object code = this.safeCurrencyCode(id, currency);
+        String code = (String) this.safeCurrencyCode(id, currency);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
             put( "currency", code );
@@ -3080,7 +3080,7 @@ public class BullishCore extends BullishApi
         {
             Object balance = Helpers.GetValue(response, i);
             String symbol = this.safeString(balance, "assetSymbol");
-            Object code = this.safeCurrencyCode(symbol);
+            String code = (String) this.safeCurrencyCode(symbol);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(balance, "lockedQuantity"));
@@ -3384,7 +3384,7 @@ public class BullishCore extends BullishApi
         }};
     }
 
-    public Object parseTransferStatus(Object status)
+    public String parseTransferStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CLOSED", "ok" );

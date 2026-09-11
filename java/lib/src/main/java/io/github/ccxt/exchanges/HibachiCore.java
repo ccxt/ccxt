@@ -347,10 +347,10 @@ public class HibachiCore extends HibachiApi
         Object marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         String settleId = this.safeString(market, "settlementSymbol");
-        Object settle = this.safeCurrencyCode(settleId);
+        String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
@@ -477,7 +477,7 @@ public class HibachiCore extends HibachiApi
     put( "withdraw", null );
     put( "info", new java.util.HashMap<String, Object>() {{}} );
 }});
-        Object code = this.safeCurrencyCode("USDT");
+        String code = (String) this.safeCurrencyCode("USDT");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             final Object finalCode = code;
@@ -514,7 +514,7 @@ public class HibachiCore extends HibachiApi
             put( "info", response );
         }};
         // Hibachi only supports USDT on Arbitrum at this time
-        Object code = this.safeCurrencyCode("USDT");
+        String code = (String) this.safeCurrencyCode("USDT");
         Object account = this.account();
         Helpers.addElementToObject(account, "total", this.safeString(response, "balance"));
         Helpers.addElementToObject(account, "free", this.safeString(response, "maximalWithdraw"));
@@ -790,7 +790,7 @@ public class HibachiCore extends HibachiApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object uppercaseStatus = ((Helpers.isTrue((Helpers.isEqual(status, null))))) ? null : ((String)status).toUpperCase();
         Object statuses = new java.util.HashMap<String, Object>() {{
@@ -1913,7 +1913,7 @@ public class HibachiCore extends HibachiApi
             //     }
             //
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object parsedOrders = this.parseOrders(orders, market);
+            java.util.List<Object> parsedOrders = this.parseOrders(orders, market);
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
         });
 
@@ -2233,7 +2233,7 @@ public class HibachiCore extends HibachiApi
         return null;
     }
 
-    public Object parseTransactionType(Object type)
+    public String parseTransactionType(Object type)
     {
         Object types = new java.util.HashMap<String, Object>() {{
             put( "deposit", "transaction" );
@@ -2244,7 +2244,7 @@ public class HibachiCore extends HibachiApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending", "pending" );

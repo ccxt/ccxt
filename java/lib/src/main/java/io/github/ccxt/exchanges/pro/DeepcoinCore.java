@@ -381,7 +381,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object parsedTicker = this.parseWsTicker(data, market);
         Object messageHash = Helpers.add(Helpers.add("ticker", "::"), symbol);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
@@ -545,7 +545,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -628,7 +628,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         }}, market);
     }
 
-    public Object parseTradeSide(Object direction)
+    public String parseTradeSide(Object direction)
     {
         Object sides = new java.util.HashMap<String, Object>() {{
             put( "0", "buy" );
@@ -637,7 +637,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         return this.safeString(sides, ((String)direction), direction);
     }
 
-    public Object handleTakerOrMaker(Object matchRole)
+    public String handleTakerOrMaker(Object matchRole)
     {
         Object roles = new java.util.HashMap<String, Object>() {{
             put( "0", "maker" );
@@ -754,7 +754,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object interval = this.safeString(data, "P");
         Object timeframe = this.findTimeframe(interval);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
@@ -878,7 +878,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -911,7 +911,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object orderedEntries = new java.util.HashMap<String, Object>() {{
             put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1071,7 +1071,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "myTrades";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))
@@ -1166,7 +1166,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))
@@ -1240,7 +1240,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         }}, market);
     }
 
-    public Object parseWsOrderStatus(Object status)
+    public String parseWsOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "closed" );
@@ -1331,7 +1331,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         Object market = this.safeMarket(marketId, null, "/");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(client.futures, messageHash))) || Helpers.isTrue((Helpers.inOp(client.futures, symbolMessageHash)))))

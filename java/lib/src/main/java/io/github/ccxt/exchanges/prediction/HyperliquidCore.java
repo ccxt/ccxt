@@ -2025,7 +2025,7 @@ public class HyperliquidCore extends HyperliquidApi
         }}, resolvedMarket);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "triggered", "open" );
@@ -2050,7 +2050,7 @@ public class HyperliquidCore extends HyperliquidApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrderType(Object status)
+    public String parseOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "stop limit", "limit" );
@@ -2060,7 +2060,7 @@ public class HyperliquidCore extends HyperliquidApi
         return this.safeString(statuses, statusLower, statusLower);
     }
 
-    public Object parseTimeInForce(Object timeInForce)
+    public String parseTimeInForce(Object timeInForce)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "gtc", "GTC" );

@@ -459,7 +459,7 @@ public class NadoCore extends NadoApi
             Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
-            Object priceX18 = this.convertToX18(priceString);
+            String priceX18 = this.convertToX18(priceString);
             Object amountX18 = this.convertToX18(amountString);
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
@@ -477,7 +477,7 @@ public class NadoCore extends NadoApi
             var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
-            Object nonce = this.createOrderNonce(recvWindow);
+            String nonce = this.createOrderNonce(recvWindow);
             Object requestId = this.safeInteger(parameters, "id");
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -516,7 +516,7 @@ public class NadoCore extends NadoApi
                 triggerDirection = ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
                 Object directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
-                Object triggerPriceX18 = this.convertToX18(triggerPrice);
+                String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
                 Object trigger = new java.util.HashMap<String, Object>() {{
@@ -536,7 +536,7 @@ public class NadoCore extends NadoApi
                     triggerDirection = ((Helpers.isTrue(isStopLossOrder))) ? "below" : "above";
                 }
                 triggerPrice = ((Helpers.isTrue(isStopLossOrder))) ? stopLossTriggerPrice : takeProfitTriggerPrice;
-                Object triggerPriceX18 = this.convertToX18(triggerPrice);
+                String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", triggerDirection), triggerPriceX18);
                 Object trigger = new java.util.HashMap<String, Object>() {{
@@ -667,7 +667,7 @@ public class NadoCore extends NadoApi
             Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
-            Object priceX18 = this.convertToX18(priceString);
+            String priceX18 = this.convertToX18(priceString);
             Object amountX18 = this.convertToX18(amountString);
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
@@ -686,7 +686,7 @@ public class NadoCore extends NadoApi
             var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
-            Object cancelNonce = this.createOrderNonce(recvWindow);
+            String cancelNonce = this.createOrderNonce(recvWindow);
             Object orderNonce = Precise.stringAdd(cancelNonce, "1");
             Object appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
@@ -859,7 +859,7 @@ public class NadoCore extends NadoApi
             var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
-            Object nonce = this.createOrderNonce(recvWindow);
+            String nonce = this.createOrderNonce(recvWindow);
             Object tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", productIds );
@@ -977,7 +977,7 @@ public class NadoCore extends NadoApi
             var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
-            Object nonce = this.createOrderNonce(recvWindow);
+            String nonce = this.createOrderNonce(recvWindow);
             Object tx = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "productIds", productIds );
@@ -1945,7 +1945,7 @@ public class NadoCore extends NadoApi
             {
                 Object rawAsset = Helpers.GetValue(assets, i);
                 String assetSymbol = this.safeString(rawAsset, "symbol");
-                Object assetCode = this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
+                String assetCode = (String) this.safeCurrencyCode(this.removeMarketSuffix(assetSymbol));
                 if (Helpers.isTrue(Helpers.isEqual(assetCode, null)))
                 {
                     continue;
@@ -1983,8 +1983,8 @@ public class NadoCore extends NadoApi
                 }
                 String rawBaseId = this.safeString(market, "symbol");
                 String rawQuoteId = this.safeString(pair, "quote", "USDT0");
-                Object base = this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
-                Object quote = this.safeCurrencyCode(rawQuoteId);
+                String base = (String) this.safeCurrencyCode(this.removeMarketSuffix(rawBaseId));
+                String quote = (String) this.safeCurrencyCode(rawQuoteId);
                 Object baseAsset = this.safeDict(assetsByCode, base, asset);
                 Object quoteAsset = this.safeDict(assetsByCode, quote);
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
@@ -2948,7 +2948,7 @@ public class NadoCore extends NadoApi
         Object canWithdraw = this.safeBool(rawCurrency, "can_withdraw", false);
         String id = this.safeString(rawCurrency, "product_id");
         String currencyId = this.safeString(rawCurrency, "symbol");
-        Object code = this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
+        String code = (String) this.safeCurrencyCode(this.removeMarketSuffix(currencyId));
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "name", NadoCore.this.safeString(rawCurrency, "name") );
@@ -3053,7 +3053,7 @@ public class NadoCore extends NadoApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "product_id");
-        Object code = this.safeCurrencyCode(currencyId, currency);
+        String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         Object preBalance = this.safeDict(transaction, "pre_balance", new java.util.HashMap<String, Object>() {{}});
         Object postBalance = this.safeDict(transaction, "post_balance", new java.util.HashMap<String, Object>() {{}});
@@ -3423,7 +3423,7 @@ public class NadoCore extends NadoApi
         }}, market);
     }
 
-    public Object parseOrderTimeInForce(Object timeInForce)
+    public String parseOrderTimeInForce(Object timeInForce)
     {
         Object timeInForces = new java.util.HashMap<String, Object>() {{
             put( "default", "GTC" );
@@ -3434,7 +3434,7 @@ public class NadoCore extends NadoApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object convertToX18(Object value)
+    public String convertToX18(Object value)
     {
         if (Helpers.isTrue(Helpers.isEqual(value, null)))
         {
@@ -3452,7 +3452,7 @@ public class NadoCore extends NadoApi
         return this.parseNumber(Precise.stringDiv(value, "1000000000000000000"));
     }
 
-    public Object createOrderNonce(Object recvWindow)
+    public String createOrderNonce(Object recvWindow)
     {
         Object expires = this.sum(this.milliseconds(), recvWindow);
         Object highBits = Precise.stringMul(this.numberToString(expires), "1048576");
@@ -3561,7 +3561,7 @@ public class NadoCore extends NadoApi
         return Helpers.add("0x", this.padHex(this.intToBase16(productId), 40));
     }
 
-    public Object padHex(Object value, Object length, Object... optionalArgs)
+    public String padHex(Object value, Object length, Object... optionalArgs)
     {
         Object left = Helpers.getArg(optionalArgs, 0, true);
         if (Helpers.isTrue(Helpers.isEqual(length, null)))

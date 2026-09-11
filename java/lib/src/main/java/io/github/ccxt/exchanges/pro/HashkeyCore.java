@@ -166,7 +166,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //
         Object marketId = this.safeString(message, "symbol");
         Object market = this.safeMarket(marketId);
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
@@ -427,7 +427,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         Object marketId = this.safeString(message, "symbol");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object messageHash = Helpers.add("orderbook:", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -982,7 +982,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, type), "info", message);
         Object currencyId = this.safeString(balanceUpdate, "a");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(balanceUpdate, "f"));
         Helpers.addElementToObject(account, "used", this.safeString(balanceUpdate, "l"));

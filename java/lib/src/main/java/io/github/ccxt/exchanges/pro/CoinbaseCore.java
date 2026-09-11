@@ -569,7 +569,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object channel = this.safeString(message, "channel");
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object datetime = this.safeString(message, "timestamp");
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         Object newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
@@ -947,7 +947,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object trades = this.safeList(eventVar, "trades");
         Object trade = this.safeDict(trades, 0);
         Object marketId = this.safeString(trade, "product_id");
-        Object symbol = this.safeSymbol(marketId);
+        String symbol = (String) this.safeSymbol(marketId);
         Object messageHash = Helpers.add("market_trades::", symbol);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
@@ -1044,7 +1044,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object symbol = this.safeSymbol(marketId);
+            String symbol = (String) this.safeSymbol(marketId);
             Object messageHash = Helpers.add("user::", symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);
@@ -1218,7 +1218,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //      }
         //
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object firstEvent = this.safeValue(events, 0, new java.util.HashMap<String, Object>() {{}});
+        Object firstEvent = this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
         Object isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
         Object subKeys = Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
         Object subKeysLength = Helpers.getArrayLength(subKeys);

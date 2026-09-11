@@ -4685,7 +4685,7 @@ public Object describe()
         return result;
     }
 
-    public Object filterByLimit(Object array, Object... optionalArgs)
+    public java.util.List<Object> filterByLimit(Object array, Object... optionalArgs)
     {
         // array = ascending ? this.arraySlice (array, 0, limit) : this.arraySlice (array, -limit);
         // array = ascending ? this.arraySlice (array, -limit) : this.arraySlice (array, 0, limit);
@@ -4732,10 +4732,10 @@ public Object describe()
                 }
             }
         }
-        return array;
+        return (java.util.List<Object>) array;
     }
 
-    public Object filterBySinceLimit(Object array, Object... optionalArgs)
+    public java.util.List<Object> filterBySinceLimit(Object array, Object... optionalArgs)
     {
         Object since = Helpers.getArg(optionalArgs, 0, null);
         Object limit = Helpers.getArg(optionalArgs, 1, null);
@@ -4763,7 +4763,7 @@ public Object describe()
         }
         if (Helpers.isTrue(Helpers.isTrue(tail) && Helpers.isTrue(!Helpers.isEqual(limit, null))))
         {
-            return this.arraySlice(result, Helpers.opNeg(limit));
+            return (java.util.List<Object>) this.arraySlice(result, Helpers.opNeg(limit));
         }
         // if the user provided a 'since' argument
         // we want to limit the result starting from the 'since'
@@ -4771,7 +4771,7 @@ public Object describe()
         return this.filterByLimit(result, limit, key, shouldFilterFromStart);
     }
 
-    public Object filterByValueSinceLimit(Object array, Object field, Object... optionalArgs)
+    public java.util.List<Object> filterByValueSinceLimit(Object array, Object field, Object... optionalArgs)
     {
         Object value = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -4804,7 +4804,7 @@ public Object describe()
         }
         if (Helpers.isTrue(Helpers.isTrue(tail) && Helpers.isTrue(!Helpers.isEqual(limit, null))))
         {
-            return this.arraySlice(result, Helpers.opNeg(limit));
+            return (java.util.List<Object>) this.arraySlice(result, Helpers.opNeg(limit));
         }
         return this.filterByLimit(result, limit, key, sinceIsDefined);
     }
@@ -6869,7 +6869,7 @@ public Object describe()
         }});
     }
 
-    public Object parseOrders(Object orders, Object... optionalArgs)
+    public java.util.List<Object> parseOrders(Object orders, Object... optionalArgs)
     {
         //
         // the value of orders is either a dict or a list
@@ -8241,7 +8241,7 @@ public Object describe()
         }};
     }
 
-    public Object parseOHLCVs(Object ohlcvs, Object... optionalArgs)
+    public java.util.List<Object> parseOHLCVs(Object ohlcvs, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timeframe = Helpers.getArg(optionalArgs, 1, "1m");
@@ -8423,7 +8423,7 @@ public Object describe()
         return result;
     }
 
-    public Object parseTradesHelper(Object isWs, Object trades, Object... optionalArgs)
+    public java.util.List<Object> parseTradesHelper(Object isWs, Object trades, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8449,7 +8449,7 @@ public Object describe()
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
-    public Object parseTrades(Object trades, Object... optionalArgs)
+    public java.util.List<Object> parseTrades(Object trades, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8467,7 +8467,7 @@ public Object describe()
         return this.parseTradesHelper(true, trades, market, since, limit, parameters);
     }
 
-    public Object parseTransactions(Object transactions, Object... optionalArgs)
+    public java.util.List<Object> parseTransactions(Object transactions, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8503,7 +8503,7 @@ public Object describe()
         return this.filterByCurrencySinceLimit(result, code, since, limit);
     }
 
-    public Object parseLedger(Object data, Object... optionalArgs)
+    public java.util.List<Object> parseLedger(Object data, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -8568,7 +8568,7 @@ public Object describe()
         return symbol;
     }
 
-    public Object symbol(Object symbol)
+    public String symbol(Object symbol)
     {
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
@@ -8618,7 +8618,7 @@ public Object describe()
     public Object handleParamInteger2(Object parameters, Object paramName1, Object paramName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object value = this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
+        Long value = (Long) this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
         {
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList(paramName1, paramName2)));
@@ -10400,7 +10400,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(tag, parameters));
     }
 
-    public Object costToPrecision(Object symbol, Object cost)
+    public String costToPrecision(Object symbol, Object cost)
     {
         if (Helpers.isTrue(Helpers.isEqual(cost, null)))
         {
@@ -10440,7 +10440,7 @@ public Object describe()
         return result;
     }
 
-    public Object feeToPrecision(Object symbol, Object fee)
+    public String feeToPrecision(Object symbol, Object fee)
     {
         if (Helpers.isTrue(Helpers.isEqual(fee, null)))
         {
@@ -10648,7 +10648,7 @@ public Object describe()
         return Helpers.GetValue(currency, "code");
     }
 
-    public Object filterBySymbolSinceLimit(Object array, Object... optionalArgs)
+    public java.util.List<Object> filterBySymbolSinceLimit(Object array, Object... optionalArgs)
     {
         Object symbol = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -10657,7 +10657,7 @@ public Object describe()
         return this.filterByValueSinceLimit(array, "symbol", symbol, since, limit, "timestamp", tail);
     }
 
-    public Object filterByCurrencySinceLimit(Object array, Object... optionalArgs)
+    public java.util.List<Object> filterByCurrencySinceLimit(Object array, Object... optionalArgs)
     {
         Object code = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
@@ -11889,7 +11889,7 @@ public Object describe()
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Object step = Helpers.multiply(time, maxEntriesPerRequest);
-            Object until = this.safeInteger2(parameters, "until", "till"); // do not omit it here
+            Long until = (Long) this.safeInteger2(parameters, "until", "till"); // do not omit it here
             Object currentSince = Helpers.subtract(Helpers.subtract(current, (Helpers.multiply(maxCalls, step))), 1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -12226,7 +12226,7 @@ public Object describe()
     public Object handleUntilOption(Object key, Object request, Object parameters, Object... optionalArgs)
     {
         Object multiplier = Helpers.getArg(optionalArgs, 0, 1);
-        Object until = this.safeInteger2(parameters, "until", "till");
+        Long until = (Long) this.safeInteger2(parameters, "until", "till");
         if (Helpers.isTrue(!Helpers.isEqual(until, null)))
         {
             Helpers.addElementToObject(request, key, this.parseToInt(Helpers.multiply(until, multiplier)));

@@ -429,8 +429,8 @@ public class IndodaxCore extends IndodaxApi
                 String id = this.safeString(market, "id");
                 String baseId = this.safeString(market, "traded_currency");
                 String quoteId = this.safeString(market, "base_currency");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
                 Object isMaintenance = this.safeInteger(market, "is_maintenance");
                 Object inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
@@ -495,7 +495,7 @@ public class IndodaxCore extends IndodaxApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-        Object free = this.safeValue(balances, "balance", new java.util.HashMap<String, Object>() {{}});
+        Object free = this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(balances, "server_time");
         Object result = new java.util.HashMap<String, Object>() {{
@@ -507,7 +507,7 @@ public class IndodaxCore extends IndodaxApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "free", this.safeString(free, currencyId));
             Helpers.addElementToObject(account, "used", this.safeString(used, currencyId));
@@ -619,7 +619,7 @@ public class IndodaxCore extends IndodaxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "server_time");
         Object baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
         Object quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
@@ -881,7 +881,7 @@ public class IndodaxCore extends IndodaxApi
 
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
@@ -940,7 +940,7 @@ public class IndodaxCore extends IndodaxApi
         {
             side = Helpers.GetValue(order, "type");
         }
-        Object status = this.parseOrderStatus(this.safeString(order, "status", "open"));
+        String status = this.parseOrderStatus(this.safeString(order, "status", "open"));
         Object symbol = null;
         Object cost = null;
         String price = this.safeString(order, "price");
@@ -1096,7 +1096,7 @@ public class IndodaxCore extends IndodaxApi
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object marketOrders = Helpers.GetValue(rawOrders, marketId);
                 market = this.safeMarket(marketId);
-                Object parsedOrders = this.parseOrders(marketOrders, market, since, limit);
+                java.util.List<Object> parsedOrders = this.parseOrders(marketOrders, market, since, limit);
                 exchangeOrders = this.arrayConcat(exchangeOrders, parsedOrders);
             }
             return exchangeOrders;
@@ -1479,8 +1479,8 @@ public class IndodaxCore extends IndodaxApi
             //     }
             //
             Object data = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-            Object withdraw = this.safeValue(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Object deposit = this.safeValue(data, "deposit", new java.util.HashMap<String, Object>() {{}});
+            Object withdraw = this.safeDict(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
+            Object deposit = this.safeDict(data, "deposit", new java.util.HashMap<String, Object>() {{}});
             Object transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object currency = null;
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
@@ -1659,7 +1659,7 @@ public class IndodaxCore extends IndodaxApi
         }};
     }
 
-    public Object parseTransactionStatus(Object status)
+    public String parseTransactionStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
@@ -1733,7 +1733,7 @@ public class IndodaxCore extends IndodaxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addressKeys)); i++)
             {
                 Object marketId = Helpers.GetValue(addressKeys, i);
-                Object code = this.safeCurrencyCode(marketId);
+                String code = (String) this.safeCurrencyCode(marketId);
                 String address = this.safeString(addresses, marketId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(address, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
                 {

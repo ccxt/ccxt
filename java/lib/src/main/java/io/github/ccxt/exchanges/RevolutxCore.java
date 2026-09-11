@@ -441,7 +441,7 @@ public class RevolutxCore extends RevolutxApi
     public Object parseCurrency(Object currency)
     {
         String id = this.safeString2(currency, "id", "symbol", "");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         String name = this.safeString(currency, "name");
         Object scale = this.safeInteger(currency, "scale");
         String status = this.safeString(currency, "status");
@@ -542,7 +542,7 @@ public class RevolutxCore extends RevolutxApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String tickerSymbol = this.safeString(ticker, "symbol");
-        Object symbol = this.safeSymbol(tickerSymbol, market, "/");
+        String symbol = (String) this.safeSymbol(tickerSymbol, market, "/");
         String bid = this.safeString(ticker, "bid");
         String ask = this.safeString(ticker, "ask");
         String last = this.safeString(ticker, "last_price");
@@ -814,7 +814,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "since", since);
             }
-            Object until = this.safeInteger2(parameters, "until", "until");
+            Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "until", until);
@@ -857,7 +857,7 @@ public class RevolutxCore extends RevolutxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(trade, "id");
         String tradeSymbol = this.safeString(trade, "symbol");
-        Object symbol = this.safeSymbol(tradeSymbol, market, "/");
+        String symbol = (String) this.safeSymbol(tradeSymbol, market, "/");
         Object price = this.safeNumber(trade, "price");
         Object amount = this.safeNumber(trade, "quantity");
         String side = (String)this.safeStringLower(trade, "side");
@@ -927,7 +927,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "start_date", since);
             }
-            Object until = this.safeInteger2(parameters, "until", "until");
+            Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "end_date", until);
@@ -999,7 +999,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Object balance = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 String currency = this.safeString(balance, "currency");
-                Object code = this.safeCurrencyCode(currency);
+                String code = (String) this.safeCurrencyCode(currency);
                 if (Helpers.isTrue(Helpers.isEqual(code, null)))
                 {
                     continue;
@@ -1030,7 +1030,7 @@ public class RevolutxCore extends RevolutxApi
      * @param {string} status the exchange-specific order status
      * @returns {string|undefined} the unified order status
      */
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "pending_new", "open" );
@@ -1060,7 +1060,7 @@ public class RevolutxCore extends RevolutxApi
         String orderId = this.safeString2(order, "id", "venue_order_id");
         String clientOrderId = this.safeString(order, "client_order_id");
         String orderSymbol = this.safeString(order, "symbol");
-        Object symbol = this.safeSymbol(orderSymbol, market, "/");
+        String symbol = (String) this.safeSymbol(orderSymbol, market, "/");
         String side = (String)this.safeStringLower(order, "side");
         String orderType = (String)this.safeStringLower(order, "type");
         String quantity = this.safeString(order, "quantity");
@@ -1072,7 +1072,7 @@ public class RevolutxCore extends RevolutxApi
         String filledAmount = this.safeString(order, "filled_amount");
         String totalFee = this.safeString(order, "total_fee");
         String feeCurrency = this.safeString(order, "fee_currency");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
         Object createdDate = this.safeInteger(order, "created_date");
         Object updatedDate = this.safeInteger(order, "updated_date");
@@ -1460,7 +1460,7 @@ public class RevolutxCore extends RevolutxApi
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             Object thirtyDays = 2592000000L;
-            Object until = this.safeInteger2(parameters, "until", "until");
+            Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start_date", since);
@@ -1555,7 +1555,7 @@ public class RevolutxCore extends RevolutxApi
         Object price = this.safeNumber(trade, "p");
         Object amount = this.safeNumber(trade, "q");
         String side = (String)this.safeStringLower(trade, "s");
-        Object timestamp = this.safeInteger2(trade, "tdt", "pdt");
+        Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
         Object isMaker = this.safeBool(trade, "im", false);
         Object takerOrMaker = ((Helpers.isTrue((isMaker)))) ? "maker" : "taker";
         Object cost = null;
@@ -1563,7 +1563,7 @@ public class RevolutxCore extends RevolutxApi
         {
             cost = Helpers.multiply(price, amount);
         }
-        Object symbol = this.safeSymbol(null, market);
+        String symbol = (String) this.safeSymbol(null, market);
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
@@ -1620,7 +1620,7 @@ public class RevolutxCore extends RevolutxApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object thirtyDays = 2592000000L;
-            Object until = this.safeInteger2(parameters, "until", "until");
+            Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "start_date", since);

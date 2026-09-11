@@ -18,6 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
+import { installJavaLocalTypes } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -848,6 +849,10 @@ class NewTranspiler {
         // narrows `Object x = this.safeString(...)` locals to `String` — see
         // patchJavaLocalTypes above (also applied per worker thread in java-worker.ts)
         patchJavaLocalTypes(this.transpiler);
+        // JAVA-15: parse* return signatures (String / java.util.List<Object>) and the
+        // parse* body locals fed by them + the timestamp/symbol/currency accessors —
+        // see build/java-local-types.js (also applied per worker thread in java-worker.ts)
+        installJavaLocalTypes(this.transpiler);
     }
 
     // ast-transpiler resolves CLASS FIELD types through BaseTranspiler.getType(), which for a

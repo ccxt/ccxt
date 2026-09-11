@@ -137,7 +137,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //     "id": null
         // }
         //
-        Object parameters = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object parameters = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object data = Helpers.GetValue(parameters, i);
@@ -489,7 +489,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeValue(parameters, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object parsedTrades = this.parseTrades(data, market);
+        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -851,7 +851,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         }}, market);
     }
 
-    public Object parseWsOrderType(Object status)
+    public String parseWsOrderType(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
@@ -1017,7 +1017,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             if (Helpers.isTrue(isMargin))
             {
                 Object currencyId = this.safeString(balanceDict, "a");
-                Object code = this.safeCurrencyCode(currencyId);
+                String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "free", this.safeString(balanceDict, "av"));
                 Helpers.addElementToObject(account, "total", this.safeString(balanceDict, "B"));
@@ -1033,7 +1033,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
                     Object rawBalance = this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
-                    Object code = this.safeCurrencyCode(currencyId);
+                    String code = (String) this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
                     Helpers.addElementToObject(account, "used", this.safeString(rawBalance, "freeze"));
@@ -1117,7 +1117,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
             {
-                Object subscription = this.safeValue(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
+                Object subscription = this.safeDict(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
                 Object hasSymbolSubscription = true;
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");

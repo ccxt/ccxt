@@ -102,7 +102,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //
         Object data = this.safeValue(message, "Data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "Pair");
-        Object symbol = this.safeSymbol(marketId, null, "-");
+        String symbol = (String) this.safeSymbol(marketId, null, "-");
         Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -223,8 +223,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         Object depth = this.safeString(parts, 1);
         Object baseId = this.safeString(parts, 2);
         Object quoteId = this.safeString(parts, 3);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String base = (String) this.safeCurrencyCode(baseId);
+        String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object orderBook = this.safeDict(message, "Data", new java.util.HashMap<String, Object>() {{}});
         Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);

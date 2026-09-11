@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class hollaex { public hollaex(object args = null) : base(args) { } }
 public partial class hollaex : ccxt.hollaex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {

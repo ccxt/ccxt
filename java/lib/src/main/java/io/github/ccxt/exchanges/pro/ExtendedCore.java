@@ -308,7 +308,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         if (Helpers.isTrue(!Helpers.isEqual(balance, null)))
         {
             Object currencyId = this.safeString(balance, "collateralName");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Object account = this.account();
@@ -322,7 +322,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         {
             Object spotBalance = this.safeDict(spotBalances, i, new java.util.HashMap<String, Object>() {{}});
             Object currencyId = this.safeString(spotBalance, "asset");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Object account = this.account();

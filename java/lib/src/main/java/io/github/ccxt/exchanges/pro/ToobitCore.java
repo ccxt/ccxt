@@ -397,7 +397,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 limit = Helpers.callDynamically(stored, "getLimit", new Object[]{symbol, limit});
             }
-            Object filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
+            java.util.List<Object> filtered = this.filterBySinceLimit(stored, since, limit, 0, true);
             return this.createOHLCVObject(symbol, timeframe, filtered);
         });
 
@@ -804,7 +804,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             Object entry = Helpers.GetValue(data, i);
             Object marketId = this.safeString(entry, "s");
-            Object symbol = this.safeSymbol(marketId);
+            String symbol = (String) this.safeSymbol(marketId);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), channel);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
@@ -931,7 +931,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             Object balance = Helpers.GetValue(data, i);
             Object currencyId = this.safeString(balance, "a");
-            Object code = this.safeCurrencyCode(currencyId);
+            String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "info", balance);
             Helpers.addElementToObject(account, "used", this.safeString(balance, "l"));
@@ -1067,7 +1067,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(order, "O");
         Object marketId = this.safeString(order, "s");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String priceType = (String)this.safeStringLower(order, "pt");
         String rawOrderType = (String)this.safeStringLower(order, "o");
         Object orderType = null;

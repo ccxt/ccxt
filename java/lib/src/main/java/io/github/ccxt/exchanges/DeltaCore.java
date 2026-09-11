@@ -458,7 +458,7 @@ public class DeltaCore extends DeltaApi
         Object settle = quote;
         String strike = this.safeString(optionParts, 2);
         Object datetime = this.convertExpireDate(expiry);
-        Object timestamp = this.parse8601(datetime);
+        Long timestamp = this.parse8601(datetime);
         Object optionTypeUnified = ((Helpers.isTrue((Helpers.isEqual(optionType, "C"))))) ? "call" : "put";
         final Object finalOptionType = optionType;
         final Object finalBase = base;
@@ -700,7 +700,7 @@ public class DeltaCore extends DeltaApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         Object numericId = this.safeInteger(rawCurrency, "id");
-        Object code = this.safeCurrencyCode(id);
+        String code = (String) this.safeCurrencyCode(id);
         Object chains = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -1017,9 +1017,9 @@ public class DeltaCore extends DeltaApi
                 String settleId = this.safeString(settlingAsset, "symbol");
                 String id = this.safeString(market, "symbol");
                 Object numericId = this.safeInteger(market, "id");
-                Object base = this.safeCurrencyCode(baseId);
-                Object quote = this.safeCurrencyCode(quoteId);
-                Object settle = this.safeCurrencyCode(settleId);
+                String base = (String) this.safeCurrencyCode(baseId);
+                String quote = (String) this.safeCurrencyCode(quoteId);
+                String settle = (String) this.safeCurrencyCode(settleId);
                 Object callOptions = (Helpers.isEqual(type, "call_options"));
                 Object putOptions = (Helpers.isEqual(type, "put_options"));
                 Object moveOptions = (Helpers.isEqual(type, "move_options"));
@@ -1029,7 +1029,7 @@ public class DeltaCore extends DeltaApi
                 Object option = (Helpers.isTrue(Helpers.isTrue(callOptions) || Helpers.isTrue(putOptions)) || Helpers.isTrue(moveOptions));
                 String strike = this.safeString(market, "strike_price");
                 String expiryDatetime = this.safeString(market, "settlement_time");
-                Object expiry = this.parse8601(expiryDatetime);
+                Long expiry = this.parse8601(expiryDatetime);
                 Object contractSize = this.safeNumber(market, "contract_value");
                 Object amountPrecision = null;
                 if (Helpers.isTrue(spot))
@@ -1728,7 +1728,7 @@ public class DeltaCore extends DeltaApi
         String amountString = this.safeString(trade, "size");
         Object product = this.safeDict(trade, "product", new java.util.HashMap<String, Object>() {{}});
         String marketId = this.safeString(product, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         String sellerRole = this.safeString(trade, "seller_role");
         String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1754,7 +1754,7 @@ public class DeltaCore extends DeltaApi
         {
             Object settlingAsset = this.safeDict(product, "settling_asset", new java.util.HashMap<String, Object>() {{}});
             String feeCurrencyId = this.safeString(settlingAsset, "symbol");
-            Object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+            String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
             final Object finalFeeCostString = feeCostString;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", finalFeeCostString );
@@ -2146,7 +2146,7 @@ public class DeltaCore extends DeltaApi
         }});
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
@@ -2235,7 +2235,7 @@ public class DeltaCore extends DeltaApi
         Object marketsByNumericId = this.safeDict(this.options, "marketsByNumericId", new java.util.HashMap<String, Object>() {{}});
         market = this.safeValue(marketsByNumericId, marketId, market);
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? marketId : Helpers.GetValue(market, "symbol");
-        Object status = this.parseOrderStatus(this.safeString(order, "state"));
+        String status = this.parseOrderStatus(this.safeString(order, "state"));
         String side = this.safeString(order, "side");
         Object type = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -2932,7 +2932,7 @@ public class DeltaCore extends DeltaApi
         currency = this.safeValue(currenciesByNumericId, currencyId, currency);
         Object code = ((Helpers.isTrue((Helpers.isEqual(currency, null))))) ? null : Helpers.GetValue(currency, "code");
         String amount = this.safeString(item, "amount");
-        Object timestamp = this.parse8601(this.safeString(item, "created_at"));
+        Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String after = this.safeString(item, "balance");
         Object before = Precise.stringMax("0", Precise.stringSub(after, amount));
         Object status = "ok";
@@ -3027,7 +3027,7 @@ public class DeltaCore extends DeltaApi
         String address = this.safeString(depositAddress, "address");
         String marketId = this.safeString(depositAddress, "asset_symbol");
         String networkId = this.safeString(depositAddress, "network");
-        Object code = this.safeCurrencyCode(marketId, currency);
+        String code = (String) this.safeCurrencyCode(marketId, currency);
         this.checkAddress(address);
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -3947,7 +3947,7 @@ public class DeltaCore extends DeltaApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeIntegerProduct(greeks, "timestamp", 0.001);
         String marketId = this.safeString(greeks, "symbol");
-        Object symbol = this.safeSymbol(marketId, market);
+        String symbol = (String) this.safeSymbol(marketId, market);
         Object stats = this.safeDict(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
         Object quotes = this.safeDict(greeks, "quotes", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{

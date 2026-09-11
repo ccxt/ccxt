@@ -688,7 +688,7 @@ public class BinanceCore extends BinanceApi
         Object slug = this.safeString(rawTopic, "slug");
         Object title = this.safeString(rawTopic, "title");
         Object endDate = this.safeInteger(rawTopic, "endDate");
-        Object created = this.safeInteger2(rawTopic, "publishedAt", "startDate");
+        Long created = (Long) this.safeInteger2(rawTopic, "publishedAt", "startDate");
         Object status = this.safeString(rawTopic, "status");
         Object active = anyActive;
         if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
@@ -1240,7 +1240,7 @@ final Object finalMarketSymbol = marketSymbol;
         }}, outcomeObj);
     }
 
-    public Object parseOrderStatus(Object status)
+    public String parseOrderStatus(Object status)
     {
         Object statuses = new java.util.HashMap<String, Object>() {{
             put( "OPENING", "open" );
