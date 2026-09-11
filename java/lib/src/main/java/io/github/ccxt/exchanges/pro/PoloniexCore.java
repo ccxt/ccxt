@@ -208,7 +208,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
      * @param {object} [params] extra parameters specific to the poloniex api
      * @returns {object} data from the websocket stream
      */
-    public java.util.concurrent.CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tradeRequest(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

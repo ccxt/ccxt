@@ -792,7 +792,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         this.setOrderBookSnapshot(client, message, "depth");
     }
 
-    public void setOrderBookSnapshot(Client client, Object message, Object channel)
+    public void setOrderBookSnapshot(Client client, Object message, String channel)
     {
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object length = Helpers.getArrayLength(data);

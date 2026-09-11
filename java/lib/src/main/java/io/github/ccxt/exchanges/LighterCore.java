@@ -623,7 +623,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    public Object handleApiKeyIndex(Object parameters, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object apiKeyIndex = null;
@@ -639,7 +639,7 @@ public class LighterCore extends LighterApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(apiKeyIndex), parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         final Object parameters3 = parameters2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -708,7 +708,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -787,7 +787,7 @@ public class LighterCore extends LighterApi
         return token;
     }
 
-    public Object pow(Object n, Object m)
+    public Object pow(String n, Object m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -1210,7 +1210,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCreateOrder(Object method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCreateOrder(String method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3933,7 +3933,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCancelOrder(Object method, Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelOrder(String method, Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4021,7 +4021,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCancelAllOrders(Object method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelAllOrders(String method, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4179,7 +4179,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

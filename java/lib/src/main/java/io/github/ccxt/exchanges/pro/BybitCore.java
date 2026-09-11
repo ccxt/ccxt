@@ -2832,7 +2832,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> unWatchTopics(Object url, Object topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchTopics(Object url, String topic, Object symbols, Object messageHashes, Object subMessageHashes, Object topics, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

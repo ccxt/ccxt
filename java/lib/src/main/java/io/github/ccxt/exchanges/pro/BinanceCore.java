@@ -4481,7 +4481,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return accountType;
     }
 
-    public Object resolveAuthType(Object methodName, Object... optionalArgs)
+    public Object resolveAuthType(String methodName, Object... optionalArgs)
     {
         // the single home for user-data type derivation: market type, subType,
         // and the guarded linear/inverse rewrite. option and stock must keep

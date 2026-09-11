@@ -1126,7 +1126,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> unWatchChannels(Object topic, Object channels, Object subMessageHashes, Object subscriptionArgs, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchChannels(String topic, Object channels, Object subMessageHashes, Object subscriptionArgs, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

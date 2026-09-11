@@ -1316,7 +1316,7 @@ public class DeriveCore extends DeriveApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2628,7 +2628,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3406,7 +3406,7 @@ public class DeriveCore extends DeriveApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object handleDeriveSubaccountId(Object methodName, Object parameters)
+    public Object handleDeriveSubaccountId(String methodName, Object parameters)
     {
         Object derivesubAccountId = null;
         java.util.List<Object> derivesubAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id");
@@ -3425,7 +3425,7 @@ public class DeriveCore extends DeriveApi
         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public Object handleDeriveWalletAddress(Object methodName, Object parameters)
+    public Object handleDeriveWalletAddress(String methodName, Object parameters)
     {
         Object deriveWalletAddress = null;
         java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");

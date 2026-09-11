@@ -1066,7 +1066,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
     }
 
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1161,7 +1161,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchL2OrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchL2OrderBook(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1177,7 +1177,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitBuyOrder(Object id, Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editLimitBuyOrder(String id, String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1189,7 +1189,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editLimitSellOrder(Object id, Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editLimitSellOrder(String id, String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1227,7 +1227,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrderWithClientOrderId(Object clientOrderId, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrderWithClientOrderId(String clientOrderId, String symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1378,7 +1378,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderWithClientOrderId(String clientOrderId, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1393,7 +1393,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1431,7 +1431,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingAmountOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTrailingAmountOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1472,7 +1472,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1538,7 +1538,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1562,7 +1562,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1586,7 +1586,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTriggerOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTriggerOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1624,7 +1624,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLossOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createStopLossOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1662,7 +1662,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTakeProfitOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTakeProfitOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1700,7 +1700,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createOrderWithTakeProfitAndStopLoss(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrderWithTakeProfitAndStopLoss(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1773,7 +1773,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrderWithClientOrderId(Object clientOrderId, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelOrderWithClientOrderId(String clientOrderId, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1865,7 +1865,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1973,7 +1973,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitOrder(Object symbol, Object side, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createLimitOrder(String symbol, Object side, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1984,7 +1984,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrder(Object symbol, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrder(String symbol, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1996,7 +1996,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitBuyOrder(Object symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createLimitBuyOrder(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2007,7 +2007,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createLimitSellOrder(Object symbol, Object amount, Object price, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createLimitSellOrder(String symbol, Object amount, Object price, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2018,7 +2018,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrder(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrder(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2029,7 +2029,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrder(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrder(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2040,7 +2040,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createPostOnlyOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createPostOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2059,7 +2059,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createReduceOnlyOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createReduceOnlyOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2078,7 +2078,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createStopOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2103,7 +2103,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopLimitOrder(Object symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createStopLimitOrder(String symbol, Object side, Object amount, Object price, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2121,7 +2121,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createStopMarketOrder(Object symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createStopMarketOrder(String symbol, Object side, Object amount, Object triggerPrice, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2139,7 +2139,7 @@ public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbo
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

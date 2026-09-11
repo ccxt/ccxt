@@ -292,7 +292,7 @@ public class TestMain extends BaseTest
         return Helpers.add(message, res);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testMethod(Object methodName2, BaseExchange exchange, Object args, Object isPublic)
+    public java.util.concurrent.CompletableFuture<Object> testMethod(String methodName2, BaseExchange exchange, Object args, Object isPublic)
     {
         final Object methodName3 = methodName2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -372,7 +372,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public Object getSkips(BaseExchange exchange, Object methodName)
+    public Object getSkips(BaseExchange exchange, String methodName)
     {
         Object finalSkips = new java.util.HashMap<String, Object>() {{}};
         // check the exact method (i.e. `fetchTrades`) and language-specific (i.e. `fetchTrades.php`)
@@ -1687,7 +1687,7 @@ public class TestMain extends BaseTest
         }
     }
 
-    public void AssertStaticError(Object cond, Object message, Object calculatedOutput, Object storedOutput, Object... optionalArgs)
+    public void AssertStaticError(Object cond, String message, Object calculatedOutput, Object storedOutput, Object... optionalArgs)
     {
         //  -----------------------------------------------------------------------------
         //  --- Init of static tests functions------------------------------------------
@@ -1714,7 +1714,7 @@ public class TestMain extends BaseTest
         Assert(cond, errorMessage);
     }
 
-    public Object loadMarketsFromFile(Object id)
+    public Object loadMarketsFromFile(String id)
     {
         // load markets from file
         // to make this test as fast as possible
@@ -1725,7 +1725,7 @@ public class TestMain extends BaseTest
         return content;
     }
 
-    public Object loadEventsFromFile(Object id)
+    public Object loadEventsFromFile(String id)
     {
         // prediction fixtures are cached as an event -> markets -> outcomes hierarchy under
         // static/events/<id>.json; returns undefined when the exchange has no events fixture
@@ -1737,7 +1737,7 @@ public class TestMain extends BaseTest
         return ioFileRead(filename);
     }
 
-    public Object loadCurrenciesFromFile(Object id)
+    public Object loadCurrenciesFromFile(String id)
     {
         Object filename = Helpers.add(Helpers.add(Helpers.add(getRootDir(), "./ts/src/test/static/currencies/"), id), ".json");
         Object content = ioFileRead(filename);
@@ -1779,7 +1779,7 @@ public class TestMain extends BaseTest
         return result;
     }
 
-    public Object removeHostnamefromUrl(Object url)
+    public Object removeHostnamefromUrl(String url)
     {
         if (Helpers.isTrue(Helpers.isEqual(url, null)))
         {
@@ -1807,7 +1807,7 @@ public class TestMain extends BaseTest
         return res;
     }
 
-    public Object urlencodedToDict(Object url)
+    public Object urlencodedToDict(String url)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object parts = Helpers.split(url, "&");
@@ -2147,7 +2147,7 @@ public class TestMain extends BaseTest
         return newString;
     }
 
-    public Object AssertStaticRequestOutput(BaseExchange exchange, Object type, Object skipKeys, Object storedUrl, Object requestUrl, Object storedOutput, Object newOutput)
+    public Object AssertStaticRequestOutput(BaseExchange exchange, String type, Object skipKeys, String storedUrl, String requestUrl, Object storedOutput, Object newOutput)
     {
         if (Helpers.isTrue(!Helpers.isEqual(storedUrl, requestUrl)))
         {
@@ -2235,7 +2235,7 @@ public class TestMain extends BaseTest
         return newInput;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testRequestStatically(BaseExchange exchange, Object method, Object data, Object type, Object skipKeys)
+    public java.util.concurrent.CompletableFuture<Object> testRequestStatically(BaseExchange exchange, String method, Object data, String type, Object skipKeys)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2279,7 +2279,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testResponseStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    public java.util.concurrent.CompletableFuture<Object> testResponseStatically(BaseExchange exchange, String method, Object skipKeys, Object data)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2313,7 +2313,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, Object url, Object messages, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> injectWsMessages(BaseExchange exchange, String url, Object messages, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2369,7 +2369,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, Object url, Object method, Object input, Object skipKeys, Object expectedResults)
+    public java.util.concurrent.CompletableFuture<Object> watchAndAssertSequence(BaseExchange exchange, String url, String method, Object input, Object skipKeys, Object expectedResults)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2399,7 +2399,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public void AssertWsSentMessages(BaseExchange exchange, Object url, Object data)
+    public void AssertWsSentMessages(BaseExchange exchange, String url, Object data)
     {
         // the ws analog of the static request tests: Assert the frames the
         // watch method sent over the mocked transport (subscribe requests etc)
@@ -2422,7 +2422,7 @@ public class TestMain extends BaseTest
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, Object method, Object skipKeys, Object data)
+    public java.util.concurrent.CompletableFuture<Object> testWsStatically(BaseExchange exchange, String method, Object skipKeys, Object data)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2479,7 +2479,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testExchangeWsStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> testExchangeWsStatically(String exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2550,7 +2550,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public BaseExchange initOfflineExchange(Object exchangeName, Object... optionalArgs)
+    public BaseExchange initOfflineExchange(String exchangeName, Object... optionalArgs)
     {
         // prediction exchanges load their outcome markets from an event -> markets -> outcomes
         // fixture (static/events/<id>.json) instead of the markets/currencies fixtures. this is the
@@ -2686,7 +2686,7 @@ public class TestMain extends BaseTest
         return exchange;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testExchangeRequestStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> testExchangeRequestStatically(String exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2791,7 +2791,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> testExchangeResponseStatically(Object exchangeName, Object exchangeData, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> testExchangeResponseStatically(String exchangeName, Object exchangeData, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2910,7 +2910,7 @@ public class TestMain extends BaseTest
         return sum;
     }
 
-    public Object checkIfExchangeIsDisabled(Object exchangeName, Object exchangeData)
+    public Object checkIfExchangeIsDisabled(String exchangeName, Object exchangeData)
     {
         Exchange exchange = ((Exchange)initExchange("Exchange", new java.util.HashMap<String, Object>() {{}}));
         // prediction-market exchanges exist only in the async namespaces in python/php,
@@ -2973,7 +2973,7 @@ public class TestMain extends BaseTest
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> runStaticTests(Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> runStaticTests(String type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

@@ -458,7 +458,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handlePortfolioAndParams(Object methodName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handlePortfolioAndParams(String methodName, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -494,7 +494,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handleNetworkIdAndParams(Object currencyCode, Object methodName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handleNetworkIdAndParams(Object currencyCode, String methodName, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1029,7 +1029,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
      * @param {string} [params.network] unified network code to identify the blockchain network
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

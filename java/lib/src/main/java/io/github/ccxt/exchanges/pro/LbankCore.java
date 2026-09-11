@@ -74,7 +74,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         return newValue;
     }
 
-    public void checkContractMarket(Object market, Object methodName)
+    public void checkContractMarket(Object market, String methodName)
     {
         // the spot ws rejects futures ids and lbank's contract ws protocol is not published,
         // see https://github.com/ccxt/ccxt/issues/26864

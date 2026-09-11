@@ -621,7 +621,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> helperForWatchMultipleConstruct(Object itemHashName2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName2, Object... optionalArgs)
     {
         final Object itemHashName3 = itemHashName2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

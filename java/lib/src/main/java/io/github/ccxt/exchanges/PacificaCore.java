@@ -1081,7 +1081,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1250,7 +1250,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1623,7 +1623,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3579,7 +3579,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4080,7 +4080,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4165,7 +4165,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> bindAgentWallet(Object agentAddress, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> bindAgentWallet(String agentAddress, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4195,7 +4195,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> revokeApiKey(Object apiKey, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> revokeApiKey(String apiKey, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4242,7 +4242,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBuilderApprovals(Object address)
+    public java.util.concurrent.CompletableFuture<Object> fetchBuilderApprovals(String address)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4255,7 +4255,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> revokeBuilderCode(Object builderCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> revokeBuilderCode(String builderCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4271,7 +4271,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object handleOriginAndSingleAddress(Object methodName, Object parameters)
+    public Object handleOriginAndSingleAddress(String methodName, Object parameters)
     {
         String address = null;
         java.util.List<Object> addressparametersVariable = (java.util.List<Object>) this.handleParamString2(parameters, "account", "address");

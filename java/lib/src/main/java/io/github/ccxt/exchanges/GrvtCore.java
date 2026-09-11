@@ -1342,7 +1342,7 @@ public class GrvtCore extends GrvtApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is the current time
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2230,7 +2230,7 @@ public class GrvtCore extends GrvtApi
 
     }
 
-    public Object filterTransfersByType(Object transfers, Object transferType, Object... optionalArgs)
+    public Object filterTransfersByType(Object transfers, String transferType, Object... optionalArgs)
     {
         Object onlyMainAccount = Helpers.getArg(optionalArgs, 0, true);
         java.util.List<Object> matchedResults = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -4014,7 +4014,7 @@ public class GrvtCore extends GrvtApi
         }};
     }
 
-    public Object handleUntilOptionString(Object key, Object request, Object parameters, Object... optionalArgs)
+    public Object handleUntilOptionString(String key, Object request, Object parameters, Object... optionalArgs)
     {
         Object multiplier = Helpers.getArg(optionalArgs, 0, 1);
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
