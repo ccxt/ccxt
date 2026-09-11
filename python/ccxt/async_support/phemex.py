@@ -1994,7 +1994,7 @@ class phemex(Exchange, ImplicitAPI):
         #
         timestamp = None
         result = {'info': response}
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         for i in range(0, len(data)):
             balance = data[i]
             currencyId = self.safe_string(balance, 'currency')
@@ -3768,7 +3768,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        positions = self.safe_value(data, 'positions', [])
+        positions = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(positions)):
             position = positions[i]
@@ -4055,7 +4055,7 @@ class phemex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        rows = self.safe_value(data, 'rows', [])
+        rows = self.safe_list(data, 'rows', [])
         result = []
         for i in range(0, len(rows)):
             entry = rows[i]
@@ -5361,7 +5361,7 @@ class phemex(Exchange, ImplicitAPI):
             #     }
             #
         data = self.safe_value(response, 'data', {})
-        ranks = self.safe_value(data, 'positions', [])
+        ranks = self.safe_list(data, 'positions', [])
         result = []
         for i in range(0, len(ranks)):
             rank = ranks[i]

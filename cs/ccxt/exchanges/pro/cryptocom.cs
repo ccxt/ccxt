@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class cryptocom { public cryptocom(object args = null) : base(args) { } }
 public partial class cryptocom : ccxt.cryptocom
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -490,7 +490,7 @@ public partial class cryptocom : ccxt.cryptocom
             stored = new ArrayCache(limit);
             ((IDictionary<string,object>)this.trades)[(string)symbol] = stored;
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         int dataLength = getArrayLength(data);
         if (isTrue(isEqual(dataLength, 0)))
         {
@@ -688,7 +688,7 @@ public partial class cryptocom : ccxt.cryptocom
         string? messageHash = this.safeString(message, "subscription");
         string? marketId = this.safeString(message, "instrument_name");
         Dictionary<string, object> market = this.safeMarket(marketId);
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = getValue(data, i);
@@ -1001,7 +1001,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         string? channel = this.safeString(message, "channel");
         string? symbolSpecificMessageHash = this.safeString(message, "subscription");
-        object orders = this.safeValue(message, "data", new List<object>() {});
+        List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = getArrayLength(orders);
         if (isTrue(isGreaterThan(ordersLength, 0)))
         {
@@ -1112,7 +1112,7 @@ public partial class cryptocom : ccxt.cryptocom
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "positions"});
         }
@@ -1148,7 +1148,7 @@ public partial class cryptocom : ccxt.cryptocom
         // and has exactly one subscriptionhash which is the account type
         object data = this.safeValue(message, "data", new List<object>() {});
         object firstData = this.safeValue(data, 0, new Dictionary<string, object>() {});
-        object rawPositions = this.safeValue(firstData, "positions", new List<object>() {});
+        List<object> rawPositions = this.safeList(firstData, "positions", new List<object>() {});
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
@@ -1162,7 +1162,7 @@ public partial class cryptocom : ccxt.cryptocom
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1241,15 +1241,15 @@ public partial class cryptocom : ccxt.cryptocom
         //     }
         //
         string? messageHash = this.safeString(message, "subscription");
-        object data = this.safeValue(message, "data", new List<object>() {});
-        object positionBalances = this.safeValue(getValue(data, 0), "position_balances", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
+        List<object> positionBalances = this.safeList(getValue(data, 0), "position_balances", new List<object>() {});
         ((IDictionary<string,object>)this.balance)["info"] = data;
         for (int i = 0; isLessThan(i, getArrayLength(positionBalances)); postFixIncrement(ref i))
         {
             object balance = getValue(positionBalances, i);
             string? currencyId = this.safeString(balance, "instrument_name");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved_qty");
             if (isTrue(!isEqual(code, null)))
@@ -1676,7 +1676,7 @@ public partial class cryptocom : ccxt.cryptocom
         //
         //  { id: 1648132625434, method: "public/auth", code: 0 }
         //
-        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
         (future as Future).resolve(true);
     }
 

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class alpaca : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "alpaca" },
@@ -647,12 +647,12 @@ public partial class alpaca : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
         }
-        object jetlagStrStart = subtract(((string)timestamp).Length, 6);
+        int jetlagStrStart = subtract(((string)timestamp).Length, 6);
         if (isTrue(isEqual(timestamp, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
         }
-        object jetlagStrEnd = subtract(((string)timestamp).Length, 3);
+        int jetlagStrEnd = subtract(((string)timestamp).Length, 3);
         if (isTrue(isEqual(timestamp, null)))
         {
             throw new ExchangeError ((string)add(this.id, " fetchTime() missing timestamp")) ;
@@ -703,7 +703,7 @@ public partial class alpaca : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(assets));
     }
 
-    public override object parseMarket(object asset)
+    public override Dictionary<string, object> parseMarket(object asset)
     {
         //
         //     {
@@ -1252,7 +1252,7 @@ public partial class alpaca : Exchange
             IDictionary<string, object> latestQuote = this.safeDict(entry, "latestQuote", new Dictionary<string, object>() {});
             IDictionary<string, object> latestTrade = this.safeDict(entry, "latestTrade", new Dictionary<string, object>() {});
             string? datetime = this.safeString(latestQuote, "t");
-            object ticker = this.safeTicker(new Dictionary<string, object>() {
+            Dictionary<string, object> ticker = this.safeTicker(new Dictionary<string, object>() {
                 { "info", entry },
                 { "symbol", getValue(market, "symbol") },
                 { "timestamp", this.parse8601(datetime) },
@@ -1285,7 +1285,7 @@ public partial class alpaca : Exchange
         string uuid = this.uuid();
         List<object> parts = ((string)uuid).Split(new [] {((string)"-")}, StringSplitOptions.None).ToList<object>();
         string random_id = String.Join("", ((IList<object>)parts).ToArray());
-        string defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
+        string? defaultClientId = this.implodeParams(clientOrderIdprefix, new Dictionary<string, object>() {
             { "id", random_id },
         });
         string? clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
@@ -2444,7 +2444,7 @@ public partial class alpaca : Exchange
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         string? currencyId = this.safeString(response, "currency");
         string? code = this.safeCurrencyCode(currencyId);
         ((IDictionary<string,object>)account)["free"] = this.safeString(response, "cash");

@@ -930,7 +930,7 @@ class bitfinex extends \ccxt\async\bitfinex {
             $code = $this->safe_currency_code($currencyId);
             $balance = $this->parse_ws_balance($rawBalance);
             $balanceType = $this->safe_string($rawBalance, 0);
-            $oldBalance = $this->safe_value($this->balance, $balanceType, array());
+            $oldBalance = $this->safe_dict($this->balance, $balanceType, array());
             if ($code !== null) {
                 $oldBalance[$code] = $balance;
             }
@@ -980,7 +980,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         return $message;
     }
 
-    public function handle_unsubscription_status(Client $client, mixed $message) {
+    public function handle_unsubscription_status(Client $client, mixed $message): bool {
         //
         // {
         //     "event" => "unsubscribed",
@@ -1164,7 +1164,7 @@ class bitfinex extends \ccxt\async\bitfinex {
         //        )
         //    )
         //
-        $data = $this->safe_value($message, 2, array());
+        $data = $this->safe_list($message, 2, array());
         $messageType = $this->safe_string($message, 1);
         if ($this->orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);

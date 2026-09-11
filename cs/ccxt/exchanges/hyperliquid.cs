@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class hyperliquid : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "hyperliquid" },
@@ -438,7 +438,7 @@ public partial class hyperliquid : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(this.checkRequiredCredentials(false)))
@@ -470,7 +470,7 @@ public partial class hyperliquid : Exchange
         return this.parseCurrencies(tokens);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         // const id = i;
         string? id = this.safeString(rawCurrency, "index");
@@ -520,7 +520,7 @@ public partial class hyperliquid : Exchange
                 }
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToDict(result);
     }
 
     /**
@@ -618,7 +618,7 @@ public partial class hyperliquid : Exchange
         } else
         {
             int fetchDexesLength = getArrayLength(fetchDexes);
-            for (object i = 1; isLessThan(i, maxLimit); postFixIncrement(ref i))
+            for (int i = 1; isLessThan(i, maxLimit); postFixIncrement(ref i))
             {
                 if (isTrue(isGreaterThanOrEqual(i, fetchDexesLength)))
                 {
@@ -634,7 +634,7 @@ public partial class hyperliquid : Exchange
             }
         }
         List<object> rawPromises = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fetchDexesList)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(fetchDexesList)); postFixIncrement(ref i))
         {
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "type", "metaAndAssetCtxs" },
@@ -645,7 +645,7 @@ public partial class hyperliquid : Exchange
         object promises = await promiseAll(rawPromises);
         ((IDictionary<string,object>)this.options)["hip3TokensByName"] = new Dictionary<string, object>() {};
         List<object> markets = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(promises)); postFixIncrement(ref i))
         {
             object dexName = getValue(fetchDexesList, i);
             object offset = getValue(perpDexesOffset, dexName);
@@ -805,7 +805,7 @@ public partial class hyperliquid : Exchange
         } else if (isTrue(isTrue(Precise.stringGt(priceStr, "0")) && isTrue(Precise.stringLt(priceStr, "1"))))
         {
             // Significant digits, always 5 in this case
-            object significantDigits = 5;
+            int significantDigits = 5;
             // Get the part after the decimal separator
             string? decimalPart = this.safeString(priceSplitted, 1, "");
             // Count the number of leading zeros in the decimal part
@@ -999,7 +999,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(markets);
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //     {
@@ -1216,7 +1216,7 @@ public partial class hyperliquid : Exchange
                 object balance = getValue(balances, i);
                 string? unifiedCode = this.safeCurrencyCode(this.safeString(balance, "coin"));
                 object code = ((bool) isTrue((isEqual(isSpot, true)))) ? this.updateSpotCurrencyCode(((string)unifiedCode)) : unifiedCode;
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 string? total = this.safeString(balance, "total");
                 string? used = this.safeString(balance, "hold");
                 ((IDictionary<string,object>)account)["total"] = total;
@@ -1571,7 +1571,7 @@ public partial class hyperliquid : Exchange
             if (isTrue(!isEqual(limit, null)))
             {
                 // optimization if limit is provided
-                object timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
+                Int64 timeframeInMilliseconds = multiply(this.parseTimeframe(timeframeVar), 1000);
                 sinceVar = this.sum(until, multiply(multiply(timeframeInMilliseconds, limit), -1));
                 if (isTrue(isLessThan(sinceVar, 0)))
                 {
@@ -1753,7 +1753,7 @@ public partial class hyperliquid : Exchange
         return this.signHash(this.hashMessage(message), slice(privateKey, -64, null));
     }
 
-    public virtual object constructPhantomAgent(object hash, object isTestnet = null)
+    public virtual Dictionary<string, object> constructPhantomAgent(object hash, object isTestnet = null)
     {
         isTestnet ??= true;
         string source = ((bool) isTrue((isTestnet))) ? "b" : "a";
@@ -1789,7 +1789,7 @@ public partial class hyperliquid : Exchange
     {
         object hash = this.actionHash(action, vaultAdress, nonce, expiresAfter);
         bool? isTestnet = this.safeBool(this.options, "sandboxMode", false);
-        object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
+        Dictionary<string, object> phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         // const data: Dict = {
         //     'domain': {
         //         'chainId': 1337,
@@ -2550,7 +2550,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -2562,7 +2562,7 @@ public partial class hyperliquid : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
-                object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+                IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
                 string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (isTrue(isEqual(clientOrderId, null)))
                 {
@@ -3047,7 +3047,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToDict(response);
     }
 
-    public virtual object editOrdersRequest(object orders, object parameters = null)
+    public virtual Dictionary<string, object> editOrdersRequest(object orders, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         this.checkRequiredCredentials();
@@ -3055,7 +3055,7 @@ public partial class hyperliquid : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             object rawOrder = getValue(orders, i);
-            object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+            IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
             string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
             if (isTrue(!isEqual(clientOrderId, null)))
             {
@@ -3067,7 +3067,7 @@ public partial class hyperliquid : Exchange
             for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);
-                object orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
+                IDictionary<string, object> orderParams = this.safeDict(rawOrder, "params", new Dictionary<string, object>() {});
                 string? clientOrderId = this.safeString2(orderParams, "clientOrderId", "client_id");
                 if (isTrue(isEqual(clientOrderId, null)))
                 {
@@ -3184,7 +3184,7 @@ public partial class hyperliquid : Exchange
         {
             ((IDictionary<string,object>)request)["vaultAddress"] = vaultAddress;
         }
-        return request;
+        return ((Dictionary<string, object>)((object)(request)));
     }
 
     /**
@@ -3243,7 +3243,7 @@ public partial class hyperliquid : Exchange
             await this.loadMarkets();
         }
         await this.initializeClient();
-        object request = this.editOrdersRequest(orders, parameters);
+        Dictionary<string, object> request = this.editOrdersRequest(orders, parameters);
         Dictionary<string, object> response = await this.privatePostExchange(request);
         //
         //     {
@@ -5139,7 +5139,7 @@ public partial class hyperliquid : Exchange
         {
             depositLedger = response;
         }
-        object records = this.extractTypeFromDelta(depositLedger);
+        List<object> records = this.extractTypeFromDelta(depositLedger);
         object vaultAddress = null;
         IList<object> vaultAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
@@ -5224,7 +5224,7 @@ public partial class hyperliquid : Exchange
         {
             withdrawalLedger = response;
         }
-        object records = this.extractTypeFromDelta(withdrawalLedger);
+        List<object> records = this.extractTypeFromDelta(withdrawalLedger);
         object vaultAddress = null;
         IList<object> vaultAddressparametersVariable = (IList<object>)this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "vaultAddress");
         vaultAddress = ((IList<object>)vaultAddressparametersVariable)[0];
@@ -5491,7 +5491,7 @@ public partial class hyperliquid : Exchange
         return ccxt.BaseExchange.ToDict(response);
     }
 
-    public virtual object extractTypeFromDelta(object data = null)
+    public virtual List<object> extractTypeFromDelta(object data = null)
     {
         data ??= new List<object>();
         List<object> records = new List<object>() {};
@@ -5501,7 +5501,7 @@ public partial class hyperliquid : Exchange
             ((IDictionary<string,object>)record)["type"] = getValue(getValue(record, "delta"), "type");
             ((IList<object>)records).Add(record);
         }
-        return records;
+        return ((List<object>)((object)(records)));
     }
 
     public virtual object formatVaultAddress(object address = null)
@@ -5517,7 +5517,7 @@ public partial class hyperliquid : Exchange
         return address;
     }
 
-    public virtual object handlePublicAddress(object methodName, object parameters)
+    public virtual List<object> handlePublicAddress(object methodName, object parameters)
     {
         object userAux = null;
         IList<object> userAuxparametersVariable = (IList<object>)this.handleOptionAndParams2(parameters, methodName, "user", "subAccountAddress");
@@ -5665,7 +5665,7 @@ public partial class hyperliquid : Exchange
         return this.safeValue(config, "cost", 1);
     }
 
-    public virtual object parseCreateEditOrderArgs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
+    public virtual List<object> parseCreateEditOrderArgs(object id, object symbol, object type, object side, object amount, object price = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> market = this.market(symbol);

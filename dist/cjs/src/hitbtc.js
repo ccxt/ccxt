@@ -1135,7 +1135,7 @@ class hitbtc extends hitbtc$1["default"] {
     async fetchBalance(params = {}) {
         const type = this.safeStringLower(params, 'type', 'spot');
         params = this.omit(params, ['type']);
-        const accountsByType = this.safeValue(this.options, 'accountsByType', {});
+        const accountsByType = this.safeDict(this.options, 'accountsByType', {});
         const account = (type === undefined) ? undefined : this.safeString(accountsByType, type, type);
         let response;
         if (account === 'wallet') {
@@ -2822,7 +2822,7 @@ class hitbtc extends hitbtc$1["default"] {
         if (code !== 'USDT') {
             throw new errors.ExchangeError(this.id + ' convertCurrencyNetwork() only supports USDT currently');
         }
-        const networks = this.safeValue(this.options, 'networks', {});
+        const networks = this.safeDict(this.options, 'networks', {});
         fromNetwork = fromNetwork.toUpperCase();
         toNetwork = toNetwork.toUpperCase();
         fromNetwork = this.safeString(networks, fromNetwork); // handle ETH>ERC20 alias
@@ -3224,7 +3224,7 @@ class hitbtc extends hitbtc$1["default"] {
         const marginMode = this.safeString(position, 'type');
         const leverage = this.safeNumber(position, 'leverage');
         const datetime = this.safeString(position, 'updated_at');
-        const positions = this.safeValue(position, 'positions', []);
+        const positions = this.safeList(position, 'positions', []);
         let liquidationPrice = undefined;
         let entryPrice = undefined;
         let contracts = undefined;
@@ -3234,7 +3234,7 @@ class hitbtc extends hitbtc$1["default"] {
             entryPrice = this.safeNumber(entry, 'price_entry');
             contracts = this.safeNumber(entry, 'quantity');
         }
-        const currencies = this.safeValue(position, 'currencies', []);
+        const currencies = this.safeList(position, 'currencies', []);
         let collateral = undefined;
         for (let i = 0; i < currencies.length; i++) {
             const entry = currencies[i];
@@ -3787,7 +3787,7 @@ class hitbtc extends hitbtc$1["default"] {
         //         ]
         //    }
         //
-        const networks = this.safeValue(fee, 'networks', []);
+        const networks = this.safeList(fee, 'networks', []);
         const result = this.depositWithdrawFee(fee);
         for (let j = 0; j < networks.length; j++) {
             const networkEntry = networks[j];

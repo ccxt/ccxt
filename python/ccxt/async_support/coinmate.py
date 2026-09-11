@@ -388,7 +388,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -450,7 +450,7 @@ class coinmate(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'data', {})
+        balances = self.safe_dict(response, 'data', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -571,7 +571,7 @@ class coinmate(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         keys = list(data.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -754,7 +754,7 @@ class coinmate(Exchange, ImplicitAPI):
             await self.load_markets()
         currency = self.currency(code)
         withdrawOptions = self.safe_value(self.options, 'withdraw', {})
-        methods = self.safe_value(withdrawOptions, 'methods', {})
+        methods = self.safe_dict(withdrawOptions, 'methods', {})
         method = self.safe_string(methods, code)
         if method is None:
             allowedCurrencies = list(methods.keys())

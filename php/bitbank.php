@@ -551,7 +551,7 @@ class bitbank extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $pairs = $this->safe_value($data, 'pairs', array());
+        $pairs = $this->safe_list($data, 'pairs', array());
         $result = array();
         for ($i = 0; $i < count($pairs); $i++) {
             $pair = $pairs[$i];
@@ -653,7 +653,7 @@ class bitbank extends Exchange {
             'datetime' => null,
         );
         $data = $this->safe_value($response, 'data', array());
-        $assets = $this->safe_value($data, 'assets', array());
+        $assets = $this->safe_list($data, 'assets', array());
         for ($i = 0; $i < count($assets); $i++) {
             $balance = $assets[$i];
             $currencyId = $this->safe_string($balance, 'asset');

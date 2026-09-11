@@ -517,7 +517,7 @@ class mercado(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         data = self.safe_value(response, 'response_data', {})
-        balances = self.safe_value(data, 'balance', {})
+        balances = self.safe_dict(data, 'balance', {})
         result = {'info': response}
         currencyIds = list(balances.keys())
         for i in range(0, len(currencyIds)):
@@ -941,7 +941,7 @@ class mercado(Exchange, ImplicitAPI):
     def orders_to_trades(self, orders: object):
         result = []
         for i in range(0, len(orders)):
-            trades = self.safe_value(orders[i], 'trades', [])
+            trades = self.safe_list(orders[i], 'trades', [])
             for y in range(0, len(trades)):
                 result.append(trades[y])
         return result

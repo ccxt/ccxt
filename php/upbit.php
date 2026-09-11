@@ -1922,7 +1922,7 @@ class upbit extends Exchange {
         $feeCost = $this->safe_string($order, 'paid_fee');
         $marketId = $this->safe_string($order, 'market');
         $market = $this->safe_market($marketId, $market);
-        $trades = $this->safe_value($order, 'trades', array());
+        $trades = $this->safe_list($order, 'trades', array());
         $trades = $this->parse_trades($trades, $market, null, null, array(
             'order' => $id,
             'type' => $type,

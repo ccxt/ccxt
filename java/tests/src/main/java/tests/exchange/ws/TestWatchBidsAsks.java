@@ -29,15 +29,15 @@ public class TestWatchBidsAsks extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object method = "watchBidsAsks";
+        String method = "watchBidsAsks";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
-        Object maxIdleTime = 5000;
-        Object idle = false;
+        Integer maxIdleTime = 5000;
+        Boolean idle = false;
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
-            Object success = true;
-            Object shouldReturn = false;
+            Boolean success = true;
+            Boolean shouldReturn = false;
             Object response = new java.util.HashMap<String, Object>() {{}};
             Object startTime = exchange.milliseconds();
             try

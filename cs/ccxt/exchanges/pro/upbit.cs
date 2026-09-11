@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class upbit { public upbit(object args = null) : base(args) { } }
 public partial class upbit : ccxt.upbit
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -50,7 +50,7 @@ public partial class upbit : ccxt.upbit
             symbols = new List<object>() {};
         }
         IList<object> marketIds = this.marketIds(symbols);
-        string url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        string? url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         var client = this.client(url);
@@ -296,7 +296,7 @@ public partial class upbit : ccxt.upbit
         ((IDictionary<string,object>)orderbook)["symbol"] = symbol;
         object bids = getValue(orderbook, "bids");
         object asks = getValue(orderbook, "asks");
-        object data = this.safeValue(message, "orderbook_units", new List<object>() {});
+        List<object> data = this.safeList(message, "orderbook_units", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object entry = getValue(data, i);
@@ -415,7 +415,7 @@ public partial class upbit : ccxt.upbit
             ((IDictionary<string,object>)request)["codes"] = marketIds;
             messageHash = add(add(messageHash, ":"), symbol);
         }
-        string url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
+        object url = this.implodeParams(getValue(getValue(this.urls, "api"), "ws"), new Dictionary<string, object>() {
             { "hostname", this.hostname },
         });
         url = add(url, "/private");
@@ -756,7 +756,7 @@ public partial class upbit : ccxt.upbit
             string? code = this.safeCurrencyCode(currencyId);
             string? available = this.safeString(balance, "balance");
             string? frozen = this.safeString(balance, "locked");
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = available;
             ((IDictionary<string,object>)account)["used"] = frozen;
             if (isTrue(!isEqual(code, null)))

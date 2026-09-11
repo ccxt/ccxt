@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class btse : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "btse" },
@@ -721,7 +721,7 @@ public partial class btse : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         // spot
@@ -939,7 +939,7 @@ public partial class btse : Exchange
                 // check if the requested time range is too large for one request
                 // if so, just omit until for correct paginated calls for not to get an error from the exchange
                 int duration = this.parseTimeframe(timeframeVar);
-                object maxDelta = multiply(multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                Int64 maxDelta = multiply(multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
                 object difference = subtract(until, since);
                 if (isTrue(isLessThan(difference, maxDelta)))
                 {
@@ -1251,7 +1251,7 @@ public partial class btse : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(codes)); postFixIncrement(ref i))
         {
             string? code = ((string)getValue(codes, i));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(totals, code);
             ((IDictionary<string,object>)account)["free"] = this.safeString(frees, code);
             ((IDictionary<string,object>)account)["used"] = this.safeString(useds, code);
@@ -1322,7 +1322,7 @@ public partial class btse : Exchange
             {
                 List<object> levels = this.safeList(entry, "riskLimits", new List<object>() {});
                 List<object> tiers = new List<object>() {};
-                for (object j = 0; isLessThan(j, getArrayLength(levels)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(levels)); postFixIncrement(ref j))
                 {
                     object level = getValue(levels, j);
                     // the endpoint only reports the notional ladder, the
@@ -1687,7 +1687,7 @@ public partial class btse : Exchange
         // perpetuals, observed live, the zero means no next funding and is omitted
         object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
         Int64? fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
-        object interval = null;
+        string? interval = null;
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
@@ -3644,7 +3644,7 @@ public partial class btse : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(object symbol, object parameters = null)
+    public async override Task<List<ccxt.Position>> FetchPositionsForSymbol(string symbol, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         await this.loadMarkets();

@@ -356,7 +356,7 @@ export default class hollaex extends Exchange {
         //         "status": true
         //     }
         //
-        const pairs = this.safeValue(response, 'pairs', {});
+        const pairs = this.safeDict(response, 'pairs', {});
         const keys = Object.keys(pairs);
         const result = [];
         for (let i = 0; i < keys.length; i++) {

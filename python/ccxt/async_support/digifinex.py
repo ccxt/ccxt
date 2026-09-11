@@ -769,7 +769,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "code":0
         #     }
         #
-        markets = self.safe_value(response, 'data', [])
+        markets = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(markets)):
             market = markets[i]
@@ -1084,7 +1084,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         result = {}
-        tickers = self.safe_value_2(response, 'ticker', 'data', [])
+        tickers = self.safe_list_2(response, 'ticker', 'data', [])
         date = self.safe_integer(response, 'date')
         for i in range(0, len(tickers)):
             rawTicker = self.extend({
@@ -1934,7 +1934,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         if (marketType == 'spot') or (marketType == 'margin'):
-            canceledOrders = self.safe_value(response, 'success', [])
+            canceledOrders = self.safe_list(response, 'success', [])
             numCanceledOrders = len(canceledOrders)
             if numCanceledOrders != 1:
                 raise OrderNotFound(self.id + ' cancelOrder() ' + id + ' not found')
@@ -3109,7 +3109,7 @@ class digifinex(Exchange, ImplicitAPI):
         #         "equity": 45.133305540922
         #     }
         #
-        data = self.safe_value(response, 'list', [])
+        data = self.safe_list(response, 'list', [])
         result = None
         for i in range(0, len(data)):
             entry = data[i]
@@ -3325,7 +3325,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        result = self.safe_value(data, 'funding_rates', [])
+        result = self.safe_list(data, 'funding_rates', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -3488,7 +3488,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         positionRequest = 'data' if (marketType == 'swap') else 'positions'
-        positions = self.safe_value(response, positionRequest, [])
+        positions = self.safe_list(response, positionRequest, [])
         result = []
         for i in range(0, len(positions)):
             result.append(self.parse_position(positions[i], market))
@@ -3575,7 +3575,7 @@ class digifinex(Exchange, ImplicitAPI):
         #     }
         #
         dataRequest = 'data' if (marketType == 'swap') else 'positions'
-        data = self.safe_value(response, dataRequest, [])
+        data = self.safe_list(response, dataRequest, [])
         position = self.parse_position(data[0], market)
         if marketType == 'swap':
             return position

@@ -171,7 +171,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #
         self.handle_bid_ask(client, message)
         event = self.safe_string(message, 'event')
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -204,7 +204,7 @@ class bitvavo(ccxt.async_support.bitvavo):
 
     def handle_bid_ask(self, client: Client, message: object):
         event = 'bidask'
-        tickers = self.safe_value(message, 'data', [])
+        tickers = self.safe_list(message, 'data', [])
         result = []
         for i in range(0, len(tickers)):
             data = tickers[i]
@@ -1603,7 +1603,7 @@ class bitvavo(ccxt.async_support.bitvavo):
         #         }
         #     }
         #
-        subscriptions = self.safe_value(message, 'subscriptions', {})
+        subscriptions = self.safe_dict(message, 'subscriptions', {})
         methods = {
             'book': self.handle_order_book_subscriptions,
         }

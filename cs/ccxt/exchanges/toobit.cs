@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class toobit : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "toobit" },
@@ -776,7 +776,7 @@ public partial class toobit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.commonGetApiV1ExchangeInfo(parameters);
@@ -914,17 +914,17 @@ public partial class toobit : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(coins)); postFixIncrement(ref i))
         {
             object coin = getValue(coins, i);
-            object parsed = this.parseCurrency(coin);
+            Dictionary<string, object> parsed = this.parseCurrency(coin);
             if (isTrue(!isEqual(parsed, null)))
             {
                 object code = getValue(parsed, "code");
                 ((IDictionary<string,object>)result)[(string)code] = parsed;
             }
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "coinId");
         string? code = this.safeCurrencyCode(id);
@@ -1140,7 +1140,7 @@ public partial class toobit : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(all)); postFixIncrement(ref i))
         {
             object market = getValue(all, i);
-            object parsed = this.parseMarket(market);
+            Dictionary<string, object> parsed = this.parseMarket(market);
             if (isTrue(!isEqual(parsed, null)))
             {
                 ((IList<object>)result).Add(parsed);
@@ -1149,7 +1149,7 @@ public partial class toobit : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "symbol");
         string? baseId = this.safeString(market, "baseAsset", "");
@@ -1709,7 +1709,7 @@ public partial class toobit : Exchange
         List<object> results = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(tickers)); postFixIncrement(ref i))
         {
-            object parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
+            Dictionary<string, object> parsedTicker = this.parseBidAskCustom(getValue(tickers, i));
             Dictionary<string, object> ticker = this.extend(parsedTicker, parameters);
             ((IList<object>)results).Add(ticker);
         }
@@ -1717,7 +1717,7 @@ public partial class toobit : Exchange
         return this.filterByArray(results, "symbol", symbols);
     }
 
-    public virtual object parseBidAskCustom(object ticker)
+    public virtual Dictionary<string, object> parseBidAskCustom(object ticker)
     {
         // 's' is the exchange id and 't' a millisecond integer, the pair parseTicker
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
@@ -1912,7 +1912,7 @@ public partial class toobit : Exchange
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "asset"));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString2(balance, "free", "availableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString2(balance, "total", "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "locked");
@@ -2087,7 +2087,7 @@ public partial class toobit : Exchange
         {
             ((IDictionary<string,object>)request)["timeInForce"] = "LIMIT_MAKER";
         }
-        object values = this.handleTriggerPricesAndParams(symbol, parameters);
+        List<object> values = this.handleTriggerPricesAndParams(symbol, parameters);
         object triggerPrice = getValue(values, 0);
         parameters = getValue(values, 3);
         if (isTrue(!isEqual(triggerPrice, null)))
@@ -2220,7 +2220,7 @@ public partial class toobit : Exchange
             }
             rawSideLower = this.safeString(sideParts, 0);
         }
-        object triggerPrice = this.omitZero(this.safeString(order, "stopPrice"));
+        string? triggerPrice = ((string)this.omitZero(this.safeString(order, "stopPrice")));
         if (isTrue(isEqual(triggerPrice, "0.0")))
         {
             triggerPrice = null;

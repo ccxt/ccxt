@@ -16,7 +16,7 @@ public class TestFetchMarketLeverageTiers extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchMarketLeverageTiers";
+        String method = "fetchMarketLeverageTiers";
         Object tiers = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarketLeverageTiers", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, tiers, symbol);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tiers)); j++)

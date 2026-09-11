@@ -1925,7 +1925,7 @@ class upbit extends upbit$1["default"] {
         let feeCost = this.safeString(order, 'paid_fee');
         const marketId = this.safeString(order, 'market');
         market = this.safeMarket(marketId, market);
-        let trades = this.safeValue(order, 'trades', []);
+        let trades = this.safeList(order, 'trades', []);
         trades = this.parseTrades(trades, market, undefined, undefined, {
             'order': id,
             'type': type,

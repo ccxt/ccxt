@@ -116,7 +116,7 @@ class whitebit(ccxt.async_support.whitebit):
         #     "id": null
         # }
         #
-        params = self.safe_value(message, 'params', [])
+        params = self.safe_list(message, 'params', [])
         for i in range(0, len(params)):
             data = params[i]
             marketId = self.safe_string(data, 7)
@@ -850,7 +850,7 @@ class whitebit(ccxt.async_support.whitebit):
             message = self.extend(request, params)
             return await self.watch(url, messageHash, message, method, subscription)
         else:
-            subscription = self.safe_value(client.subscriptions, method, {})
+            subscription = self.safe_dict(client.subscriptions, method, {})
             hasSymbolSubscription = True
             market = self.market(symbol)
             marketId = market['id']

@@ -322,7 +322,7 @@ class poloniex(ccxt.async_support.poloniex):
         #    }
         #
         messageHash = self.safe_string(message, 'id')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = []
         for i in range(0, len(data)):
             order = data[i]
@@ -609,7 +609,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             item = data[i]
             marketId = self.safe_string(item, 'symbol')
@@ -794,7 +794,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         orders = self.orders
         if orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit')
@@ -964,7 +964,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        ]
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
             item = data[i]
@@ -1036,7 +1036,7 @@ class poloniex(ccxt.async_support.poloniex):
         #        "action": "update"
         #    }
         #
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         type = self.safe_string(message, 'action')
         snapshot = type == 'snapshot'
         update = type == 'update'
@@ -1190,7 +1190,7 @@ class poloniex(ccxt.async_support.poloniex):
         elif type is None:
             self.handle_order_request(client, message)
         else:
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             dataLength = len(data)
             if dataLength > 0:
                 method(client, message)

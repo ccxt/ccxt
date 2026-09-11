@@ -2083,7 +2083,7 @@ class phemex extends Exchange {
         //
         $timestamp = null;
         $result = array( 'info' => $response );
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $balance = $data[$i];
             $currencyId = $this->safe_string($balance, 'currency');
@@ -4050,7 +4050,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $positions = $this->safe_value($data, 'positions', array());
+        $positions = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($positions); $i++) {
             $position = $positions[$i];
@@ -4359,7 +4359,7 @@ class phemex extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $rows = $this->safe_value($data, 'rows', array());
+        $rows = $this->safe_list($data, 'rows', array());
         $result = array();
         for ($i = 0; $i < count($rows); $i++) {
             $entry = $rows[$i];
@@ -5823,7 +5823,7 @@ class phemex extends Exchange {
             //
         }
         $data = $this->safe_value($response, 'data', array());
-        $ranks = $this->safe_value($data, 'positions', array());
+        $ranks = $this->safe_list($data, 'positions', array());
         $result = array();
         for ($i = 0; $i < count($ranks); $i++) {
             $rank = $ranks[$i];

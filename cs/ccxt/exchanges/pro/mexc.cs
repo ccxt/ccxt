@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class mexc { public mexc(object args = null) : base(args) { } }
 public partial class mexc : ccxt.mexc
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -1749,7 +1749,7 @@ public partial class mexc : ccxt.mexc
         ((IDictionary<string,object>)getValue(this.balance, type))["datetime"] = this.iso8601(timestamp);
         string? currencyId = this.safeString2(data, "currency", "vcoinName");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString2(data, "balanceAmount", "availableBalance");
         ((IDictionary<string,object>)account)["used"] = this.safeString2(data, "frozenBalance", "frozenAmount");
         if (isTrue(!isEqual(code, null)))
@@ -2280,7 +2280,7 @@ public partial class mexc : ccxt.mexc
         }
     }
 
-    public virtual object handleProtobufMessage(WebSocketClient client, object message)
+    public virtual bool handleProtobufMessage(WebSocketClient client, object message)
     {
         // protobuf message decoded
         //  {
@@ -2325,7 +2325,7 @@ public partial class mexc : ccxt.mexc
         {
             this.handleOrder(client as WebSocketClient, message);
         }
-        return true;
+        return ((bool)((object)(true))!);
     }
 
     public override void handleMessage(WebSocketClient client, object message)

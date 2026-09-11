@@ -1327,7 +1327,7 @@ class kraken(Exchange, ImplicitAPI):
         #                                                    "fee": "0.0050000000",
         #                                                "balance": "0.0000051000"           },
         result = self.safe_value(response, 'result', {})
-        ledger = self.safe_value(result, 'ledger', {})
+        ledger = self.safe_dict(result, 'ledger', {})
         keys = list(ledger.keys())
         items = []
         for i in range(0, len(keys)):
@@ -1561,7 +1561,7 @@ class kraken(Exchange, ImplicitAPI):
         return self.parse_trades(trades, market, since, limit)
 
     def parse_balance(self, response: object) -> Balances:
-        balances = self.safe_value(response, 'result', {})
+        balances = self.safe_dict(response, 'result', {})
         result = {
             'info': response,
             'timestamp': None,
@@ -1768,7 +1768,7 @@ class kraken(Exchange, ImplicitAPI):
         return self.parse_orders(self.safe_list(result, 'orders'))
 
     def find_market_by_altname_or_id(self, id: object):
-        marketsByAltname = self.safe_value(self.options, 'marketsByAltname', {})
+        marketsByAltname = self.safe_dict(self.options, 'marketsByAltname', {})
         if id in marketsByAltname:
             return marketsByAltname[id]
         else:
@@ -2011,7 +2011,7 @@ class kraken(Exchange, ImplicitAPI):
             id = self.safe_string(txid, 0)
         userref = self.safe_string(order, 'userref')
         clientOrderId = self.safe_string(order, 'cl_ord_id', userref)
-        rawTrades = self.safe_value(order, 'trades', [])
+        rawTrades = self.safe_list(order, 'trades', [])
         trades = []
         for i in range(0, len(rawTrades)):
             rawTrade = rawTrades[i]
@@ -2398,7 +2398,7 @@ class kraken(Exchange, ImplicitAPI):
             'trades': True,  # whether or not to include trades in output(optional, default False)
             'txid': ','.join(ids),  # comma delimited list of transaction ids to query info about(20 maximum)
         }, params))
-        result = self.safe_value(response, 'result', {})
+        result = self.safe_dict(response, 'result', {})
         orders = []
         orderIds = list(result.keys())
         for i in range(0, len(orderIds)):

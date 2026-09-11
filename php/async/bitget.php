@@ -4593,7 +4593,7 @@ class bitget extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $entry = $data[$i];
@@ -10180,7 +10180,7 @@ class bitget extends Exchange {
         //         }
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_dict($response, 'data', array());
         $data['ts'] = $this->safe_integer($response, 'requestTime');
         return $this->parse_transfer($data, $currency);
     }
@@ -10261,7 +10261,7 @@ class bitget extends Exchange {
         //         "transfer" => "true""
         //     }
         //
-        $chains = $this->safe_value($fee, 'chains', array());
+        $chains = $this->safe_list($fee, 'chains', array());
         $chainsLength = count($chains);
         $result = array(
             'info' => $fee,
@@ -10800,7 +10800,7 @@ class bitget extends Exchange {
         //
         $timestamp = $this->safe_integer($response, 'requestTime');
         $data = $this->safe_value($response, 'data', array());
-        $first = $this->safe_value($data, 0, array());
+        $first = $this->safe_dict($data, 0, array());
         $first['timestamp'] = $timestamp;
         return $this->parse_isolated_borrow_rate($first, $market);
     }
@@ -10929,7 +10929,7 @@ class bitget extends Exchange {
             //     }
             //
             $data = $this->safe_value($response, 'data', array());
-            $result = $this->safe_value($data, 0, array());
+            $result = $this->safe_dict($data, 0, array());
         }
         $timestamp = $this->safe_integer($response, 'requestTime');
         $result['timestamp'] = $timestamp;

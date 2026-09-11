@@ -16,9 +16,9 @@ public class TestWatchLiquidationsForSymbols extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchLiquidationsForSymbols";
+        String method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
-        Object skippedExchanges = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> skippedExchanges = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             Object m1 = (Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), "() test skipped"));

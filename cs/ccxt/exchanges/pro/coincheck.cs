@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class coincheck { public coincheck(object args = null) : base(args) { } }
 public partial class coincheck : ccxt.coincheck
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {

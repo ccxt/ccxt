@@ -829,7 +829,7 @@ class bitfinex(ccxt.async_support.bitfinex):
             code = self.safe_currency_code(currencyId)
             balance = self.parse_ws_balance(rawBalance)
             balanceType = self.safe_string(rawBalance, 0)
-            oldBalance = self.safe_value(self.balance, balanceType, {})
+            oldBalance = self.safe_dict(self.balance, balanceType, {})
             if code is not None:
                 oldBalance[code] = balance
             oldBalance['info'] = message
@@ -872,7 +872,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #
         return message
 
-    def handle_unsubscription_status(self, client: Client, message: object):
+    def handle_unsubscription_status(self, client: Client, message: object) -> bool:
         #
         # {
         #     "event": "unsubscribed",
@@ -1034,7 +1034,7 @@ class bitfinex(ccxt.async_support.bitfinex):
         #        ]
         #    ]
         #
-        data = self.safe_value(message, 2, [])
+        data = self.safe_list(message, 2, [])
         messageType = self.safe_string(message, 1)
         if self.orders is None:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)

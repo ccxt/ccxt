@@ -1064,7 +1064,7 @@ class coinbase extends \ccxt\async\coinbase {
         //      }
         //
         $events = $this->safe_list($message, 'events', array());
-        $firstEvent = $this->safe_value($events, 0, array());
+        $firstEvent = $this->safe_dict($events, 0, array());
         $isUnsub = (is_array($firstEvent) && array_key_exists('subscriptions' ?? '', $firstEvent));
         $subKeys = is_array($firstEvent['subscriptions']) ? array_keys($firstEvent['subscriptions']) : array();
         $subKeysLength = count($subKeys);

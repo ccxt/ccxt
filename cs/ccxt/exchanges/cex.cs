@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class cex : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "cex" },
@@ -361,7 +361,7 @@ public partial class cex : Exchange
      * @param {dict} [params] extra parameters specific to the exchange API endpoint
      * @returns {dict} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         List<object> promises = new List<object>() {};
@@ -410,7 +410,7 @@ public partial class cex : Exchange
         return this.parseCurrencies(this.toArray(data));
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         string? id = this.safeString(rawCurrency, "currency");
         string? code = this.safeCurrencyCode(id);
@@ -514,7 +514,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(data));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? baseId = this.safeString(market, "base");
         object bs = this.safeCurrencyCode(baseId);
@@ -959,7 +959,7 @@ public partial class cex : Exchange
         return ccxt.BaseExchange.ToTradingFees(this.parseTradingFees(fees, true));
     }
 
-    public virtual object parseTradingFees(object response, object useKeyAsId = null)
+    public virtual Dictionary<string, object> parseTradingFees(object response, object useKeyAsId = null)
     {
         useKeyAsId ??= false;
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -988,7 +988,7 @@ public partial class cex : Exchange
                 ((IDictionary<string,object>)result)[(string)symbol] = this.parseTradingFee(response, market);
             }
         }
-        return result;
+        return ((Dictionary<string, object>)((object)(result)));
     }
 
     public virtual object parseTradingFee(object fee, object market = null)

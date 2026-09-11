@@ -420,7 +420,7 @@ class cryptocom extends cryptocom$1["default"] {
             stored = new Cache.ArrayCache(limit);
             this.trades[symbol] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const dataLength = data.length;
         if (dataLength === 0) {
             return;
@@ -587,7 +587,7 @@ class cryptocom extends cryptocom$1["default"] {
         const messageHash = this.safeString(message, 'subscription');
         const marketId = this.safeString(message, 'instrument_name');
         const market = this.safeMarket(marketId);
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const ticker = data[i];
             const parsed = this.parseWsTicker(ticker, market);
@@ -855,7 +855,7 @@ class cryptocom extends cryptocom$1["default"] {
         //
         const channel = this.safeString(message, 'channel');
         const symbolSpecificMessageHash = this.safeString(message, 'subscription');
-        const orders = this.safeValue(message, 'data', []);
+        const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             if (this.orders === undefined) {
@@ -980,7 +980,7 @@ class cryptocom extends cryptocom$1["default"] {
         // and has exactly one subscriptionhash which is the account type
         const data = this.safeValue(message, 'data', []);
         const firstData = this.safeValue(data, 0, {});
-        const rawPositions = this.safeValue(firstData, 'positions', []);
+        const rawPositions = this.safeList(firstData, 'positions', []);
         if (this.positions === undefined) {
             this.positions = new Cache.ArrayCacheBySymbolBySide();
         }
@@ -1064,8 +1064,8 @@ class cryptocom extends cryptocom$1["default"] {
         //     }
         //
         const messageHash = this.safeString(message, 'subscription');
-        const data = this.safeValue(message, 'data', []);
-        const positionBalances = this.safeValue(data[0], 'position_balances', []);
+        const data = this.safeList(message, 'data', []);
+        const positionBalances = this.safeList(data[0], 'position_balances', []);
         this.balance['info'] = data;
         for (let i = 0; i < positionBalances.length; i++) {
             const balance = positionBalances[i];

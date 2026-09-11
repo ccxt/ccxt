@@ -967,7 +967,7 @@ class woo extends \ccxt\async\woo {
         ), $market);
     }
 
-    public function check_required_uid($error = true) {
+    public function check_required_uid($error = true): bool {
         if (($this->uid === null) || ($this->uid === '')) {
             if ($error) {
                 throw new AuthenticationError($this->id . ' requires `uid` credential (woox calls it `application_id`)');
@@ -1487,7 +1487,7 @@ class woo extends \ccxt\async\woo {
         //    }
         //
         $data = $this->safe_value($message, 'data', array());
-        $rawPositions = $this->safe_value($data, 'positions', array());
+        $rawPositions = $this->safe_dict($data, 'positions', array());
         $postitionsIds = is_array($rawPositions) ? array_keys($rawPositions) : array();
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();

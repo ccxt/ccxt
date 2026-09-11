@@ -1400,7 +1400,7 @@ export default class bingx extends bingxRest {
         client.resolve (newPositions, 'swap:positions');
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         // { code: 100400, msg: '', timestamp: 1696245808833 }
         //
@@ -1762,10 +1762,11 @@ export default class bingx extends bingxRest {
             const balance = data[i];
             const currencyId = this.safeString (balance, 'a');
             const code = this.safeCurrencyCode (currencyId);
+            const previous = this.safeDict (this.balance[type], code, {});
             const account = this.account ();
             account['info'] = balance;
-            account['used'] = this.safeString (balance, 'lk');
-            account['free'] = this.safeString (balance, 'wb');
+            account['total'] = this.safeString (balance, 'wb');
+            account['used'] = this.safeString (previous, 'used');
             if ((type !== undefined) && (code !== undefined)) {
                 this.balance[type][code] = account;
             }

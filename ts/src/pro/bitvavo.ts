@@ -176,7 +176,7 @@ export default class bitvavo extends bitvavoRest {
         //
         this.handleBidAsk (client, message);
         const event = this.safeString (message, 'event');
-        const tickers = this.safeValue (message, 'data', []);
+        const tickers = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -213,7 +213,7 @@ export default class bitvavo extends bitvavoRest {
 
     handleBidAsk (client: Client, message: any) {
         const event = 'bidask';
-        const tickers = this.safeValue (message, 'data', []);
+        const tickers = this.safeList (message, 'data', []);
         const result: List = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -1765,7 +1765,7 @@ export default class bitvavo extends bitvavoRest {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue (message, 'subscriptions', {});
+        const subscriptions = this.safeDict (message, 'subscriptions', {});
         const methods: Dict = {
             'book': this.handleOrderBookSubscriptions,
         };

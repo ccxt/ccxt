@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitstamp { public bitstamp(object args = null) : base(args) { } }
 public partial class bitstamp : ccxt.bitstamp
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -157,7 +157,7 @@ public partial class bitstamp : ccxt.bitstamp
     {
         for (int i = 0; isLessThan(i, getArrayLength(bidAsks)); postFixIncrement(ref i))
         {
-            object bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
+            List<object> bidAsk = this.parseOrderBookBidAsk(getValue(bidAsks, i));
             (bookSide as IOrderBookSide).storeArray(bidAsk);
         }
     }
@@ -378,7 +378,7 @@ public partial class bitstamp : ccxt.bitstamp
         // }
         //
         string? channel = this.safeString(message, "channel");
-        object order = this.safeValue(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> order = this.safeDict(message, "data", new Dictionary<string, object>() {});
         Int64? limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (isTrue(isEqual(this.orders, null)))
         {

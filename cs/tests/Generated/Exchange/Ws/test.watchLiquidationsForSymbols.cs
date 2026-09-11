@@ -26,7 +26,7 @@ public partial class testMainClass : BaseTest
             return false;
         }
         object response = null;
-        object now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
+        Int64 now = (new DateTimeOffset(DateTime.UtcNow)).ToUnixTimeMilliseconds();
         object ends = add(now, 10000);
         while (isLessThan(now, ends))
         {

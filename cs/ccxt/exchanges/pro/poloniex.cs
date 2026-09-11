@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class poloniex { public poloniex(object args = null) : base(args) { } }
 public partial class poloniex : ccxt.poloniex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -233,7 +233,7 @@ public partial class poloniex : ccxt.poloniex
             throw new ArgumentsRequired ((string)add(this.id, " createOrderWs() side is required")) ;
         }
         string uppercaseSide = ((string)side).ToUpper();
-        object isPostOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), isEqual(uppercaseType, "LIMIT_MAKER"), parameters);
+        bool isPostOnly = this.isPostOnly(isEqual(uppercaseType, "MARKET"), isEqual(uppercaseType, "LIMIT_MAKER"), parameters);
         if (isTrue(isPostOnly))
         {
             uppercaseType = "LIMIT_MAKER";
@@ -281,7 +281,7 @@ public partial class poloniex : ccxt.poloniex
             }
         }
         object orders = await this.tradeRequest("createOrder", this.extend(request, parameters));
-        object order = this.safeDict(orders, 0);
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -306,7 +306,7 @@ public partial class poloniex : ccxt.poloniex
             ((IDictionary<string,object>)parameters)["clientOrderIds"] = this.arrayConcat(clientOrderIds, new List<object>() {clientOrderId});
         }
         object orders = ccxt.BaseExchange.FromOrderList(await this.CancelOrdersWs(new List<object>() {id},((string)symbol), parameters));
-        object order = this.safeDict(orders, 0);
+        IDictionary<string, object> order = this.safeDict(orders, 0);
         return ccxt.BaseExchange.ToOrder(order);
     }
 
@@ -369,7 +369,7 @@ public partial class poloniex : ccxt.poloniex
         //    }
         //
         string? messageHash = this.safeString(message, "id");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         List<object> orders = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -735,7 +735,7 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object item = getValue(data, i);
@@ -935,7 +935,7 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         object orders = this.orders;
         if (isTrue(isEqual(orders, null)))
         {
@@ -1138,7 +1138,7 @@ public partial class poloniex : ccxt.poloniex
         //        ]
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -1158,7 +1158,7 @@ public partial class poloniex : ccxt.poloniex
                 }
             }
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "ticker::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1224,7 +1224,7 @@ public partial class poloniex : ccxt.poloniex
         //        "action": "update"
         //    }
         //
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? type = this.safeString(message, "action");
         bool snapshot = isEqual(type, "snapshot");
         bool update = isEqual(type, "update");
@@ -1335,7 +1335,7 @@ public partial class poloniex : ccxt.poloniex
             object balance = this.safeValue(response, i);
             string? currencyId = this.safeString(balance, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object newAccount = this.account();
+            Dictionary<string, object> newAccount = this.account();
             ((IDictionary<string,object>)newAccount)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)newAccount)["used"] = this.safeString(balance, "hold");
             if (isTrue(!isEqual(code, null)))
@@ -1415,7 +1415,7 @@ public partial class poloniex : ccxt.poloniex
             this.handleOrderRequest(client as WebSocketClient, message);
         } else
         {
-            object data = this.safeValue(message, "data", new List<object>() {});
+            List<object> data = this.safeList(message, "data", new List<object>() {});
             int dataLength = getArrayLength(data);
             if (isTrue(isGreaterThan(dataLength, 0)))
             {

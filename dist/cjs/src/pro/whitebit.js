@@ -113,7 +113,7 @@ class whitebit extends whitebit$1["default"] {
         //     "id": null
         // }
         //
-        const params = this.safeValue(message, 'params', []);
+        const params = this.safeList(message, 'params', []);
         for (let i = 0; i < params.length; i++) {
             const data = params[i];
             const marketId = this.safeString(data, 7);
@@ -906,7 +906,7 @@ class whitebit extends whitebit$1["default"] {
             return await this.watch(url, messageHash, message, method, subscription);
         }
         else {
-            const subscription = this.safeValue(client.subscriptions, method, {});
+            const subscription = this.safeDict(client.subscriptions, method, {});
             let hasSymbolSubscription = true;
             const market = this.market(symbol);
             const marketId = market['id'];

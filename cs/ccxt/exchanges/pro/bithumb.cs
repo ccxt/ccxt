@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bithumb { public bithumb(object args = null) : base(args) { } }
 public partial class bithumb : ccxt.bithumb
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -584,7 +584,7 @@ public partial class bithumb : ccxt.bithumb
         //
         string? sideId = this.safeString(delta, "orderType");
         string side = ((bool) isTrue((isEqual(sideId, "bid")))) ? "bids" : "asks";
-        object bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
+        List<object> bidAsk = this.parseOrderBookBidAsk(delta, "price", "quantity");
         object orderbookSide = getValue(orderbook, side);
         (orderbookSide as IOrderBookSide).storeArray(bidAsk);
     }
@@ -874,7 +874,7 @@ public partial class bithumb : ccxt.bithumb
         await this.authenticate();
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2");
         string messageHash = "myAsset";
-        object request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
+        List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },
         });
         object balance = await this.watch(url, messageHash, request, messageHash);
@@ -909,7 +909,7 @@ public partial class bithumb : ccxt.bithumb
             object asset = getValue(assets, i);
             string? currencyId = this.safeString(asset, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(asset, "balance");
             ((IDictionary<string,object>)account)["used"] = this.safeString(asset, "locked");
             if (isTrue(!isEqual(code, null)))
@@ -937,7 +937,7 @@ public partial class bithumb : ccxt.bithumb
      * @param {object} subscription the subscription entry for that type
      * @returns {object[]} the SUBSCRIBE frame to send
      */
-    public virtual object buildGen2SubscriptionRequest(object subscriptionType, object subscription)
+    public virtual List<object> buildGen2SubscriptionRequest(object subscriptionType, object subscription)
     {
         IDictionary<string, object> wsOptions = this.safeDict(this.options, "ws", new Dictionary<string, object>() {});
         IDictionary<string, object> subscriptions = this.safeDict(wsOptions, "gen2Subscriptions", new Dictionary<string, object>() {});
@@ -952,7 +952,7 @@ public partial class bithumb : ccxt.bithumb
         {
             ((IList<object>)request).Add(getValue(subscriptions, getValue(keys, i)));
         }
-        return request;
+        return ((List<object>)((object)(request)));
     }
 
     public async virtual Task<object> authenticate(object parameters = null)
@@ -1016,7 +1016,7 @@ public partial class bithumb : ccxt.bithumb
         object url = getValue(getValue(getValue(this.urls, "api"), "ws"), "privateGen2");
         object messageHash = "myOrder";
         List<object> codes = this.safeList(parameters, "codes", new List<object>() {});
-        object request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
+        List<object> request = this.buildGen2SubscriptionRequest(messageHash, new Dictionary<string, object>() {
             { "type", messageHash },
             { "codes", codes },
         });

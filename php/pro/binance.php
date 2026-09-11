@@ -229,7 +229,7 @@ class binance extends \ccxt\async\binance {
         return $newValue;
     }
 
-    public function is_spot_url(Client $client) {
+    public function is_spot_url(Client $client): bool {
         return (mb_strpos($client->url, '/stream') > -1) || (mb_strpos($client->url, 'demo-stream') > -1);
     }
 

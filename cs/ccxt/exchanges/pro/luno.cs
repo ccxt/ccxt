@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class luno { public luno(object args = null) : base(args) { } }
 public partial class luno : ccxt.luno
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -93,7 +93,7 @@ public partial class luno : ccxt.luno
         //         "timestamp": 1660598775360
         //     }
         //
-        object rawTrades = this.safeValue(message, "trade_updates", new List<object>() {});
+        List<object> rawTrades = this.safeList(message, "trade_updates", new List<object>() {});
         int length = getArrayLength(rawTrades);
         if (isTrue(isEqual(length, 0)))
         {
@@ -231,7 +231,7 @@ public partial class luno : ccxt.luno
         object asks = this.safeValue(message, "asks");
         if (isTrue(!isEqual(asks, null)))
         {
-            object snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
+            Dictionary<string, object> snapshot = this.customParseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "volume", "id");
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.indexedOrderBook(snapshot);
         } else
         {
@@ -246,15 +246,15 @@ public partial class luno : ccxt.luno
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
-    public virtual object customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
+    public virtual Dictionary<string, object> customParseOrderBook(object orderbook, object symbol, object timestamp = null, object bidsKey = null, object asksKey = null, object priceKey = null, object amountKey = null, object countOrIdKey = null)
     {
         bidsKey ??= "bids";
         asksKey ??= "asks";
         priceKey ??= "price";
         amountKey ??= "volume";
         countOrIdKey ??= 2;
-        object bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
-        object asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        List<object> bids = this.parseOrderBookBidsAsks(this.safeValue(orderbook, bidsKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
+        List<object> asks = this.parseOrderBookBidsAsks(this.safeValue(orderbook, asksKey, new List<object>() {}), priceKey, amountKey, countOrIdKey);
         return new Dictionary<string, object>() {
             { "symbol", symbol },
             { "bids", this.sortBy(bids, 0, true) },
@@ -265,7 +265,7 @@ public partial class luno : ccxt.luno
         };
     }
 
-    public override object parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object thirdKey = null)
+    public override List<object> parseOrderBookBidsAsks(object bidasks, object priceKey = null, object amountKey = null, object thirdKey = null)
     {
         priceKey ??= "price";
         amountKey ??= "volume";
@@ -276,10 +276,10 @@ public partial class luno : ccxt.luno
         {
             ((IList<object>)result).Add(this.customParseBidAsk(getValue(bidasks, i), priceKey, amountKey, thirdKey));
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
-    public virtual object customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object thirdKey = null)
+    public virtual List<object> customParseBidAsk(object bidask, object priceKey = null, object amountKey = null, object thirdKey = null)
     {
         priceKey ??= "price";
         amountKey ??= "volume";
@@ -292,7 +292,7 @@ public partial class luno : ccxt.luno
             object thirdValue = ((object)this.safeString(bidask, thirdKey));
             ((IList<object>)result).Add(thirdValue);
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public override void handleDelta(object orderbook, object message)
@@ -345,7 +345,7 @@ public partial class luno : ccxt.luno
         object bidsOrderSide = getValue(orderbook, "bids");
         if (isTrue(!isEqual(createUpdate, null)))
         {
-            object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
+            List<object> bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
             string? type = this.safeString(createUpdate, "type");
             if (isTrue(isEqual(type, "ASK")))
             {

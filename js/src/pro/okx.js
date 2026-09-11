@@ -320,7 +320,7 @@ export default class okx extends okxRest {
         const channel = this.safeString(arg, 'channel');
         const marketId = this.safeString(arg, 'instId');
         const symbol = this.safeSymbol(marketId);
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const tradesLimit = this.safeInteger(this.options, 'tradesLimit', 1000);
         for (let i = 0; i < data.length; i++) {
             const trade = this.parseTrade(data[i]);
@@ -590,7 +590,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const newTickers = {};
         for (let i = 0; i < data.length; i++) {
             const ticker = this.parseTicker(data[i]);
@@ -1125,7 +1125,7 @@ export default class okx extends okxRest {
         if (channel === undefined) {
             return;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const marketId = this.safeString(arg, 'instId');
         const market = this.safeMarket(marketId);
         const symbol = market['symbol'];
@@ -1847,7 +1847,7 @@ export default class okx extends okxRest {
         const market = this.safeMarket(marketId, undefined, '-');
         const symbol = market['symbol'];
         const channel = this.safeString(arg, 'channel', '');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         if (this.positions === undefined) {
             this.positions = new ArrayCacheBySymbolBySide();
         }
@@ -1985,7 +1985,7 @@ export default class okx extends okxRest {
         this.handleMyTrades(client, message);
         const arg = this.safeValue(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
-        const orders = this.safeValue(message, 'data', []);
+        const orders = this.safeList(message, 'data', []);
         const ordersLength = orders.length;
         if (ordersLength > 0) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -2067,7 +2067,7 @@ export default class okx extends okxRest {
         //
         const arg = this.safeValue(message, 'arg', {});
         const channel = this.safeString(arg, 'channel');
-        const rawOrders = this.safeValue(message, 'data', []);
+        const rawOrders = this.safeList(message, 'data', []);
         const filteredOrders = [];
         // filter orders with no last trade id
         for (let i = 0; i < rawOrders.length; i++) {

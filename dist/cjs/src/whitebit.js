@@ -4289,7 +4289,7 @@ class whitebit extends whitebit$1["default"] {
                     const errorsLength = errorKeys.length;
                     if (errorsLength > 0) {
                         const errorKey = errorKeys[0];
-                        const errorMessageArray = this.safeValue(errorObject, errorKey, []);
+                        const errorMessageArray = this.safeList(errorObject, errorKey, []);
                         const errorMessageLength = errorMessageArray.length;
                         errorInfo = (errorMessageLength > 0) ? errorMessageArray[0] : body;
                     }

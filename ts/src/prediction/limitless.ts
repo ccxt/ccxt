@@ -424,7 +424,7 @@ export default class limitless extends Exchange {
         const groupId = this.safeStringN (raw, [ 'groupSlug', 'groupId' ], slug);
         // CTF condition id — needed to redeem a resolved winning position
         const conditionId = this.safeString (raw, 'conditionId');
-        const tokens = this.safeValue (raw, 'tokens', {});
+        const tokens = this.safeDict (raw, 'tokens', {});
         // the listing exposes `expired` + `status` (FUNDED/RESOLVED/…), not an `active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         const isExpired = this.safeBool (raw, 'expired', false);
@@ -3122,16 +3122,16 @@ export default class limitless extends Exchange {
      * @name limitless#sign
      * @description builds the request URL and attaches the lmts authentication headers for private endpoints
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, section: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
-        const apiGroup: string = typeof section === 'string' ? section : section[0];
-        const access: string = typeof section === 'string' ? 'public' : section[1];
+    override sign (path: any, api: any = 'limitless', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const access: string = typeof api === 'string' ? 'public' : api[1];
         const baseUrls = this.urls['api'];
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['limitless']);
         let url = '/' + this.implodeParams (path, params);
@@ -3160,10 +3160,13 @@ export default class limitless extends Exchange {
             const payload = timestamp + newline + method + newline + url + newline + bodyString;
             const signature = this.hmac (this.encode (payload), this.base64ToBinary (this.secret), sha256, 'base64');
             headers = this.extend (headers, {
-                'lmts-api-key': this.apiKey,
                 'lmts-timestamp': timestamp,
                 'lmts-signature': signature,
             });
+            const headerKey = 'lmts-api' + '-key'; // concatenating because of the php version
+            const headersKey: Dict = {};
+            headersKey[headerKey] = this.apiKey;
+            headers = this.extend (headers, headersKey);
         }
         url = baseUrl + url;
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };

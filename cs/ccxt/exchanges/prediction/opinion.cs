@@ -6,7 +6,7 @@ using ccxt.pro;
 
 public partial class opinion : PredictionExchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "opinion" },
@@ -416,7 +416,7 @@ public partial class opinion : PredictionExchange
     {
         parameters ??= new Dictionary<string, object>();
         this.requireEventQuery(parameters);
-        object queries = this.parseSearchQueries(parameters);
+        List<object> queries = this.parseSearchQueries(parameters);
         string? eventId = this.safeString(parameters, "eventId");
         string? slug = this.safeString(parameters, "slug");
         if (isTrue(isTrue((!isEqual(eventId, null))) || isTrue((!isEqual(slug, null)))))
@@ -721,7 +721,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the ticker belongs to
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
-    public override object parsePredictionTicker(object ticker, object market = null)
+    public override Dictionary<string, object> parsePredictionTicker(object ticker, object market = null)
     {
         //
         //     {
@@ -748,7 +748,7 @@ public partial class opinion : PredictionExchange
         IDictionary<string, object> bestAsk = this.safeDict(asks, 0, new Dictionary<string, object>() {});
         double? last = this.safeNumber(priceResult, "price");
         Int64? timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
-        return this.safePredictionTicker(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", this.safeString(marketAny, "outcome") },
             { "outcomeId", this.safeString2(marketAny, "outcomeId", "id") },
             { "label", this.safeString(marketAny, "label") },
@@ -770,7 +770,7 @@ public partial class opinion : PredictionExchange
             { "baseVolume", null },
             { "quoteVolume", null },
             { "info", ticker },
-        }, market);
+        }, market))));
     }
 
     /**
@@ -794,7 +794,7 @@ public partial class opinion : PredictionExchange
         List<object> promises = new List<object>() {};
         for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
         {
-            object outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             string tokenId = ((string)getValue(outcomeObj, "outcomeId"));
             ((IList<object>)promises).Add(this.opinionPublicGetTokenLatestPrice(this.extend(new Dictionary<string, object>() {
                 { "token_id", tokenId },
@@ -807,7 +807,7 @@ public partial class opinion : PredictionExchange
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, outcomesLength); postFixIncrement(ref i))
         {
-            object outcomeObj = this.outcome(getValue(outcomes, i));
+            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomes, i));
             object priceIndex = multiply(i, 2);
             object priceResponse = getValue(responses, priceIndex);
             object bookResponse = getValue(responses, this.sum(priceIndex, 1));
@@ -815,7 +815,7 @@ public partial class opinion : PredictionExchange
                 { "price", priceResponse },
                 { "book", bookResponse },
             };
-            object ticker = this.parsePredictionTicker(response, ((object)outcomeObj));
+            Dictionary<string, object> ticker = this.parsePredictionTicker(response, ((object)outcomeObj));
             string? symbolKey = this.safeString(ticker, "outcome");
             if (isTrue(!isEqual(symbolKey, null)))
             {
@@ -1059,9 +1059,9 @@ public partial class opinion : PredictionExchange
         return add(add(add("0x", this.remove0xPrefix(getValue(sig, "r"))), this.remove0xPrefix(getValue(sig, "s"))), this.intToBase16(getValue(sig, "v")));
     }
 
-    public virtual object opinionOrderRawAmounts(object isMarket, object side, object amount, object price, object decimals)
+    public virtual Dictionary<string, object> opinionOrderRawAmounts(object isMarket, object side, object amount, object price, object decimals)
     {
-        object decimalsStr = "1";
+        string decimalsStr = "1";
         for (int i = 0; isLessThan(i, decimals); postFixIncrement(ref i))
         {
             decimalsStr = add(decimalsStr, "0");
@@ -1155,7 +1155,7 @@ public partial class opinion : PredictionExchange
         object quoteToken = await this.loadQuoteToken(quoteTokenAddress);
         string? exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
         Int64? decimals = this.safeInteger(quoteToken, "decimal", 18);
-        object amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
+        Dictionary<string, object> amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
         string? makerAmount = this.safeString(amounts, "makerAmount");
         string? takerAmount = this.safeString(amounts, "takerAmount");
         int sideInt = ((bool) isTrue((isEqual(sideStr, "BUY")))) ? 0 : 1;
@@ -1271,7 +1271,7 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the order belongs to
      * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
      */
-    public override object parsePredictionOrder(object order, object market = null)
+    public override Dictionary<string, object> parsePredictionOrder(object order, object market = null)
     {
         //
         //     {
@@ -1301,7 +1301,7 @@ public partial class opinion : PredictionExchange
         string? sideEnum = this.safeStringLower(order, "sideEnum");
         string? tradingMethodEnum = this.safeStringLower(order, "tradingMethodEnum");
         object timestamp = this.safeTimestamp(order, "createdAt");
-        return this.safePredictionOrder(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
             { "info", order },
@@ -1321,7 +1321,7 @@ public partial class opinion : PredictionExchange
             { "filled", this.safeNumber(order, "filledShares") },
             { "fee", null },
             { "trades", new List<object>() {} },
-        }, ((object)market));
+        }, ((object)market)))));
     }
 
     /**
@@ -1524,13 +1524,13 @@ public partial class opinion : PredictionExchange
      * @param {object} [market] the outcome object the trade belongs to
      * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
      */
-    public override object parsePredictionTrade(object trade, object market = null)
+    public override Dictionary<string, object> parsePredictionTrade(object trade, object market = null)
     {
         string? tokenId = this.safeString(trade, "tokenId");
         object outcomeObj = this.safeOutcome(tokenId, ((object)market));
         object timestamp = this.safeTimestamp(trade, "createdAt");
         string? side = this.safeStringLower(trade, "side");
-        return this.safePredictionTrade(new Dictionary<string, object>() {
+        return ((Dictionary<string, object>)((object)(this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(trade, "txHash") },
             { "timestamp", timestamp },
             { "side", side },
@@ -1545,7 +1545,7 @@ public partial class opinion : PredictionExchange
             { "outcomeId", this.safeString2(outcomeObj, "outcomeId", "id") },
             { "label", this.safeString(outcomeObj, "label") },
             { "market", this.safeString2(outcomeObj, "market", "outcome") },
-        });
+        }))));
     }
 
     /**
@@ -1645,7 +1645,7 @@ public partial class opinion : PredictionExchange
         object outcomesList = ((bool) isTrue((isEqual(outcomes, null)))) ? new List<object>() {} : outcomes;
         for (int i = 0; isLessThan(i, getArrayLength(outcomesList)); postFixIncrement(ref i))
         {
-            object outcomeObj = this.outcome(getValue(outcomesList, i));
+            IDictionary<string, object> outcomeObj = this.outcome(getValue(outcomesList, i));
             string? tokenId = this.safeString(outcomeObj, "outcomeId");
             if (isTrue(!isEqual(tokenId, null)))
             {
@@ -1841,7 +1841,7 @@ public partial class opinion : PredictionExchange
         return this.safeString(creds, "apiKey");
     }
 
-    public virtual object setApiCredentials(object response)
+    public virtual Dictionary<string, object> setApiCredentials(object response)
     {
         //
         //     { "apiKey": "...", "walletAddress": "..." }
@@ -1854,7 +1854,7 @@ public partial class opinion : PredictionExchange
         // checkRequiredCredentials() (called by createOrder()) checks this.apiKey, not
         // options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         this.apiKey = ((string)getValue(creds, "apiKey"));
-        return creds;
+        return ((Dictionary<string, object>)((object)(creds)));
     }
 
     /**
@@ -1981,7 +1981,7 @@ public partial class opinion : PredictionExchange
         object outcomeObj = await this.loadOutcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
-        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string channel = "market.depth.diff";
         string messageHash = add("orderbook::", sym);
         await this.loadApiKey();
@@ -2069,7 +2069,7 @@ public partial class opinion : PredictionExchange
         object outcomeObj = await this.loadOutcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
-        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string messageHash = add("ticker::", sym);
         return ccxt.BaseExchange.ToTicker(await this.subscribeOpinionChannel(messageHash, "market.last.price", marketId));
     }
@@ -2094,7 +2094,7 @@ public partial class opinion : PredictionExchange
         }
         Int64 now = this.milliseconds();
         double? last = this.safeNumber(message, "price");
-        object ticker = this.safePredictionTicker(new Dictionary<string, object>() {
+        Dictionary<string, object> ticker = this.safePredictionTicker(new Dictionary<string, object>() {
             { "outcome", sym },
             { "outcomeId", tokenId },
             { "label", this.safeString(outcomeObj, "label") },
@@ -2126,7 +2126,7 @@ public partial class opinion : PredictionExchange
         object outcomeObj = await this.loadOutcome(outcome);
         IDictionary<string, object> info = this.safeDict(outcomeObj, "info", new Dictionary<string, object>() {});
         Int64? marketId = this.safeInteger(info, "marketId");
-        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         string messageHash = add("trades::", sym);
         object trades = await this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId);
         return ccxt.BaseExchange.ToTradeList(this.filterBySinceLimit(trades, since, limit, "timestamp", true));
@@ -2154,7 +2154,7 @@ public partial class opinion : PredictionExchange
             return;
         }
         Int64 now = this.milliseconds();
-        object trade = this.safePredictionTrade(new Dictionary<string, object>() {
+        Dictionary<string, object> trade = this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", null },
             { "info", message },
             { "timestamp", now },
@@ -2209,7 +2209,7 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "orders";
         object orders = await this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId);
-        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         return ccxt.BaseExchange.ToOrderList(this.filterByValueSinceLimit(orders, "outcome", sym, since, limit, "timestamp", true));
     }
 
@@ -2281,7 +2281,7 @@ public partial class opinion : PredictionExchange
         string side = ((bool) isTrue((isEqual(sideInt, 1)))) ? "buy" : "sell";
         Int64? tradingMethod = this.safeInteger(message, "tradingMethod");
         string type = ((bool) isTrue((isEqual(tradingMethod, 1)))) ? "market" : "limit";
-        object order = this.safePredictionOrder(new Dictionary<string, object>() {
+        Dictionary<string, object> order = this.safePredictionOrder(new Dictionary<string, object>() {
             { "id", this.safeString(message, "orderId") },
             { "clientOrderId", null },
             { "info", message },
@@ -2335,7 +2335,7 @@ public partial class opinion : PredictionExchange
         Int64? marketId = this.safeInteger(info, "marketId");
         string messageHash = "myTrades";
         object trades = await this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId);
-        object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
+        string? sym = this.safeOutcomeSymbol(outcome, outcomeObj);
         return ccxt.BaseExchange.ToTradeList(this.filterByValueSinceLimit(trades, "outcome", sym, since, limit, "timestamp", true));
     }
 
@@ -2367,7 +2367,7 @@ public partial class opinion : PredictionExchange
         object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         string? sym = this.safeString(outcomeObj, "outcome");
         object timestamp = this.safeTimestamp(message, "createdAt");
-        object trade = this.safePredictionTrade(new Dictionary<string, object>() {
+        Dictionary<string, object> trade = this.safePredictionTrade(new Dictionary<string, object>() {
             { "id", this.safeString(message, "tradeNo") },
             { "info", message },
             { "timestamp", timestamp },

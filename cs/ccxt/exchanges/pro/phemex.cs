@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class phemex { public phemex(object args = null) : base(args) { } }
 public partial class phemex : ccxt.phemex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -304,7 +304,7 @@ public partial class phemex : ccxt.phemex
             ((IList<object>)tickers).Add(this.parseTicker(ticker));
         } else if (isTrue(inOp(message, "data")))
         {
-            object data = this.safeValue(message, "data", new List<object>() {});
+            List<object> data = this.safeList(message, "data", new List<object>() {});
             for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 ((IList<object>)tickers).Add(this.parsePerpetualTicker(getValue(data, i)));
@@ -403,7 +403,7 @@ public partial class phemex : ccxt.phemex
             string? code = this.safeCurrencyCode(currencyId);
             object currency = this.safeValue(this.currencies, code, new Dictionary<string, object>() {});
             Int64? scale = this.safeInteger(currency, "valueScale", 8);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? used = this.safeString(balance, "totalUsedBalanceRv");
             if (isTrue(isEqual(used, null)))
             {
@@ -776,7 +776,7 @@ public partial class phemex : ccxt.phemex
 
     public virtual void customHandleDelta(object bookside, object delta, object market = null)
     {
-        object bidAsk = this.customParseBidAsk(delta, 0, 1, market);
+        List<object> bidAsk = this.customParseBidAsk(delta, 0, 1, market);
         (bookside as IOrderBookSide).storeArray(bidAsk);
     }
 
@@ -845,7 +845,7 @@ public partial class phemex : ccxt.phemex
         if (isTrue(isEqual(type, "snapshot")))
         {
             object book = this.safeValue2(message, "book", "orderbook_p", new Dictionary<string, object>() {});
-            object snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
+            Dictionary<string, object> snapshot = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             ((IDictionary<string,object>)snapshot)["nonce"] = nonce;
             ccxt.pro.OrderBook orderbook = this.orderBook(snapshot, depth);
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = orderbook;
@@ -1265,7 +1265,7 @@ public partial class phemex : ccxt.phemex
         //        ...
         //    ]
         //
-        object trades = new List<object>() {};
+        List<object> trades = new List<object>() {};
         List<object> parsedOrders = new List<object>() {};
         if (isTrue(isTrue(isTrue((inOp(message, "closed"))) || isTrue((inOp(message, "fills")))) || isTrue((inOp(message, "open")))))
         {
@@ -1277,7 +1277,7 @@ public partial class phemex : ccxt.phemex
             {
                 return;
             }
-            trades = this.safeValue(message, "fills", new List<object>() {});
+            trades = this.safeList(message, "fills", new List<object>() {});
             for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object rawOrder = getValue(orders, i);

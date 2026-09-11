@@ -3070,7 +3070,8 @@ class BaseExchange extends \ccxt\BaseExchange {
             }
             // $close (using $average)
             if ($close === null && $average !== null) {
-                $close = Precise::string_mul($average, '2');
+                // $average is the midpoint of $open and $close, so twice it is their sum
+                $close = Precise::string_sub(Precise::string_mul($average, '2'), $open);
             }
             // $average
             if ($average === null && $close !== null) {
@@ -5108,15 +5109,15 @@ class BaseExchange extends \ccxt\BaseExchange {
         return $value;
     }
 
-    public function is_tick_precision() {
+    public function is_tick_precision(): bool {
         return $this->precisionMode === TICK_SIZE;
     }
 
-    public function is_decimal_precision() {
+    public function is_decimal_precision(): bool {
         return $this->precisionMode === DECIMAL_PLACES;
     }
 
-    public function is_significant_precision() {
+    public function is_significant_precision(): bool {
         return $this->precisionMode === SIGNIFICANT_DIGITS;
     }
 

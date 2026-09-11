@@ -2670,7 +2670,7 @@ class kucoin(ccxt.async_support.kucoin):
         if self.positions is None:
             return None
         cache = self.positions.hashmap
-        symbolCache = self.safe_value(cache, symbol, {})
+        symbolCache = self.safe_dict(cache, symbol, {})
         values = list(symbolCache.values())
         return self.safe_value(values, 0)
 

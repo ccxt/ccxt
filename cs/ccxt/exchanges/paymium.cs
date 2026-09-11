@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class paymium : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "paymium" },
@@ -219,7 +219,7 @@ public partial class paymium : Exchange
             string free = add("balance_", currencyId);
             if (isTrue(inOp(response, free)))
             {
-                object account = this.account();
+                Dictionary<string, object> account = this.account();
                 string used = add("locked_", currencyId);
                 ((IDictionary<string,object>)account)["free"] = this.safeString(response, free);
                 ((IDictionary<string,object>)account)["used"] = this.safeString(response, used);

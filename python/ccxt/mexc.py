@@ -1187,7 +1187,7 @@ class mexc(Exchange, ImplicitAPI):
         id = self.safe_string(rawCurrency, 'coin')
         code = self.safe_currency_code(id)
         networks = {}
-        chains = self.safe_value(rawCurrency, 'networkList', [])
+        chains = self.safe_list(rawCurrency, 'networkList', [])
         for j in range(0, len(chains)):
             chain = chains[j]
             networkId = self.safe_string_2(chain, 'netWork', 'network')
@@ -1300,7 +1300,7 @@ class mexc(Exchange, ImplicitAPI):
         # Notes:
         # - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision(to view currency's actual individual precision, refer to fetchCurrencies() method).
         #
-        data = self.safe_value(response, 'symbols', [])
+        data = self.safe_list(response, 'symbols', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -1429,7 +1429,7 @@ class mexc(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -3650,7 +3650,7 @@ class mexc(Exchange, ImplicitAPI):
         if self.markets is None:
             self.load_markets()
         response = self.fetch_account_helper(marketType, query)
-        data = self.safe_value(response, 'balances', [])
+        data = self.safe_list(response, 'balances', [])
         result = []
         for i in range(0, len(data)):
             account = data[i]
@@ -3767,11 +3767,11 @@ class mexc(Exchange, ImplicitAPI):
         #
         wallet: List
         if marketType == 'margin':
-            wallet = self.safe_value(response, 'assets', [])
+            wallet = self.safe_list(response, 'assets', [])
         elif marketType == 'swap':
-            wallet = self.safe_value(response, 'data', [])
+            wallet = self.safe_list(response, 'data', [])
         else:
-            wallet = self.safe_value(response, 'balances', [])
+            wallet = self.safe_list(response, 'balances', [])
         result = {'info': response}
         if marketType == 'margin':
             for i in range(0, len(wallet)):
@@ -4253,7 +4253,7 @@ class mexc(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'data', {})
-        resultList = self.safe_value(data, 'resultList', [])
+        resultList = self.safe_list(data, 'resultList', [])
         result = []
         for i in range(0, len(resultList)):
             entry = resultList[i]
@@ -4416,7 +4416,7 @@ class mexc(Exchange, ImplicitAPI):
         #    }
         #
         data = self.safe_value(response, 'data')
-        result = self.safe_value(data, 'resultList', [])
+        result = self.safe_list(data, 'resultList', [])
         rates = []
         for i in range(0, len(result)):
             entry = result[i]
@@ -5633,7 +5633,7 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(transaction, 'networkList', [])
+        networkList = self.safe_list(transaction, 'networkList', [])
         result = {}
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
@@ -5714,7 +5714,7 @@ class mexc(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networkList = self.safe_value(fee, 'networkList', [])
+        networkList = self.safe_list(fee, 'networkList', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]

@@ -569,7 +569,7 @@ class bit2c extends Exchange {
         //         }
         //     }
         //
-        $fees = $this->safe_value($response, 'Fees', array());
+        $fees = $this->safe_dict($response, 'Fees', array());
         $keys = is_array($fees) ? array_keys($fees) : array();
         $result = array();
         for ($i = 0; $i < count($keys); $i++) {
@@ -1030,7 +1030,7 @@ class bit2c extends Exchange {
         ), $market);
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return $code === 'NIS';
     }
 

@@ -835,7 +835,7 @@ class coinbaseexchange(ccxt.async_support.coinbaseexchange):
         elif type == 'l2update':
             orderbook = self.orderbooks[symbol]
             timestamp = self.parse8601(self.safe_string(message, 'time'))
-            changes = self.safe_value(message, 'changes', [])
+            changes = self.safe_list(message, 'changes', [])
             sides = {
                 'sell': 'asks',
                 'buy': 'bids',

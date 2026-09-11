@@ -2582,7 +2582,7 @@ class kucoin(Exchange, ImplicitAPI):
             }
         return result
 
-    def is_futures_method(self, methodName: object, params: object):
+    def is_futures_method(self, methodName: object, params: object) -> bool:
         #
         # Helper
         # @methodName(string): The name of the method

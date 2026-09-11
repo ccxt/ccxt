@@ -511,7 +511,7 @@ export default class bitmex extends Exchange {
         const code = this.safeCurrencyCode (asset);
         const id = this.safeString (currency, 'currency');
         const name = this.safeString (currency, 'name');
-        const chains = this.safeValue (currency, 'networks', []);
+        const chains = this.safeList (currency, 'networks', []);
         let depositEnabled = false;
         let withdrawEnabled = false;
         const networks: Dict = {};
@@ -3100,7 +3100,7 @@ export default class bitmex extends Exchange {
         //        ]
         //    }
         //
-        const networks = this.safeValue (fee, 'networks', []);
+        const networks = this.safeList (fee, 'networks', []);
         const networksLength = networks.length;
         const result: Dict = {
             'info': fee,

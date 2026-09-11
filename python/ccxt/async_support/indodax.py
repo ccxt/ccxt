@@ -441,7 +441,7 @@ class indodax(Exchange, ImplicitAPI):
 
     def parse_balance(self, response: object) -> Balances:
         balances = self.safe_value(response, 'return', {})
-        free = self.safe_value(balances, 'balance', {})
+        free = self.safe_dict(balances, 'balance', {})
         used = self.safe_value(balances, 'balance_hold', {})
         timestamp = self.safe_timestamp(balances, 'server_time')
         result = {
@@ -1192,8 +1192,8 @@ class indodax(Exchange, ImplicitAPI):
         #     }
         #
         data = self.safe_value(response, 'return', {})
-        withdraw = self.safe_value(data, 'withdraw', {})
-        deposit = self.safe_value(data, 'deposit', {})
+        withdraw = self.safe_dict(data, 'withdraw', {})
+        deposit = self.safe_dict(data, 'deposit', {})
         transactions = []
         currency = None
         if code is None:

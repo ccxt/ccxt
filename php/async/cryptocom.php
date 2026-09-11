@@ -1262,7 +1262,7 @@ class cryptocom extends Exchange {
     public function parse_balance(mixed $response): array {
         $responseResult = $this->safe_dict($response, 'result', array());
         $data = $this->safe_list($responseResult, 'data', array());
-        $positionBalances = $this->safe_value($data[0], 'position_balances', array());
+        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $positionBalances[$i];

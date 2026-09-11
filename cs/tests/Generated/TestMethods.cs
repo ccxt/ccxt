@@ -109,6 +109,7 @@ public partial class testMainClass
             { "timeout", 30000 },
         };
         BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
+        setExchangeProp(exchange, "fetchHistoryCacheSize", 5);
         if (isTrue(exchange.alias))
         {
             dump(this.addPadding("[INFO] skipping alias", 25));
@@ -438,7 +439,7 @@ public partial class testMainClass
                 object isAuthError = (e is AuthenticationError);
                 object isNotSupported = (e is NotSupported);
                 object isOperationFailed = (e is OperationFailed); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : add(add(" (Last url: ", exchange.last_request_url), " )");
+                string lastUrlMsg = ((bool) isTrue(this.wsTests)) ? "" : add(add(" (Last url: ", this.getLastRequestUrl(exchange)), " )");
                 if (isTrue(isOperationFailed))
                 {
                     // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -521,6 +522,22 @@ public partial class testMainClass
             }
         }
         return true;
+    }
+
+    public virtual object getLastRequestUrl(BaseExchange exchange)
+    {
+        object fetchCache = exchange.getFetchCache();
+        object url = "";
+        if (isTrue(isGreaterThan(getArrayLength(fetchCache), 0)))
+        {
+            object lastEntry = getValue(fetchCache, subtract(getArrayLength(fetchCache), 1));
+            object lastRequest = getValue(lastEntry, "request");
+            if (isTrue(!isEqual(lastRequest, null)))
+            {
+                url = exchange.safeString(lastRequest, "url", "");
+            }
+        }
+        return url;
     }
 
     public async virtual Task<object> runPublicTests(BaseExchange exchange, object symbols)

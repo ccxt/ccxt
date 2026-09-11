@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class mudrex { public mudrex(object args = null) : base(args) { } }
 public partial class mudrex : ccxt.mudrex
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -266,7 +266,7 @@ public partial class mudrex : ccxt.mudrex
             object symbol = getValue(market, "symbol");
             Int64 timestamp = this.milliseconds();
             double? last = this.safeNumber(t, "p");
-            object result = this.safeTicker(new Dictionary<string, object>() {
+            Dictionary<string, object> result = this.safeTicker(new Dictionary<string, object>() {
                 { "symbol", symbol },
                 { "timestamp", timestamp },
                 { "datetime", this.iso8601(timestamp) },

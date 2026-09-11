@@ -542,7 +542,7 @@ export default class hyperliquid extends hyperliquidRest {
         return await this.watch (url, messageHash, message, messageHash);
     }
 
-    handleWsTickers (client: Client, message: any) {
+    handleWsTickers (client: Client, message: any): boolean {
         // hip3 mids
         // {
         //     channel: 'allMids',
@@ -582,7 +582,7 @@ export default class hyperliquid extends hyperliquidRest {
         return true;
     }
 
-    handleActiveAssetCtx (client: Client, message: any) {
+    handleActiveAssetCtx (client: Client, message: any): boolean {
         //
         //     {
         //         "channel": "activeAssetCtx",

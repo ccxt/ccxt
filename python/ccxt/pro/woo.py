@@ -826,7 +826,7 @@ class woo(ccxt.async_support.woo):
             'info': trade,
         }, market)
 
-    def check_required_uid(self, error=True):
+    def check_required_uid(self, error=True) -> bool:
         if (self.uid is None) or (self.uid == ''):
             if error:
                 raise AuthenticationError(self.id + ' requires `uid` credential(woox calls it `application_id`)')
@@ -1273,7 +1273,7 @@ class woo(ccxt.async_support.woo):
         #    }
         #
         data = self.safe_value(message, 'data', {})
-        rawPositions = self.safe_value(data, 'positions', {})
+        rawPositions = self.safe_dict(data, 'positions', {})
         postitionsIds = list(rawPositions.keys())
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()

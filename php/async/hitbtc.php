@@ -1168,7 +1168,7 @@ class hitbtc extends Exchange {
          */
         $type = $this->safe_string_lower($params, 'type', 'spot');
         $params = $this->omit($params, array( 'type' ));
-        $accountsByType = $this->safe_value($this->options, 'accountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'accountsByType', array());
         $account = ($type === null) ? null : $this->safe_string($accountsByType, $type, $type);
         if ($account === 'wallet') {
             $response = Async\await($this->privateGetWalletBalance($params));
@@ -2925,7 +2925,7 @@ class hitbtc extends Exchange {
         if ($code !== 'USDT') {
             throw new ExchangeError($this->id . ' convertCurrencyNetwork() only supports USDT currently');
         }
-        $networks = $this->safe_value($this->options, 'networks', array());
+        $networks = $this->safe_dict($this->options, 'networks', array());
         $fromNetwork = strtoupper($fromNetwork);
         $toNetwork = strtoupper($toNetwork);
         $fromNetwork = $this->safe_string($networks, $fromNetwork); // handle ETH>ERC20 alias
@@ -3345,7 +3345,7 @@ class hitbtc extends Exchange {
         $marginMode = $this->safe_string($position, 'type');
         $leverage = $this->safe_number($position, 'leverage');
         $datetime = $this->safe_string($position, 'updated_at');
-        $positions = $this->safe_value($position, 'positions', array());
+        $positions = $this->safe_list($position, 'positions', array());
         $liquidationPrice = null;
         $entryPrice = null;
         $contracts = null;
@@ -3355,7 +3355,7 @@ class hitbtc extends Exchange {
             $entryPrice = $this->safe_number($entry, 'price_entry');
             $contracts = $this->safe_number($entry, 'quantity');
         }
-        $currencies = $this->safe_value($position, 'currencies', array());
+        $currencies = $this->safe_list($position, 'currencies', array());
         $collateral = null;
         for ($i = 0; $i < count($currencies); $i++) {
             $entry = $currencies[$i];
@@ -3949,7 +3949,7 @@ class hitbtc extends Exchange {
         //         )
         //    }
         //
-        $networks = $this->safe_value($fee, 'networks', array());
+        $networks = $this->safe_list($fee, 'networks', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networks); $j++) {
             $networkEntry = $networks[$j];

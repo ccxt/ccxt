@@ -1308,7 +1308,7 @@ class htx extends \ccxt\async\htx {
         } else {
             // contract branch
             $parsedOrder = $this->parse_ws_order($message, $market);
-            $rawTrades = $this->safe_value($message, 'trade', array());
+            $rawTrades = $this->safe_list($message, 'trade', array());
             $tradesLength = count($rawTrades);
             if ($tradesLength > 0) {
                 $tradesObject = array(
@@ -1794,7 +1794,7 @@ class htx extends \ccxt\async\htx {
         if ($clientPositions === null) {
             $this->positions[$url] = array();
         }
-        $rawPositions = $this->safe_value($message, 'data', array());
+        $rawPositions = $this->safe_list($message, 'data', array());
         if ($this->is_empty($rawPositions)) {
             $prefixes = array( 'cross:positions', 'isolated:positions' );
             for ($i = 0; $i < count($prefixes); $i++) {
@@ -2075,7 +2075,7 @@ class htx extends \ccxt\async\htx {
         //     }
         //
         $channel = $this->safe_string($message, 'ch');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $timestamp = $this->safe_integer($data, 'changeTime', $this->safe_integer($message, 'ts'));
         $this->balance['timestamp'] = $timestamp;
         $this->balance['datetime'] = $this->iso8601($timestamp);
@@ -2772,7 +2772,7 @@ class htx extends \ccxt\async\htx {
             } else {
                 // this trades object is artificially created
                 // in handleOrder
-                $rawTrades = $this->safe_value($message, 'trades', array());
+                $rawTrades = $this->safe_list($message, 'trades', array());
                 $marketId = $this->safe_value($message, 'symbol');
                 $market = $this->market($marketId);
                 for ($i = 0; $i < count($rawTrades); $i++) {

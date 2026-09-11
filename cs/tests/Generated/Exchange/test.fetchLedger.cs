@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
         string method = "fetchLedger";
         object items = await invokeExchangeDynamically(exchange, "fetchLedger", code);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, items, code);
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         for (int i = 0; isLessThan(i, getArrayLength(items)); postFixIncrement(ref i))
         {
             testLedgerEntry(exchange, skippedProperties, method, getValue(items, i), code, now);

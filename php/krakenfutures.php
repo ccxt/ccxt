@@ -438,7 +438,7 @@ class krakenfutures extends Exchange {
         //        "serverTime" => "2018-07-19T11:32:39.433Z"
         //    }
         //
-        $instruments = $this->safe_value($response, 'instruments', array());
+        $instruments = $this->safe_list($response, 'instruments', array());
         $result = array();
         for ($i = 0; $i < count($instruments); $i++) {
             $market = $instruments[$i];
@@ -1553,7 +1553,7 @@ class krakenfutures extends Exchange {
             $this->load_markets();
         }
         $orders = array();
-        $clientOrderIds = $this->safe_value($params, 'clientOrderIds', array());
+        $clientOrderIds = $this->safe_list($params, 'clientOrderIds', array());
         $clientOrderIdsLength = count($clientOrderIds);
         if ($clientOrderIdsLength > 0) {
             for ($i = 0; $i < count($clientOrderIds); $i++) {
@@ -2299,7 +2299,7 @@ class krakenfutures extends Exchange {
                 'trades' => null,
             ));
         }
-        $orderEvents = $this->safe_value($order, 'orderEvents', array());
+        $orderEvents = $this->safe_list($order, 'orderEvents', array());
         $errorStatus = $this->safe_string($order, 'status');
         $orderEventsLength = count($orderEvents);
         if ((is_array($order) && array_key_exists('orderEvents' ?? '', $order)) && ($errorStatus !== null) && ($orderEventsLength === 0)) {
@@ -2866,7 +2866,7 @@ class krakenfutures extends Exchange {
         $accountType = $this->safe_string_2($response, 'accountType', 'type');
         $isFlex = ($accountType === 'multiCollateralMarginAccount');
         $isCash = ($accountType === 'cashAccount');
-        $balances = $this->safe_value_2($response, 'balances', 'currencies', array());
+        $balances = $this->safe_dict_2($response, 'balances', 'currencies', array());
         $result = array();
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {

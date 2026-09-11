@@ -707,7 +707,7 @@ export default class lighter extends lighterRest {
         }, market);
     }
 
-    handleMyTrades (client: Client, message: any) {
+    handleMyTrades (client: Client, message: any): boolean {
         //
         //     {
         //         "channel": "account_all_trades:723310",
@@ -1002,7 +1002,7 @@ export default class lighter extends lighterRest {
         }
     }
 
-    handleBalance (client: Client, message: any) {
+    handleBalance (client: Client, message: any): boolean {
         //
         //    spot balance
         //    {
@@ -1279,7 +1279,7 @@ export default class lighter extends lighterRest {
         client.resolve (message, 'jsonapi/sendtx:' + id);
     }
 
-    handleOrders (client: Client, message: any) {
+    handleOrders (client: Client, message: any): boolean {
         //
         //    {
         //        "account": {ACCOUNT_INDEX},
@@ -1329,7 +1329,7 @@ export default class lighter extends lighterRest {
         return true;
     }
 
-    handleErrorMessage (client: Client, message: any) {
+    handleErrorMessage (client: Client, message: any): boolean {
         //
         //     {
         //         "error": {

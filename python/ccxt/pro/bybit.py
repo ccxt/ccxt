@@ -1384,7 +1384,7 @@ class bybit(ccxt.async_support.bybit):
         executionFast = topic == 'execution.fast'
         data = self.safe_value(message, 'data', [])
         if not isinstance(data, list):
-            data = self.safe_value(data, 'result', [])
+            data = self.safe_list(data, 'result', [])
         if self.myTrades is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
             self.myTrades = ArrayCacheBySymbolById(limit)
@@ -1543,7 +1543,7 @@ class bybit(ccxt.async_support.bybit):
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
         newPositions = []
-        rawPositions = self.safe_value(message, 'data', [])
+        rawPositions = self.safe_list(message, 'data', [])
         for i in range(0, len(rawPositions)):
             rawPosition = rawPositions[i]
             position = self.parse_position(rawPosition)
@@ -1890,7 +1890,7 @@ class bybit(ccxt.async_support.bybit):
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
             self.orders = ArrayCacheBySymbolById(limit)
         orders = self.orders
-        rawOrders = self.safe_value(message, 'data', [])
+        rawOrders = self.safe_list(message, 'data', [])
         first = self.safe_value(rawOrders, 0, {})
         category = self.safe_string(first, 'category')
         isSpot = category == 'spot'
@@ -2118,7 +2118,7 @@ class bybit(ccxt.async_support.bybit):
         account = None
         if topic == 'outboundAccountInfo':
             account = 'spot'
-            data = self.safe_value(message, 'data', [])
+            data = self.safe_list(message, 'data', [])
             for i in range(0, len(data)):
                 B = self.safe_value(data[i], 'B', [])
                 rawBalances = self.array_concat(rawBalances, B)

@@ -529,7 +529,7 @@ class bit2c(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        fees = self.safe_value(response, 'Fees', {})
+        fees = self.safe_dict(response, 'Fees', {})
         keys = list(fees.keys())
         result = {}
         for i in range(0, len(keys)):
@@ -939,7 +939,7 @@ class bit2c(Exchange, ImplicitAPI):
             'fee': fee,
         }, market)
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return code == 'NIS'
 
     async def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:

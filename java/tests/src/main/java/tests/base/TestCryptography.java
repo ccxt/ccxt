@@ -20,7 +20,7 @@ public class TestCryptography extends BaseTest {
             Assert(Helpers.isEqual(hmac(encode("hello"), encode("there"), sha256(), "hex"), "551e1c1ecbce0fe9b643745a376584a6289f5f43a46861b315fac9edc8d52a26"));
             Assert(Helpers.isEqual(hmac(encode("a message"), encode("a secret"), md5(), "hex"), "0bfa503bdbc7358185fcd49b4869e23d"));
             // ---------------------------------------------------------------------------------------------------------------------
-            Object privateKey = "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a";
+            String privateKey = "1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a";
             Assert(equals(ecdsa("1a", privateKey, secp256k1(), sha256()), new java.util.HashMap<String, Object>() {{
                 put( "r", "23dcb2a2a3728a35eb1a35cc01743c4609550d9cceaf2083550f13a9eb135f9f" );
                 put( "s", "317963fcac18e4ec9f7921b97d7ea0c82a873dd6299cbfb6af016e08ef5ed667" );

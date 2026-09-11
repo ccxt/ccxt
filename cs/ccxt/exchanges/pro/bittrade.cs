@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bittrade { public bittrade(object args = null) : base(args) { } }
 public partial class bittrade : ccxt.bittrade
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -74,7 +74,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
         object requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -154,7 +154,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
         object requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -253,7 +253,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
         object requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -348,7 +348,7 @@ public partial class bittrade : ccxt.bittrade
         Dictionary<string, object> hostname = new Dictionary<string, object>() {
             { "hostname", this.hostname },
         };
-        string url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
+        string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
         object requestId = this.requestId();
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "sub", messageHash },
@@ -421,7 +421,7 @@ public partial class bittrade : ccxt.bittrade
             Dictionary<string, object> hostname = new Dictionary<string, object>() {
                 { "hostname", this.hostname },
             };
-            string url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
+            string? url = this.implodeParams(getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), api), "public"), hostname);
             object requestId = this.requestId();
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "req", messageHash },

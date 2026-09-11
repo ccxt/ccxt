@@ -850,7 +850,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #            ...
         #        ]
         #    }
-        orders = self.safe_value(message, 'orders', [])
+        orders = self.safe_list(message, 'orders', [])
         limit = self.safe_integer(self.options, 'ordersLimit')
         self.orders = ArrayCacheBySymbolById(limit)
         feed = self.safe_string(message, 'feed')
@@ -1385,7 +1385,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             self.balance['margin'] = self.safe_balance(self.balance['margin'])
             client.resolve(self.balance['margin'], messageHash + 'futures')
         if flexFutures is not None:
-            flexFutureCurrencies = self.safe_value(flexFutures, 'currencies', {})
+            flexFutureCurrencies = self.safe_dict(flexFutures, 'currencies', {})
             flexFuturesKeys = list(flexFutureCurrencies.keys())  # multi-collateral margin account
             flexFuturesResult = {
                 'info': message,
@@ -1433,7 +1433,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
         #        ]
         #    }
         #
-        trades = self.safe_value(message, 'fills', [])
+        trades = self.safe_list(message, 'fills', [])
         stored = self.myTrades
         if stored is None:
             limit = self.safe_integer(self.options, 'tradesLimit', 1000)
@@ -1521,7 +1521,7 @@ class krakenfutures(ccxt.async_support.krakenfutures):
             }
         return await self.watch_multiple(url, messageHashes, self.extend(request, params), messageHashes, subscriptionArgs)
 
-    def subscription_exists_for_hash(self, url: str, hash: str):
+    def subscription_exists_for_hash(self, url: str, hash: str) -> bool:
         client = self.client(url)
         return(hash in client.subscriptions)
 

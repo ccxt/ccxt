@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class indodax : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "indodax" },
@@ -472,7 +472,7 @@ public partial class indodax : Exchange
     public override object parseBalance(object response)
     {
         object balances = this.safeValue(response, "return", new Dictionary<string, object>() {});
-        object free = this.safeValue(balances, "balance", new Dictionary<string, object>() {});
+        IDictionary<string, object> free = this.safeDict(balances, "balance", new Dictionary<string, object>() {});
         object used = this.safeValue(balances, "balance_hold", new Dictionary<string, object>() {});
         object timestamp = this.safeTimestamp(balances, "server_time");
         Dictionary<string, object> result = new Dictionary<string, object>() {
@@ -485,7 +485,7 @@ public partial class indodax : Exchange
         {
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(free, currencyId);
             ((IDictionary<string,object>)account)["used"] = this.safeString(used, currencyId);
             if (isTrue(!isEqual(code, null)))
@@ -1051,7 +1051,7 @@ public partial class indodax : Exchange
         };
         Dictionary<string, object> response = await this.privatePostOrderHistory(this.extend(request, parameters));
         IDictionary<string, object> historyResult = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        object orders = this.parseOrders(getValue(historyResult, "orders"), market);
+        IList<object> orders = this.parseOrders(getValue(historyResult, "orders"), market);
         orders = this.filterBy(orders, "status", "closed");
         return ccxt.BaseExchange.ToOrderList(this.filterBySymbolSinceLimit(orders, symbol, since, limit));
     }
@@ -1258,7 +1258,7 @@ public partial class indodax : Exchange
         //     }
         //
         IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
-        object result = this.depositWithdrawFee(response);
+        Dictionary<string, object> result = this.depositWithdrawFee(response);
         ((IDictionary<string,object>)getValue(result, "withdraw"))["fee"] = this.safeNumber(data, "withdraw_fee");
         ((IDictionary<string,object>)getValue(result, "withdraw"))["percentage"] = false;
         ((IDictionary<string,object>)getValue(result, "deposit"))["fee"] = 0;
@@ -1350,8 +1350,8 @@ public partial class indodax : Exchange
         //     }
         //
         object data = this.safeValue(response, "return", new Dictionary<string, object>() {});
-        object withdraw = this.safeValue(data, "withdraw", new Dictionary<string, object>() {});
-        object deposit = this.safeValue(data, "deposit", new Dictionary<string, object>() {});
+        IDictionary<string, object> withdraw = this.safeDict(data, "withdraw", new Dictionary<string, object>() {});
+        IDictionary<string, object> deposit = this.safeDict(data, "deposit", new Dictionary<string, object>() {});
         List<object> transactions = new List<object>() {};
         IDictionary<string, object> currency = null;
         if (isTrue(isEqual(code, null)))

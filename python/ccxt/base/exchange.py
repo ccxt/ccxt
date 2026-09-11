@@ -4911,7 +4911,8 @@ class BaseExchange(object):
                 close = Precise.string_add(open, change)
             # close(using average)
             if close is None and average is not None:
-                close = Precise.string_mul(average, '2')
+                # average is the midpoint of open and close, so twice it is their sum
+                close = Precise.string_sub(Precise.string_mul(average, '2'), open)
             # average
             if average is None and close is not None:
                 precision = 18
@@ -6481,13 +6482,13 @@ class BaseExchange(object):
             return self.number_to_string(value)
         return value
 
-    def is_tick_precision(self):
+    def is_tick_precision(self) -> bool:
         return self.precisionMode == TICK_SIZE
 
-    def is_decimal_precision(self):
+    def is_decimal_precision(self) -> bool:
         return self.precisionMode == DECIMAL_PLACES
 
-    def is_significant_precision(self):
+    def is_significant_precision(self) -> bool:
         return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: NullableIndexType, defaultNumber: Num = None):

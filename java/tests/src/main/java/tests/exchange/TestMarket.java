@@ -81,14 +81,14 @@ public class TestMarket extends BaseTest {
         Object future = Helpers.GetValue(market, "future");
         Object option = Helpers.GetValue(market, "option");
         Object index = exchange.safeBool(market, "index"); // todo: unify
-        Object isIndex = Helpers.isTrue((!Helpers.isEqual(index, null))) && Helpers.isTrue(index);
+        Boolean isIndex = Helpers.isTrue((!Helpers.isEqual(index, null))) && Helpers.isTrue(index);
         Object linear = Helpers.GetValue(market, "linear");
         Object inverse = Helpers.GetValue(market, "inverse");
         Object quanto = exchange.safeBool(market, "quanto"); // todo: unify
-        Object isQuanto = Helpers.isTrue((!Helpers.isEqual(quanto, null))) && Helpers.isTrue(quanto);
-        Object isInactiveMarket = Helpers.isEqual(Helpers.GetValue(market, "active"), false);
+        Boolean isQuanto = Helpers.isTrue((!Helpers.isEqual(quanto, null))) && Helpers.isTrue(quanto);
+        Boolean isInactiveMarket = Helpers.isEqual(Helpers.GetValue(market, "active"), false);
         //
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("margin"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("margin"));
         if (Helpers.isTrue(!Helpers.isEqual(contract, true)))
         {
             ((java.util.List<Object>)emptyAllowedFor).add("contractSize");
@@ -138,13 +138,13 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
+        java.util.List<Object> validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        Object validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
+        java.util.List<Object> validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        Object checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
@@ -156,7 +156,7 @@ public class TestMarket extends BaseTest {
         // check if 'subType' is consistent
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(swap, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
-            Object checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+            java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
@@ -177,7 +177,7 @@ public class TestMarket extends BaseTest {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "margin", new java.util.ArrayList<Object>(java.util.Arrays.asList(false, null)));
         }
         // check mutually exclusive fields
-        Object isPrediction = (Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction"));
+        Boolean isPrediction = (Helpers.isEqual(Helpers.GetValue(market, "type"), "prediction"));
         if (Helpers.isTrue(isPrediction))
         {
             // prediction markets trade outcome shares — neither spot nor a derivative contract
@@ -268,9 +268,9 @@ public class TestMarket extends BaseTest {
         {
             Object priceOrAmountKey = Helpers.GetValue(precisionKeys, i);
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
-            Object isExclusivePair = Helpers.isEqual(Helpers.GetValue(market, "baseId"), "BTC");
-            Object isNonSpot = !Helpers.isEqual(spot, true); // such high precision is only allowed in contract markets
-            Object isPrice = Helpers.isEqual(priceOrAmountKey, "price");
+            Boolean isExclusivePair = Helpers.isEqual(Helpers.GetValue(market, "baseId"), "BTC");
+            Boolean isNonSpot = !Helpers.isEqual(spot, true); // such high precision is only allowed in contract markets
+            Boolean isPrice = Helpers.isEqual(priceOrAmountKey, "price");
             Object isTickSize5 = Precise.stringEq("5", exchange.safeString(Helpers.GetValue(market, "precision"), priceOrAmountKey));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isNonSpot) && Helpers.isTrue(isPrice)) && Helpers.isTrue(isExclusivePair)) && Helpers.isTrue(isTickSize5)))
             {

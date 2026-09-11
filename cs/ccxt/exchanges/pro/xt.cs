@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class xt { public xt(object args = null) : base(args) { } }
 public partial class xt : ccxt.xt
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -877,7 +877,7 @@ public partial class xt : ccxt.xt
         // don't remove the future from the .futures cache
         if (isTrue(inOp(client.futures, messageHash)))
         {
-            var future = getValue(client.futures, messageHash);
+            Future future = ((Future)getValue(client.futures, messageHash));
             (future as Future).resolve(cache);
             callDynamically(client as WebSocketClient, "resolve", new object[] {cache, "position::contract"});
         }
@@ -923,7 +923,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         object position = this.parsePosition(data);
         callDynamically(cache, "append", new object[] {position});
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "position::contract");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1107,7 +1107,7 @@ public partial class xt : ccxt.xt
             ((IList<object>)newTickers).Add(ticker);
         }
         object messageHashStart = add(add(this.safeString(message, "topic"), "::"), tradeType);
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, add(messageHashStart, "::"));
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, add(messageHashStart, "::"));
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);
@@ -1614,7 +1614,7 @@ public partial class xt : ccxt.xt
         IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? currencyId = this.safeString2(data, "c", "coin");
         string? code = this.safeCurrencyCode(currencyId);
-        object account = this.account();
+        Dictionary<string, object> account = this.account();
         ((IDictionary<string,object>)account)["free"] = this.safeString(data, "availableBalance");
         ((IDictionary<string,object>)account)["used"] = this.safeString(data, "f");
         ((IDictionary<string,object>)account)["total"] = this.safeString2(data, "b", "walletBalance");
