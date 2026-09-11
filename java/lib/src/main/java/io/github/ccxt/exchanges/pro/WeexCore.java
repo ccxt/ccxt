@@ -740,7 +740,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object priceType = "LAST_PRICE";
             if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
             {
-                var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
+                java.util.List<Object> priceTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
                 priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1);
             }
@@ -831,7 +831,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object priceType = "LAST_PRICE";
             if (Helpers.isTrue(Helpers.isEqual(isContract, true)))
             {
-                var priceTypeparametersVariable = this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
+                java.util.List<Object> priceTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, callerMethodName, "price", "priceType", priceType);
                 priceType = ((java.util.List<Object>) priceTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) priceTypeparametersVariable).get(1);
             }
@@ -1005,7 +1005,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object callerMethodName = this.safeString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             parameters = this.omit(parameters, "callerMethodName");
             Object depth = "200";
-            var depthparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1078,7 +1078,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object callerMethodName = this.safeString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             parameters = this.omit(parameters, "callerMethodName");
             Object depth = "200";
-            var depthparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "depth", depth);
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             Object subHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1351,7 +1351,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
@@ -1395,7 +1395,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument. Unsubscribing from myTrades is global for all symbols.")) ;
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("unWatchMyTrades", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
@@ -1603,7 +1603,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
@@ -1646,7 +1646,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders does not support a symbol argument. Unsubscribing from orders is global for all symbols.")) ;
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("unWatchOrders", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(marketType, "spot"));
@@ -1938,7 +1938,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));

@@ -104,7 +104,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -158,7 +158,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -446,7 +446,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -658,7 +658,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
@@ -910,7 +910,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -1062,7 +1062,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))

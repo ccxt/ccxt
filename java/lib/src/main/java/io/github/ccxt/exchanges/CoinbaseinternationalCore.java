@@ -465,7 +465,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object portfolio = null;
-            var portfolioparametersVariable = this.handleOptionAndParams(parameters, methodName, "portfolio");
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "portfolio");
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(portfolio, null))) && Helpers.isTrue((!Helpers.isEqual(portfolio, "")))))
@@ -501,7 +501,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object networkId = null;
-            var networkIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "network_arn_id");
+            java.util.List<Object> networkIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "network_arn_id");
             networkId = ((java.util.List<Object>) networkIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -622,7 +622,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -714,11 +714,11 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
@@ -833,7 +833,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 market = this.market(symbol);
             }
             Object portfolios = null;
-            var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
+            java.util.List<Object> portfoliosparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "portfolios");
             portfolios = ((java.util.List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfoliosparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
@@ -935,7 +935,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 currency = this.currency(code);
             }
             Object portfolios = null;
-            var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
+            java.util.List<Object> portfoliosparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "portfolios");
             portfolios = ((java.util.List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfoliosparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
@@ -1040,11 +1040,11 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "method", "v1PrivatePostTransfersAddress");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("createDepositAddress", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("createDepositAddress", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -1056,7 +1056,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Object currency = this.currency(code);
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
                 Object networkId = null;
-                var networkIdparametersVariable = (this.handleNetworkIdAndParams(code, "createDepositAddress", parameters)).join();
+                java.util.List<Object> networkIdparametersVariable = (java.util.List<Object>) (this.handleNetworkIdAndParams(code, "createDepositAddress", parameters)).join();
                 networkId = ((java.util.List<Object>) networkIdparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
                 Helpers.addElementToObject(request, "network_arn_id", networkId);
@@ -1225,7 +1225,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("setMargin", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("setMargin", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1273,11 +1273,11 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object paginate = null;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
@@ -1300,7 +1300,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(request, "result_limit", newLimit);
             }
             Object portfolios = null;
-            var portfoliosparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
+            java.util.List<Object> portfoliosparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "portfolios");
             portfolios = ((java.util.List<Object>) portfoliosparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfoliosparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(portfolios, null)))
@@ -1308,7 +1308,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(request, "portfolios", portfolios);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositsWithdrawals", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1369,7 +1369,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }
             symbol = this.symbol(symbol);
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("fetchPosition", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("fetchPosition", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -1477,7 +1477,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("fetchPositions", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("fetchPositions", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -2086,7 +2086,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("fetchBalance", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("fetchBalance", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -2271,7 +2271,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 Helpers.addElementToObject(request, "price", price);
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("createOrder", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("createOrder", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(portfolio, null)))
@@ -2445,7 +2445,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("cancelOrder", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("cancelOrder", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -2507,7 +2507,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("cancelAllOrders", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("cancelAllOrders", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -2558,7 +2558,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "id", id );
             }};
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("editOrder", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("editOrder", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(portfolio, null)))
@@ -2617,7 +2617,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 market = this.market(symbol);
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("fetchOrder", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("fetchOrder", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             final Object finalPortfolio = portfolio;
@@ -2684,15 +2684,15 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("fetchOpenOrders", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("fetchOpenOrders", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 100;
-            var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
@@ -2793,12 +2793,12 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object pageKey = "ccxtPageKey";
             Object maxEntriesPerRequest = 100;
-            var maxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "maxEntriesPerRequest", maxEntriesPerRequest);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2903,7 +2903,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -2913,15 +2913,15 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }
             Object currency = this.currency(code);
             Object portfolio = null;
-            var portfolioparametersVariable = (this.handlePortfolioAndParams("withdraw", parameters)).join();
+            java.util.List<Object> portfolioparametersVariable = (java.util.List<Object>) (this.handlePortfolioAndParams("withdraw", parameters)).join();
             portfolio = ((java.util.List<Object>) portfolioparametersVariable).get(0);
             parameters = ((java.util.List<Object>) portfolioparametersVariable).get(1);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "withdraw", "method", "v1PrivatePostTransfersWithdraw");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object networkId = null;
-            var networkIdparametersVariable = (this.handleNetworkIdAndParams(code, "withdraw", parameters)).join();
+            java.util.List<Object> networkIdparametersVariable = (java.util.List<Object>) (this.handleNetworkIdAndParams(code, "withdraw", parameters)).join();
             networkId = ((java.util.List<Object>) networkIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
             final Object finalPortfolio = portfolio;

@@ -1696,7 +1696,7 @@ public class DeriveCore extends DeriveApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("createOrder", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object test = this.safeBool(parameters, "test", false);
@@ -1714,7 +1714,7 @@ public class DeriveCore extends DeriveApi
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = this.numberToString(price);
             Object maxFee = null;
-            var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
+            java.util.List<Object> maxFeeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "max_fee");
             maxFee = ((java.util.List<Object>) maxFeeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxFeeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(maxFee, null)))
@@ -1725,7 +1725,7 @@ public class DeriveCore extends DeriveApi
             Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
-            var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
+            java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleDeriveWalletAddress("createOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
@@ -1899,7 +1899,7 @@ public class DeriveCore extends DeriveApi
             }
             Object market = this.market(symbol);
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("editOrder", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("editOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
@@ -1919,7 +1919,7 @@ public class DeriveCore extends DeriveApi
             Object amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
-            var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);
+            java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleDeriveWalletAddress("editOrder", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
             Object signature = this.signOrder(new java.util.ArrayList<Object>(java.util.Arrays.asList(ACTION_TYPEHASH, subaccountId, nonce, TRADE_MODULE_ADDRESS, tradeModuleDataHash, signatureExpiry, deriveWalletAddress, this.walletAddress)), this.privateKey);
@@ -2073,7 +2073,7 @@ public class DeriveCore extends DeriveApi
             Object market = this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("cancelOrder", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("cancelOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
@@ -2187,7 +2187,7 @@ public class DeriveCore extends DeriveApi
                 market = this.market(symbol);
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("cancelAllOrders", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("cancelAllOrders", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2252,7 +2252,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2262,7 +2262,7 @@ public class DeriveCore extends DeriveApi
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchOrders", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchOrders", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2642,7 +2642,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchOrderTrades", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchOrderTrades", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2735,7 +2735,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2743,7 +2743,7 @@ public class DeriveCore extends DeriveApi
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, parameters, "page", 500)).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchMyTrades", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchMyTrades", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -2840,7 +2840,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchPositions", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchPositions", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3004,7 +3004,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3012,7 +3012,7 @@ public class DeriveCore extends DeriveApi
                 return (this.fetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, parameters, "page", 500)).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchFundingHistory", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchFundingHistory", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3129,7 +3129,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object deriveWalletAddress = null;
-            var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("fetchBalance", parameters);
+            java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleDeriveWalletAddress("fetchBalance", parameters);
             deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
             final Object finalDeriveWalletAddress = deriveWalletAddress;
@@ -3249,7 +3249,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchDeposits", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchDeposits", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3313,7 +3313,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("fetchWithdrawals", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchWithdrawals", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             final Object finalSubaccountId = subaccountId;
@@ -3409,7 +3409,7 @@ public class DeriveCore extends DeriveApi
     public Object handleDeriveSubaccountId(Object methodName, Object parameters)
     {
         Object derivesubAccountId = null;
-        var derivesubAccountIdparametersVariable = this.handleOptionAndParams(parameters, methodName, "subaccount_id");
+        java.util.List<Object> derivesubAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id");
         derivesubAccountId = ((java.util.List<Object>) derivesubAccountIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) derivesubAccountIdparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(derivesubAccountId, null))) && Helpers.isTrue((!Helpers.isEqual(derivesubAccountId, "")))))
@@ -3428,7 +3428,7 @@ public class DeriveCore extends DeriveApi
     public Object handleDeriveWalletAddress(Object methodName, Object parameters)
     {
         Object deriveWalletAddress = null;
-        var deriveWalletAddressparametersVariable = this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
+        java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
         deriveWalletAddress = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) deriveWalletAddressparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(deriveWalletAddress, null))) && Helpers.isTrue((!Helpers.isEqual(deriveWalletAddress, "")))))

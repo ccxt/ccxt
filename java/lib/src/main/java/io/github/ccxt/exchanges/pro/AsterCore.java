@@ -194,9 +194,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTickers");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -260,9 +260,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -370,9 +370,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -437,9 +437,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -795,9 +795,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -856,9 +856,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchTradesForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTradesForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -1164,9 +1164,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -1224,9 +1224,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -1384,9 +1384,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -1454,9 +1454,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
-            Object methodName = null;
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
-            methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
+            String methodName = null;
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
+            methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
@@ -1708,7 +1708,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();
@@ -2136,7 +2136,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object messageHash = "orders";
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();
@@ -2191,7 +2191,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object messageHash = "myTrades";
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type, parameters)).join();

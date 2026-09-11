@@ -215,7 +215,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 type = Helpers.GetValue(market, "type");
             } else
             {
-                var typeparametersVariable = this.handleMarketTypeAndParams(method, null, parameters);
+                java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(method, null, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
                 Object defaultSettle = this.safeString(this.options, "defaultSettle");
@@ -243,7 +243,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
                 {
                     Object subType = null;
-                    var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters, "linear");
+                    java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams(method, market, parameters, "linear");
                     subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                     url = Helpers.GetValue(Helpers.GetValue(url, accessibility), ((String)subType));
@@ -1600,7 +1600,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }};
             Object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
             Object executionFast = false;
-            var executionFastparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
+            java.util.List<Object> executionFastparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
             executionFast = ((java.util.List<Object>) executionFastparametersVariable).get(0);
             parameters = ((java.util.List<Object>) executionFastparametersVariable).get(1);
             if (Helpers.isTrue(executionFast))
@@ -1656,7 +1656,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }};
             Object topic = this.safeValue(topicByMarket, this.getPrivateType(url));
             Object executionFast = false;
-            var executionFastparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
+            java.util.List<Object> executionFastparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "executionFast", false);
             executionFast = ((java.util.List<Object>) executionFastparametersVariable).get(0);
             parameters = ((java.util.List<Object>) executionFastparametersVariable).get(1);
             if (Helpers.isTrue(executionFast))
@@ -2094,7 +2094,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object url = (this.getUrlByMarketType(symbol, false, "watchLiquidations", parameters)).join();
             parameters = this.cleanParams(parameters);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchLiquidations", "method", "allLiquidation");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object messageHash = Helpers.add("liquidations::", symbol);
@@ -2482,11 +2482,11 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object method = "watchBalance";
             Object messageHash = "balances";
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object unified = (this.isUnifiedEnabled()).join();

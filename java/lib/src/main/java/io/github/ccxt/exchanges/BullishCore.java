@@ -1191,7 +1191,7 @@ public class BullishCore extends BullishApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1272,7 +1272,7 @@ public class BullishCore extends BullishApi
             } else
             {
                 Object paginate = false;
-                var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+                java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
                 paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
                 if (Helpers.isTrue(paginate))
@@ -1598,7 +1598,7 @@ public class BullishCore extends BullishApi
             Object timeframe = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             Object maxRetries = null;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", 3);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", 3);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "fetchOHLCV"))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchFundingRateHistory")))) && Helpers.isTrue((!Helpers.isEqual(method, "fetchTrades")))))
@@ -1671,7 +1671,7 @@ public class BullishCore extends BullishApi
             Object market = this.market(symbol);
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1683,7 +1683,7 @@ public class BullishCore extends BullishApi
                 put( "timeBucket", BullishCore.this.safeString(BullishCore.this.timeframes, timeframe, timeframe) );
                 put( "_pageSize", maxLimit );
             }};
-            var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
@@ -1761,7 +1761,7 @@ public class BullishCore extends BullishApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1866,7 +1866,7 @@ public class BullishCore extends BullishApi
                 Helpers.addElementToObject(request, "_pageSize", this.getClosestLimit(limit));
             }
             Object method = "privateGetV2HistoryOrders";
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2205,16 +2205,16 @@ public class BullishCore extends BullishApi
                 put( "tradingAccountId", tradingAccountId );
             }};
             Object isMarketOrder = (Helpers.isTrue((Helpers.isEqual(type, "market"))) || Helpers.isTrue(Helpers.isEqual(type, "MARKET")));
-            Object postOnly = false;
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "POST_ONLY"), parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = false;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "POST_ONLY"), parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(postOnly))
             {
                 type = "POST_ONLY";
             }
             Object timeInForce = "GTC"; // is mandatory
-            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce", timeInForce);
+            java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", timeInForce);
             timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
             Helpers.addElementToObject(parameters, "timeInForce", ((String)timeInForce).toUpperCase());
@@ -2557,7 +2557,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
@@ -2648,9 +2648,9 @@ public class BullishCore extends BullishApi
                     put( "quantity", BullishCore.this.currencyToPrecision(code, amount) );
                 }} );
             }};
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -2780,7 +2780,7 @@ public class BullishCore extends BullishApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object tradingAccountId = null;
-            var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
+            java.util.List<Object> tradingAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "loadAccount", "tradingAccountId");
             tradingAccountId = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))
@@ -2953,7 +2953,7 @@ public class BullishCore extends BullishApi
             Object length = Helpers.getArrayLength(safeResponse);
             Object data = this.safeDict(safeResponse, 0, new java.util.HashMap<String, Object>() {{}});
             Object network = null;
-            var networkparametersVariable = this.handleNetworkCodeAndParams(parameters);
+            java.util.List<Object> networkparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
             network = ((java.util.List<Object>) networkparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkparametersVariable).get(1);
             Object networkDefinedByUser = !Helpers.isEqual(network, null);
@@ -3236,7 +3236,7 @@ public class BullishCore extends BullishApi
             Object tradingAccountId = (this.loadAccount(parameters)).join();
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3425,7 +3425,7 @@ public class BullishCore extends BullishApi
             }};
             Object now = this.milliseconds();
             Object startTimestamp = since;
-            var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");

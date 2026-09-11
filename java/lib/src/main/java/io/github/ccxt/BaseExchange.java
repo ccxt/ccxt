@@ -8660,9 +8660,9 @@ public Object describe()
     {
         Object currencyCode = Helpers.getArg(optionalArgs, 0, null);
         Object isRequired = Helpers.getArg(optionalArgs, 1, false);
-        Object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+        String networkCode = null;
+        java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+        networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
@@ -8806,11 +8806,11 @@ public Object describe()
                 (this.throttle(cost)).join();
             }
             Object retries = 0;
-            var retriesparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
+            java.util.List<Object> retriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
             retries = ((java.util.List<Object>) retriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retriesparametersVariable).get(1);
             Object retryDelay = 0;
-            var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
+            java.util.List<Object> retryDelayparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
             Object fetchData = null;
@@ -9458,7 +9458,7 @@ public Object describe()
         } else
         {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", methodName);
             methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             // check if exchange has properties for this method
@@ -9485,7 +9485,7 @@ public Object describe()
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = null;
-        var valueparametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName1);
+        java.util.List<Object> valueparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName1);
         value = ((java.util.List<Object>) valueparametersVariable).get(0);
         parameters = ((java.util.List<Object>) valueparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
@@ -9496,7 +9496,7 @@ public Object describe()
         }
         // if still undefined, try optionName2
         Object value2 = null;
-        var value2parametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
+        java.util.List<Object> value2parametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
         value2 = ((java.util.List<Object>) value2parametersVariable).get(0);
         parameters = ((java.util.List<Object>) value2parametersVariable).get(1);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value2, parameters));
@@ -11667,7 +11667,7 @@ public Object describe()
         Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object newMaxEntriesPerRequest = null;
-        var newMaxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
+        java.util.List<Object> newMaxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
         newMaxEntriesPerRequest = ((java.util.List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) newMaxEntriesPerRequestparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(newMaxEntriesPerRequest, null))) && Helpers.isTrue((!Helpers.isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))))
@@ -11693,27 +11693,27 @@ public Object describe()
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 4, null);
             Object removeRepeated = Helpers.getArg(optionalArgs, 5, true);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             Object paginationDirection = null;
-            var paginationDirectionparametersVariable = this.handleOptionAndParams(parameters, method, "paginationDirection", "backward");
+            java.util.List<Object> paginationDirectionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationDirection", "backward");
             paginationDirection = ((java.util.List<Object>) paginationDirectionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginationDirectionparametersVariable).get(1);
             Object paginationTimestamp = null;
             Object removeRepeatedOption = removeRepeated;
-            var removeRepeatedOptionparametersVariable = this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
+            java.util.List<Object> removeRepeatedOptionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
             removeRepeatedOption = ((java.util.List<Object>) removeRepeatedOptionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) removeRepeatedOptionparametersVariable).get(1);
             Object calls = 0;
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object errors = 0;
             Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             if (Helpers.isTrue((Helpers.isEqual(paginationDirection, "forward"))))
@@ -11829,7 +11829,7 @@ public Object describe()
             Object timeframe = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             Object errors = 0;
@@ -11874,10 +11874,10 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 5, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
@@ -11962,14 +11962,14 @@ public Object describe()
             Object cursorIncrement = Helpers.getArg(optionalArgs, 6, null);
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 7, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object cursorValue = null;
@@ -12090,14 +12090,14 @@ public Object describe()
             Object pageKey = Helpers.getArg(optionalArgs, 4, null);
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 5, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object i = 0;

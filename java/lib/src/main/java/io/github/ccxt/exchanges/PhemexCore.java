@@ -2026,11 +2026,11 @@ public class PhemexCore extends PhemexApi
                 market = this.market(first);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
@@ -2576,7 +2576,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             String code = this.safeString(parameters, "code");
@@ -2590,7 +2590,7 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 Object settle = null;
-                var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
+                java.util.List<Object> settleparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "settle", "USDT");
                 settle = ((java.util.List<Object>) settleparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) settleparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) || Helpers.isTrue(!Helpers.isEqual(settle, null))))
@@ -3301,9 +3301,9 @@ public class PhemexCore extends PhemexApi
                     String triggerType = this.safeString(parameters, "triggerType", "ByMarkPrice");
                     Helpers.addElementToObject(request, "triggerType", triggerType);
                     // set direction & exchange specific order type
-                    Object triggerDirection = null;
-                    var triggerDirectionparametersVariable = this.handleParamString(parameters, "triggerDirection");
-                    triggerDirection = ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
+                    String triggerDirection = null;
+                    java.util.List<Object> triggerDirectionparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "triggerDirection");
+                    triggerDirection = (String) ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
                     if (Helpers.isTrue(Helpers.isEqual(triggerDirection, null)))
                     {
@@ -4072,7 +4072,7 @@ public class PhemexCore extends PhemexApi
                 market = this.market(symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -4593,11 +4593,11 @@ public class PhemexCore extends PhemexApi
                 code = Helpers.GetValue(market, "settle");
             } else
             {
-                var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
+                java.util.List<Object> settleparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "settle", code);
                 settle = ((java.util.List<Object>) settleparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) settleparametersVariable).get(1);
             }
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isUSDTSettled = Helpers.isEqual(settle, "USDT");
@@ -4619,7 +4619,7 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(isUSDTSettled))
             {
                 Object method = null;
-                var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
+                java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "privateGetGAccountsAccountPositions");
                 method = ((java.util.List<Object>) methodparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(method, "privateGetGAccountsAccountPositions")))
@@ -5980,7 +5980,7 @@ final Object finalI = i;
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -6007,7 +6007,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -6076,7 +6076,7 @@ final Object finalI = i;
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6085,9 +6085,9 @@ final Object finalI = i;
             }
             this.checkAddress(address);
             Object currency = this.currency(code);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object networkId = null;
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -6395,7 +6395,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
@@ -6548,11 +6548,11 @@ final Object finalI = i;
                 code = Helpers.GetValue(market, "settle");
             } else
             {
-                var settleparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
+                java.util.List<Object> settleparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "settle", code);
                 settle = ((java.util.List<Object>) settleparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) settleparametersVariable).get(1);
             }
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isUSDTSettled = Helpers.isEqual(settle, "USDT");
@@ -6574,7 +6574,7 @@ final Object finalI = i;
             if (Helpers.isTrue(isUSDTSettled))
             {
                 Object method = null;
-                var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
+                java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsADLRank", "method", "privateGetGAccountsAccountPositions");
                 method = ((java.util.List<Object>) methodparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(method, "privateGetGAccountsAccountPositions")))

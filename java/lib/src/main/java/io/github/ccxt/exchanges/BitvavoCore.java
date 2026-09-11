@@ -951,7 +951,7 @@ final Object finalBase = base;
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -969,7 +969,7 @@ final Object finalBase = base;
             {
                 Helpers.addElementToObject(request, "start", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.publicGetMarketTrades(this.extend(request, parameters))).join();
@@ -1301,7 +1301,7 @@ final Object finalBase = base;
             }
             Helpers.addElementToObject(request, "end", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
         }
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((java.util.List<Object>) requestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1340,7 +1340,7 @@ final Object finalBase = base;
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1594,7 +1594,7 @@ final Object finalBase = base;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetSubaccountsTransfers(this.extend(request, parameters))).join();
@@ -1850,7 +1850,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "postOnly", true);
         }
         Object operatorId = null;
-        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "operatorId");
+        java.util.List<Object> operatorIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "operatorId");
         operatorId = ((java.util.List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) operatorIdparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
@@ -1861,7 +1861,7 @@ final Object finalBase = base;
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires an operatorId in params or options, eg: exchange.options['operatorId'] = 1234567890")) ;
         }
         Object selfTradePrevention = null;
-        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        java.util.List<Object> selfTradePreventionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
         selfTradePrevention = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))
@@ -1997,7 +1997,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "orderId", id);
         }
         Object operatorId = null;
-        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "operatorId");
+        java.util.List<Object> operatorIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "operatorId");
         operatorId = ((java.util.List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) operatorIdparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
@@ -2063,7 +2063,7 @@ final Object finalBase = base;
             Helpers.addElementToObject(request, "orderId", id);
         }
         Object operatorId = null;
-        var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
+        java.util.List<Object> operatorIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "operatorId");
         operatorId = ((java.util.List<Object>) operatorIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) operatorIdparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
@@ -2138,7 +2138,7 @@ final Object finalBase = base;
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             Object operatorId = null;
-            var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
+            java.util.List<Object> operatorIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "operatorId");
             operatorId = ((java.util.List<Object>) operatorIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) operatorIdparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
@@ -2190,7 +2190,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Object codGroupId = null;
-            var codGroupIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
+            java.util.List<Object> codGroupIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersAfter", "codGroupId", 1);
             codGroupId = ((java.util.List<Object>) codGroupIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) codGroupIdparametersVariable).get(1);
             final Object finalCodGroupId = codGroupId;
@@ -2302,7 +2302,7 @@ final Object finalBase = base;
         {
             Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
         }
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((java.util.List<Object>) requestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
         return this.extend(request, parameters);
@@ -2339,7 +2339,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2611,7 +2611,7 @@ final Object finalBase = base;
         {
             Helpers.addElementToObject(request, "limit", limit); // default 500, max 1000
         }
-        var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+        java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
         request = ((java.util.List<Object>) requestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
         return this.extend(request, parameters);
@@ -2648,7 +2648,7 @@ final Object finalBase = base;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2720,7 +2720,7 @@ final Object finalBase = base;
             {
                 Helpers.addElementToObject(request, "maxItems", Helpers.mathMin(limit, 100));
             }
-            var requestparametersVariable = this.handleUntilOption("toDate", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("toDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAccountHistory(this.extend(request, parameters))).join();
@@ -2854,7 +2854,7 @@ final Object finalBase = base;
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);

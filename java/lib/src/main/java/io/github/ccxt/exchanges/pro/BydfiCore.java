@@ -624,11 +624,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object depth = "100";
-            var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             Object frequency = "100ms";
-            var frequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
             frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
             Object channelSuffix = "";
@@ -673,11 +673,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object depth = "100";
-            var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", depth);
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             Object frequency = "100ms";
-            var frequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
+            java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "frequency", frequency);
             frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
             Object channelSuffix = "";

@@ -1041,11 +1041,11 @@ public class AlpacaCore extends AlpacaApi
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object paginationCalls = 10;
-            var paginationCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
+            java.util.List<Object> paginationCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginationCalls", 10);
             paginationCalls = ((java.util.List<Object>) paginationCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginationCallsparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1494,7 +1494,7 @@ public class AlpacaCore extends AlpacaApi
                 Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
             }
             Object defaultTIF = null;
-            var defaultTIFparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            java.util.List<Object> defaultTIFparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             defaultTIF = ((java.util.List<Object>) defaultTIFparametersVariable).get(0);
             parameters = ((java.util.List<Object>) defaultTIFparametersVariable).get(1);
             Helpers.addElementToObject(request, "time_in_force", defaultTIF);
@@ -1845,7 +1845,7 @@ public class AlpacaCore extends AlpacaApi
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
             }
             Object timeInForce = null;
-            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
+            java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "timeInForce", "gtc");
             timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
@@ -2023,7 +2023,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("until", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.traderPrivateGetV2AccountActivitiesActivityType(this.extend(request, parameters))).join();
@@ -2197,7 +2197,7 @@ public class AlpacaCore extends AlpacaApi
             Object address = address3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);

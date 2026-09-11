@@ -678,7 +678,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "channel", "depth");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -840,7 +840,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             }
             (this.authenticate()).join();
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(marketType, "spot"));

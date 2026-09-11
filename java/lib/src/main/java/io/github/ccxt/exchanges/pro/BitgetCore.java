@@ -113,12 +113,12 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object instType = null;
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            var instTypeparametersVariable = this.handleProductTypeAndParams(null, parameters);
+            java.util.List<Object> instTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(null, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
         {
-            var instTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
+            java.util.List<Object> instTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
         } else
@@ -126,7 +126,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             instType = "SPOT";
         }
         Object instypeAux = null;
-        var instypeAuxparametersVariable = this.handleOptionAndParams(parameters, methodName, "instType", instType);
+        java.util.List<Object> instypeAuxparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "instType", instType);
         instypeAux = ((java.util.List<Object>) instypeAuxparametersVariable).get(0);
         parameters = ((java.util.List<Object>) instypeAuxparametersVariable).get(1);
         instType = instypeAux;
@@ -164,7 +164,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object messageHash = Helpers.add("ticker:", symbol);
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTicker", market, uta, parameters);
@@ -235,7 +235,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object market = this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchTickers", market, uta, parameters);
@@ -503,7 +503,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object market = this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
@@ -611,7 +611,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object messageHash = null;
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType("watchOHLCV", market, uta, parameters);
@@ -924,7 +924,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, methodName, "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             var instTypeparametersVariable = this.getInstType(methodName, market, uta, parameters);
@@ -988,7 +988,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1253,7 +1253,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             }
             symbols = this.marketSymbols(symbols);
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1568,7 +1568,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object subscriptionHash = "positions";
             Object instType = "USDT-FUTURES";
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
@@ -1880,16 +1880,16 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object productType = this.safeString(parameters, "productType");
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchOrders", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin")))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
@@ -1930,7 +1930,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object instId = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin")))))) ? marketId : "default"; // different from other streams here the 'rest' id is required for spot markets, contract markets require default here
             Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -2478,12 +2478,12 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object instType = null;
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(market, null)) && Helpers.isTrue(Helpers.isEqual(type, "spot"))))
@@ -2697,15 +2697,15 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object uta = null;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchBalance", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchBalance", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object instType = null;
@@ -2730,7 +2730,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 instType = "SPOT";
             }
-            var instTypeparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "instType", instType);
+            java.util.List<Object> instTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "instType", instType);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
             if (Helpers.isTrue(uta))

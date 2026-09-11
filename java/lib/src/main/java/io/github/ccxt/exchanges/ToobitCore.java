@@ -1544,7 +1544,7 @@ public class ToobitCore extends ToobitApi
             }
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object endpoint = null;
-            var endpointparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
+            java.util.List<Object> endpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
             endpoint = ((java.util.List<Object>) endpointparametersVariable).get(0);
             parameters = ((java.util.List<Object>) endpointparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(endpoint, "index")))
@@ -1611,7 +1611,7 @@ public class ToobitCore extends ToobitApi
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -1928,7 +1928,7 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1997,7 +1997,7 @@ public class ToobitCore extends ToobitApi
             }
             Object response = null;
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")))))
@@ -2129,9 +2129,9 @@ public class ToobitCore extends ToobitApi
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        Object cost = null;
-        var costparametersVariable = this.handleParamString(parameters, "cost");
-        cost = ((java.util.List<Object>) costparametersVariable).get(0);
+        String cost = null;
+        java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
+        cost = (String) ((java.util.List<Object>) costparametersVariable).get(0);
         parameters = ((java.util.List<Object>) costparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "market")) && Helpers.isTrue(Helpers.isEqual(side, "buy"))))
         {
@@ -2144,9 +2144,9 @@ public class ToobitCore extends ToobitApi
         {
             Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
         }
-        Object isPostOnly = null;
-        var isPostOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        isPostOnly = ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
+        Boolean isPostOnly = null;
+        java.util.List<Object> isPostOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        isPostOnly = (Boolean) ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isPostOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(isPostOnly, true)))
         {
@@ -2175,9 +2175,9 @@ public class ToobitCore extends ToobitApi
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "quantity", ToobitCore.this.amountToPrecision(symbol, amount) );
         }};
-        Object reduceOnly = null;
-        var reduceOnlyparametersVariable = this.handleParamBool(parameters, "reduceOnly");
-        reduceOnly = ((java.util.List<Object>) reduceOnlyparametersVariable).get(0);
+        Boolean reduceOnly = null;
+        java.util.List<Object> reduceOnlyparametersVariable = (java.util.List<Object>) this.handleParamBool(parameters, "reduceOnly");
+        reduceOnly = (Boolean) ((java.util.List<Object>) reduceOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) reduceOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
         {
@@ -2200,9 +2200,9 @@ public class ToobitCore extends ToobitApi
             Helpers.addElementToObject(request, "type", "LIMIT"); // weird, but exchange works this way
             Helpers.addElementToObject(request, "priceType", "MARKET");
         }
-        Object isPostOnly = null;
-        var isPostOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        isPostOnly = ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
+        Boolean isPostOnly = null;
+        java.util.List<Object> isPostOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        isPostOnly = (Boolean) ((java.util.List<Object>) isPostOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isPostOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(isPostOnly, true)))
         {
@@ -2444,7 +2444,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
@@ -2499,7 +2499,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
@@ -2554,7 +2554,7 @@ public class ToobitCore extends ToobitApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters, "none");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "none")))
@@ -2683,7 +2683,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2732,7 +2732,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object market = null;
@@ -2742,7 +2742,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2794,11 +2794,11 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2870,10 +2870,10 @@ public class ToobitCore extends ToobitApi
             Object market = this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2992,7 +2992,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3000,7 +3000,7 @@ public class ToobitCore extends ToobitApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3099,7 +3099,7 @@ public class ToobitCore extends ToobitApi
             Object response = null;
             Object marketType = null;
             Object market = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3107,9 +3107,9 @@ public class ToobitCore extends ToobitApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTradingFees(): does not support "), marketType), " markets")) ;
             } else if (Helpers.isTrue(this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")))))
             {
-                Object symbol = null;
-                var symbolparametersVariable = this.handleParamString(parameters, "symbol");
-                symbol = ((java.util.List<Object>) symbolparametersVariable).get(0);
+                String symbol = null;
+                java.util.List<Object> symbolparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "symbol");
+                symbol = (String) ((java.util.List<Object>) symbolparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) symbolparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
                 {
@@ -3232,7 +3232,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3378,8 +3378,8 @@ public class ToobitCore extends ToobitApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
-            var networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(this.extend(request, parameters));
-            var networkCode = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
+            java.util.List<Object> networkCodeparamsOmittedVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(this.extend(request, parameters));
+            String networkCode = (String) ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
             var paramsOmitted = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
@@ -3438,9 +3438,9 @@ public class ToobitCore extends ToobitApi
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkAddress(address);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {

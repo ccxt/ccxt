@@ -758,7 +758,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(Helpers.GetValue(market, "id"));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -809,7 +809,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(Helpers.GetValue(market, "id"));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "unWatchOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -860,7 +860,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(Helpers.GetValue(market, "id"));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -911,7 +911,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 productId = this.parseToInt(Helpers.GetValue(market, "id"));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchMyTrades", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -965,7 +965,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 }
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1019,7 +1019,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 }
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "unWatchPositions", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchPositions", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1456,11 +1456,11 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 return authenticated;
             }
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "authenticate", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "authenticate", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "authenticate", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object id = this.requestId();

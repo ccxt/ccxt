@@ -886,7 +886,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
                 (this.loadMarkets()).join();
             }
             Object type = "spot";
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object messageHash = Helpers.add("balance:", type);
@@ -895,10 +895,10 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             this.setBalanceCache(client, type, messageHash);
             Object fetchBalanceSnapshot = null;
             Object awaitBalanceSnapshot = null;
-            var fetchBalanceSnapshotparametersVariable = this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
+            java.util.List<Object> fetchBalanceSnapshotparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "fetchBalanceSnapshot", true);
             fetchBalanceSnapshot = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) fetchBalanceSnapshotparametersVariable).get(1);
-            var awaitBalanceSnapshotparametersVariable = this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
+            java.util.List<Object> awaitBalanceSnapshotparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(this.options, "watchBalance", "awaitBalanceSnapshot", false);
             awaitBalanceSnapshot = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(0);
             parameters = ((java.util.List<Object>) awaitBalanceSnapshotparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(fetchBalanceSnapshot) && Helpers.isTrue(awaitBalanceSnapshot)))

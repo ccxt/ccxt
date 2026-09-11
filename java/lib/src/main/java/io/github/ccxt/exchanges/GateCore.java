@@ -2873,7 +2873,7 @@ public class GateCore extends GateApi
             }
         }
         Object isUnifiedAccount = false;
-        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
+        java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "getMarginMode", "unifiedAccount");
         isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
         if (Helpers.isTrue(isUnifiedAccount))
@@ -3360,9 +3360,9 @@ public class GateCore extends GateApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object chainsIndexedByIdRaw = (this.fetchDepositAddressesByNetwork(code, parameters)).join();
             Object chainsIndexedById = chainsIndexedByIdRaw;
@@ -3742,7 +3742,7 @@ public class GateCore extends GateApi
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(market, type, query);
@@ -4196,7 +4196,7 @@ public class GateCore extends GateApi
             {
                 market = this.market(first);
             }
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
@@ -4274,10 +4274,10 @@ public class GateCore extends GateApi
             String symbol = this.safeString(parameters, "symbol");
             parameters = this.omit(parameters, "symbol");
             Object isUnifiedAccount = false;
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
+            java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "unifiedAccount");
             isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
@@ -4600,7 +4600,7 @@ public class GateCore extends GateApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4731,7 +4731,7 @@ public class GateCore extends GateApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4854,7 +4854,7 @@ public class GateCore extends GateApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5061,7 +5061,7 @@ public class GateCore extends GateApi
             }
             (this.loadUnifiedStatus()).join();
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5074,7 +5074,7 @@ public class GateCore extends GateApi
             Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object contract = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((Helpers.isEqual(type, "option")));
@@ -5405,7 +5405,7 @@ final Object finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5429,7 +5429,7 @@ final Object finalPointFee = pointFee;
                 Helpers.addElementToObject(request, "from", start);
                 Helpers.addElementToObject(request, "to", this.sum(start, Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)));
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateWalletGetDeposits(this.extend(request, parameters))).join();
@@ -5465,7 +5465,7 @@ final Object finalPointFee = pointFee;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5489,7 +5489,7 @@ final Object finalPointFee = pointFee;
                 Helpers.addElementToObject(request, "from", start);
                 Helpers.addElementToObject(request, "to", this.sum(start, Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)));
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateWalletGetWithdrawals(this.extend(request, parameters))).join();
@@ -5517,7 +5517,7 @@ final Object finalPointFee = pointFee;
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -5535,9 +5535,9 @@ final Object finalPointFee = pointFee;
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -5975,9 +5975,9 @@ final Object finalPointFee = pointFee;
         }
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
         String exchangeSpecificTimeInForce = (String)this.safeStringLowerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "tif", "time_in_force")));
-        Object postOnly = null;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = null;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(exchangeSpecificTimeInForce, "poc"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         Object timeInForce = this.handleTimeInForce(parameters);
         if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
@@ -6077,7 +6077,7 @@ final Object finalPointFee = pointFee;
                 {
                     Object quoteAmount = null;
                     Object createMarketBuyOrderRequiresPrice = true;
-                    var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Object cost = this.safeNumber(parameters, "cost");
@@ -6311,12 +6311,12 @@ final Object finalPointFee = pointFee;
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object market = this.market(symbol);
         Object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+        java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
         marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
         Object account = this.convertTypeToAccount(marketType);
         Object isUnifiedAccount = false;
-        var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
+        java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "unifiedAccount");
         isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
         parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
         if (Helpers.isTrue(isUnifiedAccount))
@@ -6871,7 +6871,7 @@ final Object finalRebate = rebate;
             }
             orderId = clientOrderId;
         }
-        var typequeryVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+        java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
         var type = ((java.util.List<Object>) typequeryVariable).get(0);
         var query = ((java.util.List<Object>) typequeryVariable).get(1);
         Object contract = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))) || Helpers.isTrue((Helpers.isEqual(type, "option")));
@@ -7030,7 +7030,7 @@ final Object finalRebate = rebate;
             }
             (this.loadUnifiedStatus()).join();
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -7048,7 +7048,7 @@ final Object finalRebate = rebate;
             Object res = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             String type = this.safeString(res, 0);
             Object useHistorical = false;
-            var useHistoricalparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
+            java.util.List<Object> useHistoricalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "historical", false);
             useHistorical = ((java.util.List<Object>) useHistoricalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) useHistoricalparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isTrue(useHistorical) && Helpers.isTrue((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(since, null)) && Helpers.isTrue(Helpers.isEqual(until, null)))) || Helpers.isTrue((!Helpers.isEqual(type, "swap")))))))
@@ -7091,12 +7091,12 @@ final Object finalRebate = rebate;
             market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
         }
-        Object trigger = null;
-        var triggerparametersVariable = this.handleParamBool2(parameters, "trigger", "stop");
-        trigger = ((java.util.List<Object>) triggerparametersVariable).get(0);
+        Boolean trigger = null;
+        java.util.List<Object> triggerparametersVariable = (java.util.List<Object>) this.handleParamBool2(parameters, "trigger", "stop");
+        trigger = (Boolean) ((java.util.List<Object>) triggerparametersVariable).get(0);
         parameters = ((java.util.List<Object>) triggerparametersVariable).get(1);
         Object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+        java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
         type = ((java.util.List<Object>) typeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
         Object spot = Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(type, "margin")));
@@ -7130,8 +7130,8 @@ final Object finalRebate = rebate;
                 Helpers.addElementToObject(request, "to", this.parseToInt(Helpers.divide(until, 1000)));
             }
         }
-        var lastIdfinalParamsVariable = this.handleParamString2(parameters, "lastId", "last_id");
-        var lastId = ((java.util.List<Object>) lastIdfinalParamsVariable).get(0);
+        java.util.List<Object> lastIdfinalParamsVariable = (java.util.List<Object>) this.handleParamString2(parameters, "lastId", "last_id");
+        String lastId = (String) ((java.util.List<Object>) lastIdfinalParamsVariable).get(0);
         var finalParams = ((java.util.List<Object>) lastIdfinalParamsVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(lastId, null)))
         {
@@ -7408,7 +7408,7 @@ final Object finalRebate = rebate;
             Object market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.market(symbol);
             Object trigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("is_stop_order", "stop", "trigger")));
-            var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin")))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
@@ -7568,7 +7568,7 @@ final Object finalRebate = rebate;
             Object type = null;
             Object defaultSettle = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? "usdt" : Helpers.GetValue(market, "settle");
             Object settle = this.safeStringLower(parameters, "settle", defaultSettle);
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -7689,7 +7689,7 @@ final Object finalRebate = rebate;
             Object market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
@@ -8267,7 +8267,7 @@ final Object finalRebate = rebate;
             }
             Object type = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, null))) || Helpers.isTrue((Helpers.isEqual(type, "spot")))))
@@ -8390,7 +8390,7 @@ final Object finalRebate = rebate;
             {
                 (this.loadMarkets()).join();
             }
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLeverageTiers", null, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(null, type, query);
@@ -8529,7 +8529,7 @@ final Object finalRebate = rebate;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = this.prepareRequest(market, type, query);
@@ -8710,7 +8710,7 @@ final Object finalI = i;
                 put( "amount", GateCore.this.currencyToPrecision(code, amount) );
             }};
             Object isUnifiedAccount = false;
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
+            java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "repayCrossMargin", "unifiedAccount");
             isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
             Object response = null;
@@ -8813,7 +8813,7 @@ final Object finalI = i;
                 put( "amount", GateCore.this.currencyToPrecision(code, amount) );
             }};
             Object isUnifiedAccount = false;
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
+            java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "borrowCrossMargin", "unifiedAccount");
             isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
             Object response = null;
@@ -8921,11 +8921,11 @@ final Object finalI = i;
             }
             (this.loadUnifiedStatus()).join();
             Object isUnifiedAccount = false;
-            var isUnifiedAccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
+            java.util.List<Object> isUnifiedAccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBorrowInterest", "unifiedAccount");
             isUnifiedAccount = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isUnifiedAccountparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object currency = null;
@@ -8949,7 +8949,7 @@ final Object finalI = i;
             }
             Object response = null;
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(isUnifiedAccount))
@@ -9274,7 +9274,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenInterestHistory", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -9388,7 +9388,7 @@ final Object finalI = i;
             }
             Object market = this.market(symbol);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "option")))
@@ -9460,7 +9460,7 @@ final Object finalI = i;
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMySettlementHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isOption = Helpers.isEqual(type, "option");
@@ -9663,7 +9663,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -9674,7 +9674,7 @@ final Object finalI = i;
             Object currency = null;
             Object response = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(type, "margin")))))
@@ -9700,7 +9700,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -9964,7 +9964,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, null))) || Helpers.isTrue((Helpers.isEqual(marketType, "spot")))))
@@ -10041,7 +10041,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.publicFuturesGetSettleLiqOrders(this.extend(request, parameters))).join();
@@ -10760,7 +10760,7 @@ final Object finalI = i;
                 }
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object until = this.safeInteger(parameters, "until");

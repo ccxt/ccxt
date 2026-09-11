@@ -581,7 +581,7 @@ public class BithumbCore extends BithumbApi
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarkets", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(generation, 2)))
@@ -857,7 +857,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object response = null;
@@ -900,7 +900,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -1159,7 +1159,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -1377,7 +1377,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTicker", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -1525,7 +1525,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -1792,7 +1792,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -1874,7 +1874,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -1980,9 +1980,9 @@ public class BithumbCore extends BithumbApi
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(postOnly) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")))))
         {
@@ -2010,7 +2010,7 @@ public class BithumbCore extends BithumbApi
                 String cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))
@@ -2081,7 +2081,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2159,7 +2159,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createMarketBuyOrderWithCost", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -2200,7 +2200,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createTwapOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -2266,7 +2266,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = null;
@@ -2706,7 +2706,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2780,7 +2780,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -2961,7 +2961,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object market = null;
@@ -3061,7 +3061,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3153,10 +3153,10 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "withdraw", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -3368,7 +3368,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawalWhitelist", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3419,7 +3419,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawal", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3491,7 +3491,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3564,7 +3564,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposit", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3636,7 +3636,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3707,7 +3707,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createDepositAddress", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3761,7 +3761,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddress", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))
@@ -3815,7 +3815,7 @@ public class BithumbCore extends BithumbApi
                 (this.loadMarkets()).join();
             }
             Object generation = null;
-            var generationparametersVariable = this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
+            java.util.List<Object> generationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDepositAddresses", "generation", 2);
             generation = ((java.util.List<Object>) generationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(generation, 2)))

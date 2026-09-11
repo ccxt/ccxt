@@ -669,7 +669,7 @@ public class CryptomusCore extends CryptomusApi
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
             Object level = 0;
-            var levelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
+            java.util.List<Object> levelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "level", level);
             level = ((java.util.List<Object>) levelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) levelparametersVariable).get(1);
             Helpers.addElementToObject(request, "level", level);
@@ -898,7 +898,7 @@ public class CryptomusCore extends CryptomusApi
             Object amountToString = this.numberToString(amount);
             Object priceToString = this.numberToString(price);
             Object cost = null;
-            var costparametersVariable = this.handleParamString(parameters, "cost");
+            java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
             cost = ((java.util.List<Object>) costparametersVariable).get(0);
             parameters = ((java.util.List<Object>) costparametersVariable).get(1);
             Object response = null;
@@ -907,7 +907,7 @@ public class CryptomusCore extends CryptomusApi
                 if (Helpers.isTrue(sideBuy))
                 {
                     Object createMarketBuyOrderRequiresPrice = true;
-                    var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     if (Helpers.isTrue(createMarketBuyOrderRequiresPrice))

@@ -1858,20 +1858,20 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 subType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? "linear" : "inverse";
             } else
             {
-                var typeparametersVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
+                java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
                     type = "future";
                 }
-                var subTypeparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "subType", subType);
+                java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "subType", subType);
                 subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             }
             symbols = this.marketSymbols(symbols);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchPositions", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchPositions", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object linear = (Helpers.isEqual(subType, "linear"));
@@ -2079,11 +2079,11 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isUnifiedAccount = this.safeValue2(parameters, "isUnifiedAccount", "unified", false);

@@ -1419,7 +1419,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             (this.authenticate()).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object operatorId = null;
-            var operatorIdparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
+            java.util.List<Object> operatorIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "operatorId");
             operatorId = ((java.util.List<Object>) operatorIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) operatorIdparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(operatorId, null)))
@@ -1680,7 +1680,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);

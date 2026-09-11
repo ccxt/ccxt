@@ -1020,7 +1020,7 @@ public class PacificaCore extends PacificaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object userAccount = null;
-            var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchBalance", parameters);
+            java.util.List<Object> userAccountparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchBalance", parameters);
             userAccount = ((java.util.List<Object>) userAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAccountparametersVariable).get(1);
             final Object finalUserAccount = userAccount;
@@ -1094,7 +1094,7 @@ public class PacificaCore extends PacificaApi
             }
             Object market = this.market(symbol);
             Object userAccount = null;
-            var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchLeverage", parameters);
+            java.util.List<Object> userAccountparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchLeverage", parameters);
             userAccount = ((java.util.List<Object>) userAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAccountparametersVariable).get(1);
             Object cacheAddress = this.walletAddress;
@@ -1176,7 +1176,7 @@ public class PacificaCore extends PacificaApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object userAccount = null;
-            var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchAccountSettings", parameters);
+            java.util.List<Object> userAccountparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchAccountSettings", parameters);
             userAccount = ((java.util.List<Object>) userAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAccountparametersVariable).get(1);
             final Object finalUserAccount = userAccount;
@@ -1258,7 +1258,7 @@ public class PacificaCore extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadAccountSettings()).join();
             Object userAccount = null;
-            var userAccountparametersVariable = this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
+            java.util.List<Object> userAccountparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchMarginMode", parameters);
             userAccount = ((java.util.List<Object>) userAccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAccountparametersVariable).get(1);
             Object cacheAddress = this.walletAddress;
@@ -1343,7 +1343,7 @@ public class PacificaCore extends PacificaApi
             }
             Object market = this.market(symbol);
             Object aggLevel = null;
-            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
+            java.util.List<Object> aggLevelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             final Object finalAggLevel = aggLevel;
@@ -1529,7 +1529,7 @@ public class PacificaCore extends PacificaApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1543,7 +1543,7 @@ public class PacificaCore extends PacificaApi
                 put( "interval", tf );
                 put( "start_time", finalSince );
             }};
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object nowMillis = this.milliseconds();
@@ -1698,11 +1698,11 @@ public class PacificaCore extends PacificaApi
                 market = this.market(symbol);
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchMyTrades", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object defaultLimit = 100; // Default max limit
@@ -1711,7 +1711,7 @@ public class PacificaCore extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Helpers.addElementToObject(request, "account", userAddress);
@@ -2607,7 +2607,7 @@ public class PacificaCore extends PacificaApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object defaultLimit = 100; // Default max limit
@@ -2877,7 +2877,7 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchOpenOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -2950,7 +2950,7 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object defaultLimit = 100; // max default 100
@@ -2959,7 +2959,7 @@ public class PacificaCore extends PacificaApi
                 return (this.fetchPaginatedCallCursor("fetchOrders", symbol, since, limit, parameters, "next_cursor", "cursor", null, defaultLimit)).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object market = null;
@@ -3346,7 +3346,7 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchPositions", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
@@ -3590,7 +3590,7 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchTradingFee", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -3787,11 +3787,11 @@ public class PacificaCore extends PacificaApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchLedger", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchLedger", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object defaultLimit = 100; // Default max limit
@@ -3919,11 +3919,11 @@ public class PacificaCore extends PacificaApi
                 market = this.market(symbol);
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("fetchFundingHistory", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("fetchFundingHistory", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -4088,11 +4088,11 @@ public class PacificaCore extends PacificaApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object finalHeaders = new java.util.HashMap<String, Object>() {{}};
             Object agentAddress = null;
-            var agentAddressparametersVariable = this.handleOption("createSubAccount", "agentAddress");
+            java.util.List<Object> agentAddressparametersVariable = (java.util.List<Object>) this.handleOption("createSubAccount", "agentAddress");
             agentAddress = ((java.util.List<Object>) agentAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) agentAddressparametersVariable).get(1);
             Object originAddress = null;
-            var originAddressparametersVariable = this.handleOriginAndSingleAddress("createSubAccount", parameters);
+            java.util.List<Object> originAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("createSubAccount", parameters);
             originAddress = ((java.util.List<Object>) originAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))
@@ -4104,11 +4104,11 @@ public class PacificaCore extends PacificaApi
                 Helpers.addElementToObject(finalHeaders, "agent_wallet", agentAddress);
             }
             Object subAccountAddress = null;
-            var subAccountAddressparametersVariable = this.handleOptionAndParams(parameters, "createSubAccount", "subAccountAddress");
+            java.util.List<Object> subAccountAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createSubAccount", "subAccountAddress");
             subAccountAddress = ((java.util.List<Object>) subAccountAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountAddressparametersVariable).get(1);
             Object subAccountPrivateKey = null;
-            var subAccountPrivateKeyparametersVariable = this.handleOptionAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
+            java.util.List<Object> subAccountPrivateKeyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createSubAccount", "subAccountPrivateKey");
             subAccountPrivateKey = ((java.util.List<Object>) subAccountPrivateKeyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountPrivateKeyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subAccountAddress, null)))
@@ -4121,7 +4121,7 @@ public class PacificaCore extends PacificaApi
             }
             Object timestamp = this.milliseconds();
             Object expiryWindow = null;
-            var expiryWindowparametersVariable = this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
+            java.util.List<Object> expiryWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "createSubAccount", "expiryWindow", "expiry_window", 5000);
             expiryWindow = ((java.util.List<Object>) expiryWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) expiryWindowparametersVariable).get(1);
             final Object finalExpiryWindow = expiryWindow;
@@ -4273,9 +4273,9 @@ public class PacificaCore extends PacificaApi
 
     public Object handleOriginAndSingleAddress(Object methodName, Object parameters)
     {
-        Object address = null;
-        var addressparametersVariable = this.handleParamString2(parameters, "account", "address");
-        address = ((java.util.List<Object>) addressparametersVariable).get(0);
+        String address = null;
+        java.util.List<Object> addressparametersVariable = (java.util.List<Object>) this.handleParamString2(parameters, "account", "address");
+        address = (String) ((java.util.List<Object>) addressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) addressparametersVariable).get(1); // this is for get endpoints that accept account or address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -4457,7 +4457,7 @@ public class PacificaCore extends PacificaApi
             }
         }
         Object expiryWindow = null;
-        var expiryWindowparametersVariable = this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
+        java.util.List<Object> expiryWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "postActionRequest", "expiryWindow", "expiry_window", 5000);
         expiryWindow = ((java.util.List<Object>) expiryWindowparametersVariable).get(0);
         parameters = ((java.util.List<Object>) expiryWindowparametersVariable).get(1);
         Object timestamp = this.safeInteger(parameters, "timestamp", this.milliseconds());
@@ -4471,11 +4471,11 @@ public class PacificaCore extends PacificaApi
         Object signature = this.signMessage(signatureHeader, sigPayload, this.privateKey);
         Object finalHeaders = new java.util.HashMap<String, Object>() {{}};
         Object agentAddress = null;
-        var agentAddressparametersVariable = this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");
+        java.util.List<Object> agentAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "postActionRequest", "agentAddress");
         agentAddress = ((java.util.List<Object>) agentAddressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) agentAddressparametersVariable).get(1);
         Object originAddress = null;
-        var originAddressparametersVariable = this.handleOriginAndSingleAddress("postActionRequest", parameters);
+        java.util.List<Object> originAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("postActionRequest", parameters);
         originAddress = ((java.util.List<Object>) originAddressparametersVariable).get(0);
         parameters = ((java.util.List<Object>) originAddressparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(originAddress, null)))

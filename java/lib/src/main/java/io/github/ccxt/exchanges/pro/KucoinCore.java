@@ -446,7 +446,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ticker:", symbol);
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
@@ -463,7 +463,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 method = "/contractMarket/ticker";
             } else
             {
-                var methodparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
+                java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
                 method = ((java.util.List<Object>) methodparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             }
@@ -499,7 +499,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             symbol = Helpers.GetValue(market, "symbol");
             Object isFuturesMethod = Helpers.GetValue(market, "contract");
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchTicker", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -525,7 +525,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                     method = "/contractMarket/ticker";
                 } else
                 {
-                    var methodparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
+                    java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "spotMethod", method);
                     method = ((java.util.List<Object>) methodparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
                 }
@@ -570,11 +570,11 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             symbols = this.marketSymbols(symbols, null, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchTickers", firstMarket, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object isFuturesMethod = Helpers.isTrue((!Helpers.isEqual(marketType, "spot"))) && Helpers.isTrue((!Helpers.isEqual(marketType, "margin")));
@@ -589,7 +589,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 method = "/contractMarket/ticker";
             } else
             {
-                var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchTickers", "method", "spotMethod", method);
+                java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchTickers", "method", "spotMethod", method);
                 method = ((java.util.List<Object>) methodparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             }
@@ -1122,7 +1122,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object period = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", symbol), ":"), timeframe);
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object ohlcv = null;
@@ -1183,7 +1183,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchOHLCV", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object period = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1360,7 +1360,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
@@ -1521,7 +1521,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
@@ -1711,7 +1711,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
@@ -1720,7 +1720,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Object depth = "increment"; // '1', '5', '50' or 'increment'
-                var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
+                java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
                 depth = ((java.util.List<Object>) depthparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
                 Object messageHash = Helpers.add(Helpers.add(Helpers.add("uta:orderbook:", symbol), ":depth:"), depth);
@@ -1771,7 +1771,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object uta = false;
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "unWatchOrderBook", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "unWatchOrderBook", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             if (Helpers.isTrue(uta))
@@ -1780,7 +1780,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Object depth = "increment"; // '1', '5', '50' or 'increment'
-                var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
+                java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "utaDepth", depth);
                 depth = ((java.util.List<Object>) depthparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
                 final Object finalDepth = depth;
@@ -1851,7 +1851,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
             Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
-            var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(method, "Depth"), 0)))
@@ -1926,7 +1926,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
             Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
-            var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(method, "Depth"), 0)))
@@ -2347,7 +2347,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object market = null;
@@ -2376,7 +2376,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
                 Object marketType = null;
-                var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+                java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
                 marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
                 Object isFuturesMethod = (Helpers.isTrue((!Helpers.isEqual(marketType, "spot"))) && Helpers.isTrue((!Helpers.isEqual(marketType, "margin"))));
@@ -2826,12 +2826,12 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(market, "symbol"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isFuturesMethod = (Helpers.isTrue((!Helpers.isEqual(marketType, "spot"))) && Helpers.isTrue((!Helpers.isEqual(marketType, "margin"))));
             Object uta = (this.isUTAEnabled()).join();
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object trades = null;
@@ -2848,7 +2848,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object url = (this.negotiate(true, isFuturesMethod)).join();
                 Object topic = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/tradeOrders" : "/spotMarket/tradeOrders";
                 Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
-                var topicparametersVariable = this.handleOptionAndParams2(parameters, "watchMyTrades", optionName, "method", topic);
+                java.util.List<Object> topicparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchMyTrades", optionName, "method", topic);
                 topic = ((java.util.List<Object>) topicparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) topicparametersVariable).get(1);
                 Object request = new java.util.HashMap<String, Object>() {{
@@ -3073,7 +3073,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object defaultType = ((Helpers.isTrue(uta))) ? "unified" : "spot";
@@ -3413,7 +3413,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             Object uta = (this.isUTAEnabled()).join();
-            var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
+            java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object tradeType = ((Helpers.isTrue(uta))) ? "UNIFIED" : "TRADE";

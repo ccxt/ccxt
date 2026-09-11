@@ -238,11 +238,11 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 (this.loadMarkets()).join();
             }
             Object callerMethodName = null;
-            var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
+            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             Object channelName = null;
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "channel", "books");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "channel", "books");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             // due to some problem, temporarily disable other channels
@@ -422,7 +422,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object firstMarket = this.market(Helpers.GetValue(symbolsList, 0));
             Object channel = "tickers";
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue((Helpers.GetValue(this.urls, "api")), "ws"), marketType), "public");
@@ -613,7 +613,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             }
             (this.authenticate()).join();
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -854,7 +854,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             }
             Object market = this.market(symbol);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object messageHash = Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
@@ -909,7 +909,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets()).join();
             }
-            var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
+            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", callerMethodName);
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             // if OHLCV method are being called, then symbols would be symbolsAndTimeframes (multi-dimensional) array
@@ -923,7 +923,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
                 firstMarket = this.market(firstSymbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, firstMarket, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, firstMarket, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marketType, "swap")))

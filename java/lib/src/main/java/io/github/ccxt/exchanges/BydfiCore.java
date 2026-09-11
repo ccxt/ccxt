@@ -880,7 +880,7 @@ public class BydfiCore extends BydfiApi
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -1045,7 +1045,7 @@ public class BydfiCore extends BydfiApi
             }
             Object maxLimit = 500; // docs says max 1500, but in practice only 500 works
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1061,7 +1061,7 @@ public class BydfiCore extends BydfiApi
             Object startTime = since;
             Object numberOfCandles = ((Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(!Helpers.isEqual(limit, null))) && Helpers.isTrue(!Helpers.isEqual(limit, 0)))))) ? limit : maxLimit;
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Object now = this.milliseconds();
@@ -1379,7 +1379,7 @@ public class BydfiCore extends BydfiApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1469,7 +1469,7 @@ public class BydfiCore extends BydfiApi
             Object market = this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -1551,9 +1551,9 @@ public class BydfiCore extends BydfiApi
         {
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trailingPercent")));
             Helpers.addElementToObject(request, "callbackRate", trailingPercent);
-            Object trailingTriggerPrice = this.numberToString(price);
-            var trailingTriggerPriceparametersVariable = this.handleParamString(parameters, "trailingTriggerPrice", trailingTriggerPrice);
-            trailingTriggerPrice = ((java.util.List<Object>) trailingTriggerPriceparametersVariable).get(0);
+            String trailingTriggerPrice = this.numberToString(price);
+            java.util.List<Object> trailingTriggerPriceparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "trailingTriggerPrice", trailingTriggerPrice);
+            trailingTriggerPrice = (String) ((java.util.List<Object>) trailingTriggerPriceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) trailingTriggerPriceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(trailingTriggerPrice, null)))
             {
@@ -1595,7 +1595,7 @@ public class BydfiCore extends BydfiApi
         }
         Helpers.addElementToObject(request, "type", type);
         Object hedged = false;
-        var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
+        java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
         hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
         parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
@@ -1620,9 +1620,9 @@ public class BydfiCore extends BydfiApi
             throw new NotSupported((String)Helpers.add(this.id, " createOrder() closePosition is only supported for stopLoss and takeProfit market orders")) ;
         }
         Object timeInForce = this.handleTimeInForce(parameters);
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "POST_ONLY"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "POST_ONLY"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
@@ -1636,7 +1636,7 @@ public class BydfiCore extends BydfiApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isStopLossOrder) || Helpers.isTrue(isTakeProfitOrder)) || Helpers.isTrue(isTailingStopOrder)))
         {
             Object workingType = "CONTRACT_PRICE";
-            var workingTypeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "triggerPriceType", workingType);
+            java.util.List<Object> workingTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "triggerPriceType", workingType);
             workingType = ((java.util.List<Object>) workingTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) workingTypeparametersVariable).get(1);
             Helpers.addElementToObject(request, "workingType", this.encodeWorkingType(workingType));
@@ -1695,7 +1695,7 @@ public class BydfiCore extends BydfiApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -1740,7 +1740,7 @@ public class BydfiCore extends BydfiApi
             }
             Object request = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, parameters);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Helpers.addElementToObject(request, "wallet", wallet);
@@ -1790,7 +1790,7 @@ public class BydfiCore extends BydfiApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -1863,7 +1863,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -1943,7 +1943,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -1953,7 +1953,7 @@ public class BydfiCore extends BydfiApi
             }};
             Object response = null;
             Object trigger = false;
-            var triggerparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
+            java.util.List<Object> triggerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "trigger", trigger);
             trigger = ((java.util.List<Object>) triggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) triggerparametersVariable).get(1);
             if (!Helpers.isTrue(trigger))
@@ -2043,13 +2043,13 @@ public class BydfiCore extends BydfiApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Helpers.addElementToObject(request, "wallet", wallet);
             Object response = null;
             Object trigger = false;
-            var triggerparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
+            java.util.List<Object> triggerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrder", "trigger", trigger);
             trigger = ((java.util.List<Object>) triggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) triggerparametersVariable).get(1);
             if (!Helpers.isTrue(trigger))
@@ -2106,7 +2106,7 @@ public class BydfiCore extends BydfiApi
                 return this.sortBy(paginatedResponse, "timestamp");
             }
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2181,7 +2181,7 @@ public class BydfiCore extends BydfiApi
         Object since = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object until = null;
-        var untilparametersVariable = this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
+        java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
         until = ((java.util.List<Object>) untilparametersVariable).get(0);
         parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
         Object now = this.milliseconds();
@@ -2411,7 +2411,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -2453,7 +2453,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
@@ -2516,7 +2516,7 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2575,7 +2575,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2742,7 +2742,7 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2793,7 +2793,7 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2878,11 +2878,11 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMarginMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -2956,11 +2956,11 @@ public class BydfiCore extends BydfiApi
             }
             Object market = this.market(symbol);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -3007,15 +3007,15 @@ public class BydfiCore extends BydfiApi
             }
             Object positionType = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONEWAY";
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object settleCoin = "USDT";
-            var settleCoinparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "settleCoin", settleCoin);
+            java.util.List<Object> settleCoinparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setPositionMode", "settleCoin", settleCoin);
             settleCoin = ((java.util.List<Object>) settleCoinparametersVariable).get(0);
             parameters = ((java.util.List<Object>) settleCoinparametersVariable).get(1);
             final Object finalContractType = contractType;
@@ -3063,17 +3063,17 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object wallet = "W001";
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionMode", "wallet", wallet);
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Object contractType = "FUTURE";
-            var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionMode", "contractType", contractType);
+            java.util.List<Object> contractTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             Object settleCoin = "USDT";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
-                var settleCoinparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
+                java.util.List<Object> settleCoinparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionMode", "settleCoin", settleCoin);
                 settleCoin = ((java.util.List<Object>) settleCoinparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) settleCoinparametersVariable).get(1);
             } else
@@ -3140,11 +3140,11 @@ public class BydfiCore extends BydfiApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object wallet = null;
-            var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
+            java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -3337,7 +3337,7 @@ public class BydfiCore extends BydfiApi
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
@@ -3520,7 +3520,7 @@ public class BydfiCore extends BydfiApi
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Object now = this.milliseconds();

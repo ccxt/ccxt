@@ -1371,7 +1371,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object response = new java.util.HashMap<String, Object>() {{}};
@@ -1425,7 +1425,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object response = null;
@@ -2268,7 +2268,7 @@ public class MexcCore extends MexcApi
             Object market = this.market(symbol);
             Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 500 : 2000; // docs say 1000 for spot, but in practice it's 500
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2419,7 +2419,7 @@ public class MexcCore extends MexcApi
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object tickers = null;
@@ -2493,7 +2493,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTicker", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object ticker = null;
@@ -2704,7 +2704,7 @@ public class MexcCore extends MexcApi
                 isSingularMarket = Helpers.isEqual(length, 1);
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object tickers = null;
@@ -2830,7 +2830,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -2900,9 +2900,9 @@ public class MexcCore extends MexcApi
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support marginMode "), marginMode), " for spot-margin trading")) ;
             }
         }
-        Object postOnly = null;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "LIMIT_MAKER"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = null;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "LIMIT_MAKER"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
@@ -3059,9 +3059,9 @@ public class MexcCore extends MexcApi
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createSwapOrder() order type must either limit, market, or 1 for limit orders, 2 for post-only orders, 3 for IOC orders, 4 for FOK orders, 5 for market orders or 6 to convert market price to current price")) ;
             }
-            Object postOnly = null;
-            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, 2), parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = null;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, 2), parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
@@ -3214,7 +3214,7 @@ public class MexcCore extends MexcApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object orderRequest = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, orderParams);
@@ -3292,7 +3292,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "orderId", id);
                 }
-                var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+                java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
                 var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
                 var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -3386,7 +3386,7 @@ public class MexcCore extends MexcApi
             }
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3395,7 +3395,7 @@ public class MexcCore extends MexcApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument for spot market")) ;
                 }
-                var marginModequeryInnerVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+                java.util.List<Object> marginModequeryInnerVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
                 var marginMode = ((java.util.List<Object>) marginModequeryInnerVariable).get(0);
                 var queryInner = ((java.util.List<Object>) marginModequeryInnerVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3598,7 +3598,7 @@ public class MexcCore extends MexcApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrdersByIds", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByIds", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3683,7 +3683,7 @@ public class MexcCore extends MexcApi
             {
                 market = this.market(symbol);
             }
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3692,7 +3692,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 }
-                var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+                java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
                 var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
                 var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
                 Object response = null;
@@ -3843,7 +3843,7 @@ public class MexcCore extends MexcApi
             {
                 market = this.market(symbol);
             }
-            var marketTypeVariable = this.handleMarketTypeAndParams("fetchOrdersByState", market, parameters);
+            java.util.List<Object> marketTypeVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByState", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypeVariable).get(0);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -3889,10 +3889,10 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object data = null;
@@ -3990,7 +3990,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
-            var marketTypeVariable = this.handleMarketTypeAndParams("cancelOrders", market, parameters);
+            java.util.List<Object> marketTypeVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrders", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypeVariable).get(0);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
@@ -4048,7 +4048,7 @@ public class MexcCore extends MexcApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -4472,7 +4472,7 @@ public class MexcCore extends MexcApi
 
             // TODO: is the below endpoints suitable for fetchAccounts?
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchAccounts", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchAccounts", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4716,7 +4716,7 @@ public class MexcCore extends MexcApi
             }
             Object marketType = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             String marginMode = this.safeString(parameters, "marginMode");
@@ -4879,7 +4879,7 @@ public class MexcCore extends MexcApi
             }
             Object market = this.market(symbol);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4981,7 +4981,7 @@ public class MexcCore extends MexcApi
             {
                 market = this.market(symbol);
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -6339,7 +6339,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
             Object code = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTransfer", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6400,7 +6400,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTransfers", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -6414,7 +6414,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 currency = this.currency(code);
             }
             Object fromAccountType = null;
-            var fromAccountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
+            java.util.List<Object> fromAccountTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "fromAccountType");
             fromAccountType = ((java.util.List<Object>) fromAccountTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) fromAccountTypeparametersVariable).get(1);
             Object accountTypes = new java.util.HashMap<String, Object>() {{
@@ -6432,7 +6432,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a fromAccountType parameter, one of \"SPOT\", \"FUTURES\"")) ;
             }
             Object toAccountType = null;
-            var toAccountTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
+            java.util.List<Object> toAccountTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "toAccountType");
             toAccountType = ((java.util.List<Object>) toAccountTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) toAccountTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(toAccountType, null)))
@@ -6699,7 +6699,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             Object intern = this.safeBool(parameters, "internal", false);
@@ -7154,7 +7154,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         String defaultType = this.safeString(this.options, "defaultType");
         Object isMargin = this.safeBool(parameters, "margin", false);
         Object marginMode = null;
-        var marginModeparametersVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(defaultType, "margin"))) || Helpers.isTrue((Helpers.isEqual(isMargin, true)))))

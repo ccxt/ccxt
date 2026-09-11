@@ -271,12 +271,12 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".order_cancel_cp");
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "channel", channel);
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrlByMarket(market);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            var typequeryVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = ((Helpers.isTrue((Helpers.isEqual(type, "spot"))))) ? this.multiOrderSpotPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
@@ -315,7 +315,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object market = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.market(symbol);
             Object trigger = this.safeValueN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("is_stop_order", "stop", "trigger")), false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("is_stop_order", "stop", "trigger")));
-            var typequeryVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             var requestrequestParamsVariable = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "margin")))))) ? this.spotOrderPrepareRequest(market, trigger, query) : this.prepareRequest(market, type, query);
@@ -546,7 +546,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object isEuUrl = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "gateeu"), 0);
             Object isNonEuSpot = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && !Helpers.isTrue(isEuUrl);
             Object intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
-            var intervalqueryVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
+            java.util.List<Object> intervalqueryVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", intervalDefault);
             var interval = ((java.util.List<Object>) intervalqueryVariable).get(0);
             var query = ((java.util.List<Object>) intervalqueryVariable).get(1);
             Object messageType = this.getTypeByMarket(market);
@@ -619,7 +619,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object isNonEuSpot = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && !Helpers.isTrue(isEuUrl);
             Object intervalDefault = ((Helpers.isTrue(isNonEuSpot))) ? "50" : "100ms";
             Object interval = intervalDefault;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
+            java.util.List<Object> intervalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             Object messageType = this.getTypeByMarket(market);
@@ -1033,7 +1033,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", callerMethodName);
+            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", callerMethodName);
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             symbols = this.marketSymbols(symbols, null, false);
@@ -1041,7 +1041,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object messageType = this.getTypeByMarket(market);
             Object marketIds = this.marketIds(symbols);
             Object channelName = null;
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, callerMethodName, "method");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, callerMethodName, "method");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             Object url = this.getUrlByMarket(market);
@@ -1438,10 +1438,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 market = this.market(symbol);
                 marketId = Helpers.GetValue(market, "id");
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchMyTrades", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object messageType = this.getSupportedMapping(type, new java.util.HashMap<String, Object>() {{
@@ -1552,10 +1552,10 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object type = null;
             Object subType = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));
@@ -1709,7 +1709,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object type = null;
             Object query = null;
-            var typequeryVariable = this.handleMarketTypeAndParams("watchPositions", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchPositions", market, parameters);
             type = ((java.util.List<Object>) typequeryVariable).get(0);
             query = ((java.util.List<Object>) typequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -1732,7 +1732,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object channel = Helpers.add(typeId, ".positions");
             Object subType = null;
-            var subTypequeryVariable = this.handleSubTypeAndParams("watchPositions", market, query);
+            java.util.List<Object> subTypequeryVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchPositions", market, query);
             subType = ((java.util.List<Object>) subTypequeryVariable).get(0);
             query = ((java.util.List<Object>) subTypequeryVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));
@@ -1944,7 +1944,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object type = null;
             Object query = null;
-            var typequeryVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((java.util.List<Object>) typequeryVariable).get(0);
             query = ((java.util.List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, new java.util.HashMap<String, Object>() {{
@@ -1954,9 +1954,9 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "swap", "futures" );
                 put( "option", "options" );
             }});
-            Object isTrigger = false;
-            var isTriggerqueryVariable = this.handleParamBool2(query, "trigger", "stop", false);
-            isTrigger = ((java.util.List<Object>) isTriggerqueryVariable).get(0);
+            Boolean isTrigger = false;
+            java.util.List<Object> isTriggerqueryVariable = (java.util.List<Object>) this.handleParamBool2(query, "trigger", "stop", false);
+            isTrigger = (Boolean) ((java.util.List<Object>) isTriggerqueryVariable).get(0);
             query = ((java.util.List<Object>) isTriggerqueryVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(typeId, "options")))))
             {
@@ -1982,7 +1982,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 }
             }
             Object subType = null;
-            var subTypequeryVariable = this.handleSubTypeAndParams("watchOrders", market, query);
+            java.util.List<Object> subTypequeryVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchOrders", market, query);
             subType = ((java.util.List<Object>) subTypequeryVariable).get(0);
             query = ((java.util.List<Object>) subTypequeryVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));
@@ -2146,7 +2146,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
             Object query = null;
-            var typequeryVariable = this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyLiquidationsForSymbols", market, parameters);
             type = ((java.util.List<Object>) typequeryVariable).get(0);
             query = ((java.util.List<Object>) typequeryVariable).get(1);
             Object typeId = this.getSupportedMapping(type, new java.util.HashMap<String, Object>() {{
@@ -2155,7 +2155,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "option", "options" );
             }});
             Object subType = null;
-            var subTypequeryVariable = this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query);
+            java.util.List<Object> subTypequeryVariable = (java.util.List<Object>) this.handleSubTypeAndParams("watchMyLiquidationsForSymbols", market, query);
             subType = ((java.util.List<Object>) subTypequeryVariable).get(0);
             query = ((java.util.List<Object>) subTypequeryVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));

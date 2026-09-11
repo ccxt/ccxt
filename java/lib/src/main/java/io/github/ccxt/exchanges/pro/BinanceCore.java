@@ -884,11 +884,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
             }
             Object watchOrderBookRate = null;
-            var watchOrderBookRateparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
+            java.util.List<Object> watchOrderBookRateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "watchOrderBookRate", "100");
             watchOrderBookRate = ((java.util.List<Object>) watchOrderBookRateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) watchOrderBookRateparametersVariable).get(1);
             Object rpi = null;
-            var rpiparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
+            java.util.List<Object> rpiparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "rpi", false);
             rpi = ((java.util.List<Object>) rpiparametersVariable).get(0);
             parameters = ((java.util.List<Object>) rpiparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(rpi) && Helpers.isTrue(Helpers.isEqual(type, "future"))))
@@ -1079,7 +1079,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
@@ -1477,7 +1477,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
             }
             Object name = null;
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+            java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
@@ -1582,7 +1582,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
             }
             Object name = null;
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
+            java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "name", "trade");
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             parameters = this.omit(parameters, "callerMethodName");
@@ -1944,7 +1944,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object stock = this.safeBool(market, "stock", false);
-            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
+            java.util.List<Object> stockparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOHLCV", "stock");
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
@@ -1991,7 +1991,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Object stock = false;
-            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
+            java.util.List<Object> stockparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOHLCVForSymbols", "stock", false);
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(stock))
@@ -2026,9 +2026,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 java.util.List<Object> stockFiltered = this.filterBySinceLimit(stockCandles, since, limit, 0, true);
                 return this.createOHLCVObject(stockSymbol, stockTimeframe, stockFiltered);
             }
-            Object klineType = null;
-            var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
-            klineType = ((java.util.List<Object>) klineTypeparametersVariable).get(0);
+            String klineType = null;
+            java.util.List<Object> klineTypeparametersVariable = (java.util.List<Object>) this.handleParamString2(parameters, "channel", "name", "kline");
+            klineType = (String) ((java.util.List<Object>) klineTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) klineTypeparametersVariable).get(1);
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
@@ -2045,9 +2045,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 wsUrlType = type;
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));
-            Object timezone = null;
-            var timezoneparametersVariable = this.handleParamString(parameters, "timezone");
-            timezone = ((java.util.List<Object>) timezoneparametersVariable).get(0);
+            String timezone = null;
+            java.util.List<Object> timezoneparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "timezone");
+            timezone = (String) ((java.util.List<Object>) timezoneparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timezoneparametersVariable).get(1);
             Object isUtc8 = Helpers.isTrue((!Helpers.isEqual(timezone, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(timezone, "+08:00"))) || Helpers.isTrue(Precise.stringEq(timezone, "8"))));
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2123,9 +2123,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 (this.loadMarkets()).join();
             }
-            Object klineType = null;
-            var klineTypeparametersVariable = this.handleParamString2(parameters, "channel", "name", "kline");
-            klineType = ((java.util.List<Object>) klineTypeparametersVariable).get(0);
+            String klineType = null;
+            java.util.List<Object> klineTypeparametersVariable = (java.util.List<Object>) this.handleParamString2(parameters, "channel", "name", "kline");
+            klineType = (String) ((java.util.List<Object>) klineTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) klineTypeparametersVariable).get(1);
             Object symbols = this.getListFromObjectValues(symbolsAndTimeframes, 0);
             Object marketSymbols = this.marketSymbols(symbols, null, false, false, true);
@@ -2142,9 +2142,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 wsUrlType = type;
             }
             Object isSpot = (Helpers.isEqual(type, "spot"));
-            Object timezone = null;
-            var timezoneparametersVariable = this.handleParamString(parameters, "timezone");
-            timezone = ((java.util.List<Object>) timezoneparametersVariable).get(0);
+            String timezone = null;
+            java.util.List<Object> timezoneparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "timezone");
+            timezone = (String) ((java.util.List<Object>) timezoneparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timezoneparametersVariable).get(1);
             Object isUtc8 = Helpers.isTrue((!Helpers.isEqual(timezone, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(timezone, "+08:00"))) || Helpers.isTrue(Precise.stringEq(timezone, "8"))));
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2331,13 +2331,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "method", "handleTickerWs");
             }};
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
             parameters = this.omit(parameters, "test");
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickerWs", "method", "ticker.book");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickerWs", "method", "ticker.book");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
@@ -2392,7 +2392,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
@@ -2557,7 +2557,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // for now watchmarkPrice uses the same messageHash as watchTicker
             // so it's impossible to watch both at the same time
             // refactor this to use different messageHashes
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             Object newTickers = (this.watchMultiTickerHelper("watchMarkPrices", channelName, symbols, parameters)).join();
@@ -2594,7 +2594,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object stock = false;
-            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
+            java.util.List<Object> stockparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "stock", false);
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(stock))
@@ -2612,7 +2612,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 return this.filterByArray(this.tickers, "symbol", symbols);
             }
             Object channelName = null;
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", "miniTicker");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(channelName, "bookTicker")))
@@ -2651,7 +2651,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object channelName = null;
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "name", "ticker");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(channelName, "bookTicker")))
@@ -2680,7 +2680,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object channelName = null;
-            var channelNameparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
+            java.util.List<Object> channelNameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "name", "markPrice");
             channelName = ((java.util.List<Object>) channelNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelNameparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2784,7 +2784,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Object stock = false;
-            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
+            java.util.List<Object> stockparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "stock", false);
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(stock))
@@ -2845,11 +2845,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object userDefaultType = this.safeString(this.options, "defaultType");
             Object defaultMarket = ((Helpers.isTrue((Helpers.isTrue(isMarkPrice) && Helpers.isTrue(!Helpers.isEqual(userDefaultType, "option")))))) ? "swap" : null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, firstMarket, parameters, defaultMarket);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, firstMarket, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams(methodName, firstMarket, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             // use marketType (not firstMarket) so the no-symbols case with defaultType='option' is also detected
@@ -3655,7 +3655,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = Helpers.GetValue(resolvedAuth, 0);
             parameters = Helpers.GetValue(resolvedAuth, 2);
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "authenticate", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             // For spot use WebSocket API signature subscription
@@ -3665,7 +3665,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 return null;
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("authenticate", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("authenticate", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object isIsolatedMargin = (Helpers.isEqual(marginMode, "isolated"));
@@ -3789,7 +3789,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.safeString2(this.options, "defaultType", "authenticate", "spot");
             type = this.safeString(parameters, "type", type);
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "keepAliveListenKey", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object subTypeInfo = this.handleSubTypeAndParams("keepAliveListenKey", null, parameters);
@@ -4017,7 +4017,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
@@ -4025,7 +4025,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "returnRateLimits", finalReturnRateLimits );
             }};
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchBalanceWs", "method", "account.status");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "method", "account.status");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
@@ -4187,12 +4187,12 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "method", "account.position");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
@@ -4293,7 +4293,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "finalSubType", finalSubType );
             }}, parameters))).join();
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchBalance", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
@@ -4493,11 +4493,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+        java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
         type = ((java.util.List<Object>) typeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
         Object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams(methodName, market, parameters);
+        java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams(methodName, market, parameters);
         subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "option")) && Helpers.isTrue(!Helpers.isEqual(type, "stock"))))
@@ -4519,11 +4519,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object type = null;
-        var typeparametersVariable = this.handleMarketTypeAndParams(method, market, parameters);
+        java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(method, market, parameters);
         type = ((java.util.List<Object>) typeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
         Object subType = null;
-        var subTypeparametersVariable = this.handleSubTypeAndParams(method, market, parameters);
+        java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams(method, market, parameters);
         subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
         if (Helpers.isTrue(this.isLinear(type, subType)))
@@ -4588,7 +4588,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTriggerOrder) || Helpers.isTrue(isTrailingPercentOrder)) || Helpers.isTrue(isStopLoss)) || Helpers.isTrue(isTakeProfit);
             Object payload = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
@@ -4773,7 +4773,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 payload = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
             }
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
@@ -4942,7 +4942,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -5026,7 +5026,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -5086,7 +5086,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -5159,7 +5159,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -5252,7 +5252,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
@@ -5310,7 +5310,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             Object stock = false;
-            var stockparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
+            java.util.List<Object> stockparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "stock", false);
             stock = ((java.util.List<Object>) stockparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stockparametersVariable).get(1);
             if (Helpers.isTrue(stock))
@@ -5374,7 +5374,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }}); // needed inside authenticate for isolated margin
             (this.authenticate(parameters)).join();
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object urlType = type;
@@ -5383,7 +5383,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchOrders", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchOrders", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";
@@ -6063,7 +6063,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             (this.authenticate(this.extend(marketTypeObject, parameters))).join();
             messageHash = Helpers.add(Helpers.add(type, ":positions"), messageHash);
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchPositions", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object urlType = type;
@@ -6402,7 +6402,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalSymbol = symbol;
@@ -6475,7 +6475,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object requestId = this.requestId(url);
             Object messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
-            var returnRateLimitsparametersVariable = this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
+            java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             final Object finalReturnRateLimits = returnRateLimits;
@@ -6616,7 +6616,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 urlType = "spot"; // spot-margin shares the same stream as regular spot
             }
             Object isPortfolioMargin = null;
-            var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "watchMyTrades", "papi", "portfolioMargin", false);
+            java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "watchMyTrades", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object url = "";

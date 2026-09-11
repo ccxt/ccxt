@@ -282,7 +282,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 Object quoteAmount = null;
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Object cost = this.safeNumber(parameters, "cost");
@@ -635,7 +635,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             }
             Object watchOrderBookOptions = this.safeValue(this.options, "watchOrderBook");
             Object name = this.safeString(watchOrderBookOptions, "name", "book_lv2");
-            var nameparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
+            java.util.List<Object> nameparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "name", name);
             name = ((java.util.List<Object>) nameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) nameparametersVariable).get(1);
             Object orderbook = (this.subscribe(name, name, false, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
