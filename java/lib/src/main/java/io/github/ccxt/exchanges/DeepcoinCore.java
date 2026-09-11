@@ -3866,7 +3866,7 @@ public class DeepcoinCore extends DeepcoinApi
         {
             this.checkRequiredCredentials();
             Long timestamp = this.milliseconds();
-            String dateTime = this.iso8601(timestamp);
+            Object dateTime = this.iso8601(timestamp);
             Object payload = Helpers.add(Helpers.add(Helpers.add(dateTime, method), "/"), requestPath);
             final Object finalDateTime = dateTime;
             headers = new java.util.HashMap<String, Object>() {{

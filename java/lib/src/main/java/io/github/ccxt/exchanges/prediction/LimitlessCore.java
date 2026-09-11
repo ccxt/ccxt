@@ -3804,7 +3804,7 @@ public class LimitlessCore extends LimitlessApi
                 }}, headerDefaults);
             }
             this.checkRequiredCredentials();
-            String timestamp = this.iso8601(this.milliseconds());
+            Object timestamp = this.iso8601(this.milliseconds());
             String newline = "\n"; // eslint-disable-line quotes
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, newline), method), newline), url), newline), bodyString);
             Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");

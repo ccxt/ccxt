@@ -8515,7 +8515,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            String timestamp = this.iso8601(this.nonce());
+            Object timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", OkxCore.this.apiKey );

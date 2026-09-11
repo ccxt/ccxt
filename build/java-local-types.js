@@ -606,15 +606,22 @@ function isProvablyNonNullStringOperand (printer, node, selfName) {
 
 // the full LEFT-operand rule for one read `n` of the local: is every `Helpers.add` call
 // this read can re-bind value-identical to the Object-declared one? Walks the `+` chain
-// through parentheses. The direct right operand must be a provably non-null String; every
-// deeper right operand (the levels where the retype also switches the left operand's static
-// type — addChainRights) must not be possibly numeric.
-export function addLeftChainIsSafe (printer, n) {
+// through parentheses.
+//
+//   CLAIM1 (any left box): the direct right operand is a provably non-null String;
+//   CLAIM2 (`leftNonNull`): the left operand is provably a NON-NULL String and the direct
+//           right operand is not possibly numeric (the only divergent box is a Double).
+//
+// Every deeper right operand must not be possibly numeric: from level 2 on the left
+// operand of the printed add is the level-1 result, which is a non-null String in BOTH the
+// retyped and the Object world, so only a Double can still move the value.
+export function addLeftChainIsSafe (printer, n, leftNonNull) {
     const rights = addChainRights (n);
     if (rights.length === 0) {
         return true; // not a left operand of any `+`
     }
-    if (!isProvablyNonNullStringOperand (printer, rights[0], undefined)) {
+    if (!isProvablyNonNullStringOperand (printer, rights[0], undefined)
+        && (leftNonNull !== true || isPossiblyNumericDeep (printer, rights[0]))) {
         return false;
     }
     for (let i = 1; i < rights.length; i++) {
@@ -1802,12 +1809,13 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         if (ts.isBinaryExpression (parent) && parent.left === n
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
-            && info?.nonNull === false) {
-            // `x + y` prints `Helpers.add(x, y)`: a narrowed String operand switches the
-            // overload to add(String, Object), which returns "nullnull" where the Object
-            // overload returned null when BOTH operands are null (Helpers.add). Only a
-            // provably non-null String family may sit on the left; a nullable one is left
-            // as Object, exactly like every other shape the narrowed type cannot satisfy.
+            && javaType === 'String'
+            && !addLeftChainIsSafe (printer, n, info?.nonNull === true)) {
+            // `x + y` prints `Helpers.add(x, y)`: a narrowed String operand on the LEFT
+            // switches the overload to add(String, *). The harness-proven rule (see
+            // addLeftChainIsSafe) accepts the pairs where both overloads agree and rejects
+            // the rest — a nullable String with a right operand that could be null / a
+            // non-String box, or a Double anywhere deeper in the chain.
             return false;
         }
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
