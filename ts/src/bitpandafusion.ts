@@ -34,6 +34,10 @@ export default class bitpandafusion extends Exchange {
                 'createMarketOrderWithCost': true,
                 'createMarketSellOrderWithCost': true,
                 'createOrder': true,
+                'createStopLimitOrder': true,
+                'createStopMarketOrder': true,
+                'createStopOrder': true,
+                'createTriggerOrder': true,
                 'fetchBalance': true,
                 'fetchClosedOrders': true,
                 'fetchCurrencies': true,
@@ -116,17 +120,17 @@ export default class bitpandafusion extends Exchange {
                     'sandbox': false,
                     'createOrder': {
                         'marginMode': false,
-                        'triggerPrice': false,
+                        'triggerPrice': true,
                         'triggerPriceType': undefined,
                         'triggerDirection': false,
                         'stopLossPrice': false,
                         'takeProfitPrice': false,
                         'attachedStopLossTakeProfit': undefined,
                         'timeInForce': {
-                            'IOC': false,
-                            'FOK': false,
+                            'IOC': true,
+                            'FOK': true,
                             'PO': false,
-                            'GTD': false,
+                            'GTD': true,
                         },
                         'hedged': false,
                         'trailing': false,
@@ -639,6 +643,12 @@ export default class bitpandafusion extends Exchange {
         if ((filledString !== undefined) && Precise.stringGt (filledString, '0')) {
             lastTradeTimestamp = this.parse8601 (this.safeString (order, 'executedAt'));
         }
+        let orderType = this.safeStringLower (order, 'type');
+        if (orderType === 'stoplimit') {
+            orderType = 'limit';
+        } else if (orderType === 'stopmarket') {
+            orderType = 'market';
+        }
         return this.safeOrder ({
             'info': order,
             'id': this.safeString (order, 'id'),
@@ -649,7 +659,7 @@ export default class bitpandafusion extends Exchange {
             'lastUpdateTimestamp': this.parse8601 (this.safeString (order, 'updatedAt')),
             'status': this.parseOrderStatus (this.safeString (order, 'status')),
             'symbol': resolvedMarket['symbol'],
-            'type': this.safeStringLower (order, 'type'),
+            'type': orderType,
             'timeInForce': this.safeString (order, 'timeInForce'),
             'postOnly': undefined,
             'side': this.safeStringLower (order, 'side'),
@@ -801,7 +811,7 @@ export default class bitpandafusion extends Exchange {
     /**
      * @method
      * @name bitpandafusion#createOrder
-     * @description create a market or limit order
+     * @description create a market, limit, stop-market or stop-limit order
      * @see https://docs.fusion.bitpanda.com/create-order-4204526e0
      * @param {string} symbol unified symbol of the market to create an order in
      * @param {string} type 'market' or 'limit'
@@ -809,7 +819,12 @@ export default class bitpandafusion extends Exchange {
      * @param {float} amount how much to trade in units of the base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @param {float} [params.cost] quote-currency amount for a market order; use createMarketOrderWithCost instead
+     * @param {float} [params.cost] quote-currency amount; mutually exclusive with the base-currency amount argument
+     * @param {float} [params.amount] exchange-specific alias for params.cost
+     * @param {float} [params.triggerPrice] price at which a stop order is triggered
+     * @param {float} [params.stopPrice] alias for params.triggerPrice
+     * @param {string} [params.timeInForce] 'GTC', 'GTD', 'IOC' or 'FOK'
+     * @param {string} [params.endTime] ISO 8601 expiry timestamp, required when timeInForce is 'GTD'
      * @returns {object} an order structure
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}): Promise<Order> {
@@ -818,7 +833,7 @@ export default class bitpandafusion extends Exchange {
         const orderType = type.toLowerCase ();
         const orderSide = (side as string).toLowerCase ();
         if ((orderType !== 'limit') && (orderType !== 'market')) {
-            throw new NotSupported (this.id + ' createOrder() supports market and limit orders only');
+            throw new NotSupported (this.id + ' createOrder() supports market and limit orders, with an optional triggerPrice for stop orders');
         }
         if ((orderSide !== 'buy') && (orderSide !== 'sell')) {
             throw new InvalidOrder (this.id + ' createOrder() side must be buy or sell');
@@ -827,22 +842,16 @@ export default class bitpandafusion extends Exchange {
         if (clientOrderId !== undefined) {
             throw new NotSupported (this.id + ' createOrder() does not support clientOrderId');
         }
-        const triggerPrice = this.safeValue2 (params, 'triggerPrice', 'stopPrice');
-        if (triggerPrice !== undefined) {
-            throw new NotSupported (this.id + ' createOrder() does not support trigger orders');
-        }
+        const triggerPrice = this.safeString2 (params, 'triggerPrice', 'stopPrice');
         const request: Dict = {
             'pair': market['id'],
             'side': this.capitalize (orderSide),
             'type': this.capitalize (orderType),
         };
-        const cost = this.safeString (params, 'cost');
+        const cost = this.safeString2 (params, 'cost', 'amount');
         if (cost === undefined) {
             request['quantity'] = this.amountToPrecision (symbol, amount);
         } else {
-            if (orderType !== 'market') {
-                throw new InvalidOrder (this.id + ' createOrder() quote-currency cost is supported for market orders only');
-            }
             request['amount'] = this.costToPrecision (symbol, cost);
         }
         if (orderType === 'limit') {
@@ -851,7 +860,15 @@ export default class bitpandafusion extends Exchange {
             }
             request['limitPrice'] = this.priceToPrecision (symbol, price);
         }
-        params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'triggerPrice', 'stopPrice', 'cost' ]);
+        if (triggerPrice !== undefined) {
+            request['type'] = 'Stop' + this.capitalize (orderType);
+            request['triggerPrice'] = this.priceToPrecision (symbol, triggerPrice);
+        }
+        const timeInForce = this.safeStringUpper (params, 'timeInForce');
+        if (timeInForce !== undefined) {
+            request['timeInForce'] = timeInForce;
+        }
+        params = this.omit (params, [ 'clientOrderId', 'client_order_id', 'triggerPrice', 'stopPrice', 'timeInForce', 'cost', 'amount' ]);
         const response = await this.privatePostV1AccountOrders (this.extend (request, params));
         return this.parseOrder (response, market);
     }
