@@ -952,7 +952,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object response = (this.fetchBalance((Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", type );
             }}))).join();
-            this.balance = this.extend(response, this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.extend(response, this.balance));
             // don't remove the future from the .futures cache
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
@@ -1044,7 +1044,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 }
             }
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         String messageHash = (String) "wallet:";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Spot"), 0)))
         {

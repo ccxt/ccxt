@@ -281,8 +281,12 @@ class EdgeCaseTest {
         assertNull(b.get("BTC").total);
         assertNull(b.get("BTC").debt);
         assertEquals(1.5, b.free.get("BTC"));
-        assertFalse(b.used.containsKey("BTC"));
-        assertFalse(b.total.containsKey("BTC"));
+        // safeBalance normalizes every code into all three projections; where the
+        // exchange gave no value the entry is a null VALUE (TS `undefined`), never 0.0
+        assertTrue(b.used.containsKey("BTC"));
+        assertNull(b.used.get("BTC"));
+        assertTrue(b.total.containsKey("BTC"));
+        assertNull(b.total.get("BTC"));
     }
 
     @Test

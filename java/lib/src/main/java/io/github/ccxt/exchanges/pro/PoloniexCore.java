@@ -1414,7 +1414,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         //
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String messageHash = (String) "balances";
-        this.balance = this.parseWsBalance(data);
+        this.balance = (java.util.Map<String, Object>) (this.parseWsBalance(data));
         client.resolve(this.balance, messageHash);
     }
 

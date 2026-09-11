@@ -660,7 +660,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //
         Object data = this.safeValue(message, "data");
         Object balance = this.parseBalance(data);
-        this.balance = this.extend(this.balance, balance);
+        this.balance = (java.util.Map<String, Object>) (this.extend(this.balance, balance));
         Object messageHash = this.safeString(message, "table");
         client.resolve(this.balance, messageHash);
     }

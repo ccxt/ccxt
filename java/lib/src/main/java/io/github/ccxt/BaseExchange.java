@@ -4214,7 +4214,7 @@ public Object describe()
 
     public void cleanWsData()
     {
-        this.balance = this.createSafeDictionary(true);
+        this.balance = (java.util.Map<String, Object>) (this.createSafeDictionary(true));
         this.orderbooks = this.createSafeDictionary(true);
         this.tickers = this.createSafeDictionary(true);
         this.liquidations = null;
@@ -8907,7 +8907,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(reload))
             {
-                this.accounts = (this.fetchAccounts(parameters)).join();
+                this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
             } else
             {
                 if (Helpers.isTrue(!Helpers.isEqual(this.accounts, null)))
@@ -8915,7 +8915,7 @@ public Object describe()
                     return this.accounts;
                 } else
                 {
-                    this.accounts = (this.fetchAccounts(parameters)).join();
+                    this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
                 }
             }
             this.accountsById = this.indexBy(this.accounts, "id");

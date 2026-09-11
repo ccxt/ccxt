@@ -458,7 +458,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
-            this.balance = this.safeBalance(this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         }
         Object messageHash = Helpers.add(type, ":balance");
         client.resolve(this.balance, messageHash);

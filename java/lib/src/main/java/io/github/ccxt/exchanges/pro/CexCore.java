@@ -137,7 +137,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 Helpers.addElementToObject(result, code, account);
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(result));
         Object messageHash = this.safeString(message, "oid");
         client.resolve(this.balance, messageHash);
     }

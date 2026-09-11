@@ -2741,7 +2741,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Long timestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-            this.balance = this.safeBalance(this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
             messageHash = "balances";
             client.resolve(this.balance, messageHash);
         }

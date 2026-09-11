@@ -969,7 +969,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         client.resolve(this.balance, messageHash);
     }
 

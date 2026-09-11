@@ -146,7 +146,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //         ]
         //     }
         //
-        this.balance = this.parseBalance(message);
+        this.balance = (java.util.Map<String, Object>) (this.parseBalance(message));
         String messageHash = (String) "balance";
         client.resolve(this.balance, messageHash);
     }
@@ -1157,7 +1157,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         {
             Helpers.addElementToObject(this.balance, code, account);
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
     }
 
     /**

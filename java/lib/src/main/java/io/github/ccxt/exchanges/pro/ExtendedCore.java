@@ -334,7 +334,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
-        this.balance = this.safeBalance(this.deepExtend(this.balance, result));
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.deepExtend(this.balance, result)));
         client.resolve(this.balance, "balance");
     }
 

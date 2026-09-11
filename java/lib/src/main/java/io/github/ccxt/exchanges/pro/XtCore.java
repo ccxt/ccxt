@@ -1757,7 +1757,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Helpers.addElementToObject(this.balance, code, account);
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         String tradeType = ((Helpers.isTrue((Helpers.inOp(data, "coin"))))) ? "contract" : "spot";
         client.resolve(this.balance, Helpers.add("balance::", tradeType));
     }
