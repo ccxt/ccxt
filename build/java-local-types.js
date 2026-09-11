@@ -3374,6 +3374,15 @@ function dataflowValueType (printer, node, context) {
             }
             return undefined;
         }
+        case ts.SyntaxKind.AwaitExpression:
+            // `x = await this.<endpoint>(...)` prints `(this.<endpoint>(...)).join()`, whose
+            // STATIC Java type is the T of the endpoint's on-disk `CompletableFuture<T>`
+            // signature — exactly the table the awaited-initializer family reads (and typed
+            // without a checkcast, since `join()` already returns T). undefined for a
+            // non-`this` call, an endpoint with no generated api file, and the
+            // `CompletableFuture<Object>` endpoints (union shapes), so those locals keep
+            // Object and the write stays what the printer emitted.
+            return awaitedThisCallType (node);
     }
     return undefined;
 }

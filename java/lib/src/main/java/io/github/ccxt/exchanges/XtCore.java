@@ -1961,7 +1961,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, parameters))).join();
@@ -2080,7 +2080,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2190,7 +2190,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, parameters))).join();
@@ -2287,7 +2287,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -2407,7 +2407,7 @@ public class XtCore extends XtApi
             Boolean isInverse = (Helpers.isEqual(subType, "inverse"));
             Boolean isLinear = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "linear"))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
             Boolean isContract = Helpers.isTrue(isInverse) || Helpers.isTrue(isLinear);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isInverse))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, parameters))).join();
@@ -2593,7 +2593,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2695,7 +2695,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -3007,7 +3007,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -3516,7 +3516,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -3756,7 +3756,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -3956,7 +3956,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -4428,7 +4428,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -4563,7 +4563,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -4969,7 +4969,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -5580,7 +5580,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInversePostFutureUserV1PositionMargin(this.extend(request, parameters))).join();
@@ -5642,7 +5642,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketList(parameters)).join();
@@ -5750,7 +5750,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.extend(request, parameters))).join();
@@ -5885,7 +5885,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRateRecord(this.extend(request, parameters))).join();
@@ -5987,7 +5987,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRate", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRate(this.extend(request, parameters))).join();
@@ -6084,7 +6084,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, parameters))).join();
@@ -6161,7 +6161,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6218,7 +6218,7 @@ final Object finalMarket = market;
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (Helpers.isEqual(subType, "inverse"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isInverse))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6305,7 +6305,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureUserV1BalanceFundingRateList(this.extend(request, parameters))).join();
@@ -6667,7 +6667,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
@@ -7013,7 +7013,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "orderId", id);
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 if (Helpers.isTrue(isStopLoss))
