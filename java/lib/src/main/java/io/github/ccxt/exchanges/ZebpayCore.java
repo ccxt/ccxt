@@ -351,7 +351,7 @@ public class ZebpayCore extends ZebpayApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchStatus", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchStatus", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -406,7 +406,7 @@ public class ZebpayCore extends ZebpayApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -714,7 +714,7 @@ public class ZebpayCore extends ZebpayApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -868,7 +868,7 @@ public class ZebpayCore extends ZebpayApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
@@ -1104,7 +1104,7 @@ public class ZebpayCore extends ZebpayApi
                 market = this.market(symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -1144,7 +1144,7 @@ public class ZebpayCore extends ZebpayApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
@@ -1264,7 +1264,7 @@ public class ZebpayCore extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -1503,7 +1503,7 @@ public class ZebpayCore extends ZebpayApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))

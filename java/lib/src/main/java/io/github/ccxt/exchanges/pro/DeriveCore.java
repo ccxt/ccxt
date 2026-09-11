@@ -638,7 +638,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchOrders", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("watchOrders", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object topic = Helpers.add(this.numberToString(subaccountId), ".orders");
@@ -783,7 +783,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
                 (this.loadMarkets()).join();
             }
             Object subaccountId = null;
-            var subaccountIdparametersVariable = this.handleDeriveSubaccountId("watchMyTrades", parameters);
+            java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("watchMyTrades", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
             Object topic = Helpers.add(this.numberToString(subaccountId), ".trades");

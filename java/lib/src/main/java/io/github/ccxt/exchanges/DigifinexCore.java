@@ -788,7 +788,7 @@ public class DigifinexCore extends DigifinexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             String defaultType = this.safeString(this.options, "defaultType");
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketsV2", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMarketsV2", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1123,10 +1123,10 @@ public class DigifinexCore extends DigifinexApi
                 (this.loadMarkets()).join();
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object response = null;
@@ -1210,7 +1210,7 @@ public class DigifinexCore extends DigifinexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -1311,7 +1311,7 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(first);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2255,10 +2255,10 @@ public class DigifinexCore extends DigifinexApi
         Object market = this.market(symbol);
         Object marketType = null;
         Object marginMode = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
+        java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("createOrderRequest", market, parameters);
         marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrderRequest", parameters);
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrderRequest", parameters);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -2327,7 +2327,7 @@ public class DigifinexCore extends DigifinexApi
             // limit orders require the amount in the base currency, market orders require the amount in the quote currency
             Object quantity = null;
             Object createMarketBuyOrderRequiresPrice = true;
-            var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
+            java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrderRequest", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(isMarketOrder) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
@@ -2433,7 +2433,7 @@ public class DigifinexCore extends DigifinexApi
             }
             id = String.valueOf(id);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalId = id;
@@ -2451,7 +2451,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 Helpers.addElementToObject(request, "market", marketType);
             }
-            var marginModequeryVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object response = null;
@@ -2790,10 +2790,10 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -2920,10 +2920,10 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -3050,10 +3050,10 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3175,10 +3175,10 @@ public class DigifinexCore extends DigifinexApi
                 market = this.market(symbol);
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
@@ -3358,10 +3358,10 @@ public class DigifinexCore extends DigifinexApi
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLedger", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
@@ -3884,7 +3884,7 @@ public class DigifinexCore extends DigifinexApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -4453,10 +4453,10 @@ public class DigifinexCore extends DigifinexApi
                 }
                 market = this.market(symbol);
             }
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPositions", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchPositions", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchPositions", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -4567,10 +4567,10 @@ public class DigifinexCore extends DigifinexApi
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModequeryVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -5063,7 +5063,7 @@ final Object finalI = i;
         String defaultType = this.safeString(this.options, "defaultType");
         Object isMargin = this.safeBool(parameters, "margin", false);
         Object marginMode = null;
-        var marginModeparametersVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -5365,7 +5365,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("end_timestamp", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_timestamp", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object market = null;

@@ -1705,7 +1705,7 @@ public class BingxCore extends BingxApi
             Object market = this.market(symbol);
             Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true))))) ? 1000 : 1440;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1741,7 +1741,7 @@ public class BingxCore extends BingxApi
                 // bingx spot klines are anchored to UTC+8 by default, unlike the swap klines and other exchanges
                 // the timeZone request parameter aligns the candle boundaries to UTC, live-verified for the spot endpoint
                 Object timeZone = null;
-                var timeZoneparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
+                java.util.List<Object> timeZoneparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "timeZone", 0);
                 timeZone = ((java.util.List<Object>) timeZoneparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) timeZoneparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(timeZone, null)))
@@ -1889,7 +1889,7 @@ public class BingxCore extends BingxApi
             }};
             Object response = null;
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2166,7 +2166,7 @@ public class BingxCore extends BingxApi
             }};
             Object response = null;
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderBook", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2363,7 +2363,7 @@ public class BingxCore extends BingxApi
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object subType = "linear";
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -2452,7 +2452,7 @@ public class BingxCore extends BingxApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingRateHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2470,7 +2470,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.swapV2PublicGetQuoteFundingRate(this.extend(request, parameters))).join();
@@ -2546,7 +2546,7 @@ public class BingxCore extends BingxApi
                 market = this.market(symbol);
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isInverse = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? (Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)) : (Helpers.isEqual(subType, "inverse"));
@@ -2555,7 +2555,7 @@ public class BingxCore extends BingxApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchFundingHistory() is not supported for inverse swap markets")) ;
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2860,11 +2860,11 @@ public class BingxCore extends BingxApi
                 }
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -2938,7 +2938,7 @@ public class BingxCore extends BingxApi
             }
             Object market = this.market(symbol);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarkPrice", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2993,7 +2993,7 @@ public class BingxCore extends BingxApi
                 }
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -3173,14 +3173,14 @@ public class BingxCore extends BingxApi
             }
             Object response = null;
             Object standard = null;
-            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
+            java.util.List<Object> standardparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "standard", false);
             standard = ((java.util.List<Object>) standardparametersVariable).get(0);
             parameters = ((java.util.List<Object>) standardparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var marketTypemarketTypeQueryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypemarketTypeQueryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypemarketTypeQueryVariable).get(0);
             var marketTypeQuery = ((java.util.List<Object>) marketTypemarketTypeQueryVariable).get(1);
             if (Helpers.isTrue(standard))
@@ -3370,7 +3370,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "startTs", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTs", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTs", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -3442,7 +3442,7 @@ public class BingxCore extends BingxApi
             }
             symbols = this.marketSymbols(symbols);
             Object standard = null;
-            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
+            java.util.List<Object> standardparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "standard", false);
             standard = ((java.util.List<Object>) standardparametersVariable).get(0);
             parameters = ((java.util.List<Object>) standardparametersVariable).get(1);
             Object response = null;
@@ -3462,7 +3462,7 @@ public class BingxCore extends BingxApi
                     }
                 }
                 Object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
+                java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositions", market, parameters);
                 subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -3740,9 +3740,9 @@ public class BingxCore extends BingxApi
          * @returns {object} request to be sent to the exchange
          */
         Object market = this.market(symbol);
-        Object postOnly = null;
+        Boolean postOnly = null;
         Object marketType = null;
-        var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
+        java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
         marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
         type = ((String)type).toUpperCase();
@@ -3773,8 +3773,8 @@ public class BingxCore extends BingxApi
             Helpers.addElementToObject(request, exchangeClientOrderId, clientOrderId);
         }
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
-        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "PostOnly"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(timeInForce, "PostOnly"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(postOnly, true))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PostOnly")))))
         {
@@ -4812,10 +4812,10 @@ public class BingxCore extends BingxApi
                 }
                 Object type = null;
                 Object subType = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+                java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-                var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
+                java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
                 subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -4970,10 +4970,10 @@ public class BingxCore extends BingxApi
             }
             Object marketType = "spot";
             Object subType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5099,11 +5099,11 @@ public class BingxCore extends BingxApi
             }};
             Object response = null;
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrdersAfter", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelAllOrdersAfter", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) && Helpers.isTrue((Helpers.isEqual(subType, "inverse")))))
@@ -5185,10 +5185,10 @@ public class BingxCore extends BingxApi
                 }};
                 Object type = null;
                 Object subType = null;
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+                java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-                var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
+                java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
                 subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -5247,7 +5247,7 @@ public class BingxCore extends BingxApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
@@ -5262,7 +5262,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.swapV1PrivateGetTradeFullOrder(this.extend(request, parameters))).join();
@@ -5363,10 +5363,10 @@ public class BingxCore extends BingxApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -5645,13 +5645,13 @@ public class BingxCore extends BingxApi
             Object subType = null;
             Object standard = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchCanceledAndClosedOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            var standardparametersVariable = this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
+            java.util.List<Object> standardparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchCanceledAndClosedOrders", "standard", false);
             standard = ((java.util.List<Object>) standardparametersVariable).get(0);
             parameters = ((java.util.List<Object>) standardparametersVariable).get(1);
             if (Helpers.isTrue(standard))
@@ -5717,7 +5717,7 @@ public class BingxCore extends BingxApi
             Object currency = this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("transfer", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("transfer", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
@@ -5834,7 +5834,7 @@ public class BingxCore extends BingxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount")));
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5849,7 +5849,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "pageSize", Helpers.mathMin(limit, maxLimit));
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.apiV3PrivateGetAssetTransferRecord(this.extend(request, parameters))).join();
@@ -6084,7 +6084,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalDepositHisrec(this.extend(request, parameters))).join();
@@ -6150,7 +6150,7 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.spotV3PrivateGetCapitalWithdrawHistory(this.extend(request, parameters))).join();
@@ -6351,7 +6351,7 @@ public class BingxCore extends BingxApi
                 put( "marginType", finalMarginMode );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("setMarginMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -6634,7 +6634,7 @@ public class BingxCore extends BingxApi
             Object fills = null;
             Object response = null;
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -6796,7 +6796,7 @@ public class BingxCore extends BingxApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -6807,7 +6807,7 @@ public class BingxCore extends BingxApi
             Object currency = this.currency(code);
             Object defaultWalletType = 15; // spot
             Object walletType = null;
-            var walletTypeparametersVariable = this.handleOptionAndParams2(parameters, "withdraw", "type", "walletType", defaultWalletType);
+            java.util.List<Object> walletTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "withdraw", "type", "walletType", defaultWalletType);
             walletType = ((java.util.List<Object>) walletTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletTypeparametersVariable).get(1);
             Object walletTypes = new java.util.HashMap<String, Object>() {{
@@ -6907,7 +6907,7 @@ public class BingxCore extends BingxApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "autoCloseType", "LIQUIDATION" );
             }};
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object market = null;
@@ -6925,7 +6925,7 @@ public class BingxCore extends BingxApi
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100)); // api maximum 100
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMyLiquidations", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -7120,11 +7120,11 @@ public class BingxCore extends BingxApi
             Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Long recvWindow = this.safeInteger(parameters, "recvWindow", defaultRecvWindow);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("closeAllPositions", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("closeAllPositions", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("closeAllPositions", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("closeAllPositions", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "margin")))
@@ -7181,7 +7181,7 @@ public class BingxCore extends BingxApi
                 market = this.market(symbol);
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
@@ -7234,7 +7234,7 @@ public class BingxCore extends BingxApi
                 market = this.market(symbol);
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("setPositionMode", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("setPositionMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "inverse"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))))))
@@ -7353,7 +7353,7 @@ public class BingxCore extends BingxApi
             }};
             Object subType = null;
             Object response = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))

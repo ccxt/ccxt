@@ -1987,11 +1987,11 @@ public class WhitebitCore extends WhitebitApi
                 onlyContractSymbols = false;
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTickers", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
@@ -2592,9 +2592,9 @@ public class WhitebitCore extends WhitebitApi
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "side", finalSide );
             }};
-            Object cost = null;
-            var costparametersVariable = this.handleParamString(parameters, "cost");
-            cost = ((java.util.List<Object>) costparametersVariable).get(0);
+            String cost = null;
+            java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
+            cost = (String) ((java.util.List<Object>) costparametersVariable).get(0);
             parameters = ((java.util.List<Object>) costparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
@@ -2640,7 +2640,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrder() timeInForce IOC is only supported for limit orders")) ;
             }
-            var marginModequeryVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModequeryVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
             if (Helpers.isTrue(postOnly))
@@ -2886,14 +2886,14 @@ public class WhitebitCore extends WhitebitApi
                 Helpers.addElementToObject(request, "market", Helpers.GetValue(market, "id"));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object requestType = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Object isMargin = null;
-                var isMarginparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
+                java.util.List<Object> isMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "isMargin", false);
                 isMargin = ((java.util.List<Object>) isMarginparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isMarginparametersVariable).get(1);
                 if (Helpers.isTrue(isMargin))
@@ -3071,7 +3071,7 @@ public class WhitebitCore extends WhitebitApi
                 (this.loadMarkets()).join();
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -4558,7 +4558,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v4PrivatePostCollateralAccountFundingHistory(this.extend(request, parameters))).join();
@@ -4849,7 +4849,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v4PrivatePostConvertHistory(this.extend(request, parameters))).join();
@@ -4982,7 +4982,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "limit", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endDate", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endDate", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v4PrivatePostCollateralAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -5229,7 +5229,7 @@ public class WhitebitCore extends WhitebitApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5248,7 +5248,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 Helpers.addElementToObject(request, "startDate", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
             }
-            var requestparametersVariable = this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -5323,7 +5323,7 @@ public class WhitebitCore extends WhitebitApi
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
             Object request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
-            var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
+            java.util.List<Object> nonceWindowrequestParamsVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(0);
             var requestParams = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(1);
             body = this.json(this.extend(new java.util.HashMap<String, Object>() {{

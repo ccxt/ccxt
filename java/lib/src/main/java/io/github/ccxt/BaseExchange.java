@@ -1054,21 +1054,20 @@ public class BaseExchange {
         return SafeMethods.SafeStringN(obj, keys, defaultValue);
     }
 
-    // SafeInteger / SafeIntegerN  (every return path hands back a Long box or null —
-    // SafeIntegerN is declared Long, the wrapper used to say Object)
-    public Long safeInteger(Object obj, Object key, Object... defaultValue) {
+    // SafeInteger / SafeIntegerN  (SafeMethods returns Long)
+    public Object safeInteger(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.SafeInteger(obj, key, defaultValue);
     }
 
-    public Long safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public Object safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.SafeInteger2(obj, key1, key2, defaultValue);
     }
 
-    public Long safeIntegerN(Object obj, Object keys, Object... defaultValue) {
+    public Object safeIntegerN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
-    public Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+    public Object safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
         return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
@@ -4522,10 +4521,10 @@ public Object describe()
                 proxyUrl = this.proxy;
             }
         }
-        Integer length = Helpers.getArrayLength(usedProxies);
+        Object length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
@@ -4595,10 +4594,10 @@ public Object describe()
             socksProxy = ((Helpers.isTrue(issocksProxyCallbackDefined))) ? Helpers.callDynamically(this, "socksProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "socks_proxy_callback", new Object[] { url, method, headers, body });
         }
         // check
-        Integer length = Helpers.getArrayLength(usedProxies);
+        Object length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(httpProxy, httpsProxy, socksProxy));
@@ -4635,10 +4634,10 @@ public Object describe()
             wsSocksProxy = ((Helpers.isTrue((isWsSocksProxyDefined)))) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
-        Integer length = Helpers.getArrayLength(usedProxies);
+        Object length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(wsProxy, wssProxy, wsSocksProxy));
@@ -4663,7 +4662,7 @@ public Object describe()
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        Integer length = Helpers.getArrayLength(uniqChars); // py transpiler trick
+        Object length = Helpers.getArrayLength(uniqChars); // py transpiler trick
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(length, 1)) || Helpers.isTrue(Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength))) || Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))))
         {
             throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " address is invalid or has less than "), String.valueOf(this.minFundingAddressLength)), " characters: \""), String.valueOf(address)), "\"")) ;
@@ -4695,7 +4694,7 @@ public Object describe()
         Object fromStart = Helpers.getArg(optionalArgs, 2, false);
         if (Helpers.isTrue(this.valueIsDefined(limit)))
         {
-            Integer arrayLength = Helpers.getArrayLength(array);
+            Object arrayLength = Helpers.getArrayLength(array);
             if (Helpers.isTrue(Helpers.isGreaterThan(arrayLength, 0)))
             {
                 Object ascending = true;
@@ -5163,7 +5162,7 @@ public Object describe()
     public Object parseCurrencies(Object rawCurrencies)
     {
         Object result = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> arr = this.toArray(rawCurrencies);
+        Object arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object parsed = this.parseCurrency(Helpers.GetValue(arr, i));
@@ -5635,7 +5634,7 @@ public Object describe()
 
     }
 
-    public Long parseToInt(Object number)
+    public Object parseToInt(Object number)
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
@@ -5685,7 +5684,7 @@ public Object describe()
     public Object safeIntegerOmitZero(Object obj, Object key, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Long timestamp = this.safeInteger(obj, key, defaultValue);
+        Object timestamp = this.safeInteger(obj, key, defaultValue);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(timestamp, null)) || Helpers.isTrue(Helpers.isEqual(timestamp, 0))))
         {
             return null;
@@ -5944,7 +5943,7 @@ public Object describe()
         {
             return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodDict;
         }
-        java.util.List<Object> splited = (java.util.List<Object>) Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         String subKey = this.safeString(splited, 1);
         if (!Helpers.isTrue((Helpers.inOp(methodDict, parentKey))))
@@ -6054,7 +6053,7 @@ public Object describe()
         {
             Helpers.addElementToObject(fee, "cost", this.safeNumber(fee, "cost"));
         }
-        Long timestamp = this.safeInteger(entry, "timestamp");
+        Object timestamp = this.safeInteger(entry, "timestamp");
         Object info = this.safeDict(entry, "info", new java.util.HashMap<String, Object>() {{}});
         final Object finalDirection = direction;
         final Object finalCurrency = currency;
@@ -6086,7 +6085,7 @@ public Object describe()
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(networks);
-        Integer length = Helpers.getArrayLength(keys);
+        Object length = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(!Helpers.isEqual(length, 0)))
         {
             for (var i = 0; Helpers.isLessThan(i, length); i++)
@@ -6300,7 +6299,7 @@ public Object describe()
         this.markets_by_id = this.createSafeDictionary();
         // handle marketId conflicts
         // we insert spot markets first
-        java.util.List<Object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
+        Object marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             Object value = Helpers.GetValue(marketValues, i);
@@ -6343,8 +6342,8 @@ public Object describe()
             ((java.util.List<Object>)values).add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
-        java.util.Map<String, Object> marketsSortedBySymbol = this.keysort(this.markets);
-        java.util.Map<String, Object> marketsSortedById = this.keysort(this.markets_by_id);
+        Object marketsSortedBySymbol = this.keysort(this.markets);
+        Object marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Helpers.objectKeys(marketsSortedBySymbol);
         this.ids = Helpers.objectKeys(marketsSortedById);
         Object numCurrencies = 0;
@@ -6391,8 +6390,8 @@ public Object describe()
             quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "");
             this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
-            java.util.List<Object> allCurrencies = (java.util.List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
-            java.util.Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
+            Object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
+            Object groupedCurrencies = this.groupBy(allCurrencies, "code");
             Object codes = Helpers.objectKeys(groupedCurrencies);
             Object resultingCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
@@ -6413,11 +6412,11 @@ public Object describe()
                 }
                 ((java.util.List<Object>)resultingCurrencies).add(highestPrecisionCurrency);
             }
-            java.util.List<Object> sortedCurrencies = this.sortBy(resultingCurrencies, "code");
+            Object sortedCurrencies = this.sortBy(resultingCurrencies, "code");
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code")));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
-        java.util.Map<String, Object> currenciesSortedByCode = this.keysort(this.currencies);
+        Object currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = Helpers.objectKeys(currenciesSortedByCode);
         if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
         {
@@ -6463,8 +6462,8 @@ public Object describe()
 
     public Object getDescribeForExtendedWsExchange(Object currentRestInstance, Object parentRestInstance, Object wsBaseDescribe)
     {
-        java.util.Map<String, Object> extendedRestDescribe = this.deepExtend(((BaseExchange)parentRestInstance).describe(), ((BaseExchange)currentRestInstance).describe());
-        java.util.Map<String, Object> superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
+        Object extendedRestDescribe = this.deepExtend(((BaseExchange)parentRestInstance).describe(), ((BaseExchange)currentRestInstance).describe());
+        Object superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
         return superWithRestDescribe;
     }
 
@@ -6508,7 +6507,7 @@ public Object describe()
             }
         }
         Object debtBalanceArray = Helpers.objectKeys(debtBalance);
-        Integer length = Helpers.getArrayLength(debtBalanceArray);
+        Object length = Helpers.getArrayLength(debtBalanceArray);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
@@ -6663,7 +6662,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Integer reducedLength = Helpers.getArrayLength(reducedFees);
+            Object reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber(Helpers.GetValue(reducedFees, i), "cost"));
@@ -6675,7 +6674,7 @@ public Object describe()
             if (Helpers.isTrue(!Helpers.isTrue(parseFee) && Helpers.isTrue((Helpers.isEqual(reducedLength, 0)))))
             {
                 // copy fee to avoid modification by reference
-                java.util.Map<String, Object> feeCopy = this.deepExtend(fee);
+                Object feeCopy = this.deepExtend(fee);
                 Helpers.addElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost"));
                 if (Helpers.isTrue(Helpers.inOp(feeCopy, "rate")))
                 {
@@ -6722,7 +6721,7 @@ public Object describe()
         }
         // ensure that the average field is calculated correctly
         Object inverse = this.safeBool(market, "inverse", false);
-        String contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
+        Object contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
         //
@@ -6816,8 +6815,8 @@ public Object describe()
             // timeInForce is not undefined here
             postOnly = Helpers.isEqual(timeInForce, "PO");
         }
-        Long timestamp = this.safeInteger(order, "timestamp");
-        Long lastUpdateTimestamp = this.safeInteger(order, "lastUpdateTimestamp");
+        Object timestamp = this.safeInteger(order, "timestamp");
+        Object lastUpdateTimestamp = this.safeInteger(order, "lastUpdateTimestamp");
         String datetime = this.safeString(order, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -6907,7 +6906,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
-                java.util.Map<String, Object> order = this.extend(parsed, parameters);
+                Object order = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
         } else
@@ -6916,11 +6915,11 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                java.util.Map<String, Object> idExtended = this.extend(new java.util.HashMap<String, Object>() {{
+                Object idExtended = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
                 Object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                java.util.Map<String, Object> order = this.extend(parsedOrder, parameters);
+                Object order = this.extend(parsedOrder, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
         }
@@ -6963,7 +6962,7 @@ public Object describe()
         Object key = null;
         if (Helpers.isTrue(useQuote))
         {
-            String priceString = this.numberToString(price);
+            Object priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);
             key = "quote";
         } else
@@ -7130,7 +7129,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Integer reducedLength = Helpers.getArrayLength(reducedFees);
+            Object reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric(Helpers.GetValue(reducedFees, i)));
@@ -7172,7 +7171,7 @@ public Object describe()
     public Object findNearestCeiling(Object arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        Integer length = Helpers.getArrayLength(arr);
+        Object length = Helpers.getArrayLength(arr);
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
             Object current = Helpers.GetValue(arr, i);
@@ -7196,7 +7195,7 @@ public Object describe()
             {
                 continue;
             }
-            java.util.Map<String, Object> itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
+            Object itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
             Helpers.addElementToObject(itemWithKey, keyName, key);
             ((java.util.List<Object>)result).add(itemWithKey);
         }
@@ -7702,7 +7701,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(startRegex, null)))
                 {
-                    java.util.List<Object> splitted_by_start = (java.util.List<Object>) Helpers.split(content, startRegex);
+                    Object splitted_by_start = Helpers.split(content, startRegex);
                     content = Helpers.GetValue(splitted_by_start, 1); // we need second part after start
                 }
                 if (Helpers.isTrue(Helpers.isEqual(content, null)))
@@ -7711,7 +7710,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(endRegex, null)))
                 {
-                    java.util.List<Object> splitted_by_end = (java.util.List<Object>) Helpers.split(content, endRegex);
+                    Object splitted_by_end = Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(returnAsJson, true))) && Helpers.isTrue(((content instanceof String)))))
@@ -7826,7 +7825,7 @@ public Object describe()
             }
             return symbols;
         }
-        Integer symbolsLength = Helpers.getArrayLength(symbols);
+        Object symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
         {
             if (!Helpers.isTrue(allowEmpty))
@@ -8169,7 +8168,7 @@ public Object describe()
         Object isIndexedByUnifiedNetworkCode = Helpers.getArg(optionalArgs, 0, false);
         Object chosenNetworkId = null;
         Object availableNetworkIds = Helpers.objectKeys(indexedNetworkEntries);
-        Integer responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
+        Object responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(responseNetworksLength, 0)))
@@ -8211,7 +8210,7 @@ public Object describe()
         return chosenNetworkId;
     }
 
-    public Double safeNumber2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
+    public Object safeNumber2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
     {
         Object d = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString2(dictionary, key1, key2);
@@ -8258,7 +8257,7 @@ public Object describe()
         {
             ((java.util.List<Object>)results).add(this.parseOHLCV(Helpers.GetValue(ohlcvs, i), market));
         }
-        java.util.List<Object> sorted = this.sortBy(results, 0);
+        Object sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
@@ -8356,7 +8355,7 @@ public Object describe()
             Helpers.addElementToObject(position, "percentage", this.parseNumber(percentageString));
         }
         // if contractSize is undefined get from market
-        Double contractSize = this.safeNumber(position, "contractSize");
+        Object contractSize = this.safeNumber(position, "contractSize");
         String symbol = this.safeString(position, "symbol");
         Object market = null;
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -8376,11 +8375,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        java.util.List<Object> positionsArray = this.toArray(positions);
+        Object positionsArray = this.toArray(positions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsArray)); i++)
         {
-            java.util.Map<String, Object> position = this.extend(this.parsePosition(Helpers.GetValue(positionsArray, i)), parameters);
+            Object position = this.extend(this.parsePosition(Helpers.GetValue(positionsArray, i)), parameters);
             ((java.util.List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8401,11 +8400,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        java.util.List<Object> ranksArray = this.toArray(ranks);
+        Object ranksArray = this.toArray(ranks);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranksArray)); i++)
         {
-            java.util.Map<String, Object> rank = this.extend(this.parseADLRank(Helpers.GetValue(ranksArray, i)), parameters);
+            Object rank = this.extend(this.parseADLRank(Helpers.GetValue(ranksArray, i)), parameters);
             ((java.util.List<Object>)result).add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8414,11 +8413,11 @@ public Object describe()
     public Object parseAccounts(Object accounts, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> accountsArray = this.toArray(accounts);
+        Object accountsArray = this.toArray(accounts);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accountsArray)); i++)
         {
-            java.util.Map<String, Object> account = this.extend(this.parseAccount(Helpers.GetValue(accountsArray, i)), parameters);
+            Object account = this.extend(this.parseAccount(Helpers.GetValue(accountsArray, i)), parameters);
             ((java.util.List<Object>)result).add(account);
         }
         return result;
@@ -8430,7 +8429,7 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> tradesArray = this.toArray(trades);
+        Object tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
@@ -8442,7 +8441,7 @@ public Object describe()
             {
                 parsed = this.parseTrade(Helpers.GetValue(tradesArray, i), market);
             }
-            java.util.Map<String, Object> trade = this.extend(parsed, parameters);
+            Object trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -8474,11 +8473,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> transactionsArray = this.toArray(transactions);
+        Object transactionsArray = this.toArray(transactions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactionsArray)); i++)
         {
-            java.util.Map<String, Object> transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactionsArray, i), currency), parameters);
+            Object transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactionsArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -8492,11 +8491,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> transfersArray = this.toArray(transfers);
+        Object transfersArray = this.toArray(transfers);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfersArray)); i++)
         {
-            java.util.Map<String, Object> transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfersArray, i), currency), parameters);
+            Object transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfersArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
@@ -8511,7 +8510,7 @@ public Object describe()
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> arrayData = this.toArray(data);
+        Object arrayData = this.toArray(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arrayData)); i++)
         {
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
@@ -8608,7 +8607,7 @@ public Object describe()
     public Object handleParamInteger(Object parameters, Object paramName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Long value = this.safeInteger(parameters, paramName, defaultValue);
+        Object value = this.safeInteger(parameters, paramName, defaultValue);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
         {
             parameters = this.omit(parameters, paramName);
@@ -8661,9 +8660,9 @@ public Object describe()
     {
         Object currencyCode = Helpers.getArg(optionalArgs, 0, null);
         Object isRequired = Helpers.getArg(optionalArgs, 1, false);
-        Object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-        networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+        String networkCode = null;
+        java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+        networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
@@ -8807,11 +8806,11 @@ public Object describe()
                 (this.throttle(cost)).join();
             }
             Object retries = 0;
-            var retriesparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
+            java.util.List<Object> retriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailure", retries);
             retries = ((java.util.List<Object>) retriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retriesparametersVariable).get(1);
             Object retryDelay = 0;
-            var retryDelayparametersVariable = this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
+            java.util.List<Object> retryDelayparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
             Object fetchData = null;
@@ -8937,7 +8936,7 @@ public Object describe()
         Object i_close = 4;
         Object i_volume = 5;
         Object i_count = 6;
-        Integer tradesLength = Helpers.getArrayLength(trades);
+        Object tradesLength = Helpers.getArrayLength(trades);
         Object oldest = Helpers.mathMin(tradesLength, limit);
         Object options = this.safeDict(this.options, "buildOHLCVC", new java.util.HashMap<String, Object>() {{}});
         Object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
@@ -8963,7 +8962,7 @@ public Object describe()
             {
                 continue;
             }
-            Integer ohlcv_length = Helpers.getArrayLength(ohlcvs);
+            Object ohlcv_length = Helpers.getArrayLength(ohlcvs);
             Object candle = Helpers.subtract(ohlcv_length, 1);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
@@ -9051,9 +9050,9 @@ public Object describe()
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Double price = this.safeFloat(bidask, priceKey);
-        Double amount = this.safeFloat(bidask, amountKey);
-        Long countOrId = this.safeInteger(bidask, countOrIdKey);
+        Object price = this.safeFloat(bidask, priceKey);
+        Object amount = this.safeFloat(bidask, amountKey);
+        Object countOrId = this.safeInteger(bidask, countOrIdKey);
         Object bidAsk = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(countOrId, null)))
         {
@@ -9098,7 +9097,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, marketId);
-                Integer numMarkets = Helpers.getArrayLength(markets);
+                Object numMarkets = Helpers.getArrayLength(markets);
                 if (Helpers.isTrue(Helpers.isEqual(numMarkets, 1)))
                 {
                     return Helpers.GetValue(markets, 0);
@@ -9125,8 +9124,8 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(delimiter, null)) && Helpers.isTrue(!Helpers.isEqual(delimiter, ""))))
             {
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, delimiter);
-                Integer partsLength = Helpers.getArrayLength(parts);
+                Object parts = Helpers.split(marketId, delimiter);
+                Object partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
                 Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
@@ -9459,7 +9458,7 @@ public Object describe()
         } else
         {
             // handle routed methods like "watchTrades > watchTradesForSymbols" (or "watchTicker > watchTickers")
-            var methodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", methodName);
+            java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", methodName);
             methodName = ((java.util.List<Object>) methodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodNameparametersVariable).get(1);
             // check if exchange has properties for this method
@@ -9486,7 +9485,7 @@ public Object describe()
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = null;
-        var valueparametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName1);
+        java.util.List<Object> valueparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName1);
         value = ((java.util.List<Object>) valueparametersVariable).get(0);
         parameters = ((java.util.List<Object>) valueparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
@@ -9497,7 +9496,7 @@ public Object describe()
         }
         // if still undefined, try optionName2
         Object value2 = null;
-        var value2parametersVariable = this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
+        java.util.List<Object> value2parametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName1, optionName2, defaultValue);
         value2 = ((java.util.List<Object>) value2parametersVariable).get(0);
         parameters = ((java.util.List<Object>) value2parametersVariable).get(1);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value2, parameters));
@@ -10295,7 +10294,7 @@ public Object describe()
             throw new ArgumentsRequired((String)Helpers.add(this.id, " currency() requires a code argument")) ;
         }
         Object keys = Helpers.objectKeys(this.currencies);
-        Integer numCurrencies = Helpers.getArrayLength(keys);
+        Object numCurrencies = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
@@ -10363,7 +10362,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
             Object leverageSuffix = Helpers.GetValue(leverageSuffixes, i);
-            Boolean endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
+            Object endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
             if (Helpers.isTrue(endsWithSuffix))
             {
                 if (!Helpers.isTrue(checkBaseCoin))
@@ -10372,7 +10371,7 @@ public Object describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    String baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
+                    Object baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingCurrencies, null))) && Helpers.isTrue((Helpers.inOp(existingCurrencies, baseCurrencyCode)))))
                     {
                         return true;
@@ -10418,7 +10417,7 @@ public Object describe()
             return null;
         }
         Object market = this.market(symbol);
-        String result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        Object result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " price of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price")))) ;
@@ -10433,7 +10432,7 @@ public Object describe()
             return null;
         }
         Object market = this.market(symbol);
-        String result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
@@ -10471,7 +10470,7 @@ public Object describe()
             return this.forceString(fee);
         } else
         {
-            Long roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
+            Object roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
             return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
@@ -10500,14 +10499,14 @@ public Object describe()
         return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
-    public Double safeNumber(Object obj, Object key, Object... optionalArgs)
+    public Object safeNumber(Object obj, Object key, Object... optionalArgs)
     {
         Object defaultNumber = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString(obj, key);
         return this.parseNumber(value, defaultNumber);
     }
 
-    public Double safeNumberN(Object obj, Object arr, Object... optionalArgs)
+    public Object safeNumberN(Object obj, Object arr, Object... optionalArgs)
     {
         Object defaultNumber = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeStringN(obj, arr);
@@ -10590,7 +10589,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object serverTime = (this.fetchTime(parameters)).join();
-            Long after = this.milliseconds();
+            Object after = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(serverTime, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " loadTimeDifference() missing serverTime")) ;
@@ -10705,7 +10704,7 @@ public Object describe()
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pricesData)); i++)
             {
-                java.util.Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, i)), parameters);
+                Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, i)), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
         } else
@@ -10715,7 +10714,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
-                java.util.Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
+                Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
         }
@@ -10755,7 +10754,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
-                java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
+                Object ticker = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
         } else
@@ -10766,7 +10765,7 @@ public Object describe()
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
                 Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
-                java.util.Map<String, Object> ticker = this.extend(parsed, parameters);
+                Object ticker = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
         }
@@ -10782,7 +10781,7 @@ public Object describe()
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
         {
-            java.util.Map<String, Object> address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
+            Object address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
             ((java.util.List<Object>)result).add(address);
         }
         if (Helpers.isTrue(!Helpers.isEqual(codes, null)))
@@ -10823,7 +10822,7 @@ public Object describe()
             Object borrowRate = this.parseBorrowRate(item);
             ((java.util.List<Object>)result).add(borrowRate);
         }
-        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+        Object sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
@@ -10851,7 +10850,7 @@ public Object describe()
             Object entry = Helpers.GetValue(response, i);
             ((java.util.List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
         }
-        java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+        Object sorted = this.sortBy(rates, "timestamp");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -10904,7 +10903,7 @@ public Object describe()
             Object entry = Helpers.GetValue(response, i);
             ((java.util.List<Object>)rates).add(this.parseLongShortRatio(entry, market));
         }
-        java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+        Object sorted = this.sortBy(rates, "timestamp");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11163,7 +11162,7 @@ public Object describe()
             Object interest = this.parseOpenInterest(entry, market);
             ((java.util.List<Object>)interests).add(interest);
         }
-        java.util.List<Object> sorted = this.sortBy(interests, "timestamp");
+        Object sorted = this.sortBy(interests, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11366,7 +11365,7 @@ public Object describe()
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-        String lowercaseAccount = ((String)account).toLowerCase();
+        Object lowercaseAccount = ((String)account).toLowerCase();
         if (Helpers.isTrue(Helpers.inOp(accountsByType, lowercaseAccount)))
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
@@ -11395,10 +11394,10 @@ public Object describe()
         * @returns {undefined}
         */
         Object options = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer optionsLength = Helpers.getArrayLength(options);
+        Object optionsLength = Helpers.getArrayLength(options);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(argument, null))) || Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(optionsLength, 0))) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))))
         {
-            String messageOptions = String.join((String)", ", (java.util.List<String>)options);
+            Object messageOptions = String.join((String)", ", (java.util.List<String>)options);
             Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a "), argumentName), " argument");
             if (Helpers.isTrue(!Helpers.isEqual(messageOptions, "")))
             {
@@ -11498,7 +11497,7 @@ public Object describe()
         */
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
-        Integer numNetworks = Helpers.getArrayLength(networkKeys);
+        Object numNetworks = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isEqual(numNetworks, 1)))
         {
             Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "withdraw"));
@@ -11546,7 +11545,7 @@ public Object describe()
             Object parsed = this.parseIncome(entry, market);
             ((java.util.List<Object>)result).add(parsed);
         }
-        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+        Object sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11668,7 +11667,7 @@ public Object describe()
         Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object newMaxEntriesPerRequest = null;
-        var newMaxEntriesPerRequestparametersVariable = this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
+        java.util.List<Object> newMaxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxEntriesPerRequest");
         newMaxEntriesPerRequest = ((java.util.List<Object>) newMaxEntriesPerRequestparametersVariable).get(0);
         parameters = ((java.util.List<Object>) newMaxEntriesPerRequestparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(newMaxEntriesPerRequest, null))) && Helpers.isTrue((!Helpers.isEqual(newMaxEntriesPerRequest, maxEntriesPerRequest)))))
@@ -11694,27 +11693,27 @@ public Object describe()
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 4, null);
             Object removeRepeated = Helpers.getArg(optionalArgs, 5, true);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             Object paginationDirection = null;
-            var paginationDirectionparametersVariable = this.handleOptionAndParams(parameters, method, "paginationDirection", "backward");
+            java.util.List<Object> paginationDirectionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationDirection", "backward");
             paginationDirection = ((java.util.List<Object>) paginationDirectionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginationDirectionparametersVariable).get(1);
             Object paginationTimestamp = null;
             Object removeRepeatedOption = removeRepeated;
-            var removeRepeatedOptionparametersVariable = this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
+            java.util.List<Object> removeRepeatedOptionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "removeRepeated", removeRepeated);
             removeRepeatedOption = ((java.util.List<Object>) removeRepeatedOptionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) removeRepeatedOptionparametersVariable).get(1);
             Object calls = 0;
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object errors = 0;
-            Long until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "untill", "till"))); // do not omit it from params here
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "untill", "till"))); // do not omit it from params here
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             if (Helpers.isTrue((Helpers.isEqual(paginationDirection, "forward"))))
@@ -11739,7 +11738,7 @@ public Object describe()
                             Helpers.addElementToObject(parameters, "until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequest, parameters })).join();
-                        Integer responseLength = Helpers.getArrayLength(response);
+                        Object responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
                             Object backwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -11769,7 +11768,7 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters })).join();
-                        Integer responseLength = Helpers.getArrayLength(response);
+                        Object responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
                             Object forwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -11786,7 +11785,7 @@ public Object describe()
                         errors = 0;
                         result = this.arrayConcat(result, response);
                         Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
-                        Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
+                        Object lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (Helpers.isTrue(Helpers.isEqual(lastTimestamp, null)))
                         {
                             break;
@@ -11813,7 +11812,7 @@ public Object describe()
                 uniqueResults = this.removeRepeatedElementsFromArray(result);
             }
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
-            java.util.List<Object> sortedRes = this.sortBy(uniqueResults, key);
+            Object sortedRes = this.sortBy(uniqueResults, key);
             return this.filterBySinceLimit(sortedRes, since, limit, key);
         });
 
@@ -11830,7 +11829,7 @@ public Object describe()
             Object timeframe = Helpers.getArg(optionalArgs, 3, null);
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
             Object errors = 0;
@@ -11875,17 +11874,17 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 4, new java.util.HashMap<String, Object>() {{}});
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 5, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             // paginationDirection is only relevant to fetchPaginatedCallDynamic/Cursor; deterministic
             // pagination always walks forward internally, so strip it here to avoid leaking an
             // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
             parameters = this.omit(parameters, "paginationDirection");
-            Long current = this.milliseconds();
+            Object current = this.milliseconds();
             Object tasks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
@@ -11915,7 +11914,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
                 if (Helpers.isTrue(Helpers.isGreaterThan(requiredCalls, maxCalls)))
                 {
                     throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), String.valueOf(maxCalls)), " required calls is "), String.valueOf(requiredCalls))) ;
@@ -11963,14 +11962,14 @@ public Object describe()
             Object cursorIncrement = Helpers.getArg(optionalArgs, 6, null);
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 7, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object cursorValue = null;
@@ -12018,7 +12017,7 @@ public Object describe()
                     {
                         throw new NullResponse((String)Helpers.add(this.id, " fetchPaginatedCallCursor() returned empty response")) ;
                     }
-                    Integer responseLength = Helpers.getArrayLength(response);
+                    Object responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
                         Object cursorString = ((Helpers.isTrue((Helpers.isEqual(cursorValue, null))))) ? "" : cursorValue;
@@ -12053,7 +12052,7 @@ public Object describe()
                     {
                         break;
                     }
-                    Long lastTimestamp = this.safeInteger(last, "timestamp");
+                    Object lastTimestamp = this.safeInteger(last, "timestamp");
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallCursor() requires a since argument")) ;
@@ -12091,14 +12090,14 @@ public Object describe()
             Object pageKey = Helpers.getArg(optionalArgs, 4, null);
             Object maxEntriesPerRequest = Helpers.getArg(optionalArgs, 5, null);
             Object maxCalls = 10;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "paginationCalls", maxCalls);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object maxRetries = 3;
-            var maxRetriesparametersVariable = this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
+            java.util.List<Object> maxRetriesparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, method, "maxRetries", maxRetries);
             maxRetries = ((java.util.List<Object>) maxRetriesparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxRetriesparametersVariable).get(1);
-            var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
+            java.util.List<Object> maxEntriesPerRequestparametersVariable = (java.util.List<Object>) this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
             Object i = 0;
@@ -12111,10 +12110,10 @@ public Object describe()
                     Helpers.addElementToObject(parameters, ((String)pageKey), Helpers.add(i, 1));
                     Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequest, parameters })).join();
                     errors = 0;
-                    Integer responseLength = Helpers.getArrayLength(response);
+                    Object responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
-                        String iteration = String.valueOf((Helpers.add(i, 1)));
+                        Object iteration = String.valueOf((Helpers.add(i, 1)));
                         Object incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
@@ -12172,7 +12171,7 @@ public Object describe()
                 ((java.util.List<Object>)uniqueResult).add(entry);
             }
         }
-        Integer valuesLength = Helpers.getArrayLength(uniqueResult);
+        Object valuesLength = Helpers.getArrayLength(uniqueResult);
         if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
         {
             return uniqueResult;
@@ -12285,7 +12284,7 @@ public Object describe()
             Object parsed = this.parseLiquidation(entry, market);
             ((java.util.List<Object>)result).add(parsed);
         }
-        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+        Object sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -12309,7 +12308,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(greeks)); i++)
             {
                 Object parsedTicker = this.parseGreeks(Helpers.GetValue(greeks, i));
-                java.util.Map<String, Object> greek = this.extend(parsedTicker, parameters);
+                Object greek = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(greek);
             }
         } else
@@ -12320,7 +12319,7 @@ public Object describe()
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
                 Object parsed = this.parseGreeks(Helpers.GetValue(greeks, marketId), market);
-                java.util.Map<String, Object> greek = this.extend(parsed, parameters);
+                Object greek = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(greek);
             }
         }
@@ -12418,7 +12417,7 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 3, null);
         Object limit = Helpers.getArg(optionalArgs, 4, null);
         Object parameters = Helpers.getArg(optionalArgs, 5, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> conversionsArray = this.toArray(conversions);
+        Object conversionsArray = this.toArray(conversions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object fromCurrency = null;
         Object toCurrency = null;
@@ -12435,10 +12434,10 @@ public Object describe()
             {
                 toCurrency = this.safeCurrency(toId);
             }
-            java.util.Map<String, Object> conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
+            Object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
             ((java.util.List<Object>)result).add(conversion);
         }
-        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+        Object sorted = this.sortBy(result, "timestamp");
         Object currency = null;
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
@@ -12453,9 +12452,9 @@ public Object describe()
         {
             return this.filterBySinceLimit(sorted, since, limit);
         }
-        java.util.List<Object> fromConversion = this.filterBy(sorted, "fromCurrency", code);
-        java.util.List<Object> toConversion = this.filterBy(sorted, "toCurrency", code);
-        java.util.List<Object> both = (java.util.List<Object>) this.arrayConcat(fromConversion, toConversion);
+        Object fromConversion = this.filterBy(sorted, "fromCurrency", code);
+        Object toConversion = this.filterBy(sorted, "toCurrency", code);
+        Object both = this.arrayConcat(fromConversion, toConversion);
         return this.filterBySinceLimit(both, since, limit);
     }
 
@@ -12477,9 +12476,9 @@ public Object describe()
             return null;
         }
         // parse YYMMDD to datetime string
-        String year = Helpers.slice(date, 0, 2);
-        String month = Helpers.slice(date, 2, 4);
-        String day = Helpers.slice(date, 4, 6);
+        Object year = Helpers.slice(date, 0, 2);
+        Object month = Helpers.slice(date, 2, 4);
+        Object day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         Object reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
@@ -12493,8 +12492,8 @@ public Object describe()
             return null;
         }
         // parse 240119 to 19JAN24
-        String year = Helpers.slice(date, 0, 2);
-        String monthRaw = Helpers.slice(date, 2, 4);
+        Object year = Helpers.slice(date, 0, 2);
+        Object monthRaw = Helpers.slice(date, 2, 4);
         Object month = null;
         Object day = Helpers.slice(date, 4, 6);
         if (Helpers.isTrue(Helpers.isEqual(monthRaw, "01")))
@@ -12564,8 +12563,8 @@ public Object describe()
         {
             date = Helpers.add("0", date);
         }
-        String year = Helpers.slice(date, 0, 2);
-        String monthName = Helpers.slice(date, 2, 5);
+        Object year = Helpers.slice(date, 0, 2);
+        Object monthName = Helpers.slice(date, 2, 5);
         String month = this.safeString(monthMappping, monthName);
         Object day = Helpers.slice(date, 5, 7);
         Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
@@ -12751,7 +12750,7 @@ public Object describe()
     {
         String topic = this.safeString(subscription, "topic");
         Object symbols = this.safeList(subscription, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer symbolsLength = Helpers.getArrayLength(symbols);
+        Object symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(topic, "ohlcv")))
         {
             Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

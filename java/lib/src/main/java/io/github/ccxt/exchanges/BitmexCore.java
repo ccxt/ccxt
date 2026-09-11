@@ -1539,7 +1539,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1664,7 +1664,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2260,7 +2260,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2291,7 +2291,7 @@ public class BitmexCore extends BitmexApi
             }
             Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object useOpenTimestamp = null;
-            var useOpenTimestampparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
+            java.util.List<Object> useOpenTimestampparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
             useOpenTimestamp = ((java.util.List<Object>) useOpenTimestampparametersVariable).get(0);
             parameters = ((java.util.List<Object>) useOpenTimestampparametersVariable).get(1);
             // if since is not set, they will return candles starting from 2017-01-01
@@ -2621,7 +2621,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3436,7 +3436,7 @@ public class BitmexCore extends BitmexApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -3446,9 +3446,9 @@ public class BitmexCore extends BitmexApi
             }
             Object currency = this.currency(code);
             Object qty = this.convertFromRealAmount(code, amount);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3777,9 +3777,9 @@ public class BitmexCore extends BitmexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
@@ -4066,7 +4066,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLiquidations", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4085,7 +4085,7 @@ public class BitmexCore extends BitmexApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.publicGetLiquidation(this.extend(request, parameters))).join();

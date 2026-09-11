@@ -235,7 +235,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object privateAccess = Helpers.isEqual(access, "private");
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
@@ -311,7 +311,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object subscriptionParams = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object privateAccess = Helpers.isEqual(access, "private");
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));

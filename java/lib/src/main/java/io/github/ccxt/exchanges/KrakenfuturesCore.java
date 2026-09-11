@@ -1088,7 +1088,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1187,7 +1187,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1199,14 +1199,14 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "historyGetMarketSymbolExecutions");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object isFullHistoryEndpoint = (Helpers.isEqual(method, "historyGetMarketSymbolExecutions"));
             if (Helpers.isTrue(isFullHistoryEndpoint))
             {
-                var requestparametersVariable = this.handleUntilOption("before", request, parameters);
+                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("before", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1283,7 +1283,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 }
             } else
             {
-                var requestparametersVariable = this.handleUntilOption("lastTime", request, parameters);
+                java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("lastTime", request, parameters);
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
                 Object response = (this.publicGetHistory(this.extend(request, parameters))).join();
@@ -1513,9 +1513,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         symbol = Helpers.GetValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(type, "post"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {

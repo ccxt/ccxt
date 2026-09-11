@@ -986,7 +986,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index")).join();
+            java.util.List<Object> accountIndexparametersVariable = (java.util.List<Object>) (this.handleAccountIndex(parameters, "watchMyTrades", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("myTrades");
@@ -1027,7 +1027,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index")).join();
+            java.util.List<Object> accountIndexparametersVariable = (java.util.List<Object>) (this.handleAccountIndex(parameters, "unWatchMyTrades", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("unsubscribe", "myTrades");
@@ -1220,12 +1220,12 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Object defaultType = this.safeString2(this.options, "watchBalance", "defaultType", "spot");
-            Object type = null;
-            var typeparametersVariable = this.handleParamString(parameters, "type", defaultType);
-            type = ((java.util.List<Object>) typeparametersVariable).get(0);
+            String type = null;
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "type", defaultType);
+            type = (String) ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index")).join();
+            java.util.List<Object> accountIndexparametersVariable = (java.util.List<Object>) (this.handleAccountIndex(parameters, "watchBalance", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = this.getMessageHash("balances", null, type);
@@ -1366,7 +1366,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
+            java.util.List<Object> accountIndexparametersVariable = (java.util.List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;
@@ -1412,7 +1412,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 (this.loadMarkets()).join();
             }
             Object accountIndex = null;
-            var accountIndexparametersVariable = (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
+            java.util.List<Object> accountIndexparametersVariable = (java.util.List<Object>) (this.handleAccountIndex(parameters, "watchOrders", "accountIndex", "account_index")).join();
             accountIndex = ((java.util.List<Object>) accountIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIndexparametersVariable).get(1);
             Object messageHash = null;

@@ -1362,7 +1362,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1521,7 +1521,7 @@ public class GrvtCore extends GrvtApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1544,7 +1544,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1628,7 +1628,7 @@ public class GrvtCore extends GrvtApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1643,7 +1643,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1703,7 +1703,7 @@ public class GrvtCore extends GrvtApi
     public String getSubAccountId(Object parameters)
     {
         Object subAccountId = null;
-        var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "getSubAccountId", "accountId");
+        java.util.List<Object> subAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "getSubAccountId", "accountId");
         subAccountId = ((java.util.List<Object>) subAccountIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subAccountIdparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(subAccountId, null)))
@@ -1851,7 +1851,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1926,7 +1926,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2174,7 +2174,7 @@ public class GrvtCore extends GrvtApi
             Object currency = this.currency(code);
             Object maxLimit = 1000;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2185,7 +2185,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2281,11 +2281,11 @@ public class GrvtCore extends GrvtApi
             if (Helpers.isTrue(Helpers.isTrue(this.inArray(fromAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("trading", "funding")))) && Helpers.isTrue(this.inArray(toAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("trading", "funding"))))))
             {
                 Object tradingAccountId = null;
-                var tradingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
+                java.util.List<Object> tradingAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "transfer", "tradingAccountId");
                 tradingAccountId = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) tradingAccountIdparametersVariable).get(1);
                 Object fundingAccountId = null;
-                var fundingAccountIdparametersVariable = this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
+                java.util.List<Object> fundingAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "transfer", "fundingAccountId");
                 fundingAccountId = ((java.util.List<Object>) fundingAccountIdparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) fundingAccountIdparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)) || Helpers.isTrue(Helpers.isEqual(fundingAccountId, null))))
@@ -2489,8 +2489,8 @@ public class GrvtCore extends GrvtApi
                 put( "num_tokens", GrvtCore.this.currencyToPrecision(code, amount) );
                 put( "signature", GrvtCore.this.defaultSignature() );
             }};
-            var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-            var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
+            java.util.List<Object> networkCodequeryVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -2621,7 +2621,7 @@ public class GrvtCore extends GrvtApi
             Object triggerPrice = null;
             Object stopLossPrice = null;
             Object takeProfitPrice = null;
-            var triggerPricestopLossPricetakeProfitPriceparametersVariable = this.handleTriggerPricesAndParams(symbol, parameters);
+            java.util.List<Object> triggerPricestopLossPricetakeProfitPriceparametersVariable = (java.util.List<Object>) this.handleTriggerPricesAndParams(symbol, parameters);
             triggerPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(0);
             stopLossPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(1);
             takeProfitPrice = ((java.util.List<Object>) triggerPricestopLossPricetakeProfitPriceparametersVariable).get(2);
@@ -2850,7 +2850,7 @@ public class GrvtCore extends GrvtApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2874,7 +2874,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3241,7 +3241,7 @@ public class GrvtCore extends GrvtApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3265,7 +3265,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3361,7 +3361,7 @@ public class GrvtCore extends GrvtApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOptionString("end_time", request, parameters, 1000000);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOptionString("end_time", request, parameters, 1000000);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

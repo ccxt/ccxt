@@ -1878,7 +1878,7 @@ public class HibachiCore extends HibachiApi
                 Helpers.addElementToObject(request, "startTime", since);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersByStatus", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -2015,7 +2015,7 @@ public class HibachiCore extends HibachiApi
                 Helpers.addElementToObject(request, "fromMs", since);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -2713,7 +2713,7 @@ public class HibachiCore extends HibachiApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMySettlementHistory", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))

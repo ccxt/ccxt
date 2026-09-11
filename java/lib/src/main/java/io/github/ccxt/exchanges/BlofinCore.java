@@ -1193,7 +1193,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1210,7 +1210,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100
             }
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetMarketTrades")))
@@ -1271,7 +1271,7 @@ public class BlofinCore extends BlofinApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1332,7 +1332,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1607,7 +1607,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object accountType = null;
-            var accountTypeparametersVariable = this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
+            java.util.List<Object> accountTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchBalance", "accountType", "type");
             accountType = ((java.util.List<Object>) accountTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -1650,7 +1650,7 @@ public class BlofinCore extends BlofinApi
             put( "brokerId", BlofinCore.this.safeString(BlofinCore.this.options, "brokerId", "ec6dd3a7dd982d0b") );
         }};
         Object marginMode = null;
-        var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         Helpers.addElementToObject(request, "marginMode", marginMode);
@@ -1674,9 +1674,9 @@ public class BlofinCore extends BlofinApi
             Object key = ((Helpers.isTrue((!Helpers.isEqual(triggerPriceAny, null))))) ? "orderPrice" : "price";
             Helpers.addElementToObject(request, key, this.priceToPrecision(symbol, price));
         }
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "post_only"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "post_only"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
@@ -1917,7 +1917,7 @@ public class BlofinCore extends BlofinApi
             Object isTakeProfitPriceDefined = !Helpers.isEqual(this.safeString(parameters, "takeProfitPrice"), null);
             Object isTriggerOrder = !Helpers.isEqual(this.safeString(parameters, "triggerPrice"), null);
             Object isTpslEndpoint = false;
-            var isTpslEndpointparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
+            java.util.List<Object> isTpslEndpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "tpsl", false);
             isTpslEndpoint = ((java.util.List<Object>) isTpslEndpointparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isTpslEndpointparametersVariable).get(1);
             Object isCombinedSlTp = Helpers.isTrue((Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined))) || Helpers.isTrue(isTpslEndpoint);
@@ -2168,7 +2168,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2189,7 +2189,7 @@ public class BlofinCore extends BlofinApi
             Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")), false);
             Object isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));
@@ -2240,7 +2240,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2254,7 +2254,7 @@ public class BlofinCore extends BlofinApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "instId", Helpers.GetValue(market, "id"));
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2262,7 +2262,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Object type = "swap";
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -2328,7 +2328,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2350,7 +2350,7 @@ public class BlofinCore extends BlofinApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
@@ -2387,7 +2387,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2409,7 +2409,7 @@ public class BlofinCore extends BlofinApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
@@ -2447,7 +2447,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2465,7 +2465,7 @@ public class BlofinCore extends BlofinApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetBills(this.extend(request, parameters))).join();
@@ -2922,7 +2922,7 @@ public class BlofinCore extends BlofinApi
             {
                 Helpers.addElementToObject(request, "begin", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -3143,7 +3143,7 @@ public class BlofinCore extends BlofinApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchLeverages() requires a symbols argument")) ;
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverages", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverages", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -3216,7 +3216,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -3300,7 +3300,7 @@ public class BlofinCore extends BlofinApi
             }
             Object market = this.market(symbol);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, "cross"))) && Helpers.isTrue((!Helpers.isEqual(marginMode, "isolated")))))
@@ -3351,7 +3351,7 @@ public class BlofinCore extends BlofinApi
             Object market = this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
@@ -3397,7 +3397,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3421,7 +3421,7 @@ public class BlofinCore extends BlofinApi
             }
             Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "tpsl", "TPSL")), false);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "method", "privateGetTradeOrdersHistory");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "tpsl", "TPSL")));

@@ -471,7 +471,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object interval = null;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
+            java.util.List<Object> intervalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "interval", "100ms");
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(interval, "raw")))
@@ -681,7 +681,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object interval = null;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
+            java.util.List<Object> intervalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "interval", "100ms");
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(interval, "raw")))
@@ -690,17 +690,17 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             }
             Object descriptor = "";
             Object useDepthEndpoint = null; // for more info, see comment in .options
-            var useDepthEndpointparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
+            java.util.List<Object> useDepthEndpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "useDepthEndpoint", false);
             useDepthEndpoint = ((java.util.List<Object>) useDepthEndpointparametersVariable).get(0);
             parameters = ((java.util.List<Object>) useDepthEndpointparametersVariable).get(1);
             if (Helpers.isTrue(useDepthEndpoint))
             {
                 Object depth = null;
-                var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
+                java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "depth", "20");
                 depth = ((java.util.List<Object>) depthparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
                 Object group = null;
-                var groupparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
+                java.util.List<Object> groupparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "group", "none");
                 group = ((java.util.List<Object>) groupparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) groupparametersVariable).get(1);
                 descriptor = Helpers.add(Helpers.add(Helpers.add(Helpers.add(group, "."), depth), "."), interval);

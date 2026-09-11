@@ -2442,7 +2442,7 @@ public class LimitlessCore extends LimitlessApi
             Object usesSmartWallet = (Helpers.isEqual(tradeWalletOption, "smartWallet"));
             Object walletFromAccount = ((Helpers.isTrue((usesSmartWallet)))) ? this.safeString(accountInfo, "smartWallet") : this.safeString(accountInfo, "account");
             Object maker = ((Helpers.isTrue((!Helpers.isEqual(this.walletAddress, ""))))) ? this.walletAddress : walletFromAccount;
-            var makerparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
+            java.util.List<Object> makerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "maker", maker);
             maker = ((java.util.List<Object>) makerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) makerparametersVariable).get(1);
             try
@@ -2462,7 +2462,7 @@ public class LimitlessCore extends LimitlessApi
             {
                 signer = embeddedAddress;
             }
-            var signerparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "signer", signer);
+            java.util.List<Object> signerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signer", signer);
             signer = ((java.util.List<Object>) signerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) signerparametersVariable).get(1);
             try
@@ -2473,7 +2473,7 @@ public class LimitlessCore extends LimitlessApi
                 throw new InvalidAddress((String)Helpers.add(this.id, " createOrder requires a valid signer address. Set the \"signer\" parameter to a valid address or set the \"walletAddress\" property in the constructor options.")) ;
             }
             Object taker = this.safeString(this.options, "nullAddress", "0x0000000000000000000000000000000000000000");
-            var takerparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
+            java.util.List<Object> takerparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "taker", taker);
             taker = ((java.util.List<Object>) takerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) takerparametersVariable).get(1);
             try
@@ -2496,7 +2496,7 @@ public class LimitlessCore extends LimitlessApi
             Object rank = this.safeDict(accountInfo, "rank");
             // signatureType: 0 = EOA, 2 = smart-wallet (the embedded owner signs on behalf of the safe)
             Object signatureType = ((Helpers.isTrue(isSmartWallet))) ? 2 : 0;
-            var signatureTypeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "signatureType", signatureType);
+            java.util.List<Object> signatureTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "signatureType", signatureType);
             signatureType = ((java.util.List<Object>) signatureTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) signatureTypeparametersVariable).get(1);
             final Object finalMaker = maker;
@@ -2529,9 +2529,9 @@ public class LimitlessCore extends LimitlessApi
             Object makerAmount = null;
             Object takerAmount = null;
             Object isMarket = Helpers.isEqual(type, "market");
-            Object postOnly = false;
-            var postOnlyparametersVariable = this.handlePostOnly(isMarket, false, parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = false;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarket, false, parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             Object timeInForce = this.safeString(parameters, "timeInForce");
             parameters = this.omit(parameters, "timeInForce");
@@ -2543,7 +2543,7 @@ public class LimitlessCore extends LimitlessApi
             if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
             {
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Object cost = this.safeNumber(parameters, "cost");
@@ -2919,7 +2919,7 @@ public class LimitlessCore extends LimitlessApi
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 Object warn = true;
-                var warnparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
+                java.util.List<Object> warnparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "warnOnCancelAllOrdersWithOutcome", warn);
                 warn = ((java.util.List<Object>) warnparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) warnparametersVariable).get(1);
                 if (Helpers.isTrue(warn))
@@ -2979,7 +2979,7 @@ public class LimitlessCore extends LimitlessApi
             }
             Object paginate = false;
             Object maxLimit = 100;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate", paginate);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))

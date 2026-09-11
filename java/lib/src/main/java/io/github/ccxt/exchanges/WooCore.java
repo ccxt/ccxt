@@ -1823,7 +1823,7 @@ public class WooCore extends WooApi
                 put( "side", finalOrderSide );
             }};
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -2378,7 +2378,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2923,7 +2923,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3194,9 +3194,9 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3225,7 +3225,7 @@ public class WooCore extends WooApi
     public Object getDedicatedNetworkId(Object currency, Object parameters)
     {
         Object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
         networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
         networkCode = this.networkIdToCode(networkCode, Helpers.GetValue(currency, "code"));
@@ -3274,9 +3274,9 @@ public class WooCore extends WooApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "token", Helpers.GetValue(currency, "id"));
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -3829,7 +3829,7 @@ public class WooCore extends WooApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -4143,7 +4143,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4412,7 +4412,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4432,7 +4432,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v3PublicGetFundingRateHistory(this.extend(request, parameters))).join();
@@ -4554,7 +4554,7 @@ public class WooCore extends WooApi
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }};
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters, "cross");
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "marginMode", this.encodeMarginMode(marginMode));
@@ -4651,7 +4651,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "marginMode", this.encodeMarginMode(marginMode));
@@ -5161,7 +5161,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

@@ -534,7 +534,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             Object market = this.market(symbol);
             Object aggLevel = null;
-            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            java.util.List<Object> aggLevelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             Object messageHash = Helpers.add("orderbook:", symbol);
@@ -579,7 +579,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             Object market = this.market(symbol);
             Object aggLevel = null;
-            var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
+            java.util.List<Object> aggLevelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             Object subMessageHash = Helpers.add("orderbook:", symbol);
@@ -786,7 +786,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("watchMyTrades", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("watchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -847,7 +847,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchMyTrades does not support a symbol argument, unWatch from all markets only")) ;
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             String messageHash = "unsubscribe:myTrades";
@@ -1359,7 +1359,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("watchOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("watchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object market = null;
@@ -1422,7 +1422,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             String urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
             Object userAddress = null;
-            var userAddressparametersVariable = this.handleOriginAndSingleAddress("unWatchOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handleOriginAndSingleAddress("unWatchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;

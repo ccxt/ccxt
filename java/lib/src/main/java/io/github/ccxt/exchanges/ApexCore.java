@@ -985,7 +985,7 @@ public class ApexCore extends ApexApi
                 limit = 200; // default is 200 when requested with `since`
             }
             Helpers.addElementToObject(request, "limit", limit); // max 200, default 200
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

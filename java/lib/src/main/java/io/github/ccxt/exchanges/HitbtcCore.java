@@ -1543,10 +1543,10 @@ public class HitbtcCore extends HitbtcApi
             Object marketType = null;
             Object marginMode = null;
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2108,7 +2108,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object response = null;
@@ -2177,7 +2177,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2193,7 +2193,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
             }
-            var requestparametersVariable = this.handleUntilOption("until", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2323,10 +2323,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchClosedOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchClosedOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2391,10 +2391,10 @@ public class HitbtcCore extends HitbtcApi
             }};
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2482,10 +2482,10 @@ public class HitbtcCore extends HitbtcApi
             }};
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrderTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrderTrades", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrderTrades", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2589,10 +2589,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOpenOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2675,10 +2675,10 @@ public class HitbtcCore extends HitbtcApi
             }};
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOpenOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOpenOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2740,10 +2740,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2807,10 +2807,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2873,10 +2873,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("editOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("editOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -2939,11 +2939,11 @@ public class HitbtcCore extends HitbtcApi
             Object market = this.market(symbol);
             Object request = null;
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("createOrder", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("createOrder", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             var requestparametersVariable = this.createOrderRequest(market, marketType, type, side, amount, price, marginMode, parameters);
@@ -3212,7 +3212,7 @@ public class HitbtcCore extends HitbtcApi
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMarginMode", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3387,7 +3387,7 @@ public class HitbtcCore extends HitbtcApi
             Object code = code3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -3463,7 +3463,7 @@ public class HitbtcCore extends HitbtcApi
                 Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)queryMarketIds));
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchFundingRates", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, "swap")))
@@ -3535,7 +3535,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3544,7 +3544,7 @@ public class HitbtcCore extends HitbtcApi
             }
             Object market = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("until", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3631,14 +3631,14 @@ public class HitbtcCore extends HitbtcApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPositions", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 marketType = "swap";
             }
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPositions", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchPositions", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -3729,10 +3729,10 @@ public class HitbtcCore extends HitbtcApi
             }};
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPosition", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPosition", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchPosition", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchPosition", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -4151,10 +4151,10 @@ public class HitbtcCore extends HitbtcApi
             }
             Object marketType = null;
             Object marginMode = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("modifyMarginHelper", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            var marginModeparametersVariable = this.handleMarginModeAndParams("modifyMarginHelper", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("modifyMarginHelper", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object response = null;
@@ -4314,7 +4314,7 @@ public class HitbtcCore extends HitbtcApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginMode", "margin")));
@@ -4574,7 +4574,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object market = this.market(symbol);
@@ -4618,7 +4618,7 @@ public class HitbtcCore extends HitbtcApi
         String defaultType = this.safeString(this.options, "defaultType");
         Object isMargin = this.safeBool(parameters, "margin", false);
         Object marginMode = null;
-        var marginModeparametersVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))

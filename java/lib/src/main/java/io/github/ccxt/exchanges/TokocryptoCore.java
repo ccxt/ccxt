@@ -2136,7 +2136,7 @@ public class TokocryptoCore extends TokocryptoApi
                     Object precision = Helpers.GetValue(Helpers.GetValue(market, "precision"), "price");
                     Object quoteAmount = null;
                     Object createMarketBuyOrderRequiresPrice = true;
-                    var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
@@ -2968,7 +2968,7 @@ public class TokocryptoCore extends TokocryptoApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2986,8 +2986,8 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(request, "addressTag", tag);
             }
-            var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-            var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
+            java.util.List<Object> networkCodequeryVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))

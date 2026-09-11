@@ -1082,7 +1082,7 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchBalance", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -1159,7 +1159,7 @@ public class HyperliquidCore extends HyperliquidApi
                 (this.loadOutcomes()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -1501,7 +1501,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Helpers.addElementToObject(orderObj, "c", clientOrderId);
             }
             Object vaultAddress = null;
-            var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
+            java.util.List<Object> vaultAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "vaultAddress");
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -1673,7 +1673,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             Helpers.addElementToObject(cancelAction, "cancels", cancelReq);
             Object vaultAddress = null;
-            var vaultAddressparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "vaultAddress");
+            java.util.List<Object> vaultAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "vaultAddress");
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
@@ -1762,11 +1762,11 @@ public class HyperliquidCore extends HyperliquidApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchOpenOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchOpenOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "frontendOpenOrders");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
@@ -1824,7 +1824,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -1899,7 +1899,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchOrder", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchOrder", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2147,7 +2147,7 @@ public class HyperliquidCore extends HyperliquidApi
                 (this.loadOutcomes()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchMyTrades", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -2697,11 +2697,11 @@ public class HyperliquidCore extends HyperliquidApi
     public Object handlePublicAddress(Object methodName, Object parameters)
     {
         Object userAux = null;
-        var userAuxparametersVariable = this.handleOptionAndParams2(parameters, methodName, "user", "subAccountAddress");
+        java.util.List<Object> userAuxparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, methodName, "user", "subAccountAddress");
         userAux = ((java.util.List<Object>) userAuxparametersVariable).get(0);
         parameters = ((java.util.List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        var userparametersVariable = this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        java.util.List<Object> userparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
         user = ((java.util.List<Object>) userparametersVariable).get(0);
         parameters = ((java.util.List<Object>) userparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(user, null)) && Helpers.isTrue(!Helpers.isEqual(user, ""))))

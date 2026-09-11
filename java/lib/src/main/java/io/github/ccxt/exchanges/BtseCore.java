@@ -935,7 +935,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             Object maxLimit = 300;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -962,7 +962,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1109,7 +1109,7 @@ public class BtseCore extends BtseApi
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports contract markets only")) ;
             }
             Object period = null;
-            var periodparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
+            java.util.List<Object> periodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "period");
             period = ((java.util.List<Object>) periodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) periodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(period, null)))
@@ -1134,7 +1134,7 @@ public class BtseCore extends BtseApi
                 put( "period", finalPeriod );
             }};
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Object response = (this.publicGetPublicApiMarketV1RecentFundingHistory(this.extend(request, parameters))).join();
@@ -1211,7 +1211,7 @@ public class BtseCore extends BtseApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object type = "spot";
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -1240,7 +1240,7 @@ public class BtseCore extends BtseApi
             } else
             {
                 Object wallet = null;
-                var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
+                java.util.List<Object> walletparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "wallet", "CROSS@");
                 wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
                 final Object finalWallet = wallet;
@@ -1859,7 +1859,7 @@ public class BtseCore extends BtseApi
             }
             // the unified trades endpoint has no server-side time filtering, since and until are applied client-side below
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Object response = (this.publicGetPublicApiMarketV1Trades(this.extend(request, parameters))).join();
@@ -1947,11 +1947,11 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -2307,10 +2307,10 @@ public class BtseCore extends BtseApi
             }
             Object isMarketOrder = (Helpers.isEqual(type, "MARKET"));
             Object isLimitOrder = (Helpers.isEqual(type, "LIMIT"));
-            Object postOnly = false;
+            Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, postOnly, parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Helpers.isTrue(postOnly))
             {
@@ -2343,7 +2343,7 @@ public class BtseCore extends BtseApi
             {
                 String quoteAmount = null;
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 String cost = this.safeString(parameters, "cost");
@@ -2553,11 +2553,11 @@ public class BtseCore extends BtseApi
             if (Helpers.isTrue(Helpers.isEqual(positionMode, null)))
             {
                 Object hedged = false;
-                var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
+                java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged", hedged);
                 hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
                 Object marginMode = "cross";
-                var marginModeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "marginMode", marginMode);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "marginMode", marginMode);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
@@ -2574,10 +2574,10 @@ public class BtseCore extends BtseApi
             }
             Object isMarketOrder = (Helpers.isEqual(type, "MARKET"));
             Object isLimitOrder = (Helpers.isEqual(type, "LIMIT"));
-            Object postOnly = false;
+            Boolean postOnly = false;
             // exchange-specific postOnly is the same as the unified one
-            var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, postOnly, parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, postOnly, parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1); // this will remove PO from params.timeInForce if present
             if (Helpers.isTrue(postOnly))
             {
@@ -2801,7 +2801,7 @@ public class BtseCore extends BtseApi
                 market = this.market(symbol);
             }
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3016,7 +3016,7 @@ public class BtseCore extends BtseApi
                 market = this.market(symbol);
             }
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -3064,7 +3064,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrdersAfter", null, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3112,7 +3112,7 @@ public class BtseCore extends BtseApi
                 market = this.market(symbol);
             }
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3326,7 +3326,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             Object response = null;
             Object marketType = "spot";
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters, marketType);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters, marketType);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3415,7 +3415,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, methodName, "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -3691,7 +3691,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -4275,7 +4275,7 @@ public class BtseCore extends BtseApi
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
             }};
             Object type = "market";
-            var typeparametersVariable = this.handleOptionAndParams(parameters, "closePosition", "type", type);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "closePosition", "type", type);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             type = ((String)type).toUpperCase();
@@ -4410,7 +4410,7 @@ public class BtseCore extends BtseApi
             // verified live - a bare call on a cross account silently changes the
             // isolated leverage only, so the unified marginMode param is translated here
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))

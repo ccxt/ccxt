@@ -2739,7 +2739,7 @@ public class BitstampCore extends BitstampApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2761,7 +2761,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "since_timestamp", Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000)))));
             }
-            var requestparametersVariable = this.handleUntilOption("until_timestamp", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("until_timestamp", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3560,7 +3560,7 @@ public class BitstampCore extends BitstampApi
             // Check https://www.bitstamp.net/api/ under 'Open bank withdrawal' for list and description.
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))

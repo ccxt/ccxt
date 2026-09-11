@@ -1203,7 +1203,7 @@ public class BackpackCore extends BackpackApi
                 put( "interval", interval );
             }};
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1810,7 +1810,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 1000
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1863,7 +1863,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object until = null;
-            var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1910,8 +1910,8 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "clientId", tag); // memo or tag
             }
-            var networkCodequeryVariable = this.handleNetworkCodeAndParams(parameters);
-            var networkCode = ((java.util.List<Object>) networkCodequeryVariable).get(0);
+            java.util.List<Object> networkCodequeryVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((java.util.List<Object>) networkCodequeryVariable).get(0);
             var query = ((java.util.List<Object>) networkCodequeryVariable).get(1);
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
             if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
@@ -2083,9 +2083,9 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
@@ -2263,9 +2263,9 @@ public class BackpackCore extends BackpackApi
             Helpers.addElementToObject(request, "clientId", clientOrderId);
             parameters = this.omit(parameters, "clientOrderId");
         }
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), false, parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         if (Helpers.isTrue(postOnly))
         {
@@ -2302,7 +2302,7 @@ public class BackpackCore extends BackpackApi
             parameters = this.omit(parameters, "stopLoss");
         }
         Object selfTradePrevention = null;
-        var selfTradePreventionparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
+        java.util.List<Object> selfTradePreventionparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "selfTradePrevention");
         selfTradePrevention = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(0);
         parameters = ((java.util.List<Object>) selfTradePreventionparametersVariable).get(1);
         if (Helpers.isTrue(!Helpers.isEqual(selfTradePrevention, null)))

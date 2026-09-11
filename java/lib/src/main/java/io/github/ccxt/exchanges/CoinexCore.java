@@ -1733,7 +1733,7 @@ public class CoinexCore extends CoinexApi
                 Object symbol = this.safeValue(symbols, 0);
                 market = this.market(symbol);
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object response = null;
@@ -2078,7 +2078,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object response = null;
@@ -2437,11 +2437,11 @@ public class CoinexCore extends CoinexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBalance", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBalance", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object isMargin = Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")));
@@ -2882,7 +2882,7 @@ public class CoinexCore extends CoinexApi
         } else
         {
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -2895,7 +2895,7 @@ public class CoinexCore extends CoinexApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
             {
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 Object cost = this.safeNumber(parameters, "cost");
@@ -3288,7 +3288,7 @@ public class CoinexCore extends CoinexApi
                 Helpers.addElementToObject(request, "order_id", this.parseToNumeric(id));
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("editOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("editOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -3360,7 +3360,7 @@ public class CoinexCore extends CoinexApi
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object marginMode = null;
-                var marginModeorderParamsVariable = this.handleMarginModeAndParams("editOrders", orderParams);
+                java.util.List<Object> marginModeorderParamsVariable = (java.util.List<Object>) this.handleMarginModeAndParams("editOrders", orderParams);
                 marginMode = ((java.util.List<Object>) marginModeorderParamsVariable).get(0);
                 orderParams = ((java.util.List<Object>) marginModeorderParamsVariable).get(1);
                 Object market_type = "SPOT";
@@ -3465,7 +3465,7 @@ public class CoinexCore extends CoinexApi
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("cancelOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(swap, true)))
@@ -3582,7 +3582,7 @@ public class CoinexCore extends CoinexApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -3691,7 +3691,7 @@ public class CoinexCore extends CoinexApi
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3722,7 +3722,7 @@ public class CoinexCore extends CoinexApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -3896,9 +3896,9 @@ public class CoinexCore extends CoinexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(networkCode, null)))
             {
@@ -3998,7 +3998,7 @@ public class CoinexCore extends CoinexApi
             {
                 Helpers.addElementToObject(request, "start_time", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -4009,7 +4009,7 @@ public class CoinexCore extends CoinexApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -4050,7 +4050,7 @@ public class CoinexCore extends CoinexApi
                 (this.loadMarkets()).join();
             }
             Object defaultMethod = null;
-            var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
+            java.util.List<Object> defaultMethodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method", "v2PrivateGetFuturesPendingPosition");
             defaultMethod = ((java.util.List<Object>) defaultMethodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) defaultMethodparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
@@ -4376,7 +4376,7 @@ public class CoinexCore extends CoinexApi
                 throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Long minLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "min", 1);
@@ -4709,7 +4709,7 @@ final Object finalI = i;
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "market_type", "FUTURES" );
             }};
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4975,7 +4975,7 @@ final Object finalI = i;
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -4993,9 +4993,9 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -5082,7 +5082,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5101,7 +5101,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v2PublicGetFuturesFundingRateHistory(this.extend(request, parameters))).join();
@@ -5403,7 +5403,7 @@ final Object finalI = i;
                 put( "ccy", Helpers.GetValue(currency, "id") );
             }};
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchTransfers", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchTransfers", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -5421,7 +5421,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v2PrivateGetAssetsTransferHistory(this.extend(request, parameters))).join();
@@ -6266,7 +6266,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "start_time", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v2PrivateGetFuturesFinishedPosition(this.extend(request, parameters))).join();
@@ -6407,7 +6407,7 @@ final Object finalI = i;
         String defaultType = this.safeString(this.options, "defaultType");
         Object isMargin = this.safeBool(parameters, "margin", false);
         Object marginMode = null;
-        var marginModeparametersVariable = super.handleMarginModeAndParams(methodName, parameters, defaultValue);
+        java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -6629,7 +6629,7 @@ final Object finalI = i;
                 put( "market_type", "FUTURES" );
                 put( "position_id", finalPositionId );
             }};
-            var requestparametersVariable = this.handleUntilOption("end_time", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_time", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

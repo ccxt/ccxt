@@ -1276,11 +1276,11 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -1835,7 +1835,7 @@ public class BitrueCore extends BitrueApi
                 }
             } else
             {
-                var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", null, parameters);
+                java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", null, parameters);
                 type = ((java.util.List<Object>) typeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
@@ -2315,7 +2315,7 @@ public class BitrueCore extends BitrueApi
                 }
                 Helpers.addElementToObject(request, "contractName", Helpers.GetValue(market, "id"));
                 Object createMarketBuyOrderRequiresPrice = true;
-                var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(side, "buy")))) && Helpers.isTrue(createMarketBuyOrderRequiresPrice)))
@@ -3295,7 +3295,7 @@ public class BitrueCore extends BitrueApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -3309,9 +3309,9 @@ public class BitrueCore extends BitrueApi
                 put( "amount", amount );
                 put( "addressTo", address );
             }};
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {

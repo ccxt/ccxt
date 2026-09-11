@@ -980,7 +980,7 @@ public class BigoneCore extends BigoneApi
             }
             Object market = this.market(symbol);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTicker", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTicker", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
@@ -1043,7 +1043,7 @@ public class BigoneCore extends BigoneApi
                 market = this.market(symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = Helpers.isEqual(type, "spot");
@@ -1829,9 +1829,9 @@ public class BigoneCore extends BigoneApi
             Object uppercaseType = ((String)type).toUpperCase();
             Object isLimit = Helpers.isEqual(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
-            Object postOnly = null;
-            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(exchangeSpecificParam, true), parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = null;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(exchangeSpecificParam, true), parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1860,7 +1860,7 @@ public class BigoneCore extends BigoneApi
                 if (Helpers.isTrue(isBuy))
                 {
                     Object createMarketBuyOrderRequiresPrice = null;
-                    var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Object cost = this.safeNumber(parameters, "cost");
@@ -2353,8 +2353,8 @@ public class BigoneCore extends BigoneApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_symbol", Helpers.GetValue(currency, "id") );
             }};
-            var networkCodeparamsOmittedVariable = this.handleNetworkCodeAndParams(parameters);
-            var networkCode = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
+            java.util.List<Object> networkCodeparamsOmittedVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            String networkCode = (String) ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(0);
             var paramsOmitted = ((java.util.List<Object>) networkCodeparamsOmittedVariable).get(1);
             Object response = (this.privateGetAssetsAssetSymbolAddress(this.extend(request, paramsOmitted))).join();
             //
@@ -2731,7 +2731,7 @@ public class BigoneCore extends BigoneApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -2748,9 +2748,9 @@ public class BigoneCore extends BigoneApi
             {
                 Helpers.addElementToObject(request, "memo", tag);
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {

@@ -370,7 +370,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object usePerpetualApi = Helpers.isEqual(this.safeString(parameters, "settle"), "USDT");
@@ -962,7 +962,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                     Helpers.addElementToObject(parameters, "settle", "USDT");
                 }
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -1155,7 +1155,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                     Helpers.addElementToObject(parameters, "settle", "USDT");
                 }
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isUSDTSettled = Helpers.isEqual(this.safeString(parameters, "settle"), "USDT");

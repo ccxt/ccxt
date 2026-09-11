@@ -1031,11 +1031,11 @@ public class DydxCore extends DydxApi
     public Object handlePublicAddress(Object methodName, Object parameters)
     {
         Object userAux = null;
-        var userAuxparametersVariable = this.handleOptionAndParams(parameters, methodName, "user");
+        java.util.List<Object> userAuxparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "user");
         userAux = ((java.util.List<Object>) userAuxparametersVariable).get(0);
         parameters = ((java.util.List<Object>) userAuxparametersVariable).get(1);
         Object user = userAux;
-        var userparametersVariable = this.handleOptionAndParams(parameters, methodName, "address", userAux);
+        java.util.List<Object> userparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "address", userAux);
         user = ((java.util.List<Object>) userparametersVariable).get(0);
         parameters = ((java.util.List<Object>) userparametersVariable).get(1);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(user, null))) && Helpers.isTrue((!Helpers.isEqual(user, "")))))
@@ -1194,10 +1194,10 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
             Object subAccountNumber = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchOrders", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchOrders", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
+            java.util.List<Object> subAccountNumberparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1418,10 +1418,10 @@ public class DydxCore extends DydxApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
             Object subAccountNumber = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchPositions", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchPositions", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
+            java.util.List<Object> subAccountNumberparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1623,7 +1623,7 @@ public class DydxCore extends DydxApi
         }
         Object orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
-        var subaccountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
+        java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
@@ -1705,7 +1705,7 @@ public class DydxCore extends DydxApi
         Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         Object goodTillBlockTime = null;
         Object goodTillBlockTimeInSeconds = 2592000;
-        var goodTillBlockTimeInSecondsparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+        java.util.List<Object> goodTillBlockTimeInSecondsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
         goodTillBlockTimeInSeconds = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
         parameters = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
         if (Helpers.isTrue(Helpers.isEqual(orderFlag, 0)))
@@ -1939,14 +1939,14 @@ public class DydxCore extends DydxApi
             }
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
             Object goodTillBlockTimeInSeconds = 2592000;
-            var goodTillBlockTimeInSecondsparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
+            java.util.List<Object> goodTillBlockTimeInSecondsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "goodTillBlockTimeInSeconds", goodTillBlockTimeInSeconds);
             goodTillBlockTimeInSeconds = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Object defaultOrderFlags = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 32 : 64;
             Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
-            var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
+            java.util.List<Object> subAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
             subAccountId = ((java.util.List<Object>) subAccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountIdparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "orderFlags", "goodTillBlock", "goodTillBlockTime", "goodTillBlockTimeInSeconds", "subaccountId", "clientId")));
@@ -2054,7 +2054,7 @@ public class DydxCore extends DydxApi
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
             }
             Object subAccountId = 0;
-            var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
+            java.util.List<Object> subAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subAccountId", subAccountId);
             subAccountId = ((java.util.List<Object>) subAccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountIdparametersVariable).get(1);
             Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
@@ -2814,10 +2814,10 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, "methodName");
             Object userAddress = null;
             Object subAccountNumber = null;
-            var userAddressparametersVariable = this.handlePublicAddress(methodName, parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress(methodName, parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            var subAccountNumberparametersVariable = this.handleOptionAndParams(parameters, methodName, "subAccountNumber", "0");
+            java.util.List<Object> subAccountNumberparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "subAccountNumber", "0");
             subAccountNumber = ((java.util.List<Object>) subAccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subAccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -2871,7 +2871,7 @@ public class DydxCore extends DydxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchAccounts", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchAccounts", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
@@ -2961,11 +2961,11 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             Object userAddress = null;
-            var userAddressparametersVariable = this.handlePublicAddress("fetchBalance", parameters);
+            java.util.List<Object> userAddressparametersVariable = (java.util.List<Object>) this.handlePublicAddress("fetchBalance", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object subaccountNumber = null;
-            var subaccountNumberparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
+            java.util.List<Object> subaccountNumberparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "subaccountNumber", 0);
             subaccountNumber = ((java.util.List<Object>) subaccountNumberparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountNumberparametersVariable).get(1);
             final Object finalUserAddress = userAddress;

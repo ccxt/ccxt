@@ -773,9 +773,9 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "fromDateISO", this.iso8601(since));
             }
-            Object until = null;
-            var untilparametersVariable = this.handleParamInteger2(parameters, "until", "till");
-            until = ((java.util.List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleParamInteger2(parameters, "until", "till");
+            until = (Long) ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -917,7 +917,7 @@ public class CexCore extends CexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object dataType = null;
-            var dataTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "dataType");
+            java.util.List<Object> dataTypeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "dataType");
             dataType = ((java.util.List<Object>) dataTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) dataTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(dataType, null)))
@@ -939,9 +939,9 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "fromISO", this.iso8601(since));
             }
-            Object until = null;
-            var untilparametersVariable = this.handleParamInteger2(parameters, "until", "till");
-            until = ((java.util.List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleParamInteger2(parameters, "until", "till");
+            until = (Long) ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1138,13 +1138,13 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object accountName = null;
-            var accountNameparametersVariable = this.handleParamString(parameters, "account", "");
-            accountName = ((java.util.List<Object>) accountNameparametersVariable).get(0);
+            String accountName = null;
+            java.util.List<Object> accountNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "account", "");
+            accountName = (String) ((java.util.List<Object>) accountNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountNameparametersVariable).get(1); // default is empty string
-            Object method = null;
-            var methodparametersVariable = this.handleParamString(parameters, "method", "privatePostGetMyWalletBalance");
-            method = ((java.util.List<Object>) methodparametersVariable).get(0);
+            String method = null;
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "method", "privatePostGetMyWalletBalance");
+            method = (String) ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             Object accountBalance = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostGetMyAccountStatusV3")))
@@ -1261,9 +1261,9 @@ public class CexCore extends CexApi
                 // exchange requires a `since` parameter for closed orders, so set default to allowed 365
                 Helpers.addElementToObject(request, "serverCreateTimestampFrom", Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(364, 24), 60), 60), 1000)));
             }
-            Object until = null;
-            var untilparametersVariable = this.handleParamInteger2(parameters, "until", "till");
-            until = ((java.util.List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleParamInteger2(parameters, "until", "till");
+            until = (Long) ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1551,7 +1551,7 @@ public class CexCore extends CexApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object accountId = null;
-            var accountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "accountId");
+            java.util.List<Object> accountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((java.util.List<Object>) accountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
@@ -1581,7 +1581,7 @@ public class CexCore extends CexApi
                 put( "amountCcy1", CexCore.this.amountToPrecision(symbol, amount) );
             }};
             Object timeInForce = null;
-            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
+            java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce", "GTC");
             timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -1589,9 +1589,9 @@ public class CexCore extends CexApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
             }
-            Object triggerPrice = null;
-            var triggerPriceparametersVariable = this.handleParamString(parameters, "triggerPrice");
-            triggerPrice = ((java.util.List<Object>) triggerPriceparametersVariable).get(0);
+            String triggerPrice = null;
+            java.util.List<Object> triggerPriceparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "triggerPrice");
+            triggerPrice = (String) ((java.util.List<Object>) triggerPriceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) triggerPriceparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -1775,9 +1775,9 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
-            Object until = null;
-            var untilparametersVariable = this.handleParamInteger2(parameters, "until", "till");
-            until = ((java.util.List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleParamInteger2(parameters, "until", "till");
+            until = (Long) ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1893,9 +1893,9 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
-            Object until = null;
-            var untilparametersVariable = this.handleParamInteger2(parameters, "until", "till");
-            until = ((java.util.List<Object>) untilparametersVariable).get(0);
+            Long until = null;
+            java.util.List<Object> untilparametersVariable = (java.util.List<Object>) this.handleParamInteger2(parameters, "until", "till");
+            until = (Long) ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2147,7 +2147,7 @@ public class CexCore extends CexApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object accountId = null;
-            var accountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "accountId");
+            java.util.List<Object> accountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "accountId");
             accountId = ((java.util.List<Object>) accountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountIdparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(accountId, null)))
@@ -2158,9 +2158,9 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object currency = this.currency(code);
             final Object finalAccountId = accountId;

@@ -576,7 +576,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 (this.loadMarkets()).join();
             }
             Object verbose = false;
-            var verboseparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
+            java.util.List<Object> verboseparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "verbose", false);
             verbose = ((java.util.List<Object>) verboseparametersVariable).get(0);
             parameters = ((java.util.List<Object>) verboseparametersVariable).get(1);
             Object name = "open_orders";
@@ -674,7 +674,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object name = "balances";
             Object messageHash = name;
             Object account = null;
-            var accountparametersVariable = this.handleOptionAndParams(parameters, "watchBalance", "account");
+            java.util.List<Object> accountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBalance", "account");
             account = ((java.util.List<Object>) accountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) accountparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(account, null)))

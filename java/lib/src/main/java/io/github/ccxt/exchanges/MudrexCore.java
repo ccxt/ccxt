@@ -763,7 +763,7 @@ public class MudrexCore extends MudrexApi
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters, "swap");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             String requested = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_currency", "tradeCurrency", "currency")));
@@ -1708,7 +1708,7 @@ public class MudrexCore extends MudrexApi
                 market = this.market(symbol);
             }
             Object maxCalls = null;
-            var maxCallsparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
+            java.util.List<Object> maxCallsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginationCalls", 10);
             maxCalls = ((java.util.List<Object>) maxCallsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxCallsparametersVariable).get(1);
             Object pageSize = 0;

@@ -283,7 +283,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters, "spot");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters, "spot");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
@@ -492,7 +492,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters, "spot");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
@@ -781,7 +781,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 ((java.util.List<Object>)messageHashes).add("tickers");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
@@ -857,9 +857,9 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object subscribedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object market = null;
-            Object callerMethodName = null;
-            var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
-            callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
+            String callerMethodName = null;
+            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
+            callerMethodName = (String) ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             Object symbolsDefined = (!Helpers.isEqual(symbols, null));
             if (Helpers.isTrue(symbolsDefined))
@@ -876,7 +876,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 ((java.util.List<Object>)messageHashes).add("trades");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
@@ -924,9 +924,9 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object market = null;
             Object type = null;
-            Object callerMethodName = null;
-            var callerMethodNameparametersVariable = this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
-            callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
+            String callerMethodName = null;
+            java.util.List<Object> callerMethodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
+            callerMethodName = (String) ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object limits = this.safeList(options, "limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -958,7 +958,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook:", Helpers.GetValue(market, "symbol")));
                 Helpers.addElementToObject(watchOrderBookSubscriptions, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, aggregation, true)));
             }
-            var typeparametersVariable = this.handleMarketTypeAndParams(callerMethodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
@@ -1123,7 +1123,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters, "spot");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             (this.authenticate(type)).join();
@@ -1498,7 +1498,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 ((java.util.List<Object>)messageHashes).add("bidsasks");
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);

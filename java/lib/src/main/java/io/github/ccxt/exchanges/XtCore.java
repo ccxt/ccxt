@@ -1921,7 +1921,7 @@ public class XtCore extends XtApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2288,10 +2288,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTickers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -2398,10 +2398,10 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchBidsAsks", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));
@@ -2696,10 +2696,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMyTrades", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
@@ -2718,7 +2718,7 @@ public class XtCore extends XtApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
@@ -3008,10 +3008,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isContractWallet = (Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future"))));
@@ -3250,7 +3250,7 @@ public class XtCore extends XtApi
             }};
             Object timeInForce = null;
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
@@ -3293,9 +3293,9 @@ public class XtCore extends XtApi
                 timeInForce = this.safeStringUpper(parameters, "timeInForce", "GTC");
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object postOnly = null;
-            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = null;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
@@ -3343,9 +3343,9 @@ public class XtCore extends XtApi
                 put( "origQty", XtCore.this.amountToPrecision(symbol, amount) );
             }};
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
-            Object postOnly = null;
-            var postOnlyparametersVariable = this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
-            postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+            Boolean postOnly = null;
+            java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(Helpers.isEqual(type, "market"), Helpers.isEqual(timeInForce, "GTX"), parameters);
+            postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
             parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
@@ -3397,7 +3397,7 @@ public class XtCore extends XtApi
                 Helpers.addElementToObject(request, "orderSide", ((String)side).toUpperCase());
                 Helpers.addElementToObject(request, "triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters, "cross");
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters, "cross");
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Helpers.addElementToObject(request, "positionType", ((Helpers.isTrue((Helpers.isEqual(marginMode, "isolated"))))) ? "ISOLATED" : "CROSSED");
@@ -3517,10 +3517,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrder", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrder", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
@@ -3757,10 +3757,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
@@ -3802,7 +3802,7 @@ public class XtCore extends XtApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
@@ -3957,10 +3957,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
@@ -4073,7 +4073,7 @@ public class XtCore extends XtApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
@@ -4429,10 +4429,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrder", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
@@ -4564,10 +4564,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object trigger = this.safeBool2(parameters, "trigger", "stop");
@@ -4620,7 +4620,7 @@ public class XtCore extends XtApi
             } else
             {
                 Object marginMode = null;
-                var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
+                java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
                 Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
@@ -4681,7 +4681,7 @@ public class XtCore extends XtApi
                 market = this.market(symbol);
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("cancelOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(subType, null)))
@@ -4970,10 +4970,10 @@ public class XtCore extends XtApi
             Object type = null;
             Object subType = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchLedger", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -5094,9 +5094,9 @@ public class XtCore extends XtApi
             {
                 (this.loadMarkets()).join();
             }
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object currency = this.currency(code);
             Object networkId = this.networkCodeToId(networkCode, code);
@@ -5314,12 +5314,12 @@ public class XtCore extends XtApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            Object networkCode = null;
-            var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
-            networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
+            String networkCode = null;
+            java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
+            networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
             Object networkIdsByCodes = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             String networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
@@ -5487,7 +5487,7 @@ public class XtCore extends XtApi
                 put( "leverage", finalLeverage );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("setLeverage", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("setLeverage", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5577,7 +5577,7 @@ public class XtCore extends XtApi
                 put( "positionSide", positionSide );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("modifyMarginHelper", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5639,7 +5639,7 @@ public class XtCore extends XtApi
                 (this.loadMarkets()).join();
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5747,7 +5747,7 @@ public class XtCore extends XtApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5859,7 +5859,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -5882,7 +5882,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "limit", 200); // max
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -5984,7 +5984,7 @@ final Object finalMarket = market;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRate", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRate", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -6081,7 +6081,7 @@ final Object finalMarket = market;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -6158,7 +6158,7 @@ final Object finalMarket = market;
                 throw new NotSupported((String)Helpers.add(this.id, " fetchTradingFee() supports contract markets only")) ;
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -6214,7 +6214,7 @@ final Object finalMarket = market;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTradingFees", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object isInverse = (Helpers.isEqual(subType, "inverse"));
@@ -6302,7 +6302,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -6445,7 +6445,7 @@ final Object finalMarket = market;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPosition", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -6544,7 +6544,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositions", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -6660,11 +6660,11 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -6937,7 +6937,7 @@ final Object finalMarket = market;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("setMarginMode", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("setMarginMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -7027,7 +7027,7 @@ final Object finalMarket = market;
                     Helpers.addElementToObject(request, "origQty", this.amountToPrecision(symbol, amount));
                 }
                 Object subType = null;
-                var subTypeparametersVariable = this.handleSubTypeAndParams("editOrder", market, parameters);
+                java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("editOrder", market, parameters);
                 subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))

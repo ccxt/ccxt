@@ -466,15 +466,15 @@ public class NadoCore extends NadoApi
                 amountX18 = Precise.stringMul(amountX18, "-1");
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object expiration = null;
-            var expirationparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
+            java.util.List<Object> expirationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "expiration", "4294967295");
             expiration = ((java.util.List<Object>) expirationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) expirationparametersVariable).get(1);
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -512,7 +512,7 @@ public class NadoCore extends NadoApi
             if (Helpers.isTrue(isStopOrder))
             {
                 Object triggerDirection = null;
-                var triggerDirectionparametersVariable = this.handleTriggerDirectionAndParams(parameters);
+                java.util.List<Object> triggerDirectionparametersVariable = (java.util.List<Object>) this.handleTriggerDirectionAndParams(parameters);
                 triggerDirection = ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
                 Object directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
@@ -675,15 +675,15 @@ public class NadoCore extends NadoApi
             }
             Object editOrderOptions = this.safeDict(this.options, "editOrder", new java.util.HashMap<String, Object>() {{}});
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object expiration = null;
-            var expirationparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "expiration", "4294967295");
+            java.util.List<Object> expirationparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "expiration", "4294967295");
             expiration = ((java.util.List<Object>) expirationparametersVariable).get(0);
             parameters = ((java.util.List<Object>) expirationparametersVariable).get(1);
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrder", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
@@ -851,12 +851,12 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrders", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -964,7 +964,7 @@ public class NadoCore extends NadoApi
             Object market = this.market(symbol);
             Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -974,7 +974,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)productIds).add(productId);
             }
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrders", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
@@ -1104,7 +1104,7 @@ public class NadoCore extends NadoApi
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1115,7 +1115,7 @@ public class NadoCore extends NadoApi
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOrders only support trigger")) ;
             }
             Object recvWindow = null;
-            var recvWindowparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
+            java.util.List<Object> recvWindowparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "recvWindow", 5000);
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             final Object finalRecvWindow = recvWindow;
@@ -1203,7 +1203,7 @@ public class NadoCore extends NadoApi
             }
             (this.loadMarkets()).join();
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1296,7 +1296,7 @@ public class NadoCore extends NadoApi
                 market = this.market(symbol);
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
@@ -1314,7 +1314,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(ordersRequest, "product_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.GetValue(market, "id")))));
             }
-            var ordersRequestparametersVariable = this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
+            java.util.List<Object> ordersRequestparametersVariable = (java.util.List<Object>) this.handleUntilOption("max_time", ordersRequest, parameters, 0.001);
             ordersRequest = ((java.util.List<Object>) ordersRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) ordersRequestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1451,7 +1451,7 @@ public class NadoCore extends NadoApi
                 market = this.market(symbol);
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
@@ -1462,7 +1462,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(matchesRequest, "product_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.GetValue(market, "id")))));
             }
-            var matchesRequestparametersVariable = this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
+            java.util.List<Object> matchesRequestparametersVariable = (java.util.List<Object>) this.handleUntilOption("max_time", matchesRequest, parameters, 0.001);
             matchesRequest = ((java.util.List<Object>) matchesRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) matchesRequestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1539,7 +1539,7 @@ public class NadoCore extends NadoApi
             }
             (this.loadMarkets()).join();
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalance", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
@@ -1647,7 +1647,7 @@ public class NadoCore extends NadoApi
                 currency = this.currency(code);
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, methodName, "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
@@ -1663,7 +1663,7 @@ public class NadoCore extends NadoApi
             {
                 Helpers.addElementToObject(eventsRequest, "product_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.GetValue(currency, "id")))));
             }
-            var eventsRequestparametersVariable = this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
+            java.util.List<Object> eventsRequestparametersVariable = (java.util.List<Object>) this.handleUntilOption("max_time", eventsRequest, parameters, 0.001);
             eventsRequest = ((java.util.List<Object>) eventsRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) eventsRequestparametersVariable).get(1);
             final Object finalEventsRequest = eventsRequest;
@@ -1755,7 +1755,7 @@ public class NadoCore extends NadoApi
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;
@@ -2272,7 +2272,7 @@ public class NadoCore extends NadoApi
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
             }
             Object subaccount = null;
-            var subaccountparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
+            java.util.List<Object> subaccountparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             final Object finalSubaccount = subaccount;

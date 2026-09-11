@@ -1478,7 +1478,7 @@ public class AsterCore extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTime", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTime", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -1565,7 +1565,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1500));
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
@@ -1804,7 +1804,7 @@ public class AsterCore extends AsterApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1815,7 +1815,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -2101,7 +2101,7 @@ public class AsterCore extends AsterApi
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -2170,7 +2170,7 @@ public class AsterCore extends AsterApi
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -2260,7 +2260,7 @@ public class AsterCore extends AsterApi
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -2518,7 +2518,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.fapiPublicGetV3FundingRate(this.extend(request, parameters))).join();
@@ -2575,7 +2575,7 @@ public class AsterCore extends AsterApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object response = null;
@@ -3099,7 +3099,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -3188,11 +3188,11 @@ public class AsterCore extends AsterApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object subType = null;
-            var subTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
+            java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object response = null;
@@ -3590,7 +3590,7 @@ public class AsterCore extends AsterApi
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(timeInForceIsRequired) && Helpers.isTrue((Helpers.isEqual(this.safeString(parameters, "timeInForce"), null)))) && Helpers.isTrue((Helpers.isEqual(this.safeString(request, "timeInForce"), null)))))
         {
             Object tif = null;
-            var tifparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
+            java.util.List<Object> tifparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "timeInForce");
             tif = ((java.util.List<Object>) tifparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tifparametersVariable).get(1);
             Helpers.addElementToObject(request, "timeInForce", tif);
@@ -4221,7 +4221,7 @@ public class AsterCore extends AsterApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4648,7 +4648,7 @@ public class AsterCore extends AsterApi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object defaultMethod = null;
-            var defaultMethodparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "method");
+            java.util.List<Object> defaultMethodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositions", "method");
             defaultMethod = ((java.util.List<Object>) defaultMethodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) defaultMethodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(defaultMethod, null)))
@@ -4952,7 +4952,7 @@ public class AsterCore extends AsterApi
             (this.loadLeverageBrackets(false, parameters)).join();
             Object response = (this.fapiPrivateGetV4Account(parameters)).join();
             Object filterClosed = null;
-            var filterClosedparametersVariable = this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
+            java.util.List<Object> filterClosedparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchAccountPositions", "filterClosed", false);
             filterClosed = ((java.util.List<Object>) filterClosedparametersVariable).get(0);
             parameters = ((java.util.List<Object>) filterClosedparametersVariable).get(1);
             Object result = this.parseAccountPositions(response, filterClosed);
@@ -5105,7 +5105,7 @@ public class AsterCore extends AsterApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);

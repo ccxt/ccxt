@@ -202,11 +202,11 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers requires a symbols argument")) ;
             }
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "v1.ticker.s");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object interval = 500;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
+            java.util.List<Object> intervalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -651,7 +651,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object isSnapshot = Helpers.isEqual(channel, "v1.book.s");
@@ -662,12 +662,12 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
-                var limitparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
+                java.util.List<Object> limitparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "limit", 100);
                 limit = ((java.util.List<Object>) limitparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) limitparametersVariable).get(1);
             }
             Object interval = 500;
-            var intervalparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
+            java.util.List<Object> intervalparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "interval", interval);
             interval = ((java.util.List<Object>) intervalparametersVariable).get(0);
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);

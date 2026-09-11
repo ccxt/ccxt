@@ -1801,7 +1801,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1819,7 +1819,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "start_t", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters, 0.001);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
@@ -1926,7 +1926,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3047,7 +3047,7 @@ public class WoofiproCore extends WoofiproApi
             Object paginate = false;
             Object isTrigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 100 : 500;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3077,7 +3077,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "algo_type", "STOP");
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -3294,7 +3294,7 @@ public class WoofiproCore extends WoofiproApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3319,7 +3319,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "size", 500);
             }
-            var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();

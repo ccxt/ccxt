@@ -248,7 +248,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 market = this.market(firstSymbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -460,7 +460,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "watchBidsAsks() markets is required");
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isSpot = Helpers.isEqual(marketType, "spot");
@@ -868,7 +868,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Object frequency = null;
-                var frequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+                java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
                 frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), Helpers.GetValue(market, "id"));
@@ -1251,7 +1251,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object trades = null;
@@ -1464,7 +1464,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchOrders", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object orders = null;
@@ -1774,7 +1774,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 (this.loadMarkets()).join();
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchBalance", null, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object messageHash = Helpers.add("balance:", type);
@@ -2016,7 +2016,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 market = this.market(firstSymbol);
             }
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchTickers", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isSpot = (Helpers.isEqual(type, "spot"));
@@ -2065,7 +2065,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks required symbols argument")) ;
             }
             Object markets = this.requireValue(this.marketsForSymbols(symbols), "unWatchBidsAsks() markets is required");
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBidsAsks", Helpers.GetValue(markets, 0), parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isSpot = Helpers.isEqual(marketType, "spot");
@@ -2174,7 +2174,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
                 Object frequency = null;
-                var frequencyparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
+                java.util.List<Object> frequencyparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "frequency", "100ms");
                 frequency = ((java.util.List<Object>) frequencyparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) frequencyparametersVariable).get(1);
                 Object channel = Helpers.add(Helpers.add(Helpers.add("spot@public.aggre.depth.v3.api.pb@", frequency), "@"), Helpers.GetValue(market, "id"));

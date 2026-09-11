@@ -252,7 +252,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -316,7 +316,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTrades", "channel", "trades");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -561,7 +561,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTicker", "channel", "tickers");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTicker", "channel", "tickers");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Helpers.addElementToObject(parameters, "channel", channel);
@@ -617,7 +617,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object newTickers = (this.subscribeMultiple("public", channel, symbols, parameters)).join();
@@ -647,7 +647,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrice", "channel", "mark-price");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Helpers.addElementToObject(parameters, "channel", channel);
@@ -682,7 +682,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMarkPrices", "channel", "mark-price");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object newTickers = (this.subscribeMultiple("public", channel, symbols, parameters)).join();
@@ -718,7 +718,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTickers", "channel", "tickers");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -812,7 +812,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object channel = null;
-            var channelparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
+            java.util.List<Object> channelparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchBidsAsks", "channel", "tickers");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object url = this.getUrl(channel, "public");
@@ -942,7 +942,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object market = this.getMarketFromSymbols(symbols);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchLiquidationsForSymbols", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object channel = "liquidation-orders";
@@ -1518,7 +1518,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols);
             Object depth = null;
-            var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1595,7 +1595,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object depth = null;
-            var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
+            java.util.List<Object> depthparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
             Long limit = this.safeInteger(parameters, "limit");
@@ -2110,7 +2110,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
-            var typeparametersVariable = this.handleOptionAndParams(parameters, "watchMyTrades", "type", "ANY");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchMyTrades", "type", "ANY");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -2143,7 +2143,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchMyTrades", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchMyTrades", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "SPOT")))
@@ -2352,7 +2352,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object type = null;
             // By default, receive order updates from any instrument type
-            var typeparametersVariable = this.handleOptionAndParams(parameters, "watchOrders", "type", "ANY");
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrders", "type", "ANY");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isTrigger = this.safeValue2(parameters, "stop", "trigger", false);
@@ -2382,7 +2382,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object uppercaseType = ((String)type).toUpperCase();
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("watchOrders", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("watchOrders", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "SPOT")))
@@ -2637,7 +2637,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object url = this.getUrl("private", "private");
             Object messageHash = this.requestId();
             Object op = null;
-            var opparametersVariable = this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
+            java.util.List<Object> opparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrderWs", "op", "batch-orders");
             op = ((java.util.List<Object>) opparametersVariable).get(0);
             parameters = ((java.util.List<Object>) opparametersVariable).get(1);
             Object args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
@@ -2735,7 +2735,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object url = this.getUrl("private", "private");
             Object messageHash = this.requestId();
             Object op = null;
-            var opparametersVariable = this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
+            java.util.List<Object> opparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "editOrderWs", "op", "amend-order");
             op = ((java.util.List<Object>) opparametersVariable).get(0);
             parameters = ((java.util.List<Object>) opparametersVariable).get(1);
             Object args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);

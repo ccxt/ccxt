@@ -3191,11 +3191,11 @@ public class OkxCore extends OkxApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             Object rpi = false;
-            var rpiparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
+            java.util.List<Object> rpiparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "rpi");
             rpi = ((java.util.List<Object>) rpiparametersVariable).get(0);
             parameters = ((java.util.List<Object>) rpiparametersVariable).get(1);
             Object method = null;
-            var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
+            java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBook", "method", "publicGetMarketBooks");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "publicGetMarketBooksFull")) && Helpers.isTrue(Helpers.isEqual(limit, null))))
@@ -3414,7 +3414,7 @@ public class OkxCore extends OkxApi
             symbols = this.marketSymbols(symbols);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchTickers", market, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
@@ -3533,7 +3533,7 @@ public class OkxCore extends OkxApi
             symbols = this.marketSymbols(symbols);
             Object market = this.getMarketFromSymbols(symbols);
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMarkPrices", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             final Object finalMarketType = marketType;
@@ -3687,7 +3687,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3709,7 +3709,7 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(request, "limit", limit); // default 100
                 }
                 Object method = null;
-                var methodparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
+                java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "method", "publicGetMarketTrades");
                 method = ((java.util.List<Object>) methodparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
                 if (Helpers.isTrue(Helpers.isEqual(method, "publicGetMarketTrades")))
@@ -3819,7 +3819,7 @@ public class OkxCore extends OkxApi
             }
             Object market = this.market(symbol);
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3962,7 +3962,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4201,7 +4201,7 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchBalance", null, parameters);
+            java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{}};
@@ -4465,7 +4465,7 @@ public class OkxCore extends OkxApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 Object positionSide = null;
-                var positionSideparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "positionSide");
+                java.util.List<Object> positionSideparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "positionSide");
                 positionSide = ((java.util.List<Object>) positionSideparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) positionSideparametersVariable).get(1);
                 if (Helpers.isTrue(!Helpers.isEqual(positionSide, null)))
@@ -4474,7 +4474,7 @@ public class OkxCore extends OkxApi
                 } else
                 {
                     Object hedged = null;
-                    var hedgedparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "hedged");
+                    java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "hedged");
                     hedged = ((java.util.List<Object>) hedgedparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) hedgedparametersVariable).get(1);
                     if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
@@ -4500,9 +4500,9 @@ public class OkxCore extends OkxApi
             Helpers.addElementToObject(request, "tdMode", marginMode);
         }
         Object isMarketOrder = Helpers.isEqual(type, "market");
-        Object postOnly = false;
-        var postOnlyparametersVariable = this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "post_only"), parameters);
-        postOnly = ((java.util.List<Object>) postOnlyparametersVariable).get(0);
+        Boolean postOnly = false;
+        java.util.List<Object> postOnlyparametersVariable = (java.util.List<Object>) this.handlePostOnly(isMarketOrder, Helpers.isEqual(type, "post_only"), parameters);
+        postOnly = (Boolean) ((java.util.List<Object>) postOnlyparametersVariable).get(0);
         parameters = ((java.util.List<Object>) postOnlyparametersVariable).get(1);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("currency", "ccy", "marginMode", "timeInForce", "stopPrice", "triggerPrice", "clientOrderId", "stopLossPrice", "takeProfitPrice", "slOrdPx", "tpOrdPx", "margin", "stopLoss", "takeProfit", "trailingPercent")));
         Object ioc = Helpers.isTrue((Helpers.isEqual(timeInForce, "IOC"))) || Helpers.isTrue((Helpers.isEqual(type, "ioc")));
@@ -4526,7 +4526,7 @@ public class OkxCore extends OkxApi
                 {
                     // quote_ccy: sz refers to units of quote currency
                     Object createMarketBuyOrderRequiresPrice = true;
-                    var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
+                    java.util.List<Object> createMarketBuyOrderRequiresPriceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
                     Object notional = this.safeNumber2(parameters, "cost", "sz");
@@ -6009,7 +6009,7 @@ public class OkxCore extends OkxApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -6195,7 +6195,7 @@ public class OkxCore extends OkxApi
             }
             Object type = null;
             Object query = null;
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchCanceledOrders", market, parameters);
             type = ((java.util.List<Object>) typequeryVariable).get(0);
             query = ((java.util.List<Object>) typequeryVariable).get(1);
             Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(type));
@@ -6394,7 +6394,7 @@ public class OkxCore extends OkxApi
             }
             Object maxLimit = 100;
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchClosedOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -6410,7 +6410,7 @@ public class OkxCore extends OkxApi
             }
             Object type = null;
             Object query = null;
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             type = ((java.util.List<Object>) typequeryVariable).get(0);
             query = ((java.util.List<Object>) typequeryVariable).get(1);
             Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(type));
@@ -6593,7 +6593,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -6611,10 +6611,10 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "begin", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             Helpers.addElementToObject(request, "instType", this.convertToInstrumentType(type));
@@ -6713,7 +6713,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchLedger", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -6726,7 +6726,7 @@ public class OkxCore extends OkxApi
             parameters = this.omit(parameters, "method");
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLedger", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLedger", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -6740,7 +6740,7 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(request, "mgnMode", marginMode);
                 }
             }
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchLedger", null, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -6757,7 +6757,7 @@ public class OkxCore extends OkxApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
-            var requestparametersVariable = this.handleUntilOption("end", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = null;
@@ -7141,7 +7141,7 @@ public class OkxCore extends OkxApi
             Object address = address3;
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            var tagparametersVariable = this.handleWithdrawTagAndParams(tag, parameters);
+            java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
@@ -7232,7 +7232,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -7254,7 +7254,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
@@ -7367,7 +7367,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -7389,7 +7389,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetAssetWithdrawalHistory(this.extend(request, parameters))).join();
@@ -7679,7 +7679,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchLeverage", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -7776,7 +7776,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchPosition", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchPosition", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -8815,7 +8815,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            var typequeryVariable = this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
+            java.util.List<Object> typequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchFundingHistory", market, parameters);
             var type = ((java.util.List<Object>) typequeryVariable).get(0);
             var query = ((java.util.List<Object>) typequeryVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
@@ -8920,7 +8920,7 @@ public class OkxCore extends OkxApi
             }
             Object market = this.market(symbol);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -9591,7 +9591,7 @@ public class OkxCore extends OkxApi
                 }
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMarketLeverageTiers", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -9713,7 +9713,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -10009,7 +10009,7 @@ public class OkxCore extends OkxApi
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenInterests", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object instType = "SWAP";
@@ -10114,7 +10114,7 @@ public class OkxCore extends OkxApi
             }};
             Object type = null;
             Object response = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
@@ -10418,7 +10418,7 @@ public class OkxCore extends OkxApi
             }
             Object market = this.market(symbol);
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchSettlementHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(type, "future")) && Helpers.isTrue(!Helpers.isEqual(type, "option"))))
@@ -10536,7 +10536,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object marketType = null;
-            var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
+            java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchUnderlyingAssets", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, null))) || Helpers.isTrue((Helpers.isEqual(marketType, "spot")))))
@@ -10822,7 +10822,7 @@ public class OkxCore extends OkxApi
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String code = this.safeString(parameters, "code");
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("closePosition", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
@@ -11261,7 +11261,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            var requestparametersVariable = this.handleUntilOption("after", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("after", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))

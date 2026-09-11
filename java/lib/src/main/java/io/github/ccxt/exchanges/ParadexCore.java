@@ -1606,7 +1606,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -1625,7 +1625,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
@@ -2856,7 +2856,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrders", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -2878,7 +2878,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "page_size", limit);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetOrdersHistory(this.extend(request, parameters))).join();
@@ -3086,7 +3086,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3108,7 +3108,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetFills(this.extend(request, parameters))).join();
@@ -3329,7 +3329,7 @@ public class ParadexCore extends ParadexApi
             {
                 market = this.market(symbol);
             }
-            var requestparametersVariable = this.handleUntilOption("to", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("to", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetLiquidations(this.extend(request, parameters))).join();
@@ -3401,7 +3401,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchDeposits", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3417,7 +3417,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -3485,7 +3485,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchWithdrawals", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3501,7 +3501,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -3569,7 +3569,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -3590,7 +3590,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetTransfers(this.extend(request, parameters))).join();
@@ -3819,7 +3819,7 @@ public class ParadexCore extends ParadexApi
             }
             Object market = this.market(symbol);
             Object leverage = 1;
-            var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
+            java.util.List<Object> leverageparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
             parameters = ((java.util.List<Object>) leverageparametersVariable).get(1);
             final Object finalLeverage = leverage;
@@ -3927,7 +3927,7 @@ public class ParadexCore extends ParadexApi
             }
             Object market = this.market(symbol);
             Object marginMode = null;
-            var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
+            java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             final Object finalMarginMode = marginMode;
@@ -4167,7 +4167,7 @@ public class ParadexCore extends ParadexApi
                 (this.loadMarkets()).join();
             }
             Object paginate = false;
-            var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
+            java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
@@ -4189,7 +4189,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            var requestparametersVariable = this.handleUntilOption("end_at", request, parameters);
+            java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end_at", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object response = (this.privateGetFundingPayments(this.extend(request, parameters))).join();
