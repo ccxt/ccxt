@@ -18,8 +18,7 @@ import { sha256 } from '@noble/hashes/sha2.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import Exchange from '../abstract/prediction/limitless.js';
-import type {
-    int,
+import type { int,
     Int, Str, Num, Dict, List,
     Strings,
     Market, PredictionOrderBook, OHLCV,
@@ -1231,7 +1230,7 @@ export default class limitless extends Exchange {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min (limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents (this.extend (request, params));
         //
@@ -2649,9 +2648,9 @@ export default class limitless extends Exchange {
         if (rawSide.indexOf ('limit') >= 0) {
             type = 'limit';
             takerOrMaker = 'maker';
-        if (rawSide === undefined) {
-            throw new ExchangeError (this.id + ' method() missing rawSide');
-        }
+            if (rawSide === undefined) {
+                throw new ExchangeError (this.id + ' method() missing rawSide');
+            }
         } else if (rawSide.indexOf ('market') >= 0) {
             type = 'market';
             takerOrMaker = 'taker';
